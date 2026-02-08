@@ -1,18 +1,25 @@
 #!/bin/bash
 
 # ═══════════════════════════════════════════════════════════════
-# FORMAÇÃO Δ-11 — Disparar Agentes
+# FORMACAO D-11 — Disparar Agentes
 # ═══════════════════════════════════════════════════════════════
 #
-# Este script lê os prompts de ativação que o ATLAS gerou
-# e abre uma janela do Claude Code para cada agente,
-# direto no VS Code, com o prompt já colado e rodando.
+# Este script le os prompts de ativacao gerados pelos agentes
+# e abre uma nova aba do Claude Code no VS Code para cada agente,
+# com o prompt ja colado e enviado automaticamente.
 #
 # Como usar:
-#   ./disparar.sh
+#   ./disparar.sh              # Dispara TODOS os agentes pendentes
+#   ./disparar.sh VAULT        # Dispara apenas o agente VAULT
+#   ./disparar.sh --list       # Lista agentes disponiveis sem disparar
 #
-# O ATLAS salva os prompts em .delta-11/ativacoes/
-# Este script lê cada arquivo e dispara um Claude Code por agente.
+# Os prompts ficam em .delta-11/ativacoes/*.txt
+# Cada arquivo e lido, copiado para o clipboard, e colado
+# em uma nova aba do Claude Code via AppleScript + VS Code.
+#
+# REQUER: macOS com VS Code e extensao Claude Code instalada.
+# REQUER: Permissao de Acessibilidade para Terminal em:
+#   System Settings > Privacy & Security > Accessibility
 #
 # ═══════════════════════════════════════════════════════════════
 
@@ -29,45 +36,71 @@ ATIVACOES_DIR=".delta-11/ativacoes"
 
 echo ""
 echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
-echo -e "${BOLD}  FORMAÇÃO Δ-11 — Disparando Agentes${NC}"
+echo -e "${BOLD}  FORMACAO D-11 — Disparando Agentes${NC}"
 echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
 echo ""
 
-# Verificar se a pasta de ativações existe
+# Verificar se a pasta de ativacoes existe
 if [ ! -d "$ATIVACOES_DIR" ]; then
-    echo -e "${RED}✗ Pasta $ATIVACOES_DIR não encontrada.${NC}"
+    echo -e "${RED}x Pasta $ATIVACOES_DIR nao encontrada.${NC}"
     echo ""
-    echo "  O ATLAS ainda não gerou os prompts de ativação."
+    echo "  O ATLAS ainda nao gerou os prompts de ativacao."
     echo "  Primeiro, abra o Claude Code e inicie com: d11"
-    echo "  Quando o ATLAS terminar o planejamento (Fase 2),"
-    echo "  ele vai criar os arquivos de ativação automaticamente."
+    echo "  Quando o ATLAS terminar o planejamento,"
+    echo "  ele vai criar os arquivos de ativacao automaticamente."
     echo "  Depois, rode este script."
     echo ""
     exit 1
 fi
 
-# Contar arquivos de ativação
-ARQUIVOS=($(ls "$ATIVACOES_DIR"/*.txt 2>/dev/null))
+# Filtro por agente especifico
+FILTRO=""
+if [ "$1" == "--list" ]; then
+    MODO_LISTA=true
+elif [ -n "$1" ]; then
+    FILTRO="$1"
+fi
+
+# Contar arquivos de ativacao
+if [ -n "$FILTRO" ]; then
+    ARQUIVOS=($(ls "$ATIVACOES_DIR"/*"$FILTRO"*.txt 2>/dev/null || true))
+else
+    ARQUIVOS=($(ls "$ATIVACOES_DIR"/*.txt 2>/dev/null || true))
+fi
 
 if [ ${#ARQUIVOS[@]} -eq 0 ]; then
-    echo -e "${RED}✗ Nenhum arquivo de ativação encontrado em $ATIVACOES_DIR${NC}"
-    echo ""
-    echo "  O ATLAS precisa gerar os prompts primeiro."
-    echo "  Os arquivos devem estar em: $ATIVACOES_DIR/*.txt"
+    echo -e "${RED}x Nenhum arquivo de ativacao encontrado${NC}"
+    if [ -n "$FILTRO" ]; then
+        echo "  Filtro usado: $FILTRO"
+        echo "  Arquivos disponiveis:"
+        ls "$ATIVACOES_DIR"/*.txt 2>/dev/null | while read f; do
+            echo "    - $(basename "$f" .txt)"
+        done
+    fi
     echo ""
     exit 1
 fi
 
-echo -e "  Encontrados ${BOLD}${#ARQUIVOS[@]} agentes${NC} para ativar:"
+echo -e "  Encontrados ${BOLD}${#ARQUIVOS[@]} agente(s)${NC} para ativar:"
 echo ""
 
 for arquivo in "${ARQUIVOS[@]}"; do
     nome=$(basename "$arquivo" .txt)
-    echo -e "    • ${CYAN}${nome}${NC}"
+    tamanho=$(wc -c < "$arquivo" | tr -d ' ')
+    echo -e "    > ${CYAN}${nome}${NC} (${tamanho} bytes)"
 done
 
 echo ""
-read -p "  Disparar todos agora? (s/n): " CONFIRMA
+
+# Modo lista: so mostra e sai
+if [ "$MODO_LISTA" = true ]; then
+    echo "  Use ./disparar.sh para disparar todos."
+    echo "  Use ./disparar.sh NOME para disparar um especifico."
+    echo ""
+    exit 0
+fi
+
+read -p "  Disparar agora? (s/n): " CONFIRMA
 
 if [[ "$CONFIRMA" != "s" && "$CONFIRMA" != "S" ]]; then
     echo "  Abortado."
@@ -76,38 +109,87 @@ fi
 
 echo ""
 
-PROJECT_DIR="$(pwd)"
+# ═══════════════════════════════════════════════════════════════
+# FUNCAO PRINCIPAL: Disparar um agente no VS Code
+# ═══════════════════════════════════════════════════════════════
+#
+# Tecnica: AppleScript controla o VS Code via System Events
+# 1. Copia o prompt para o clipboard (pbcopy)
+# 2. Ativa o VS Code
+# 3. Abre Command Palette (Cmd+Shift+P)
+# 4. Digita "Claude Code: Open in New Tab"
+# 5. Pressiona Enter
+# 6. Aguarda a aba abrir
+# 7. Cola o prompt (Cmd+V)
+# 8. Pressiona Enter para enviar
+#
+# ═══════════════════════════════════════════════════════════════
+
+disparar_agente() {
+    local arquivo="$1"
+    local nome="$2"
+
+    # Copiar prompt para clipboard
+    cat "$arquivo" | pbcopy
+
+    # Executar sequencia AppleScript
+    osascript << 'APPLESCRIPT'
+tell application "Visual Studio Code"
+    activate
+end tell
+
+delay 1
+
+tell application "System Events"
+    tell process "Code"
+        -- Abrir Command Palette: Cmd+Shift+P
+        keystroke "p" using {command down, shift down}
+        delay 0.5
+
+        -- Digitar o comando
+        keystroke "Claude Code: Open in New Tab"
+        delay 1
+
+        -- Pressionar Enter para executar
+        keystroke return
+        delay 3
+
+        -- Colar o prompt do clipboard (Cmd+V)
+        keystroke "v" using {command down}
+        delay 0.5
+
+        -- Pressionar Enter para enviar
+        keystroke return
+    end tell
+end tell
+APPLESCRIPT
+}
+
 CONTADOR=0
 
 for arquivo in "${ARQUIVOS[@]}"; do
     nome=$(basename "$arquivo" .txt)
-    PROMPT=$(cat "$arquivo")
     CONTADOR=$((CONTADOR + 1))
 
     echo -e "  ${YELLOW}[$CONTADOR/${#ARQUIVOS[@]}]${NC} Ativando ${BOLD}${nome}${NC}..."
 
-    # Abre uma nova aba do Terminal do macOS e roda o Claude Code
-    # com o prompt do agente, dentro da pasta do projeto
-    osascript <<EOF
-tell application "Terminal"
-    activate
-    do script "cd \"$PROJECT_DIR\" && claude \"$PROMPT\""
-end tell
-EOF
+    disparar_agente "$arquivo" "$nome"
 
-    # Pequena pausa entre ativações para não sobrecarregar
-    sleep 2
+    if [ $CONTADOR -lt ${#ARQUIVOS[@]} ]; then
+        echo -e "  ${CYAN}Aguardando 5s antes do proximo agente...${NC}"
+        sleep 5
+    fi
 done
 
 echo ""
 echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
-echo -e "${GREEN}${BOLD}  ✓ ${CONTADOR} agentes disparados${NC}"
+echo -e "${GREEN}${BOLD}  OK ${CONTADOR} agente(s) disparado(s) com sucesso${NC}"
 echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
 echo ""
-echo -e "  Cada agente está rodando em uma aba do Terminal."
-echo -e "  Eles já estão lendo seus arquivos e começando a trabalhar."
+echo -e "  Cada agente esta rodando em uma aba do Claude Code no VS Code."
+echo -e "  Eles ja estao lendo seus arquivos e comecando a trabalhar."
 echo ""
 echo -e "  Para acompanhar:"
-echo -e "  • Alterne entre as abas do Terminal para ver cada agente"
-echo -e "  • Abra o painel visual: .delta-11/painel.html"
+echo -e "  > Alterne entre as abas do Claude Code no VS Code"
+echo -e "  > Abra o painel visual: .delta-11/painel.html"
 echo ""

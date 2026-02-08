@@ -111,6 +111,11 @@ Ao concluir qualquer tarefa, execute SEMPRE estes passos:
 - Isso alimenta o painel visual que o comandante acompanha no navegador
 - O formato é um objeto JavaScript com arrays de tarefas por coluna (veja o arquivo para o formato exato)
 
+**Passo 4 — Verifique se sua tarefa desbloqueia outro agente:**
+- Olhe no kanban se alguma tarefa de outro agente tem "Depende de" apontando para a tarefa que você acabou de concluir
+- **SE SIM:** Gere o prompt de ativação desse agente, salve em `.delta-11/ativacoes/`, e **auto-dispare** usando o mecanismo de auto-dispatch (seção PROTOCOLO DE AUTO-DISPATCH)
+- **SE NÃO:** Continue normalmente
+
 ---
 
 ## PROTOCOLO DE INÍCIO DE TAREFA (obrigatório para todos os agentes)
@@ -165,7 +170,8 @@ Quando você concluir a última tarefa da sua coluna no kanban para a fase atual
    - Gere os prompts de ativação para os agentes da PRÓXIMA fase
    - Salve cada prompt como arquivo em `.delta-11/ativacoes/` (crie a pasta se não existir), com o nome `janela-[NÚMERO]-[NOME-DO-AGENTE].txt`
    - Remova arquivos de ativação da fase anterior que já foram usados
-   - Mostre ao comandante os blocos prontos para copiar e colar E informe que ele pode rodar `./disparar.sh` para ativar todos automaticamente
+   - **AUTO-DISPARE os agentes da próxima fase** usando o mecanismo de auto-dispatch (seção PROTOCOLO DE AUTO-DISPATCH), respeitando as regras de paralelismo e ordem de prioridade
+   - Se o auto-dispatch falhar por qualquer motivo, informe o comandante que ele pode rodar `./disparar.sh` como alternativa
    - Atualize o campo `fase_atual` no `kanban-data.js`
 
 **REGRA CRÍTICA:** Para saber quais agentes devem ser ativados na próxima fase, consulte o arquivo `.delta-11/protocolos/fluxo-zero-ao-lancamento.md` e a tabela de agentes por complexidade no operativo do ATLAS.
@@ -197,16 +203,141 @@ Não repita trabalho já registrado no arquivo de estado.
 ```
 
 **Passo 3 — Auto-disparo:**
-Execute o seguinte comando usando a ferramenta Bash:
-
-```bash
-osascript -e 'tell application "Terminal" to do script "cd \"'$(pwd)'\" && claude \"$(cat .delta-11/ativacoes/retomada-[SEU-NOME].txt)\""'
-```
-
-Isso abre uma nova aba do Terminal com uma nova instância do Claude Code que vai ler o prompt de retomada e continuar o trabalho automaticamente.
+Use o mecanismo de auto-dispatch (descrito na seção PROTOCOLO DE AUTO-DISPATCH abaixo) para abrir uma nova aba do Claude Code no VS Code com o prompt de retomada.
 
 **Passo 4 — Avise o comandante:**
 Diga ao comandante: "Meu contexto estava chegando no limite. Já abri uma nova janela para continuar o trabalho automaticamente. Você pode fechar esta janela."
+
+---
+
+## PROTOCOLO DE AUTO-DISPATCH (disparo automático de agentes)
+
+Todo agente da Formação Δ-11 pode abrir uma nova aba do Claude Code no VS Code e enviar um prompt automaticamente. Isso elimina a necessidade do comandante copiar e colar prompts manualmente.
+
+### O MECANISMO
+
+O auto-dispatch usa AppleScript para controlar o VS Code. Para disparar UM agente:
+
+```bash
+# 1. Copiar o prompt do agente para o clipboard
+cat .delta-11/ativacoes/[ARQUIVO].txt | pbcopy
+
+# 2. Abrir nova aba do Claude Code no VS Code e enviar o prompt
+osascript << 'APPLESCRIPT'
+tell application "Visual Studio Code"
+    activate
+end tell
+delay 1
+tell application "System Events"
+    tell process "Code"
+        keystroke "p" using {command down, shift down}
+        delay 0.5
+        keystroke "Claude Code: Open in New Tab"
+        delay 1
+        keystroke return
+        delay 3
+        keystroke "v" using {command down}
+        delay 0.5
+        keystroke return
+    end tell
+end tell
+APPLESCRIPT
+```
+
+**REGRA:** Entre o disparo de dois agentes diferentes, aguarde no mínimo 8 segundos para o clipboard e o VS Code se estabilizarem.
+
+### QUANDO DISPARAR
+
+| Situação | O que fazer | Quem dispara |
+|----------|-------------|--------------|
+| Terminou TODAS as tarefas da fase | Gerar prompts da próxima fase + auto-disparar | O último agente a terminar na fase |
+| Contexto esgotado | Gerar prompt de retomada + auto-disparar | O próprio agente |
+| Erro que não consegue resolver (3 tentativas) | Gerar prompt de diagnóstico + auto-disparar SCOUT | Qualquer agente |
+| Erro estrutural (banco, contrato, arquitetura) | Gerar prompt + auto-disparar ATLAS | Qualquer agente |
+| Tarefa concluída que desbloqueia outra | Gerar prompt + auto-disparar o agente desbloqueado | O agente que concluiu |
+
+### ZONAS DE TRABALHO E REGRAS DE PARALELISMO
+
+Os agentes trabalham em ZONAS. Dois agentes em zonas **diferentes** podem rodar em **paralelo**. Dois agentes na **mesma** zona devem rodar em **sequência** (um após o outro).
+
+| Zona | O que inclui | Agentes típicos |
+|------|-------------|----------------|
+| BANCO | Supabase: tabelas, RLS, functions, migrations, seeds | VAULT |
+| API | Rotas do servidor (`src/app/api/**`) | ENGINE, BACK |
+| UI-PÁGINAS | Páginas e componentes de tela (`src/app/(app)/**`, `src/app/(admin)/**`) | PIXEL |
+| UI-FORMS | Componentes de formulário e validação | FORM |
+| UI-LAYOUT | Layouts, navegação, componentes compartilhados (`src/components/**`) | FRONT |
+| CONFIG | `middleware.ts`, `src/lib/**`, `src/types/**` | Compartilhada — qualquer agente pode precisar |
+| TESTES | Arquivos de teste (`__tests__/**`, `*.test.*`) | SHIELD |
+
+**Regras de paralelismo:**
+
+1. **Zonas diferentes → PARALELO.** Exemplo: PIXEL (UI-PÁGINAS) + ENGINE (API) + FORM (UI-FORMS) podem rodar ao mesmo tempo.
+2. **Mesma zona → SEQUENCIAL.** Exemplo: PIXEL e FRONT ambos mexem na UI — FRONT primeiro (layout), depois PIXEL (páginas).
+3. **Zona CONFIG é compartilhada.** Se dois agentes precisam editar o mesmo arquivo em CONFIG, o segundo DEVE ler o arquivo antes de editar (o primeiro pode ter mudado).
+4. **SHIELD pode rodar em paralelo com qualquer agente** — SHIELD só lê e testa, não modifica código de produção.
+5. **SCOUT nunca roda em paralelo com o agente cujo código está corrigindo.**
+
+### ORDEM DE PRIORIDADE (quem disparar primeiro)
+
+Quando precisa disparar múltiplos agentes para a próxima fase:
+
+1. **VAULT** — Sempre primeiro. Banco e dados que todos dependem.
+2. **BACK / ENGINE** — Segundo. Rotas que o frontend consome.
+3. **FRONT** — Terceiro. Estrutura de layout que PIXEL e FORM preenchem.
+4. **PIXEL + FORM** — Podem ser paralelos entre si (zonas diferentes).
+5. **SHIELD** — Pode iniciar a qualquer momento para testar o que já está pronto.
+6. **SCOUT** — Sob demanda quando erro é detectado.
+7. **ATLAS** — Só quando erro estrutural exige mudança de contrato.
+
+**Exemplo prático de disparo da Fase 3 → Fase 4:**
+```
+VAULT termina Fase 3 (banco pronto)
+  → Dispara ENGINE + FRONT em paralelo (zonas diferentes: API + UI-LAYOUT)
+  → Aguarda 8s entre cada disparo
+  → NÃO dispara PIXEL e FORM ainda (dependem do FRONT ter criado os layouts)
+  → No prompt do FRONT, inclui: "Ao concluir, dispare PIXEL e FORM em paralelo"
+```
+
+### AUTO-DISPATCH DE ERROS
+
+Quando um agente encontra um erro que NÃO consegue resolver após 3 tentativas:
+
+**Passo 1 — Classifique o erro:**
+- **Categoria A (apenas visual):** Tente resolver você mesmo ou escale para o agente da zona (FRONT/PIXEL). NÃO precisa de SCOUT.
+- **Categoria B (envolve dados):** Escale para SCOUT.
+- **Categoria C (estrutural — banco, contrato, arquitetura):** Escale para ATLAS.
+
+**Passo 2 — Crie o arquivo de ativação:**
+Salve em `.delta-11/ativacoes/erro-[AGENTE-DESTINO].txt`:
+```
+Formação Δ-11. Ativação de agente.
+Agente: [SCOUT ou ATLAS]
+Fase: [FASE ATUAL]
+Missão: Diagnosticar e corrigir erro reportado por [SEU-NOME]
+
+ERRO:
+- Descrição: [o que deveria acontecer vs o que está acontecendo]
+- Arquivo(s): [caminhos dos arquivos envolvidos]
+- Tentativas: [o que já foi tentado e por que não funcionou]
+- Categoria: [A / B / C]
+
+Leia seus arquivos de identidade, projeto, estado e kanban.
+Diagnostique e corrija o erro acima.
+```
+
+**Passo 3 — Dispare o agente** usando o mecanismo de auto-dispatch acima.
+
+**Passo 4 — Continue trabalhando** em outras tarefas se houver. Não fique parado esperando.
+
+### CUIDADOS OBRIGATÓRIOS
+
+- **Nunca dispare dois agentes que editam o mesmo arquivo ao mesmo tempo**
+- **Nunca dispare SCOUT para erros que você mesmo pode resolver** (tente 3 vezes antes)
+- **SCOUT nunca dispara SCOUT** — se não resolveu em 3 tentativas, informa o comandante
+- **Sempre atualize o kanban ANTES de disparar** (para o próximo agente ver o estado correto)
+- **Sempre aguarde 8 segundos entre disparos** de agentes diferentes
+- **Sempre salve o prompt como arquivo em `.delta-11/ativacoes/`** antes de disparar (para registro)
 
 ---
 

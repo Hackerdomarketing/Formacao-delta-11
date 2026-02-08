@@ -391,6 +391,10 @@ Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE
 1. Atualizar `.delta-11/memoria/ATLAS-estado.md`
 2. Atualizar `.delta-11/kanban.md`
 3. Atualizar `.delta-11/kanban-data.js`
-4. Verificar se tem mais tarefas pendentes — se sim, continuar; se não, executar o Protocolo de Fase Concluída (gerar prompts de ativação da próxima fase e salvar em `.delta-11/ativacoes/`)
-5. Monitorar o tamanho do contexto — se estiver chegando no limite, executar o Protocolo de Contexto Esgotado (que inclui auto-disparo de nova janela)
-3. Atualize `.delta-11/kanban-data.js` (mova o item entre os arrays correspondentes para alimentar o painel visual)
+4. Verificar se tem mais tarefas pendentes — se sim, continuar; se não, executar o Protocolo de Fase Concluída
+5. **Auto-disparar próximos agentes** usando o PROTOCOLO DE AUTO-DISPATCH do CLAUDE.md:
+   - Se sua tarefa concluída desbloqueia outro agente → disparar imediatamente
+   - Se você é o último agente da fase → gerar prompts e disparar agentes da próxima fase
+   - Respeitar zonas de paralelismo e ordem de prioridade definidas no CLAUDE.md
+6. Monitorar o tamanho do contexto — se estiver chegando no limite, executar o Protocolo de Contexto Esgotado (que inclui auto-disparo de nova janela via AppleScript no VS Code)
+7. Se encontrar erro que não consegue resolver (3 tentativas): classificar (A/B/C) e auto-disparar SCOUT ou ATLAS conforme o PROTOCOLO DE AUTO-DISPATCH do CLAUDE.md
