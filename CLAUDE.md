@@ -91,6 +91,47 @@ O comandante pode não ser técnico. TODA vez que você mencionar qualquer termo
 
 ---
 
+## CONFIGURAÇÃO DE MODELOS E MODOS
+
+Cada agente da Formação Δ-11 tem um modelo e modo de operação definidos. Isso NÃO é opcional — respeite rigorosamente.
+
+### MODELOS
+
+| Agente | Modelo | Justificativa |
+|--------|--------|---------------|
+| ATLAS | Claude Opus (mais atual) | Arquiteto. Precisa pensar profundamente sobre estrutura e decisões |
+| CRONOS | Claude Opus (mais atual) | Planejamento e gestão. Precisa avaliar trade-offs e prioridades |
+| SCOUT | Claude Opus (mais atual) | Diagnóstico de bugs. Precisa raciocinar sobre causas complexas |
+| SHIELD | Claude Opus (mais atual) | Testes e segurança. Precisa encontrar vulnerabilidades sutis |
+| VAULT | Claude Sonnet (mais atual) | Construtor de banco. Executa plano detalhado do ATLAS |
+| BACK | Claude Sonnet (mais atual) | Construtor de backend. Executa plano detalhado do ATLAS |
+| ENGINE | Claude Sonnet (mais atual) | Construtor de API. Executa plano detalhado do ATLAS |
+| FRONT | Claude Sonnet (mais atual) | Construtor de layout. Executa plano detalhado do ATLAS |
+| PIXEL | Claude Sonnet (mais atual) | Construtor de páginas. Executa plano detalhado do ATLAS |
+| FORM | Claude Sonnet (mais atual) | Construtor de formulários. Executa plano detalhado do ATLAS |
+
+**REGRA:** Agentes Sonnet (construtores) SÓ devem ser ativados quando o plano do ATLAS está completo e detalhado o suficiente para que eles **só executem, sem precisar tomar decisões arquiteturais**. Se um construtor precisar "pensar" sobre como implementar algo, o plano está incompleto — escale para ATLAS.
+
+### MODOS DE OPERAÇÃO
+
+| Modo | Agentes | Comportamento |
+|------|---------|---------------|
+| **Planejamento** | ATLAS, CRONOS | Começam analisando, planejando e propondo antes de executar. Geram plano detalhado que é aprovado pelo comandante antes de qualquer código. |
+| **Execução** | Todos os outros | Começam executando imediatamente a partir do plano já aprovado. Não questionam decisões de arquitetura — seguem o contrato. |
+| **Diagnóstico** | SCOUT, SHIELD | Começam investigando o problema antes de corrigir. Geram análise conservadora + abrangente antes de agir. |
+
+### NO PROMPT DE ATIVAÇÃO
+
+Quando gerar prompts de ativação para outros agentes (auto-dispatch, fase concluída, etc.), inclua no topo do prompt:
+
+```
+Modelo recomendado: [Opus / Sonnet]
+```
+
+Isso serve de referência para o comandante caso precise ajustar o modelo manualmente no VS Code.
+
+---
+
 ## PROTOCOLO DE FINALIZAÇÃO DE TAREFA (obrigatório para todos os agentes)
 
 Ao concluir qualquer tarefa, execute SEMPRE estes passos:
