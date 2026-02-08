@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FORMAÇÃO Δ-11 — Centro de Comando</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #0a0b0f;
+    --bg-panel: #11131a;
+    --bg-card: #181b25;
+    --bg-card-hover: #1e2230;
+    --border: #252836;
+    --border-glow: #2a2d3e;
+    --text-primary: #e8eaf0;
+    --text-secondary: #8b8fa3;
+    --text-muted: #555970;
+
+    --atlas: #f0b429;
+    --cronos: #94a3b8;
+    --front: #22d3ee;
+    --pixel: #e879f9;
+    --form: #a78bfa;
+    --back: #fb923c;
+    --engine: #60a5fa;
+    --vault: #f87171;
+    --shield: #4ade80;
+    --scout: #fbbf24;
+
+    --fazendo: #3b82f6;
+    --revisao: #f59e0b;
+    --concluido: #22c55e;
+    --bloqueado: #ef4444;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* === BACKGROUND TEXTURE === */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(240,180,41,0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(34,211,238,0.03) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* === GRID OVERLAY === */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* === HEADER === */
+  .header {
+    position: relative;
+    z-index: 1;
+    padding: 28px 40px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(17,19,26,0.95) 0%, rgba(10,11,15,0.8) 100%);
+    backdrop-filter: blur(20px);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .logo .delta {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: var(--atlas);
+    text-shadow: 0 0 30px rgba(240,180,41,0.3);
+    font-family: 'Outfit', sans-serif;
+  }
+
+  .logo .eleven {
+    color: var(--text-primary);
+    font-size: 28px;
+    font-weight: 800;
+    font-family: 'Outfit', sans-serif;
+  }
+
+  .header-status {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .status-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .status-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .status-value {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text-primary);
+  }
+
+  .status-value.fase { color: var(--atlas); }
+
+  .btn-refresh {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-panel);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-refresh:hover {
+    border-color: var(--atlas);
+    color: var(--atlas);
+    box-shadow: 0 0 20px rgba(240,180,41,0.1);
+  }
+
+  .btn-refresh.loading {
+    animation: pulse 0.6s ease-in-out;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* === PROGRESS BAR === */
+  .progress-bar-container {
+    position: relative;
+    z-index: 1;
+    padding: 0 40px;
+    background: var(--bg-deep);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .progress-track {
+    height: 3px;
+    background: var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--atlas), var(--shield));
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 20px rgba(74,222,128,0.3);
+  }
+
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+  }
+
+  .progress-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+  }
+
+  .progress-percent {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--shield);
+    font-weight: 600;
+  }
+
+  /* === MAIN BOARD === */
+  .board {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 0;
+    padding: 0;
+    overflow-x: auto;
+    min-height: calc(100vh - 140px);
+  }
+
+  .column {
+    min-width: 240px;
+    max-width: 280px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+  }
+
+  .column:last-child { border-right: none; }
+
+  .column-header {
+    padding: 16px 16px 12px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg-deep);
+    z-index: 2;
+  }
+
+  .column-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .column-title .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .column-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-left: auto;
+    background: var(--bg-card);
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+
+  .column-body {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  /* === STATUS COLUMNS === */
+  .column.fazendo .column-header { border-bottom-color: var(--fazendo); }
+  .column.revisao .column-header { border-bottom-color: var(--revisao); }
+  .column.concluido .column-header { border-bottom-color: var(--concluido); }
+  .column.bloqueado .column-header { border-bottom-color: var(--bloqueado); }
+
+  /* === CARDS === */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    transition: all 0.2s;
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    border-radius: 3px 0 0 3px;
+  }
+
+  .card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-glow);
+    transform: translateY(-1px);
+  }
+
+  .card-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .card-desc {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-primary);
+    line-height: 1.4;
+    margin-bottom: 8px;
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-agent {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.05);
+  }
+
+  .card-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  /* Agent colors for cards */
+  .card.agent-ATLAS::before { background: var(--atlas); }
+  .card.agent-ATLAS .card-agent { color: var(--atlas); }
+  .card.agent-CRONOS::before { background: var(--cronos); }
+  .card.agent-CRONOS .card-agent { color: var(--cronos); }
+  .card.agent-FRONT::before { background: var(--front); }
+  .card.agent-FRONT .card-agent { color: var(--front); }
+  .card.agent-PIXEL::before { background: var(--pixel); }
+  .card.agent-PIXEL .card-agent { color: var(--pixel); }
+  .card.agent-FORM::before { background: var(--form); }
+  .card.agent-FORM .card-agent { color: var(--form); }
+  .card.agent-BACK::before { background: var(--back); }
+  .card.agent-BACK .card-agent { color: var(--back); }
+  .card.agent-ENGINE::before { background: var(--engine); }
+  .card.agent-ENGINE .card-agent { color: var(--engine); }
+  .card.agent-VAULT::before { background: var(--vault); }
+  .card.agent-VAULT .card-agent { color: var(--vault); }
+  .card.agent-SHIELD::before { background: var(--shield); }
+  .card.agent-SHIELD .card-agent { color: var(--shield); }
+  .card.agent-SCOUT::before { background: var(--scout); }
+  .card.agent-SCOUT .card-agent { color: var(--scout); }
+
+  /* Bloqueado special */
+  .card.blocked {
+    border-color: rgba(239,68,68,0.2);
+    background: rgba(239,68,68,0.03);
+  }
+  .card.blocked::before { background: var(--bloqueado); }
+
+  .card-motivo {
+    font-size: 11px;
+    color: var(--bloqueado);
+    font-style: italic;
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(239,68,68,0.1);
+  }
+
+  /* === EMPTY STATE === */
+  .empty-state {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: calc(100vh - 140px);
+    text-align: center;
+    padding: 40px;
+  }
+
+  .empty-delta {
+    font-family: 'Outfit', sans-serif;
+    font-size: 120px;
+    font-weight: 900;
+    color: var(--atlas);
+    opacity: 0.08;
+    line-height: 1;
+    margin-bottom: -20px;
+  }
+
+  .empty-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .empty-desc {
+    font-size: 15px;
+    color: var(--text-muted);
+    max-width: 400px;
+    line-height: 1.6;
+  }
+
+  .empty-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--atlas);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 12px 24px;
+    border-radius: 8px;
+    margin-top: 24px;
+  }
+
+  /* === AGENT LEGEND === */
+  .legend {
+    position: relative;
+    z-index: 1;
+    padding: 12px 40px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: var(--bg-deep);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+  }
+
+  .legend-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .legend-item.active .legend-dot { box-shadow: 0 0 8px currentColor; }
+  .legend-item.active { color: var(--text-secondary); }
+
+  /* === SCROLLBAR === */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  /* === ANIMATIONS === */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card { animation: fadeIn 0.3s ease-out both; }
+  .card:nth-child(2) { animation-delay: 0.05s; }
+  .card:nth-child(3) { animation-delay: 0.1s; }
+  .card:nth-child(4) { animation-delay: 0.15s; }
+  .card:nth-child(5) { animation-delay: 0.2s; }
+
+  /* === LIVE INDICATOR === */
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--shield);
+    border-radius: 50%;
+    display: inline-block;
+    animation: blink 2s ease-in-out infinite;
+    margin-right: 6px;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo">
+      <span class="delta">Δ</span><span class="eleven">-11</span>
+      <br>CENTRO DE COMANDO
+    </div>
+  </div>
+  <div class="header-status">
+    <div class="status-item">
+      <span class="status-label">Projeto</span>
+      <span class="status-value" id="st-projeto">—</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Complexidade</span>
+      <span class="status-value" id="st-complexidade">—</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Fase</span>
+      <span class="status-value fase" id="st-fase">—</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Atualização</span>
+      <span class="status-value" id="st-update"><span class="live-dot"></span>—</span>
+    </div>
+    <button class="btn-refresh" onclick="manualRefresh()" id="btn-refresh">↻ ATUALIZAR</button>
+  </div>
+</div>
+
+<div class="progress-bar-container">
+  <div class="progress-info">
+    <span class="progress-text" id="progress-text">Aguardando dados...</span>
+    <span class="progress-percent" id="progress-percent">0%</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+  </div>
+</div>
+
+<div id="board-container"></div>
+
+<div class="legend" id="legend"></div>
+
+<script src="kanban-data.js"></script>
+<script>
+  const AGENT_COLORS = {
+    ATLAS: '#f0b429', CRONOS: '#94a3b8', FRONT: '#22d3ee',
+    PIXEL: '#e879f9', FORM: '#a78bfa', BACK: '#fb923c',
+    ENGINE: '#60a5fa', VAULT: '#f87171', SHIELD: '#4ade80', SCOUT: '#fbbf24'
+  };
+
+  const AGENT_NAMES = {
+    ATLAS: 'Arquiteto', CRONOS: 'Gerente', FRONT: 'Líder Interface',
+    PIXEL: 'Visual', FORM: 'Formulários', BACK: 'Líder Servidor',
+    ENGINE: 'Servidor', VAULT: 'Banco de Dados', SHIELD: 'Qualidade', SCOUT: 'Correção'
+  };
+
+  function createCard(item, type) {
+    const agente = item.agente || item.por || '';
+    const card = document.createElement('div');
+    card.className = `card agent-${agente}${type === 'bloqueado' ? ' blocked' : ''}`;
+
+    let meta = '';
+    if (item.inicio) meta = `<span class="card-time">${item.inicio}</span>`;
+    if (item.data) meta = `<span class="card-time">${item.data}</span>`;
+
+    let extra = '';
+    if (item.motivo) extra = `<div class="card-motivo">⚠ ${item.motivo}</div>`;
+    if (item.revisor) extra = `<div class="card-time" style="margin-top:4px">Revisor: ${item.revisor}</div>`;
+
+    card.innerHTML = `
+      <div class="card-id">${item.id || ''}</div>
+      <div class="card-desc">${item.desc || ''}</div>
+      <div class="card-meta">
+        <span class="card-agent">${agente}</span>
+        ${meta}
+      </div>
+      ${extra}
+    `;
+    return card;
+  }
+
+  function renderBoard(data) {
+    const container = document.getElementById('board-container');
+
+    if (!data || (!data.projeto && data.fazendo.length === 0 && data.concluido.length === 0)) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-delta">Δ</div>
+          <div class="empty-title">Aguardando missão</div>
+          <div class="empty-desc">
+            Nenhum projeto ativo. Abra o Claude Code e inicie com:
+          </div>
+          <div class="empty-code">d11 + descrição do projeto</div>
+        </div>
+      `;
+      return;
+    }
+
+    // Update header
+    document.getElementById('st-projeto').textContent = data.projeto || '—';
+    document.getElementById('st-complexidade').textContent = data.complexidade || '—';
+    document.getElementById('st-fase').textContent = data.fase_atual || '—';
+    document.getElementById('st-update').innerHTML = `<span class="live-dot"></span>${data.ultima_atualizacao || '—'}`;
+
+    // Calculate progress
+    let totalTasks = 0;
+    let doneTasks = data.concluido ? data.concluido.length : 0;
+    Object.values(data.a_fazer).forEach(arr => totalTasks += arr.length);
+    totalTasks += (data.fazendo ? data.fazendo.length : 0);
+    totalTasks += (data.revisao ? data.revisao.length : 0);
+    totalTasks += doneTasks;
+    totalTasks += (data.bloqueado ? data.bloqueado.length : 0);
+
+    const percent = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+    document.getElementById('progress-fill').style.width = percent + '%';
+    document.getElementById('progress-percent').textContent = percent + '%';
+    document.getElementById('progress-text').textContent =
+      `${doneTasks} de ${totalTasks} tarefas concluídas`;
+
+    // Build columns
+    let html = '<div class="board">';
+
+    // Agent "a fazer" columns — only show agents that have tasks
+    const activeAgents = [];
+    for (const [agent, tasks] of Object.entries(data.a_fazer)) {
+      if (tasks.length > 0) {
+        activeAgents.push(agent);
+        const color = AGENT_COLORS[agent] || '#888';
+        html += `
+          <div class="column">
+            <div class="column-header">
+              <div class="column-title">
+                <span class="dot" style="background:${color}; box-shadow: 0 0 8px ${color}"></span>
+                ${agent}
+                <span class="column-count">${tasks.length}</span>
+              </div>
+            </div>
+            <div class="column-body">
+              ${tasks.map(t => {
+                const item = typeof t === 'string' ? { id: '', desc: t, agente: agent } : { ...t, agente: agent };
+                return createCard(item, 'afazer').outerHTML;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // "Fazendo" column
+    const fazendo = data.fazendo || [];
+    html += `
+      <div class="column fazendo">
+        <div class="column-header">
+          <div class="column-title">
+            <span class="dot" style="background:var(--fazendo); box-shadow: 0 0 8px var(--fazendo)"></span>
+            FAZENDO
+            <span class="column-count">${fazendo.length}</span>
+          </div>
+        </div>
+        <div class="column-body">
+          ${fazendo.map(t => createCard(t, 'fazendo').outerHTML).join('')}
+        </div>
+      </div>
+    `;
+
+    // "Revisão" column
+    const revisao = data.revisao || [];
+    html += `
+      <div class="column revisao">
+        <div class="column-header">
+          <div class="column-title">
+            <span class="dot" style="background:var(--revisao); box-shadow: 0 0 8px var(--revisao)"></span>
+            REVISÃO
+            <span class="column-count">${revisao.length}</span>
+          </div>
+        </div>
+        <div class="column-body">
+          ${revisao.map(t => createCard(t, 'revisao').outerHTML).join('')}
+        </div>
+      </div>
+    `;
+
+    // "Concluído" column
+    const concluido = data.concluido || [];
+    html += `
+      <div class="column concluido">
+        <div class="column-header">
+          <div class="column-title">
+            <span class="dot" style="background:var(--concluido); box-shadow: 0 0 8px var(--concluido)"></span>
+            CONCLUÍDO
+            <span class="column-count">${concluido.length}</span>
+          </div>
+        </div>
+        <div class="column-body">
+          ${concluido.map(t => createCard(t, 'concluido').outerHTML).join('')}
+        </div>
+      </div>
+    `;
+
+    // "Bloqueado" column (only if there are blocked items)
+    const bloqueado = data.bloqueado || [];
+    if (bloqueado.length > 0) {
+      html += `
+        <div class="column bloqueado">
+          <div class="column-header">
+            <div class="column-title">
+              <span class="dot" style="background:var(--bloqueado); box-shadow: 0 0 8px var(--bloqueado)"></span>
+              BLOQUEADO
+              <span class="column-count">${bloqueado.length}</span>
+            </div>
+          </div>
+          <div class="column-body">
+            ${bloqueado.map(t => createCard(t, 'bloqueado').outerHTML).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+
+    // Update legend
+    const allAgents = new Set([
+      ...activeAgents,
+      ...fazendo.map(t => t.agente),
+      ...revisao.map(t => t.por),
+      ...concluido.map(t => t.por),
+      ...bloqueado.map(t => t.agente)
+    ].filter(Boolean));
+
+    const legend = document.getElementById('legend');
+    legend.innerHTML = Object.entries(AGENT_COLORS).map(([agent, color]) => {
+      const isActive = allAgents.has(agent);
+      return `
+        <div class="legend-item ${isActive ? 'active' : ''}">
+          <span class="legend-dot" style="background:${color}${isActive ? '; box-shadow: 0 0 6px ' + color : ''}"></span>
+          ${agent} <span style="opacity:0.5">${AGENT_NAMES[agent] || ''}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Track last data hash to avoid unnecessary re-renders
+  let lastDataHash = '';
+
+  function hashData(data) {
+    return JSON.stringify(data);
+  }
+
+  function refreshData() {
+    // Remove and re-add the script to force reload
+    const oldScript = document.querySelector('script[src^="kanban-data.js"]');
+    if (oldScript) oldScript.remove();
+
+    const script = document.createElement('script');
+    script.src = 'kanban-data.js?t=' + Date.now();
+    script.onload = () => {
+      const newHash = hashData(window.KANBAN_DATA);
+      if (newHash !== lastDataHash) {
+        lastDataHash = newHash;
+        renderBoard(window.KANBAN_DATA);
+      }
+    };
+    script.onerror = () => {};
+    document.head.appendChild(script);
+  }
+
+  function manualRefresh() {
+    const btn = document.getElementById('btn-refresh');
+    btn.classList.add('loading');
+    btn.textContent = '↻ CARREGANDO...';
+    
+    const oldScript = document.querySelector('script[src^="kanban-data.js"]');
+    if (oldScript) oldScript.remove();
+
+    const script = document.createElement('script');
+    script.src = 'kanban-data.js?t=' + Date.now();
+    script.onload = () => {
+      lastDataHash = hashData(window.KANBAN_DATA);
+      renderBoard(window.KANBAN_DATA);
+      btn.classList.remove('loading');
+      btn.textContent = '↻ ATUALIZAR';
+    };
+    script.onerror = () => {
+      btn.classList.remove('loading');
+      btn.textContent = '↻ ATUALIZAR';
+    };
+    document.head.appendChild(script);
+  }
+
+  // Initial render
+  if (window.KANBAN_DATA) {
+    lastDataHash = hashData(window.KANBAN_DATA);
+    renderBoard(window.KANBAN_DATA);
+  }
+
+  // Silent refresh every 5 seconds (only re-renders if data changed)
+  setInterval(refreshData, 5000);
+</script>
+
+</body>
+</html>

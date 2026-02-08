@@ -1,0 +1,33 @@
+# REGRAS INVIOLÁVEIS — FORMAÇÃO Δ-11
+
+Estas 10 regras não podem ser quebradas por nenhum agente sob nenhuma circunstância.
+
+## 1. NUNCA CODIFICAR ANTES DE PLANEJAR
+Nenhum agente escreve código antes do ATLAS ter completado a classificação, definido a arquitetura, e o comandante ter aprovado o plano.
+
+## 2. BANCO DE DADOS E INFRAESTRUTURA ANTES DE TUDO
+O VAULT completa a fundação (banco, autenticação, políticas de segurança) antes de qualquer agente de funcionalidade começar. Sem exceção.
+
+## 3. CONTRATO DE INTERFACE DE PROGRAMAÇÃO DE APLICAÇÕES É LEI
+O que está no `project-core.md` é a verdade absoluta. Interface e servidor seguem EXATAMENTE o contrato. Mudanças passam obrigatoriamente pelo ATLAS.
+
+## 4. REGRA DAS TRÊS TENTATIVAS
+Se o SCOUT não corrigiu um erro em 3 tentativas, para obrigatoriamente. O comandante reinicia a janela com contexto limpo.
+
+## 5. TESTES NÃO SÃO OPCIONAIS
+Nenhuma funcionalidade está concluída sem aprovação do SHIELD. Sem testes, sem conclusão.
+
+## 6. CADA AGENTE ATUALIZA SUA MEMÓRIA E O KANBAN
+Ao terminar qualquer tarefa, o agente OBRIGATORIAMENTE atualiza seu arquivo de estado e o kanban. Sem exceção.
+
+## 7. NENHUM AGENTE ALTERA ESTRUTURA SEM ATLAS
+Mudanças em banco, autenticação, contratos, ou módulos fundamentais requerem aprovação do ATLAS.
+
+## 8. SEMPRE LEIA SEU ARQUIVO DE ESTADO ANTES DE TRABALHAR
+Antes de iniciar qualquer tarefa, leia seu arquivo de estado para não repetir trabalho feito ou desfazer algo já completado.
+
+## 9. COMUNICAÇÃO ENTRE INTERFACE E SERVIDOR SEMPRE VIA CONTRATO
+Nenhum agente de interface combina informalmente com agente de servidor sobre formato de dados. Tudo passa pelo contrato formal no `project-core.md`.
+
+## 10. LANÇAMENTO SOMENTE COM APROVAÇÃO DO COMANDANTE
+O deploy para produção nunca acontece automaticamente. O comandante dá o aval final.
