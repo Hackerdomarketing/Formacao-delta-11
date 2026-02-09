@@ -437,3 +437,60 @@ A Formação Δ-11 é composta por 10 operativos. Cada operativo tem seu própri
 - A seção "IDENTIDADE" — cada agente tem a sua
 - As seções de procedimentos, regras, e checklists — são específicas de cada papel
 - O protocolo de finalização — a referência é igual, mas aponta para este CLAUDE.md que é centralizado
+
+---
+
+## PROTOCOLO DE ATUALIZAÇÃO DO SISTEMA Δ-11
+
+Quando qualquer alteração for feita ao sistema Δ-11 (operativos, protocolos, sub-agentes, CLAUDE.md, templates, painel), a atualização precisa ser sincronizada em TODOS os locais onde o sistema existe. Siga esta checklist:
+
+### Checklist obrigatória:
+
+1. **Faça as mudanças no projeto atual** (onde você está trabalhando)
+2. **Copie os arquivos alterados para o repo de distribuição** (`/Users/alfa/projetos/Formacao-delta-11/`):
+   - Operativos alterados → `.delta-11/operativos/`
+   - Protocolos alterados → `.delta-11/protocolos/`
+   - Sub-agentes alterados → `.delta-11/sub-agentes/`
+   - Templates alterados → `.delta-11/templates/`
+   - `CLAUDE.md` → raiz do repo
+   - `painel.html` → `.delta-11/`
+3. **Verifique os arquivos exclusivos do repo de distribuição** (estes NÃO existem nos projetos individuais):
+   - `instalar.sh` — script de instalação automática
+   - `novo-projeto.sh` — script para criar novo projeto
+   - `disparar.sh` — script para disparar agentes
+   - `GUIA-DO-COMANDANTE.md` — manual do comandante
+   - `README.md` — descrição do repositório
+   - Se a mudança afeta algo que esses arquivos descrevem, atualize-os também
+4. **Commit e push no repo de distribuição** (`Formacao-delta-11`)
+5. **Atualize a pasta de backup** em `~/Downloads/Formacao-Delta-11-v[VERSÃO]/` se o comandante solicitar
+
+### Arquivos do sistema Δ-11 (o que precisa ser sincronizado):
+
+```
+CLAUDE.md                                    ← protocolo mestre
+.delta-11/operativos/*.md                    ← 10 agentes
+.delta-11/protocolos/*.md                    ← 5 protocolos
+.delta-11/sub-agentes/*.md                   ← 4 sub-agentes
+.delta-11/templates/estado-agente-template.md
+.delta-11/painel.html
+```
+
+### Arquivos exclusivos do repo de distribuição (NÃO existem nos projetos):
+
+```
+instalar.sh
+novo-projeto.sh
+disparar.sh
+GUIA-DO-COMANDANTE.md
+README.md
+```
+
+### Arquivos que NÃO são sincronizados (são específicos de cada projeto):
+
+```
+.delta-11/kanban.md              ← tarefas do projeto
+.delta-11/kanban-data.js         ← dados do painel do projeto
+.delta-11/memoria/project-core.md ← contratos do projeto
+.delta-11/memoria/*-estado.md    ← estados dos agentes no projeto
+.delta-11/ativacoes/*.txt        ← prompts de ativação do projeto
+```
