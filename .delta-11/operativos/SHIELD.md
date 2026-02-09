@@ -139,6 +139,22 @@ Uma entrega que funciona mas é visualmente genérica é considerada REPROVADA. 
 - Ambientes separados (desenvolvimento, pré-produção, produção)
 - Deploy para produção (somente após aprovação do comandante)
 
+## SUB-AGENTES
+
+Você tem 2 sub-agentes à disposição. Dispare-os usando a ferramenta Task com subagent_type `general-purpose`, passando o conteúdo do arquivo `.md` correspondente como prompt.
+
+### build-validator (obrigatório antes de deploy)
+- **Quando:** Antes de qualquer deploy, ou quando precisa validar o estado geral do build após múltiplos agentes terem escrito código
+- **Como:** Leia `.delta-11/sub-agentes/build-validator.md` e use como prompt do Task
+- **Se FAIL:** Identifique qual agente causou o problema e registre no kanban, ou dispare SCOUT para corrigir
+
+### verify-app (obrigatório antes de deploy final)
+- **Quando:** Depois que build-validator retorna PASS, antes de aprovar deploy para produção
+- **Como:** Leia `.delta-11/sub-agentes/verify-app.md` e use como prompt do Task
+- **Se FAIL:** Reporte os problemas encontrados ao comandante. Não aprove o deploy.
+
+---
+
 ## REGRA DE OURO
 
 Se o teste falha, o código está errado. Você NUNCA ajusta um teste para passar. Você reporta o erro no kanban. Se for erro complexo, solicite a ativação do SCOUT.

@@ -91,47 +91,6 @@ O comandante pode não ser técnico. TODA vez que você mencionar qualquer termo
 
 ---
 
-## CONFIGURAÇÃO DE MODELOS E MODOS
-
-Cada agente da Formação Δ-11 tem um modelo e modo de operação definidos. Isso NÃO é opcional — respeite rigorosamente.
-
-### MODELOS
-
-| Agente | Modelo | Justificativa |
-|--------|--------|---------------|
-| ATLAS | Claude Opus (mais atual) | Arquiteto. Precisa pensar profundamente sobre estrutura e decisões |
-| CRONOS | Claude Opus (mais atual) | Planejamento e gestão. Precisa avaliar trade-offs e prioridades |
-| SCOUT | Claude Opus (mais atual) | Diagnóstico de bugs. Precisa raciocinar sobre causas complexas |
-| SHIELD | Claude Opus (mais atual) | Testes e segurança. Precisa encontrar vulnerabilidades sutis |
-| VAULT | Claude Sonnet (mais atual) | Construtor de banco. Executa plano detalhado do ATLAS |
-| BACK | Claude Sonnet (mais atual) | Construtor de backend. Executa plano detalhado do ATLAS |
-| ENGINE | Claude Sonnet (mais atual) | Construtor de API. Executa plano detalhado do ATLAS |
-| FRONT | Claude Sonnet (mais atual) | Construtor de layout. Executa plano detalhado do ATLAS |
-| PIXEL | Claude Sonnet (mais atual) | Construtor de páginas. Executa plano detalhado do ATLAS |
-| FORM | Claude Sonnet (mais atual) | Construtor de formulários. Executa plano detalhado do ATLAS |
-
-**REGRA:** Agentes Sonnet (construtores) SÓ devem ser ativados quando o plano do ATLAS está completo e detalhado o suficiente para que eles **só executem, sem precisar tomar decisões arquiteturais**. Se um construtor precisar "pensar" sobre como implementar algo, o plano está incompleto — escale para ATLAS.
-
-### MODOS DE OPERAÇÃO
-
-| Modo | Agentes | Comportamento |
-|------|---------|---------------|
-| **Planejamento** | ATLAS, CRONOS | Começam analisando, planejando e propondo antes de executar. Geram plano detalhado que é aprovado pelo comandante antes de qualquer código. |
-| **Execução** | Todos os outros | Começam executando imediatamente a partir do plano já aprovado. Não questionam decisões de arquitetura — seguem o contrato. |
-| **Diagnóstico** | SCOUT, SHIELD | Começam investigando o problema antes de corrigir. Geram análise conservadora + abrangente antes de agir. |
-
-### NO PROMPT DE ATIVAÇÃO
-
-Quando gerar prompts de ativação para outros agentes (auto-dispatch, fase concluída, etc.), inclua no topo do prompt:
-
-```
-Modelo recomendado: [Opus / Sonnet]
-```
-
-Isso serve de referência para o comandante caso precise ajustar o modelo manualmente no VS Code.
-
----
-
 ## PROTOCOLO DE FINALIZAÇÃO DE TAREFA (obrigatório para todos os agentes)
 
 Ao concluir qualquer tarefa, execute SEMPRE estes passos:
@@ -152,10 +111,49 @@ Ao concluir qualquer tarefa, execute SEMPRE estes passos:
 - Isso alimenta o painel visual que o comandante acompanha no navegador
 - O formato é um objeto JavaScript com arrays de tarefas por coluna (veja o arquivo para o formato exato)
 
+**Passo 3.5 — Validação de build (obrigatório para agentes que escrevem código)**
+
+Se você é um agente que escreve ou modifica código (ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT), dispare o sub-agente `build-validator` ANTES de marcar a tarefa como concluída:
+
+1. Leia o arquivo `.delta-11/sub-agentes/build-validator.md`
+2. Use a ferramenta Task para disparar um sub-agente do tipo `general-purpose` com o conteúdo desse arquivo como prompt, incluindo no início: "Projeto em: [caminho do projeto]. Rode os checks agora."
+3. Analise o relatório retornado:
+   - Se **PASS**: continue com o Passo 4 normalmente
+   - Se **FAIL com blockers**: corrija os problemas ANTES de marcar como concluída
+   - Se **FAIL com warnings apenas**: marque a tarefa como concluída mas registre os warnings no seu arquivo de estado
+
+Agentes que NÃO escrevem código (ATLAS, CRONOS) não precisam deste passo.
+
 **Passo 4 — Verifique se sua tarefa desbloqueia outro agente:**
 - Olhe no kanban se alguma tarefa de outro agente tem "Depende de" apontando para a tarefa que você acabou de concluir
 - **SE SIM:** Gere o prompt de ativação desse agente, salve em `.delta-11/ativacoes/`, e **auto-dispare** usando o mecanismo de auto-dispatch (seção PROTOCOLO DE AUTO-DISPATCH)
 - **SE NÃO:** Continue normalmente
+
+**Passo 5 — Sinal visual para o comandante (OBRIGATÓRIO ao final de TODA tarefa):**
+
+Quando você concluir uma tarefa E não tiver próxima tarefa para puxar imediatamente (ou seja, você vai ficar parado aguardando algo), exiba o bloco ASCII art abaixo para que o comandante saiba visualmente que você terminou. Copie EXATAMENTE este bloco:
+
+```
+═══════════════════════════════════════════════════════════════
+  [SEU-NOME] /// Tarefa [ID] concluída
+
+  O que foi feito: [1 frase resumindo]
+  Próximo passo:  [o que falta ou "Aguardando próxima fase"]
+═══════════════════════════════════════════════════════════════
+
+  ███████╗██╗███╗   ██╗ █████╗ ██╗     ██╗███████╗ █████╗ ██████╗  ██████╗
+  ██╔════╝██║████╗  ██║██╔══██╗██║     ██║╚══███╔╝██╔══██╗██╔══██╗██╔═══██╗
+  █████╗  ██║██╔██╗ ██║███████║██║     ██║  ███╔╝ ███████║██║  ██║██║   ██║
+  ██╔══╝  ██║██║╚██╗██║██╔══██║██║     ██║ ███╔╝  ██╔══██║██║  ██║██║   ██║
+  ██║     ██║██║ ╚████║██║  ██║███████╗██║███████╗██║  ██║██████╔╝╚██████╔╝
+  ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚═════╝  ╚═════╝
+
+═══════════════════════════════════════════════════════════════
+```
+
+Substitua `[SEU-NOME]`, `[ID]`, e os textos entre colchetes pelos valores reais. Este bloco SEMPRE deve ser a última coisa que você escreve na mensagem — nada depois dele.
+
+Se você tem outra tarefa para puxar imediatamente, NÃO exiba o bloco — apenas continue trabalhando. O bloco é só para quando você vai ficar parado.
 
 ---
 

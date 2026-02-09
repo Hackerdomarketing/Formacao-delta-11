@@ -83,10 +83,14 @@ Cada agente lê o kanban, vê suas tarefas, e começa a trabalhar. Ao concluir c
 Agente puxa tarefa do kanban → Executa → Atualiza estado e kanban → SHIELD verifica contra contrato → Aprovado? → Próxima tarefa
 ```
 
-**Ao final da Fase 4 (quando todos os agentes de desenvolvimento terminam):**
-O SCOUT é ativado automaticamente para uma varredura preventiva completa de todo o código antes da Fase 5. Ele busca problemas que o SHIELD pode não ter pego nas verificações individuais: inicializações perigosas, bypass de contratos, validações ausentes, links quebrados, condições de corrida, e falhas de segurança.
+**Durante a Fase 4 — Validação contínua de build:**
+Todo agente que escreve código (ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT) dispara o sub-agente `build-validator` antes de marcar cada tarefa como concluída. Isso garante que erros de build são pegos na origem, não acumulados para o SHIELD descobrir depois.
 
-**Resultado:** Todas as funcionalidades implementadas, testadas individualmente pelo SHIELD, e varridas pelo SCOUT. Problemas encontrados pelo SCOUT são corrigidos antes de avançar.
+**Ao final da Fase 4 (quando todos os agentes de desenvolvimento terminam):**
+1. O SCOUT é ativado automaticamente para uma varredura preventiva completa de todo o código antes da Fase 5. Ele busca problemas que o SHIELD pode não ter pego nas verificações individuais: inicializações perigosas, bypass de contratos, validações ausentes, links quebrados, condições de corrida, e falhas de segurança.
+2. O ATLAS dispara o sub-agente `code-architect` para uma auditoria arquitetural — comparando o código real com a arquitetura planejada no `project-core.md`. Se o score for C ou menor, tarefas de correção são criadas no kanban antes de avançar.
+
+**Resultado:** Todas as funcionalidades implementadas, testadas individualmente pelo SHIELD, varridas pelo SCOUT, e auditadas arquiteturalmente. Problemas encontrados são corrigidos antes de avançar.
 
 ---
 
@@ -97,7 +101,10 @@ O SCOUT é ativado automaticamente para uma varredura preventiva completa de tod
 
 O SHIELD executa testes de ponta a ponta: cada fluxo completo (usuário se cadastra → faz login → executa ação → vê resultado). Verifica coerência total entre interface, servidor, e banco.
 
-**Resultado:** Todos os fluxos passando nos testes. Todos os erros encontrados corrigidos.
+**Ao final da Fase 5 (todos os testes passando):**
+O SCOUT dispara o sub-agente `code-simplifier` para uma passada de simplificação do código. Após a simplificação, o SCOUT dispara `build-validator` para confirmar que nada quebrou.
+
+**Resultado:** Todos os fluxos passando nos testes. Todos os erros encontrados corrigidos. Código simplificado e limpo.
 
 ---
 
@@ -106,6 +113,12 @@ O SHIELD executa testes de ponta a ponta: cada fluxo completo (usuário se cadas
 **Quem:** SHIELD + Comandante
 **Janelas:** 1
 
-O SHIELD configura o ambiente de produção, executa auditoria de segurança, e apresenta relatório final ao comandante. O comandante aprova o deploy.
+O SHIELD configura o ambiente de produção, executa auditoria de segurança, e apresenta relatório final ao comandante.
+
+**Antes do deploy final, o SHIELD dispara 2 sub-agentes em sequência:**
+1. `build-validator` — validação completa (typecheck, lint, build, testes, audit, secrets)
+2. `verify-app` — teste real no browser (navegação, fluxos críticos, console errors)
+
+Somente se AMBOS retornarem PASS, o deploy é apresentado ao comandante para aprovação.
 
 **Resultado:** Sistema em produção.

@@ -355,6 +355,16 @@ O comandante só precisa copiar e colar. Nada mais.
 
 **REGRA DE TAMANHO DE TAREFAS:** Nenhuma tarefa individual deve exigir mais do que 20 interações para ser concluída. Se uma tarefa é grande demais, divida em sub-tarefas. Isso garante que cada tarefa cabe em uma sessão de contexto.
 
+## SUB-AGENTES
+
+### code-architect (ao final de cada fase de construção)
+- **Quando:** Ao final de cada fase onde múltiplos agentes escreveram código (tipicamente entre a Fase 4 e a Fase 5)
+- **Como:** Leia `.delta-11/sub-agentes/code-architect.md` e use como prompt do Task (subagent_type `general-purpose`)
+- **Se score C ou menor:** Avalie os problemas. Se forem estruturais, crie tarefas de correção no kanban antes de avançar para a próxima fase.
+- **Se score B ou melhor:** Registre o relatório no seu arquivo de estado e prossiga.
+
+---
+
 ## DURANTE O DESENVOLVIMENTO (quando consultado)
 
 Se o comandante reativá-lo durante as fases 4-6 para avaliar uma mudança:
