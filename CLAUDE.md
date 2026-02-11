@@ -103,7 +103,9 @@ Ao concluir qualquer tarefa, execute SEMPRE estes passos:
 - Notas para o seu "eu do futuro" caso o contexto seja renovado
 
 **Passo 2 — Atualize o kanban** (`.delta-11/kanban.md`):
-- Mova sua tarefa de "FAZENDO" para "REVISÃO" ou "CONCLUÍDO"
+- Mova sua tarefa de "FAZENDO" para o destino correto:
+  - **Para REVISÃO** — se você é um agente que escreve código (ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT) E está na Fase 4 (Desenvolvimento). Somente o SHIELD pode mover tarefas de REVISÃO para CONCLUÍDO após verificar.
+  - **Para CONCLUÍDO** — se sua tarefa NÃO envolve código (planejamento, documentação, testes do próprio SHIELD), ou se o SHIELD já aprovou a tarefa anteriormente.
 - Se há próxima tarefa na sua coluna, ela fica pronta para ser puxada
 
 **Passo 3 — Atualize os dados do painel** (`.delta-11/kanban-data.js`):
@@ -123,6 +125,18 @@ Se você é um agente que escreve ou modifica código (ENGINE, BACK, FRONT, PIXE
    - Se **FAIL com warnings apenas**: marque a tarefa como concluída mas registre os warnings no seu arquivo de estado
 
 Agentes que NÃO escrevem código (ATLAS, CRONOS) não precisam deste passo.
+
+**Passo 3.7 — Envie para revisão do SHIELD (obrigatório na Fase 4 para agentes que escrevem código)**
+
+Se você é um agente que escreve ou modifica código (ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT) E está na Fase 4 (Desenvolvimento):
+
+1. Mova sua tarefa para "REVISÃO" no kanban.md (não CONCLUÍDO)
+2. No kanban-data.js, adicione a tarefa no array `revisao` com o formato: `{ id: "T-XXX", desc: "Descrição", por: "SEU-NOME", revisor: "SHIELD" }`
+3. Se o SHIELD não está ativo no momento, gere um prompt de ativação em `.delta-11/ativacoes/janela-SHIELD-revisao.txt` listando os arquivos modificados e o que foi feito, e tente auto-disparar usando o mecanismo de auto-dispatch
+4. Continue trabalhando na próxima tarefa — NÃO espere a revisão do SHIELD
+5. Se o SHIELD encontrar problemas, ele criará tarefas de correção no kanban
+
+Agentes que NÃO escrevem código (ATLAS, CRONOS) e o próprio SHIELD não precisam deste passo.
 
 **Passo 4 — Verifique se sua tarefa desbloqueia outro agente:**
 - Olhe no kanban se alguma tarefa de outro agente tem "Depende de" apontando para a tarefa que você acabou de concluir
@@ -257,11 +271,50 @@ Todo agente da Formação Δ-11 pode abrir uma nova aba do Claude Code no VS Cod
 
 O auto-dispatch usa AppleScript para controlar o VS Code. Para disparar UM agente:
 
+**PASSO 0 — AVISO VISUAL ANTI-COLISÃO (OBRIGATÓRIO ANTES de qualquer auto-dispatch):**
+
+ANTES de executar o AppleScript, o agente DEVE exibir o seguinte bloco ASCII art na conversa. Este aviso dá tempo ao comandante para parar de digitar/clicar e evita que o prompt caia na janela errada:
+
+```
+╔═══════════════════════════════════════════════════════════════════════╗
+║                                                                       ║
+║     █████╗ ██████╗ ██████╗ ██╗███╗   ██╗██████╗  ██████╗             ║
+║    ██╔══██╗██╔══██╗██╔══██╗██║████╗  ██║██╔══██╗██╔═══██╗            ║
+║    ███████║██████╔╝██████╔╝██║██╔██╗ ██║██║  ██║██║   ██║            ║
+║    ██╔══██║██╔══██╗██╔══██╗██║██║╚██╗██║██║  ██║██║   ██║            ║
+║    ██║  ██║██████╔╝██║  ██║██║██║ ╚████║██████╔╝╚██████╔╝            ║
+║    ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝╚═════╝  ╚═════╝             ║
+║                                                                       ║
+║    ███╗   ██╗ ██████╗ ██╗   ██╗ █████╗                                ║
+║    ████╗  ██║██╔═══██╗██║   ██║██╔══██╗                               ║
+║    ██╔██╗ ██║██║   ██║██║   ██║███████║                               ║
+║    ██║╚██╗██║██║   ██║╚██╗ ██╔╝██╔══██║                               ║
+║    ██║ ╚████║╚██████╔╝ ╚████╔╝ ██║  ██║                               ║
+║    ╚═╝  ╚═══╝ ╚═════╝   ╚═══╝  ╚═╝  ╚═╝                               ║
+║                                                                       ║
+║         ╦╔═╗╔╗╔╔═╗╦  ╔═╗                                             ║
+║         ║╠═╣║║║║╣ ║  ╠═╣                                             ║
+║        ╚╝╩ ╩╝╚╝╚═╝╩═╝╩ ╩                                            ║
+║                                                                       ║
+║    Disparando: [NOME-DO-AGENTE]                                       ║
+║    NAO MOVA O MOUSE. NAO DIGITE NADA.                                ║
+║    Aguarde 10 segundos...                                             ║
+║                                                                       ║
+╚═══════════════════════════════════════════════════════════════════════╝
+```
+
+Substitua `[NOME-DO-AGENTE]` pelo nome real. Exiba este bloco e AGUARDE 5 SEGUNDOS (usando `sleep 5` no bash) antes de prosseguir com o AppleScript. Isso garante que o comandante veja o aviso e pare de interagir.
+
+**PASSO 1 — Copiar e disparar:**
+
 ```bash
 # 1. Copiar o prompt do agente para o clipboard
 cat .delta-11/ativacoes/[ARQUIVO].txt | pbcopy
 
-# 2. Abrir nova aba do Claude Code no VS Code e enviar o prompt
+# 2. Aguardar o comandante ler o aviso
+sleep 5
+
+# 3. Abrir nova aba do Claude Code no VS Code e enviar o prompt
 osascript << 'APPLESCRIPT'
 tell application "Visual Studio Code"
     activate
@@ -283,7 +336,7 @@ end tell
 APPLESCRIPT
 ```
 
-**REGRA:** Entre o disparo de dois agentes diferentes, aguarde no mínimo 8 segundos para o clipboard e o VS Code se estabilizarem.
+**REGRA:** Entre o disparo de dois agentes diferentes, aguarde no mínimo 8 segundos para o clipboard e o VS Code se estabilizarem. O aviso visual DEVE ser exibido ANTES de cada disparo individual (não apenas antes do primeiro).
 
 ### QUANDO DISPARAR
 
@@ -442,50 +495,117 @@ A Formação Δ-11 é composta por 10 operativos. Cada operativo tem seu própri
 
 ## PROTOCOLO DE ATUALIZAÇÃO DO SISTEMA Δ-11
 
-Quando qualquer alteração for feita ao sistema Δ-11 (operativos, protocolos, sub-agentes, CLAUDE.md, templates, painel), a atualização precisa ser sincronizada em TODOS os locais onde o sistema existe. Siga esta checklist:
+Quando qualquer alteração for feita ao sistema Δ-11 (operativos, protocolos, sub-agentes, CLAUDE.md, templates, painel), a atualização precisa ser propagada para TODOS os projetos registrados. O sistema usa um **registry global** (`~/.delta-11-registry.json`) que lista todos os projetos com D-11 instalado.
 
-### Checklist obrigatória:
+### Fluxo em 4 passos:
 
-1. **Faça as mudanças no projeto atual** (onde você está trabalhando)
-2. **Copie os arquivos alterados para o repo de distribuição** (`/Users/alfa/projetos/Formacao-delta-11/`):
-   - Operativos alterados → `.delta-11/operativos/`
-   - Protocolos alterados → `.delta-11/protocolos/`
-   - Sub-agentes alterados → `.delta-11/sub-agentes/`
-   - Templates alterados → `.delta-11/templates/`
-   - `CLAUDE.md` → raiz do repo
-   - `painel.html` → `.delta-11/`
-3. **Verifique os arquivos exclusivos do repo de distribuição** (estes NÃO existem nos projetos individuais):
-   - `instalar.sh` — script de instalação automática
-   - `novo-projeto.sh` — script para criar novo projeto
-   - `disparar.sh` — script para disparar agentes
-   - `GUIA-DO-COMANDANTE.md` — manual do comandante
-   - `README.md` — descrição do repositório
-   - Se a mudança afeta algo que esses arquivos descrevem, atualize-os também
-4. **Commit e push no repo de distribuição** (`Formacao-delta-11`)
-5. **Atualize a pasta de backup** em `~/Downloads/Formacao-Delta-11-v[VERSÃO]/` se o comandante solicitar
+```
+PASSO 1: PULL    → cd /Users/alfa/projetos/Formacao-delta-11 && git pull
+PASSO 2: EDITAR  → Fazer mudanças no repo de distribuição
+PASSO 3: PUSH    → git add + commit + push
+PASSO 4: SYNC    → ./sincronizar.sh --nota "descrição da mudança"
+```
 
-### Arquivos do sistema Δ-11 (o que precisa ser sincronizado):
+### Passo 1 — PULL (sempre primeiro)
+
+Antes de qualquer edição, puxe a versão mais recente do GitHub:
+
+```bash
+cd /Users/alfa/projetos/Formacao-delta-11
+git pull
+```
+
+Isso garante que você está editando a versão mais nova, especialmente se outro agente/sessão fez mudanças antes.
+
+### Passo 2 — EDITAR
+
+Faça as mudanças nos arquivos do repo de distribuição. Se a mudança foi feita num projeto ativo, copie os arquivos alterados PARA o repo de distribuição primeiro.
+
+Verifique também os arquivos exclusivos do repo de distribuição:
+- `instalar.sh`, `novo-projeto.sh`, `disparar.sh`, `sincronizar.sh`
+- `GUIA-DO-COMANDANTE.md`, `README.md`
+- Se a mudança afeta algo que esses arquivos descrevem, atualize-os também
+
+### Passo 3 — PUSH
+
+```bash
+cd /Users/alfa/projetos/Formacao-delta-11
+git add -A && git commit -m "descrição da mudança" && git push
+```
+
+### Passo 4 — SYNC
+
+```bash
+cd /Users/alfa/projetos/Formacao-delta-11
+./sincronizar.sh --nota "descrição da mudança"
+```
+
+O script sincronizar.sh automaticamente:
+1. Lê `~/.delta-11-registry.json` para saber quais projetos atualizar
+2. Copia APENAS arquivos de sistema (operativos, protocolos, sub-agentes, templates, CLAUDE.md, painel)
+3. NUNCA toca dados do projeto (kanban, estados, ativações, memória)
+4. Atualiza o backup em Downloads
+5. Cria `.delta-11/.last-update` em cada projeto com timestamp e descrição
+6. Atualiza o timestamp no registry
+
+Opções do sincronizar.sh:
+- `--pull` → Faz git pull antes de sincronizar
+- `--dry-run` → Mostra o que faria sem alterar nada
+- `--diff` → Compara repo com cada projeto (diagnóstico)
+- `--nota "msg"` → Adiciona descrição da atualização
+
+### Registry global: `~/.delta-11-registry.json`
+
+Arquivo que lista TODOS os projetos com D-11 instalado:
+
+```json
+{
+  "version": "3.2",
+  "source": "/Users/alfa/projetos/Formacao-delta-11",
+  "github": "https://github.com/Hackerdomarketing/Formacao-delta-11.git",
+  "projects": [
+    "/Users/alfa/Documents/VSCODE/salvahacks",
+    "/Users/alfa/Documents/VSCODE/Jarvis/FORMACAO-DELTA-11",
+    "/Users/alfa/projetos/nome-do-meu-app",
+    "/Users/alfa/projetos/Scanner-de-Desvantagens-VANTOR"
+  ],
+  "backup": "/Users/alfa/Downloads/Formacao-Delta-11-v3.1",
+  "historical": "/Users/alfa/Downloads/construcao-delta-11/sistema-atual",
+  "last_sync": "2026-02-09T..."
+}
+```
+
+O `instalar.sh` registra novos projetos automaticamente. Para adicionar manualmente, edite o JSON.
+
+### Segurança: por que atualização imediata é segura
+
+Os agentes D-11 leem seus arquivos UMA VEZ na ativação e carregam no contexto. Mudar o arquivo no disco NÃO afeta um agente que já está rodando — ele já leu. O próximo agente a ativar pegará a versão nova automaticamente.
+
+Se quiser que um agente JÁ rodando pegue mudanças, reinicie a janela dele.
+
+### Arquivos do sistema Δ-11 (sincronizados pelo script):
 
 ```
 CLAUDE.md                                    ← protocolo mestre
 .delta-11/operativos/*.md                    ← 10 agentes
 .delta-11/protocolos/*.md                    ← 5 protocolos
 .delta-11/sub-agentes/*.md                   ← 4 sub-agentes
-.delta-11/templates/estado-agente-template.md
-.delta-11/painel.html
+.delta-11/templates/*.md                     ← templates
+.delta-11/painel.html                        ← painel visual
 ```
 
-### Arquivos exclusivos do repo de distribuição (NÃO existem nos projetos):
+### Arquivos exclusivos do repo de distribuição (NÃO vão para projetos):
 
 ```
 instalar.sh
 novo-projeto.sh
 disparar.sh
+sincronizar.sh
 GUIA-DO-COMANDANTE.md
 README.md
 ```
 
-### Arquivos que NÃO são sincronizados (são específicos de cada projeto):
+### Arquivos que NUNCA são sincronizados (dados do projeto):
 
 ```
 .delta-11/kanban.md              ← tarefas do projeto
