@@ -265,11 +265,51 @@ Diga ao comandante: "Meu contexto estava chegando no limite. Já abri uma nova j
 
 ## PROTOCOLO DE AUTO-DISPATCH (disparo automático de agentes)
 
-Todo agente da Formação Δ-11 pode abrir uma nova aba do Claude Code no VS Code e enviar um prompt automaticamente. Isso elimina a necessidade do comandante copiar e colar prompts manualmente.
+Todo agente da Formação Δ-11 pode abrir uma nova instância do Claude Code e enviar um prompt automaticamente. Isso elimina a necessidade do comandante copiar e colar prompts manualmente.
+
+### DETECÇÃO DE MODO (executar UMA VEZ antes do primeiro auto-dispatch)
+
+O sistema suporta 3 modos de dispatch. O modo é detectado automaticamente e salvo em `.delta-11/.dispatch-mode`:
+
+| Modo | Quando | Como funciona |
+|------|--------|---------------|
+| **terminal-app** | `claude` CLI disponível (padrão recomendado) | Abre aba no Terminal.app, roda `claude`, cola prompt |
+| **vscode-tab** | Só extensão GUI, sem CLI | Abre tab no VS Code via "Open in New Tab" (legado) |
+| **manual** | Nada detectado / fallback | Salva arquivo, pede ao comandante para colar |
+
+**POR QUE terminal-app É O PADRÃO:** Múltiplas instâncias do Claude Code na mesma janela do VS Code causam conflito de lock file e podem travar o VS Code (bug documentado #13287/#13499). Cada agente no Terminal.app roda como processo isolado — zero conflito.
+
+Antes do primeiro auto-dispatch da sessão, detecte o modo:
+
+```bash
+if [ -f .delta-11/.dispatch-mode ]; then
+    DISPATCH_MODE=$(cat .delta-11/.dispatch-mode | tr -d '[:space:]')
+else
+    if command -v claude &>/dev/null; then
+        DISPATCH_MODE="terminal-app"
+    elif command -v code &>/dev/null && code --list-extensions 2>/dev/null | grep -q "anthropic.claude-code"; then
+        DISPATCH_MODE="vscode-tab"
+    else
+        DISPATCH_MODE="manual"
+    fi
+    echo "$DISPATCH_MODE" > .delta-11/.dispatch-mode
+fi
+```
+
+### CONFIGURAÇÃO MANUAL DO MODO
+
+O comandante pode forçar um modo específico a qualquer momento:
+
+```bash
+echo "terminal-app" > .delta-11/.dispatch-mode   # CLI no Terminal.app (recomendado)
+echo "vscode-tab" > .delta-11/.dispatch-mode      # Extensão VS Code (pode travar com muitos agentes)
+echo "manual" > .delta-11/.dispatch-mode           # Sempre pedir ao comandante para colar
+rm .delta-11/.dispatch-mode                        # Resetar detecção automática
+```
 
 ### O MECANISMO
 
-O auto-dispatch usa AppleScript para controlar o VS Code. Para disparar UM agente:
+Para disparar UM agente:
 
 **PASSO 0 — AVISO VISUAL ANTI-COLISÃO (OBRIGATÓRIO ANTES de qualquer auto-dispatch):**
 
@@ -314,8 +354,44 @@ cat .delta-11/ativacoes/[ARQUIVO].txt | pbcopy
 # 2. Aguardar o comandante ler o aviso
 sleep 5
 
-# 3. Abrir nova aba do Claude Code no VS Code e enviar o prompt
-osascript << 'APPLESCRIPT'
+# 3. Ler modo de dispatch
+DISPATCH_MODE="terminal-app"
+if [ -f .delta-11/.dispatch-mode ]; then
+    DISPATCH_MODE=$(cat .delta-11/.dispatch-mode | tr -d '[:space:]')
+fi
+
+# 4. Pegar caminho do projeto
+PROJECT_PATH=$(pwd)
+
+# 5. Disparar conforme o modo
+if [ "$DISPATCH_MODE" = "terminal-app" ]; then
+    # MODO TERMINAL-APP: Abre aba no Terminal.app com claude CLI
+    osascript << APPLESCRIPT
+tell application "Terminal"
+    activate
+    delay 0.5
+    tell application "System Events"
+        tell process "Terminal"
+            keystroke "t" using {command down}
+        end tell
+    end tell
+    delay 1
+    do script "cd '$PROJECT_PATH' && claude" in front window
+    delay 6
+    tell application "System Events"
+        tell process "Terminal"
+            keystroke "v" using {command down}
+            delay 0.5
+            keystroke return
+        end tell
+    end tell
+end tell
+APPLESCRIPT
+
+elif [ "$DISPATCH_MODE" = "vscode-tab" ]; then
+    # MODO VSCODE-TAB: Abre nova aba do Claude Code no VS Code
+    # AVISO: Multiplas instancias podem causar conflito de lock (bug #13287)
+    osascript << 'APPLESCRIPT'
 tell application "Visual Studio Code"
     activate
 end tell
@@ -334,9 +410,36 @@ tell application "System Events"
     end tell
 end tell
 APPLESCRIPT
+
+else
+    # MODO MANUAL: Informar o comandante
+    echo ""
+    echo "AUTO-DISPATCH INDISPONIVEL."
+    echo "O prompt foi salvo em: .delta-11/ativacoes/[ARQUIVO].txt"
+    echo "Abra um terminal, cd para o projeto, rode 'claude', e cole o conteudo."
+    echo ""
+fi
 ```
 
-**REGRA:** Entre o disparo de dois agentes diferentes, aguarde no mínimo 8 segundos para o clipboard e o VS Code se estabilizarem. O aviso visual DEVE ser exibido ANTES de cada disparo individual (não apenas antes do primeiro).
+**REGRA:** Entre o disparo de dois agentes diferentes, aguarde no mínimo 8 segundos para o clipboard e o aplicativo se estabilizarem. O aviso visual DEVE ser exibido ANTES de cada disparo individual (não apenas antes do primeiro).
+
+### FALLBACK — QUANDO O AUTO-DISPATCH FALHA
+
+Se o auto-dispatch falhar por qualquer motivo (aplicativo não respondeu, comando não encontrado, permissão de acessibilidade negada):
+
+1. **NÃO TENTE NOVAMENTE AUTOMATICAMENTE** — o prompt pode ter caído na janela errada
+2. **Salve o prompt como arquivo** em `.delta-11/ativacoes/` (já foi feito antes do dispatch)
+3. **Informe o comandante:**
+   ```
+   AUTO-DISPATCH FALHOU para [NOME-DO-AGENTE].
+   O prompt está salvo em: .delta-11/ativacoes/[ARQUIVO].txt
+
+   Opções:
+   1. Rode no terminal: ./disparar.sh [NOME-DO-AGENTE]
+   2. Abra um terminal, cd para o projeto, rode 'claude', cole o prompt
+   3. Para mudar o modo: echo "terminal-app" > .delta-11/.dispatch-mode
+   ```
+4. **Continue trabalhando** em outras tarefas se houver
 
 ### QUANDO DISPARAR
 

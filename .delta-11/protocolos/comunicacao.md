@@ -13,6 +13,14 @@ Cada agente registra o que fez e onde parou. Outros agentes podem ler quando pre
 ### 3. PROJETO CENTRAL (`.delta-11/memoria/project-core.md`)
 Contratos, esquema de banco, decisões arquiteturais. Todos leem. Somente ATLAS atualiza.
 
+### 4. MODO DE DISPATCH (`.delta-11/.dispatch-mode`)
+Configura como os agentes abrem novas janelas automaticamente. Três modos possíveis:
+- **terminal-app** — Cada agente roda como processo `claude` CLI em aba separada do Terminal.app (recomendado — zero conflito de lock file)
+- **vscode-tab** — Via extensão Claude Code do VS Code (comando "Open in New Tab" — pode travar com muitos agentes)
+- **manual** — O comandante cola os prompts manualmente
+
+O ATLAS configura este arquivo na primeira ativação. Qualquer agente pode ler o arquivo para saber qual mecanismo usar ao auto-disparar.
+
 ## FORMATO DE CONTRATO DE INTERFACE DE PROGRAMAÇÃO DE APLICAÇÕES
 
 ```

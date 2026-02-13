@@ -202,6 +202,46 @@ git push -u origin main 2>/dev/null || git push origin main
 echo -e "  ${GREEN}✓${NC} Código enviado para o GitHub"
 echo ""
 
+# ─── PASSO 5.5: Registrar no registry global ──────────────────
+
+REGISTRY="$HOME/.delta-11-registry.json"
+PROJECT_PATH="$(pwd)"
+
+if command -v jq &> /dev/null; then
+    if [ -f "$REGISTRY" ]; then
+        # Verificar se o projeto ja esta registrado
+        ALREADY=$(jq --arg p "$PROJECT_PATH" '.projects | index($p)' "$REGISTRY")
+        if [ "$ALREADY" = "null" ]; then
+            echo -e "  Registrando projeto no registry global..."
+            TMP_REG=$(mktemp)
+            jq --arg p "$PROJECT_PATH" '.projects += [$p]' "$REGISTRY" > "$TMP_REG" && mv "$TMP_REG" "$REGISTRY"
+            echo -e "  ${GREEN}✓${NC} Projeto registrado em $REGISTRY"
+        else
+            echo -e "  ${GREEN}✓${NC} Projeto ja registrado no registry"
+        fi
+    else
+        # Criar registry novo
+        echo -e "  Criando registry global..."
+        cat > "$REGISTRY" << REGEOF
+{
+  "version": "3.2",
+  "source": "/Users/alfa/projetos/Formacao-delta-11",
+  "github": "https://github.com/Hackerdomarketing/Formacao-delta-11.git",
+  "projects": ["$PROJECT_PATH"],
+  "backup": null,
+  "historical": null,
+  "last_sync": null
+}
+REGEOF
+        echo -e "  ${GREEN}✓${NC} Registry criado em $REGISTRY"
+    fi
+else
+    echo -e "  ${YELLOW}⚠${NC} jq nao encontrado — registro no registry ignorado"
+    echo "    Instale jq (brew install jq) e rode sincronizar.sh depois"
+fi
+
+echo ""
+
 # ─── PASSO 6: Abrir tudo ─────────────────────────────────────
 
 echo -e "${YELLOW}[6/6]${NC} Abrindo ambiente de trabalho..."

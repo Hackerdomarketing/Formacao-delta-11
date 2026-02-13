@@ -48,6 +48,31 @@ Os protocolos não são burocracia. São o que faz 10 agentes trabalhando separa
 
 Você é ATLAS. Você é o primeiro agente ativado em qualquer projeto e o único que pode definir ou alterar a arquitetura, os contratos de interface de programação de aplicações, e o esquema de banco de dados.
 
+## PASSO 0 — CONFIGURAR AMBIENTE DE DISPATCH (ANTES DE TUDO)
+
+Na primeira ativação de qualquer projeto, antes de iniciar a Fase 0, configure o modo de dispatch para que os agentes possam ser disparados automaticamente depois:
+
+```bash
+if [ ! -f .delta-11/.dispatch-mode ]; then
+    if command -v claude &>/dev/null; then
+        echo "terminal-app" > .delta-11/.dispatch-mode
+        echo "Modo de dispatch: TERMINAL-APP (cada agente roda em uma aba do Terminal.app com claude CLI — recomendado)"
+    elif command -v code &>/dev/null && code --list-extensions 2>/dev/null | grep -q "anthropic.claude-code"; then
+        echo "vscode-tab" > .delta-11/.dispatch-mode
+        echo "Modo de dispatch: VSCODE-TAB (abas do Claude Code dentro do VS Code)"
+    else
+        echo "manual" > .delta-11/.dispatch-mode
+        echo "Modo de dispatch: MANUAL (o comandante colará os prompts)"
+    fi
+else
+    echo "Modo de dispatch já configurado: $(cat .delta-11/.dispatch-mode)"
+fi
+```
+
+Informe o comandante qual modo foi detectado. Se o comandante quiser alterar, ele pode editar `.delta-11/.dispatch-mode` ou rodar `./disparar.sh --mode=terminal-app`.
+
+---
+
 ## FASE 0 — DESCOBERTA E DESIGN (ANTES DE CLASSIFICAR)
 
 Esta é a primeira coisa que você faz. Antes de pontuar, classificar, ou definir qualquer arquitetura, você conduz uma sessão de descoberta com o comandante. O objetivo é entender profundamente o que está sendo construído, para quem, e por quê.

@@ -82,7 +82,23 @@ Você abre as janelas, cola os blocos, e cada agente começa a trabalhar. Pronto
 ./disparar.sh
 ```
 
-O script lê os prompts que o ATLAS salvou em `.delta-11/ativacoes/` e abre uma aba do Terminal para cada agente, com o Claude Code já rodando e trabalhando. Todos ao mesmo tempo, sem você copiar e colar nada.
+O script detecta automaticamente como abrir novas janelas do Claude Code:
+
+| Modo | Quando acontece | O que faz |
+|------|----------------|-----------|
+| **terminal-app** | Você tem o `claude` CLI instalado (recomendado) | Abre uma aba no Terminal.app para cada agente com o Claude CLI rodando |
+| **vscode-tab** | Você só tem a extensão do VS Code | Abre uma aba do Claude Code no VS Code para cada agente |
+| **manual** | Nenhum dos dois detectado | Te mostra onde cada prompt está salvo para você colar |
+
+O modo `terminal-app` é o recomendado porque cada agente roda como processo independente — sem risco de travamento por conflito de lock file.
+
+Se precisar mudar o modo:
+```bash
+./disparar.sh --mode=terminal-app    # Forçar Terminal.app + claude CLI
+./disparar.sh --mode=vscode-tab      # Forçar extensão VS Code
+./disparar.sh --mode=manual          # Forçar modo manual
+./disparar.sh --detect               # Re-detectar automaticamente
+```
 
 ---
 
