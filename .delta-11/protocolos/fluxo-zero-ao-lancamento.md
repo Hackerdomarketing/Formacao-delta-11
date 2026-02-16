@@ -49,14 +49,47 @@ O comandante descreve o projeto. O ATLAS classifica, pontua, e apresenta o plano
 
 ### FASE 2 — ARQUITETURA E CONTRATOS
 
-**Quem:** ATLAS + SHIELD (revisão)
-**Janelas:** 1 (ATLAS trabalha, depois ativa SHIELD para revisar)
+**Quem:** ATLAS + SHIELD (revisão) + CRONOS (se Score ≥ 7)
+**Janelas:** 1 a 2
 
 O ATLAS define tudo: contratos de interface de programação de aplicações com regras de validação detalhadas, esquema de banco, decisões técnicas críticas, padrões de implementação obrigatórios, armadilhas conhecidas das tecnologias escolhidas, fluxos completos de ponta a ponta, regras de autenticação e autorização, e popula o kanban com todas as tarefas.
 
 **Antes de finalizar:** O ATLAS ativa o SHIELD para uma revisão de segurança dos contratos. O SHIELD verifica se as validações estão completas, se os fluxos estão mapeados, se as decisões técnicas cobrem as armadilhas, e se existe defesa em profundidade. O ATLAS corrige o que o SHIELD apontar.
 
-**Resultado:** `project-core.md` completo com contratos detalhados, decisões técnicas, padrões de implementação, e armadilhas documentadas. `kanban.md` populado. Contratos revisados pelo SHIELD. Comandante sabe quantas janelas abrir.
+**Ativação do CRONOS:** Se a pontuação de complexidade for ≥ 7 (projetos médios ou altos), o ATLAS ativa o CRONOS ao final desta fase. O CRONOS passa a monitorar o kanban, coordenar agentes, e ser o ponto de contato do comandante durante as próximas fases.
+
+**Resultado:** `project-core.md` completo com contratos detalhados, decisões técnicas, padrões de implementação, e armadilhas documentadas. `kanban.md` populado. Contratos revisados pelo SHIELD. CRONOS ativado (se aplicável). Comandante sabe quantas janelas abrir.
+
+---
+
+### FASE 2.5 — PLANEJAMENTO DETALHADO (OBRIGATÓRIA EM PROJETOS SCORE ≥ 7)
+
+**Quem:** Todos os agentes da próxima fase + CRONOS (coordenador)
+**Janelas:** 2 a 8 (depende de quantos agentes vão trabalhar na Fase 3 e 4)
+
+**Quando executar:** Somente em projetos com Score ≥ 7 (complexidade média ou alta). Em projetos baixa complexidade (Score < 7), pular esta fase e ir direto para Fase 3.
+
+Esta fase existe para evitar que agentes "pensem enquanto fazem". Antes de escrever qualquer código, cada agente PLANEJA o que vai fazer, e o CRONOS revisa todos os planos para detectar conflitos ANTES da execução começar.
+
+**Processo:**
+
+1. **CRONOS dispara todos os agentes da Fase 3 e 4** em paralelo (respeitando zonas e dependências)
+2. **Cada agente cria seu arquivo de plano:** `.delta-11/planos/[AGENTE]-plan.md` contendo:
+   - Quais arquivos vai criar/modificar
+   - Quais dependências precisa (de outros agentes ou bibliotecas)
+   - Decisões técnicas específicas (padrões, estruturas, validações)
+   - Checklist de tarefas detalhado
+   - Estimativa de complexidade de cada tarefa
+3. **CRONOS lê todos os planos** e identifica:
+   - Conflitos (dois agentes planejando mexer no mesmo arquivo)
+   - Dependências circulares (A depende de B que depende de A)
+   - Decisões técnicas inconsistentes (FRONT quer usar lib X, PIXEL quer usar lib Y)
+   - Tarefas faltando (algo que ninguém planejou mas precisa ser feito)
+4. **CRONOS pode disparar Code Architect** para validar se os planos propostos seguem a arquitetura do `project-core.md`
+5. **Se conflitos encontrados:** CRONOS devolve os planos aos agentes com instruções de replanejamento. Loop até todos os planos estarem consistentes.
+6. **Quando todos os planos aprovados:** CRONOS marca no kanban que a Fase 2.5 foi concluída, e os agentes podem avançar para execução (Fase 3 e 4) **seguindo exatamente os planos aprovados**.
+
+**Resultado:** Todos os agentes sabem EXATAMENTE o que vão fazer antes de escrever código. Zero improviso durante execução. Conflitos resolvidos ANTES de acontecerem.
 
 ---
 
@@ -73,38 +106,49 @@ O VAULT cria o banco de dados, autenticação, e políticas de segurança. O SHI
 
 ### FASE 4 — DESENVOLVIMENTO
 
-**Quem:** Depende da complexidade (o ATLAS já definiu quem)
+**Quem:** Depende da complexidade (o ATLAS já definiu quem) + CRONOS (se Score ≥ 7)
 **Janelas:** 2 a 7
 
-Cada agente lê o kanban, vê suas tarefas, e começa a trabalhar. Ao concluir cada tarefa, atualiza seu estado e o kanban. O SHIELD testa CONTINUAMENTE conforme as funcionalidades são entregues (não espera o final).
+**Se Fase 2.5 foi executada:** Cada agente já tem seu plano aprovado em `.delta-11/planos/[AGENTE]-plan.md` e **DEVE seguir exatamente o plano**. Qualquer desvio precisa ser aprovado pelo CRONOS (que pode disparar Code Architect para avaliar impacto).
+
+**Se Fase 2.5 foi pulada (Score < 7):** Cada agente lê o kanban, vê suas tarefas, e começa a trabalhar diretamente.
+
+Ao concluir cada tarefa, atualiza seu estado e o kanban. O SHIELD testa CONTINUAMENTE conforme as funcionalidades são entregues (não espera o final).
 
 **Ciclo de cada tarefa:**
 ```
-Agente puxa tarefa do kanban → Executa → Atualiza estado e kanban → SHIELD verifica contra contrato → Aprovado? → Próxima tarefa
+Agente puxa tarefa do kanban → Executa seguindo plano → Build Validator (OBRIGATÓRIO) → Atualiza estado e kanban → SHIELD verifica contra contrato → Aprovado? → Próxima tarefa
 ```
 
-**Durante a Fase 4 — Validação contínua de build:**
-Todo agente que escreve código (ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT) dispara o sub-agente `build-validator` antes de marcar cada tarefa como concluída. Isso garante que erros de build são pegos na origem, não acumulados para o SHIELD descobrir depois.
+**Durante a Fase 4 — Validação contínua de build (REGRA OBRIGATÓRIA):**
+Todo agente que escreve código (ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT) **DEVE** disparar o sub-agente `build-validator` ANTES de marcar cada tarefa como concluída. Isso garante que erros de build são pegos na origem, não acumulados para o SHIELD descobrir depois.
+
+- Se **PASS**: Continua normalmente
+- Se **FAIL com blockers**: Corrige ANTES de marcar como concluída
+- Se **FAIL com warnings apenas**: Pode marcar como concluída mas registra warnings no estado
+
+**Monitoramento de drift arquitetural (CRONOS em projetos Score ≥ 7):**
+Se CRONOS percebe que um agente está demorando muito ou fazendo muitos commits, pode disparar Code Architect para verificar se o agente está seguindo o plano ou improvisando. Se detectar drift significativo, CRONOS pode parar o agente e forçar replanejamento.
 
 **Ao final da Fase 4 (quando todos os agentes de desenvolvimento terminam):**
-1. O SCOUT é ativado automaticamente para uma varredura preventiva completa de todo o código antes da Fase 5. Ele busca problemas que o SHIELD pode não ter pego nas verificações individuais: inicializações perigosas, bypass de contratos, validações ausentes, links quebrados, condições de corrida, e falhas de segurança.
-2. O ATLAS dispara o sub-agente `code-architect` para uma auditoria arquitetural — comparando o código real com a arquitetura planejada no `project-core.md`. Se o score for C ou menor, tarefas de correção são criadas no kanban antes de avançar.
+1. **Code Simplifier (OBRIGATÓRIO):** O último agente a terminar dispara o sub-agente `code-simplifier` para simplificar todo o código escrito na fase. Após simplificação, dispara `build-validator` para confirmar que nada quebrou.
+2. **Varredura preventiva (OBRIGATÓRIO):** SCOUT é ativado automaticamente para varredura completa de todo o código antes da Fase 5. Busca: inicializações perigosas, bypass de contratos, validações ausentes, links quebrados, condições de corrida, falhas de segurança.
+3. **Auditoria arquitetural (OBRIGATÓRIO):** ATLAS ou CRONOS (se ativo) dispara o sub-agente `code-architect` para comparar código real vs arquitetura planejada no `project-core.md`. Se score for C ou menor, tarefas de correção são criadas no kanban antes de avançar.
 
-**Resultado:** Todas as funcionalidades implementadas, testadas individualmente pelo SHIELD, varridas pelo SCOUT, e auditadas arquiteturalmente. Problemas encontrados são corrigidos antes de avançar.
+**Resultado:** Todas as funcionalidades implementadas, código simplificado, testadas individualmente pelo SHIELD, varridas pelo SCOUT, e auditadas arquiteturalmente. Problemas encontrados são corrigidos antes de avançar.
 
 ---
 
 ### FASE 5 — TESTES DE INTEGRAÇÃO
 
-**Quem:** SHIELD + SCOUT (se houver erros)
+**Quem:** SHIELD + SCOUT (se houver erros) + CRONOS (se Score ≥ 7)
 **Janelas:** 1 a 2
 
 O SHIELD executa testes de ponta a ponta: cada fluxo completo (usuário se cadastra → faz login → executa ação → vê resultado). Verifica coerência total entre interface, servidor, e banco.
 
-**Ao final da Fase 5 (todos os testes passando):**
-O SCOUT dispara o sub-agente `code-simplifier` para uma passada de simplificação do código. Após a simplificação, o SCOUT dispara `build-validator` para confirmar que nada quebrou.
+**Resultado:** Todos os fluxos passando nos testes. Todos os erros encontrados corrigidos.
 
-**Resultado:** Todos os fluxos passando nos testes. Todos os erros encontrados corrigidos. Código simplificado e limpo.
+**NOTA:** Code Simplifier já foi executado ao final da Fase 4. Esta fase foca 100% em testes de integração.
 
 ---
 

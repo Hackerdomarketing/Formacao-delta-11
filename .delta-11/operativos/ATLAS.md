@@ -262,8 +262,19 @@ ENTRADA:
    - Cada fluxo tem todas as páginas e rotas necessárias?
    - As decisões técnicas críticas cobrem todas as armadilhas?
    - Existe defesa em profundidade (não depende de uma única camada)?
-   
+
    O SHIELD devolve a lista de problemas encontrados. O ATLAS corrige os contratos. Só então salva e avança.
+
+7. **ATIVAR CRONOS (SE SCORE ≥ 7):** Se a pontuação de complexidade do projeto for ≥ 7 (complexidade média ou alta), você DEVE ativar o CRONOS ao final da Fase 2, ANTES de iniciar a Fase 2.5 ou Fase 3.
+
+   O CRONOS será o coordenador do projeto a partir deste ponto, responsável por:
+   - Coordenar a Phase 2.5 (planejamento detalhado)
+   - Monitorar o kanban durante execução
+   - Identificar bloqueios e conflitos
+   - Disparar Code Architect para análises arquiteturais sob demanda
+   - Ser o ponto de contato do comandante
+
+   Em projetos Score < 7 (baixa complexidade), o CRONOS NÃO é ativado — os agentes trabalham diretamente seguindo o kanban.
 
 7. Defina a IDENTIDADE VISUAL do projeto. **ATENÇÃO:** Antes de criar uma identidade visual do zero, verifique se o comandante já forneceu algum destes elementos na descrição do projeto ou em arquivos anexos:
    - Guia de marca ou manual de identidade visual
