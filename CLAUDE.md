@@ -132,7 +132,7 @@ Se você é um agente que escreve ou modifica código (ENGINE, BACK, FRONT, PIXE
 
 1. Mova sua tarefa para "REVISÃO" no kanban.md (não CONCLUÍDO)
 2. No kanban-data.js, adicione a tarefa no array `revisao` com o formato: `{ id: "T-XXX", desc: "Descrição", por: "SEU-NOME", revisor: "SHIELD" }`
-3. Se o SHIELD não está ativo no momento, gere um prompt de ativação em `.delta-11/ativacoes/janela-SHIELD-revisao.txt` listando os arquivos modificados e o que foi feito, e tente auto-disparar usando o mecanismo de auto-dispatch
+3. Se o SHIELD não está ativo no momento, gere um prompt de ativação em `.delta-11/ativacoes/janela-SHIELD-revisao.txt` listando os arquivos modificados e o que foi feito, e tente auto-disparar usando o mecanismo de auto-dispatch. **OBRIGATÓRIO antes de disparar:** Leia `.delta-11/.dispatch-mode` para saber o modo correto. NUNCA assuma o modo.
 4. Continue trabalhando na próxima tarefa — NÃO espere a revisão do SHIELD
 5. Se o SHIELD encontrar problemas, ele criará tarefas de correção no kanban
 
@@ -140,7 +140,7 @@ Agentes que NÃO escrevem código (ATLAS, CRONOS) e o próprio SHIELD não preci
 
 **Passo 4 — Verifique se sua tarefa desbloqueia outro agente:**
 - Olhe no kanban se alguma tarefa de outro agente tem "Depende de" apontando para a tarefa que você acabou de concluir
-- **SE SIM:** Gere o prompt de ativação desse agente, salve em `.delta-11/ativacoes/`, e **auto-dispare** usando o mecanismo de auto-dispatch (seção PROTOCOLO DE AUTO-DISPATCH)
+- **SE SIM:** Gere o prompt de ativação desse agente, salve em `.delta-11/ativacoes/`, e **auto-dispare** usando o mecanismo de auto-dispatch (seção PROTOCOLO DE AUTO-DISPATCH). **OBRIGATÓRIO antes de disparar:** Leia `.delta-11/.dispatch-mode` para saber o modo correto (`vscode-tab`, `terminal-app`, ou `manual`). NUNCA assuma o modo — SEMPRE leia o arquivo primeiro.
 - **SE NÃO:** Continue normalmente
 
 **Passo 5 — Sinal visual para o comandante (OBRIGATÓRIO ao final de TODA tarefa):**
@@ -223,7 +223,7 @@ Quando você concluir a última tarefa da sua coluna no kanban para a fase atual
    - Gere os prompts de ativação para os agentes da PRÓXIMA fase
    - Salve cada prompt como arquivo em `.delta-11/ativacoes/` (crie a pasta se não existir), com o nome `janela-[NÚMERO]-[NOME-DO-AGENTE].txt`
    - Remova arquivos de ativação da fase anterior que já foram usados
-   - **AUTO-DISPARE os agentes da próxima fase** usando o mecanismo de auto-dispatch (seção PROTOCOLO DE AUTO-DISPATCH), respeitando as regras de paralelismo e ordem de prioridade
+   - **AUTO-DISPARE os agentes da próxima fase** usando o mecanismo de auto-dispatch (seção PROTOCOLO DE AUTO-DISPATCH), respeitando as regras de paralelismo e ordem de prioridade. **OBRIGATÓRIO antes de disparar:** Leia `.delta-11/.dispatch-mode` para saber o modo correto. NUNCA assuma `terminal-app` — o comandante pode estar usando a extensão VS Code.
    - Se o auto-dispatch falhar por qualquer motivo, informe o comandante que ele pode rodar `./disparar.sh` como alternativa
    - Atualize o campo `fase_atual` no `kanban-data.js`
 
@@ -256,7 +256,7 @@ Não repita trabalho já registrado no arquivo de estado.
 ```
 
 **Passo 3 — Auto-disparo:**
-Use o mecanismo de auto-dispatch (descrito na seção PROTOCOLO DE AUTO-DISPATCH abaixo) para abrir uma nova aba do Claude Code no VS Code com o prompt de retomada.
+Use o mecanismo de auto-dispatch (descrito na seção PROTOCOLO DE AUTO-DISPATCH abaixo) para abrir uma nova aba do Claude Code com o prompt de retomada. **OBRIGATÓRIO:** Leia `.delta-11/.dispatch-mode` antes de disparar. O modo pode ser `vscode-tab`, `terminal-app`, ou `manual`. NUNCA assuma o modo.
 
 **Passo 4 — Avise o comandante:**
 Diga ao comandante: "Meu contexto estava chegando no limite. Já abri uma nova janela para continuar o trabalho automaticamente. Você pode fechar esta janela."
@@ -521,7 +521,7 @@ Leia seus arquivos de identidade, projeto, estado e kanban.
 Diagnostique e corrija o erro acima.
 ```
 
-**Passo 3 — Dispare o agente** usando o mecanismo de auto-dispatch acima.
+**Passo 3 — Dispare o agente** usando o mecanismo de auto-dispatch acima. **OBRIGATÓRIO:** Leia `.delta-11/.dispatch-mode` antes de disparar.
 
 **Passo 4 — Continue trabalhando** em outras tarefas se houver. Não fique parado esperando.
 
