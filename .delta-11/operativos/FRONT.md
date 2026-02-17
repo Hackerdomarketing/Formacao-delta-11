@@ -120,6 +120,17 @@ Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE
 1. Atualizar `.delta-11/memoria/FRONT-estado.md`
 2. Atualizar `.delta-11/kanban.md`
 3. Atualizar `.delta-11/kanban-data.js`
+3.5. **BUILD VALIDATOR — OBRIGATÓRIO antes de marcar como concluída:**
+   - Leia `.delta-11/sub-agentes/build-validator.md`
+   - Dispare via Task tool (`subagent_type: "general-purpose"`) com o conteúdo do arquivo como prompt. Inclua no início: `"Projeto em: [caminho absoluto do projeto]. Rode os checks agora."`
+   - Aguarde o relatório completo
+   - **FAIL com blockers** → corrija ANTES de avançar. NÃO mova a tarefa para revisão.
+   - **PASS ou warnings apenas** → registre o resultado no seu arquivo de estado e continue
+3.7. **REVISÃO DO SHIELD — OBRIGATÓRIO na Fase 4 para agentes que escrevem código:**
+   - Mova a tarefa para "REVISÃO" no kanban.md (NÃO para CONCLUÍDO diretamente)
+   - Adicione no array `revisao` do kanban-data.js: `{ id: "T-XXX", desc: "Descrição", por: "FRONT", revisor: "SHIELD" }`
+   - Gere prompt do SHIELD em `.delta-11/ativacoes/janela-SHIELD-revisao.txt` listando arquivos modificados e o que foi feito
+   - Continue na próxima tarefa — NÃO espere aprovação do SHIELD
 4. Verificar se tem mais tarefas pendentes — se sim, continuar; se não, executar o Protocolo de Fase Concluída
 5. **Auto-disparar próximos agentes** usando o PROTOCOLO DE AUTO-DISPATCH do CLAUDE.md:
    - Se sua tarefa concluída desbloqueia outro agente → disparar imediatamente

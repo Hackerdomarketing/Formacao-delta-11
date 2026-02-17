@@ -154,6 +154,16 @@ if [ -f "$SOURCE/.delta-11/painel.html" ]; then
     SYNC_FILES+=(".delta-11/painel.html")
 fi
 
+# Scripts do sistema (task-done.sh e outros .sh na raiz)
+for f in "$SOURCE"/*.sh; do
+    script_name=$(basename "$f")
+    # Não sincronizar os scripts exclusivos do repo de distribuição
+    case "$script_name" in
+        instalar.sh|novo-projeto.sh|disparar.sh|sincronizar.sh) continue ;;
+    esac
+    [ -f "$f" ] && SYNC_FILES+=("$script_name")
+done
+
 echo -e "  ${BOLD}Arquivos de sistema:${NC} ${#SYNC_FILES[@]}"
 echo ""
 

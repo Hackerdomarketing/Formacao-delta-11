@@ -113,9 +113,19 @@ Ao concluir qualquer tarefa, execute SEMPRE estes passos:
 - Isso alimenta o painel visual que o comandante acompanha no navegador
 - O formato é um objeto JavaScript com arrays de tarefas por coluna (veja o arquivo para o formato exato)
 
+**Golden Path — Atalho recomendado após o Passo 3:**
+
+Se o projeto tem o script `task-done.sh` na raiz, use-o via Bash tool ANTES de executar os passos 3.5 e 3.7. Ele automaticamente gera o prompt do SHIELD e exibe o checklist completo:
+
+```bash
+./task-done.sh SEU-NOME T-XXX "Descrição da tarefa" "arquivos/modificados.js"
+```
+
+Esse script é o **Golden Path** — o caminho correto feito mais fácil que o incorreto.
+
 **Passo 3.5 — Validação de build (obrigatório para agentes que escrevem código)**
 
-Se você é um agente que escreve ou modifica código (ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT), dispare o sub-agente `build-validator` ANTES de marcar a tarefa como concluída:
+Se você é um agente que escreve ou modifica código (ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT, VAULT), dispare o sub-agente `build-validator` ANTES de marcar a tarefa como concluída:
 
 1. Leia o arquivo `.delta-11/sub-agentes/build-validator.md`
 2. Use a ferramenta Task para disparar um sub-agente do tipo `general-purpose` com o conteúdo desse arquivo como prompt, incluindo no início: "Projeto em: [caminho do projeto]. Rode os checks agora."
