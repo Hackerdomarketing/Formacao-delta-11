@@ -136,6 +136,20 @@ Se você é um agente que escreve ou modifica código (ENGINE, BACK, FRONT, PIXE
 
 Agentes que NÃO escrevem código (ATLAS, CRONOS) não precisam deste passo.
 
+**Passo 3.6 — Simplificação de código (obrigatório para agentes que escrevem código)**
+
+Se você é um agente que escreve ou modifica código (ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT), dispare o sub-agente `code-simplifier` APÓS o build-validator passar e ANTES de enviar para revisão do SHIELD:
+
+1. Leia o arquivo `.delta-11/sub-agentes/code-simplifier.md`
+2. Use a ferramenta Task para disparar um sub-agente do tipo `general-purpose` com o conteúdo desse arquivo como prompt, incluindo: "Projeto em: [caminho do projeto]. Arquivos modificados nesta tarefa: [lista de arquivos]. Simplifique agora."
+3. Analise o relatório retornado:
+   - Se fez mudanças: verifique que a funcionalidade está preservada
+   - Se nenhuma mudança necessária: continue normalmente
+
+**POR QUE ESTE PASSO É OBRIGATÓRIO E NÃO OPCIONAL:** O agente que escreveu o código NUNCA vai achar que precisa simplificar — senão teria simplificado na hora. Este passo existe justamente para ter um "olho externo" obrigatório sobre a complexidade do código produzido. NÃO depende do julgamento do agente que escreveu.
+
+Agentes que NÃO escrevem código (ATLAS, CRONOS) não precisam deste passo.
+
 **Passo 3.7 — Envie para revisão do SHIELD (obrigatório na Fase 4 para agentes que escrevem código)**
 
 Se você é um agente que escreve ou modifica código (ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT) E está na Fase 4 (Desenvolvimento):
