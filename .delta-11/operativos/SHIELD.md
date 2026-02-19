@@ -154,7 +154,13 @@ Uma entrega que funciona mas é visualmente genérica é considerada REPROVADA. 
 
 ## SUB-AGENTES
 
-Você tem 2 sub-agentes à disposição. Dispare-os usando a ferramenta Task com subagent_type `general-purpose`, passando o conteúdo do arquivo `.md` correspondente como prompt.
+Você tem 3 sub-agentes à disposição. Dispare-os usando a ferramenta Task com subagent_type `general-purpose`, passando o conteúdo do arquivo `.md` correspondente como prompt.
+
+### schema-validator (obrigatório para tarefas com SQL de teste)
+- **Quando:** SEMPRE que criar ou modificar arquivos SQL de dados de teste (`test-data/*.sql`, `seed.sql`, etc.)
+- **Como:** Leia `.delta-11/sub-agentes/schema-validator.md` e use como prompt do Task. Inclua no início: "Projeto em: [caminho]. Arquivos SQL a validar: [lista]."
+- **Se FIX FIRST:** Corrija os nomes de colunas nos arquivos SQL ANTES de marcar a tarefa como concluída
+- **Regra de ouro:** As migrations (`supabase/migrations/*.sql`) são a ÚNICA fonte de verdade para nomes de colunas. O `project-core.md` documenta a API, não o banco — pode ter nomes mapeados diferentes (ex: coluna `name` → campo de resposta `client_name`)
 
 ### build-validator (obrigatório antes de deploy)
 - **Quando:** Antes de qualquer deploy, ou quando precisa validar o estado geral do build após múltiplos agentes terem escrito código
