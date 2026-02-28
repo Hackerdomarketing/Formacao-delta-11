@@ -141,6 +141,7 @@ aviso_anti_colisao() {
     echo -e "${RED}║                                                               ║${NC}"
     echo -e "${RED}║${NC}  Disparando: ${BOLD}${CYAN}${nome}${NC}                                       ${RED}║${NC}"
     echo -e "${RED}║${NC}  Destino:    ${DIM}${destino}${NC}                                       ${RED}║${NC}"
+    echo -e "${RED}║${NC}  Projeto:    ${DIM}${PROJECT_PATH}${NC}"
     echo -e "${RED}║                                                               ║${NC}"
     echo -e "${RED}║${NC}  ${YELLOW}NAO MOVA O MOUSE. NAO DIGITE NADA.${NC}                          ${RED}║${NC}"
     echo -e "${RED}║${NC}  ${YELLOW}Aguarde 5 segundos...${NC}                                       ${RED}║${NC}"
@@ -202,16 +203,25 @@ APPLESCRIPT
 # ═══════════════════════════════════════════════════════════════
 
 disparar_vscode_tab() {
+    local projeto="$PROJECT_PATH"
+
+    # Foca a janela do projeto correto via CLI (sem activate global).
+    # Isso garante que o Claude Code vai abrir no projeto certo,
+    # nao em outra janela do VS Code de outro projeto.
+    # NOTA: nao usa "activate" do AppleScript pois isso causa window jumping
+    # entre monitores e Spaces no macOS com multiplas janelas abertas.
+    if command -v code &>/dev/null && [ -n "$projeto" ]; then
+        code --reuse-window "$projeto" 2>/dev/null || true
+        sleep 1.5
+    fi
+
+    # Envia keystrokes direto ao processo Code (sem activate)
     osascript << 'APPLESCRIPT'
-tell application "Visual Studio Code"
-    activate
-end tell
-
-delay 1
-
 tell application "System Events"
     tell process "Code"
         -- Abrir Command Palette: Cmd+Shift+P
+        -- NAO usar "tell application VS Code to activate" aqui --
+        -- isso causa window jumping entre monitores e Spaces no macOS
         keystroke "p" using {command down, shift down}
         delay 0.5
 
