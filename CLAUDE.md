@@ -602,6 +602,27 @@ Diagnostique e corrija o erro acima.
 - **Sempre aguarde 8 segundos entre disparos** de agentes diferentes
 - **Sempre salve o prompt como arquivo em `.delta-11/ativacoes/`** antes de disparar (para registro)
 
+### ⚠️ REGRA CRÍTICA: DISPATCH CROSS-PROJECT — PROIBIDO COM VSCODE-TAB
+
+**NUNCA use o modo `vscode-tab` para disparar um agente cujo projeto-alvo é DIFERENTE do seu working directory atual.**
+
+**Por que é perigoso:** O modo `vscode-tab` abre uma nova aba do Claude Code na janela do VS Code que está ativa. Se você está rodando no projeto A e tenta disparar um agente para o projeto B usando `vscode-tab`, a nova aba abre no contexto do projeto A — e o agente pode editar arquivos do projeto ERRADO, corrompendo-o silenciosamente.
+
+**Regra:** Antes de qualquer dispatch, verifique:
+```bash
+MEU_DIR=$(pwd)
+PROJETO_ALVO="/caminho/do/projeto-alvo"
+
+if [ "$MEU_DIR" != "$PROJETO_ALVO" ]; then
+  # CROSS-PROJECT DISPATCH — NUNCA use vscode-tab
+  # Use terminal-app (cd + claude garante contexto correto)
+  # OU informe o comandante para fazer manualmente
+  echo "ATENÇÃO: dispatch cross-project detectado. Use terminal-app ou manual."
+fi
+```
+
+**O modo correto para cross-project:** `terminal-app` — porque `cd /caminho/projeto-alvo && claude` garante que o novo agente inicia com o working directory correto, independentemente de qual projeto está aberto no VS Code.
+
 ---
 
 ## ESTRUTURA DO SISTEMA
