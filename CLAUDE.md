@@ -156,7 +156,7 @@ Se você é um agente que escreve ou modifica código (ENGINE, BACK, FRONT, PIXE
 
 1. Mova sua tarefa para "REVISÃO" no kanban.md (não CONCLUÍDO)
 2. No kanban-data.js, adicione a tarefa no array `revisao` com o formato: `{ id: "T-XXX", desc: "Descrição", por: "SEU-NOME", revisor: "SHIELD" }`
-3. Se o SHIELD não está ativo no momento, gere um prompt de ativação em `.delta-11/ativacoes/janela-SHIELD-revisao.txt` listando os arquivos modificados e o que foi feito, e tente auto-disparar usando o mecanismo de auto-dispatch. **OBRIGATÓRIO antes de disparar:** Leia `.delta-11/.dispatch-mode` para saber o modo correto. NUNCA assuma o modo.
+3. Se o SHIELD não está ativo no momento, gere um prompt de ativação em `.delta-11/ativacoes/janela-SHIELD-revisao-[ID-DA-TAREFA]-[SEU-NOME].txt` (exemplo: `janela-SHIELD-revisao-T-010-FRONT.txt`) listando os arquivos modificados e o que foi feito, e tente auto-disparar usando o mecanismo de auto-dispatch. **IMPORTANTE:** Use o ID da tarefa e seu nome no filename — se dois agentes terminam ao mesmo tempo, cada um gera seu próprio arquivo sem sobrescrever o do outro. **OBRIGATÓRIO antes de disparar:** Leia `.delta-11/.dispatch-mode` para saber o modo correto. NUNCA assuma o modo.
 4. Continue trabalhando na próxima tarefa — NÃO espere a revisão do SHIELD
 5. Se o SHIELD encontrar problemas, ele criará tarefas de correção no kanban
 
@@ -233,9 +233,9 @@ Quando você concluir a última tarefa da sua coluna no kanban para a fase atual
    **ATENÇÃO — MECANISMO ANTI-DUPLICAÇÃO (obrigatório):**
    Antes de gerar qualquer prompt de próxima fase, execute este procedimento:
 
-   a) Tente criar o arquivo `.delta-11/ativacoes/.trava-fase-[NÚMERO-DA-FASE-ATUAL]` usando um único comando:
+   a) Tente criar o diretório de trava `.delta-11/ativacoes/.trava-fase-[NÚMERO-DA-FASE-ATUAL]` usando `mkdir` (operação atômica no POSIX — garante que apenas um agente ganhe a trava mesmo em race condition):
    ```bash
-   if [ ! -f .delta-11/ativacoes/.trava-fase-[N] ]; then echo "[SEU-NOME] $(date)" > .delta-11/ativacoes/.trava-fase-[N]; echo "TRAVA_OK"; else echo "TRAVA_EXISTE"; fi
+   LOCK_DIR=".delta-11/ativacoes/.trava-fase-[N]"; if mkdir "$LOCK_DIR" 2>/dev/null; then echo "[SEU-NOME] $(date)" > "$LOCK_DIR/owner"; echo "TRAVA_OK"; else echo "TRAVA_EXISTE"; fi
    ```
 
    b) Se o resultado for `TRAVA_OK`: você é o responsável pela transição. Prossiga gerando os prompts.
@@ -415,19 +415,63 @@ APPLESCRIPT
 elif [ "$DISPATCH_MODE" = "vscode-tab" ]; then
     # MODO VSCODE-TAB: Abre nova aba do Claude Code no VS Code
     # AVISO: Multiplas instancias podem causar conflito de lock (bug #13287)
-    osascript << 'APPLESCRIPT'
+    # AVISO PARA COMANDANTE: Se VS Code estiver em Space diferente (Mission Control),
+    # o macOS pode mudar de Space ao ativar. Para evitar isso:
+    # System Preferences → Mission Control → desmarcar "When switching to an application,
+    # switch to a Space with open windows for the application"
+    # Alternativa: usar mode terminal-app (echo "terminal-app" > .delta-11/.dispatch-mode)
+
+    # Extrair nome da pasta do projeto para localizar a janela correta
+    PROJECT_FOLDER=$(basename "$PROJECT_PATH")
+
+    # Verificar se a janela do projeto já está aberta no VS Code
+    JANELA_ABERTA=$(osascript -e "tell application \"System Events\" to tell process \"Code\" to get title of windows" 2>/dev/null | tr ',' '\n' | grep -c "$PROJECT_FOLDER" 2>/dev/null || echo "0")
+
+    if [ "$JANELA_ABERTA" -eq 0 ] 2>/dev/null; then
+        # Janela não encontrada — abrir o projeto primeiro
+        code "$PROJECT_PATH" 2>/dev/null || open -a "Visual Studio Code" "$PROJECT_PATH"
+        sleep 3
+    fi
+
+    # AppleScript com targeting por título de janela (garante a janela certa)
+    osascript << APPLESCRIPT
+set projectFolder to "$(basename "$PROJECT_PATH")"
+
+-- Localizar a janela correta pelo título (evita abrir em outro projeto)
+tell application "System Events"
+    tell process "Code"
+        set targetWindow to missing value
+        repeat with w in windows
+            try
+                if title of w contains projectFolder then
+                    set targetWindow to w
+                    exit repeat
+                end if
+            end try
+        end repeat
+
+        -- Elevar a janela certa ANTES do activate (reduz troca de Space)
+        if targetWindow is not missing value then
+            perform action "AXRaise" of targetWindow
+            delay 0.3
+        end if
+    end tell
+end tell
+
+-- Ativar VS Code (já deve focar a janela elevada acima)
 tell application "Visual Studio Code"
     activate
 end tell
-delay 1
+delay 1.5
+
 tell application "System Events"
     tell process "Code"
         keystroke "p" using {command down, shift down}
-        delay 0.5
+        delay 0.8
         keystroke "Claude Code: Open in New Tab"
-        delay 1
+        delay 1.2
         keystroke return
-        delay 3
+        delay 3.5
         keystroke "v" using {command down}
         delay 0.5
         keystroke return

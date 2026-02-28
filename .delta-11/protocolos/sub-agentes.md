@@ -36,11 +36,10 @@ Diferença chave:
 
 **Arquivo:** `.delta-11/sub-agentes/code-simplifier.md`
 
-**Quando disparar:** OBRIGATÓRIO ao final de cada fase de desenvolvimento
+**Quando disparar:** OBRIGATÓRIO durante a finalização de cada tarefa individual (Passo 3.6 do Protocolo de Finalização), após o Build Validator passar e ANTES de enviar para revisão do SHIELD
 
 **Quem dispara:**
-- Último agente a terminar a Fase 4
-- SCOUT ao final da Fase 5 (se ainda houver código para simplificar)
+- ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT (qualquer agente que escreve código, em cada tarefa)
 
 **O que faz:**
 - Simplifica código mantendo funcionalidade idêntica
@@ -50,7 +49,7 @@ Diferença chave:
 
 **Output:** Relatório de simplificações + testes antes/depois
 
-**Regra de ouro:** NUNCA disparar durante desenvolvimento ativo — só ao final de fases completas.
+**Regra de ouro:** NUNCA pular este passo. O agente que escreveu o código nunca vai achar que precisa simplificar — senão teria simplificado na hora. O "olho externo" obrigatório é o ponto.
 
 ---
 
@@ -105,7 +104,7 @@ Diferença chave:
 | Sub-agente | Frequência | Fase | Disparado por | Obrigatório? |
 |------------|-----------|------|---------------|--------------|
 | Build Validator | Após cada tarefa de código | Fase 4, 5 | ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT | ✅ SIM |
-| Code Simplifier | Final de fase | Final da Fase 4 | Último agente a terminar Fase 4 | ✅ SIM |
+| Code Simplifier | Por tarefa (Passo 3.6) | Fase 4 | ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT | ✅ SIM |
 | Code Architect | Final de fase | Final da Fase 4 | ATLAS ou CRONOS | ✅ SIM |
 | Verify App | Antes de deploy | Fase 6 | SHIELD | ✅ SIM |
 
@@ -261,7 +260,7 @@ Use a ferramenta `Task` com `subagent_type="general-purpose"` e passe o conteúd
 ## REGRAS DE OURO
 
 1. **Build Validator** = SEMPRE após código
-2. **Code Simplifier** = SEMPRE ao final de fase (nunca no meio)
+2. **Code Simplifier** = SEMPRE após Build Validator passar, ANTES de enviar ao SHIELD (Passo 3.6 do Protocolo de Finalização)
 3. **Code Architect** = SEMPRE ao final da Fase 4 + sob demanda do CRONOS
 4. **Verify App** = SEMPRE antes de deploy
 
@@ -278,7 +277,7 @@ Antes de marcar qualquer fase como concluída, verificar:
 
 **Ao final da Fase 4:**
 - [ ] Build Validator rodou após CADA tarefa de código?
-- [ ] Code Simplifier rodou ao final da fase?
+- [ ] Code Simplifier rodou após CADA tarefa de código (Passo 3.6 do Protocolo de Finalização)?
 - [ ] Code Architect rodou e deu score B ou superior?
 - [ ] SCOUT fez varredura preventiva completa?
 - [ ] Todos os problemas encontrados foram corrigidos?

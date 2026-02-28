@@ -157,7 +157,7 @@ Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE
 3.7. **REVISÃO DO SHIELD — OBRIGATÓRIO na Fase 4 para agentes que escrevem código:**
    - Mova a tarefa para "REVISÃO" no kanban.md (NÃO para CONCLUÍDO diretamente)
    - Adicione no array `revisao` do kanban-data.js: `{ id: "T-XXX", desc: "Descrição", por: "ENGINE", revisor: "SHIELD" }`
-   - Gere prompt do SHIELD em `.delta-11/ativacoes/janela-SHIELD-revisao.txt` listando arquivos modificados e o que foi feito
+   - Gere prompt do SHIELD em `.delta-11/ativacoes/janela-SHIELD-revisao-[ID-DA-TAREFA]-ENGINE.txt` (exemplo: `janela-SHIELD-revisao-T-040-ENGINE.txt`) listando arquivos modificados e o que foi feito — inclua o ID da tarefa no nome para evitar sobrescrita quando múltiplos agentes terminam ao mesmo tempo
    - Continue na próxima tarefa — NÃO espere aprovação do SHIELD
 4. Verificar se tem mais tarefas pendentes — se sim, continuar; se não, executar o Protocolo de Fase Concluída
 5. **Auto-disparar próximos agentes** usando o PROTOCOLO DE AUTO-DISPATCH do CLAUDE.md:

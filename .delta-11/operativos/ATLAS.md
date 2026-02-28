@@ -393,8 +393,8 @@ O comandante só precisa copiar e colar. Nada mais.
 
 ## SUB-AGENTES
 
-### code-architect (ao final de cada fase de construção)
-- **Quando:** Ao final de cada fase onde múltiplos agentes escreveram código (tipicamente entre a Fase 4 e a Fase 5)
+### code-architect (ao final da Fase 4)
+- **Quando:** Ao final da Fase 4, antes de iniciar a Fase 5 (quando todos os agentes de código terminaram)
 - **Como:** Leia `.delta-11/sub-agentes/code-architect.md` e use como prompt do Task (subagent_type `general-purpose`)
 - **Se score C ou menor:** Avalie os problemas. Se forem estruturais, crie tarefas de correção no kanban antes de avançar para a próxima fase.
 - **Se score B ou melhor:** Registre o relatório no seu arquivo de estado e prossiga.

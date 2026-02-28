@@ -29,6 +29,7 @@ SE existe package.json → TIPO: NODE
 SE existe manifest.json com "manifest_version" → TIPO: CHROME_EXTENSION
 SE existe Cargo.toml → TIPO: RUST
 SE existe requirements.txt ou pyproject.toml → TIPO: PYTHON
+SE existe pasta migrations/ OU arquivos *.sql na raiz → TIPO: SQL_MIGRATIONS
 SENAO → TIPO: GENERICO (apenas checks de seguranca)
 ```
 
@@ -143,6 +144,52 @@ Se o projeto usa arquivos de dados JSON (ex: modelos de negocio):
 
 ---
 
+### TIPO: SQL_MIGRATIONS (pasta migrations/ ou *.sql na raiz)
+
+#### 1. Sintaxe Basica
+
+Leia cada arquivo `.sql` e verifique:
+
+- [ ] Todo statement SQL termina com `;` (ponto-e-virgula)
+- [ ] Nenhum `CREATE TABLE` sem `IF NOT EXISTS` (evita erro se migration rodar duas vezes)
+- [ ] Nenhum `DROP TABLE` sem `IF EXISTS` (evita crash se tabela nao existir)
+- [ ] Nenhum `ALTER TABLE` sem transacao explícita (pode deixar schema inconsistente se falhar no meio)
+
+#### 2. Numeracao Sequencial
+
+```bash
+# Listar migrations em ordem e verificar se ha gaps
+ls migrations/*.sql 2>/dev/null | sort | cat -n
+```
+
+Verificar manualmente:
+- [ ] Migrations numeradas sequencialmente sem gaps (001, 002, 003 — NAO 001, 002, 004)
+- [ ] Sem migrations com o mesmo numero
+- [ ] Ordem de criacao faz sentido (tabelas pai antes de tabelas filho com FK)
+
+#### 3. Campos Obrigatorios
+
+Para cada `CREATE TABLE`, verifique:
+
+- [ ] Campos com `NOT NULL` ou tem `DEFAULT` definido OU aparecem em seeds/inserts existentes
+- [ ] Chaves primarias definidas (`PRIMARY KEY`)
+- [ ] Chaves estrangeiras (`FOREIGN KEY` / `REFERENCES`) apontam para tabelas que existem nas migrations anteriores
+
+#### 4. Seguranca (Supabase/PostgreSQL)
+
+Se o projeto-core.md indica Supabase ou PostgreSQL com RLS:
+
+- [ ] `ALTER TABLE [tabela] ENABLE ROW LEVEL SECURITY;` existe para CADA tabela criada
+- [ ] Pelo menos uma policy `CREATE POLICY` existe para cada tabela com RLS habilitado
+- [ ] Nenhuma tabela com dados de usuario esta sem RLS (critica)
+
+#### 5. Idempotencia
+
+- [ ] Migrations podem ser re-executadas sem erro (`IF NOT EXISTS`, `IF EXISTS`, `OR REPLACE`)
+- [ ] Seeds (se existirem) usam `INSERT ... ON CONFLICT DO NOTHING` ou `UPSERT` para evitar duplicatas
+
+---
+
 ### CHECKS UNIVERSAIS (todos os tipos de projeto)
 
 #### Seguranca — Secrets Expostos
@@ -202,7 +249,7 @@ Retorne o relatorio EXATAMENTE neste formato:
 ```
 ## Build Validation Report
 
-**Tipo de Projeto:** [NODE | CHROME_EXTENSION | RUST | PYTHON | GENERICO]
+**Tipo de Projeto:** [NODE | CHROME_EXTENSION | RUST | PYTHON | SQL_MIGRATIONS | GENERICO]
 **Ready for Deploy:** [YES | NO]
 
 ### Checks:

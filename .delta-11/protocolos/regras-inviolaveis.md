@@ -33,7 +33,7 @@ Nenhum agente de interface combina informalmente com agente de servidor sobre fo
 O deploy para produção nunca acontece automaticamente. O comandante dá o aval final.
 
 ## 11. SUB-AGENTES OBRIGATÓRIOS NÃO SÃO OPCIONAIS
-Build Validator APÓS cada mudança de código. Code Simplifier AO FINAL de cada fase de desenvolvimento. Code Architect AO FINAL da Fase 4. Verify App ANTES de deploy. Sem exceção.
+Build Validator APÓS cada tarefa de código (Passo 3.5). Code Simplifier APÓS Build Validator passar e ANTES do SHIELD, em cada tarefa (Passo 3.6). Code Architect AO FINAL da Fase 4, antes de iniciar a Fase 5. Verify App ANTES de deploy. Sem exceção.
 
 ## 12. CRONOS COORDENA EM PROJETOS COMPLEXOS (SCORE ≥ 7)
 Em projetos com pontuação de complexidade ≥ 7, o CRONOS é ativado na Fase 2 e coordena toda execução. Agentes reportam a ele, não trabalham isolados.

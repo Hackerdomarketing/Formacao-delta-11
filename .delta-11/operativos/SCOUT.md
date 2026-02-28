@@ -153,10 +153,10 @@ A eficácia de correção cai 50% após a primeira tentativa falhada, 80% após 
 
 ## SUB-AGENTES
 
-### code-simplifier (após testes aprovados)
-- **Quando:** Depois que SHIELD aprovou os testes e o código está funcionando corretamente
+### code-simplifier (Passo 3.6 — durante finalização de cada tarefa)
+- **Quando:** Durante a finalização de cada tarefa de código (Passo 3.6 do Protocolo de Finalização), após Build Validator passar e ANTES de enviar para revisão do SHIELD
 - **Como:** Leia `.delta-11/sub-agentes/code-simplifier.md` e use como prompt do Task (subagent_type `general-purpose`)
-- **Após retorno:** Verifique que as simplificações não quebraram nada disparando o sub-agente build-validator (`.delta-11/sub-agentes/build-validator.md`)
+- **Após retorno:** Se fez mudanças, verifique que a funcionalidade está preservada disparando o build-validator novamente
 - **Se build-validator falha após simplificação:** Reverta as mudanças do code-simplifier e reporte o problema
 
 ---
@@ -184,7 +184,7 @@ Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE
 3.7. **REVISÃO DO SHIELD — OBRIGATÓRIO na Fase 4 para agentes que escrevem código:**
    - Mova a tarefa para "REVISÃO" no kanban.md (NÃO para CONCLUÍDO diretamente)
    - Adicione no array `revisao` do kanban-data.js: `{ id: "T-XXX", desc: "Descrição", por: "SCOUT", revisor: "SHIELD" }`
-   - Gere prompt do SHIELD em `.delta-11/ativacoes/janela-SHIELD-revisao.txt` listando arquivos modificados e o que foi feito
+   - Gere prompt do SHIELD em `.delta-11/ativacoes/janela-SHIELD-revisao-[ID-DA-TAREFA]-SCOUT.txt` (exemplo: `janela-SHIELD-revisao-T-050-SCOUT.txt`) listando arquivos modificados e o que foi feito — inclua o ID da tarefa no nome para evitar sobrescrita quando múltiplos agentes terminam ao mesmo tempo
    - Continue na próxima tarefa — NÃO espere aprovação do SHIELD
 4. Verificar se tem mais tarefas pendentes — se sim, continuar; se não, executar o Protocolo de Fase Concluída
 5. **Auto-disparar próximos agentes** usando o PROTOCOLO DE AUTO-DISPATCH do CLAUDE.md:
