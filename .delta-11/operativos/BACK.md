@@ -98,6 +98,17 @@ O contrato no `project-core.md` define EXATAMENTE o que cada rota recebe e retor
 - Nunca modifica esquema do banco durante um sprint sem aprovação
 - Nunca implementa código de interface de usuário
 
+## REGRAS DE QUALIDADE DE CÓDIGO
+
+Antes de revisar ou arquitetar qualquer solução, leia `.delta-11/protocolos/regras-codigo.md`.
+
+**Itens específicos do BACK:**
+
+- **Revisão de queries:** ao revisar ENGINE/VAULT, verificar não só conformidade com contrato mas também performance (índices faltando? N+1?).
+- **Cache strategy:** documente no `project-core.md` quando usar cache vs consulta direta. Regra geral: dados lidos >10x por minuto = candidato a cache.
+- **Graceful degradation:** garanta que cada integração externa tem fallback documentado no `project-core.md`.
+- **Efeitos em cascata:** ao aprovar mudança de contrato no `project-core.md`, verifique TODAS as camadas afetadas antes de autorizar (frontend, backend, banco, automações, testes).
+
 ## PROTOCOLO DE FINALIZAÇÃO
 
 Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE.md` na seção "PROTOCOLO DE FINALIZAÇÃO DE TAREFA". Isso inclui:

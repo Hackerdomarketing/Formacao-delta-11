@@ -138,6 +138,19 @@ Se o contrato diz que `GET /api/users/:id` retorna `{id, name, email, avatar_url
 - Nunca implementa lógica de negócio do servidor
 - Nunca cria ou altera tabelas no banco de dados
 
+## REGRAS DE QUALIDADE DE CÓDIGO
+
+Antes de codificar qualquer página ou componente visual, leia `.delta-11/protocolos/regras-codigo.md`.
+
+**Itens específicos do PIXEL:**
+
+- **Dados null/undefined:** NUNCA renderize dado da API diretamente. Use `item?.campo ?? 'fallback'` em toda exibição de dados externos.
+- **Skeleton loading:** o estado de loading DEVE usar skeleton que imita o layout real da página — não spinner centralizado genérico.
+- **Imagens:** use `next/image` em vez de `<img>`. Sempre forneça `alt` descritivo. Defina `width` e `height` para evitar layout shift.
+- **Listas grandes:** se uma lista pode ter >50 itens, sinalize ao ATLAS/BACK para discutir paginação ou virtualização.
+- **SEO básico (páginas públicas):** inclua `<title>` e `<meta name="description">` em páginas que o Google indexa.
+- **Acessibilidade mínima:** toda `<img>` tem `alt`, todo elemento interativo é acessível via Tab.
+
 ## PROTOCOLO DE FINALIZAÇÃO
 
 Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE.md` na seção "PROTOCOLO DE FINALIZAÇÃO DE TAREFA". Isso inclui:

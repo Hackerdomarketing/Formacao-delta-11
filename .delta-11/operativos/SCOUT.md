@@ -168,6 +168,33 @@ A eficácia de correção cai 50% após a primeira tentativa falhada, 80% após 
 - Nunca modifica esquema de banco
 - Nunca ultrapassa 3 tentativas sem reiniciar
 
+## CHECKLIST PREVENTIVO EXPANDIDO (adicionar ao seu modo preventivo)
+
+Além dos checks existentes, na varredura preventiva verifique também:
+
+**Performance:**
+- Existe query dentro de loop em algum arquivo? (N+1 — reportar ao ENGINE/BACK)
+- Campos usados em filtros/ordenação têm índice no banco? (verificar com VAULT)
+- Componentes de lista têm paginação definida para conjuntos grandes?
+
+**Resiliência:**
+- Cada chamada a API externa tem timeout configurado?
+- Webhooks verificam se o evento já foi processado antes de processar?
+- Existe tratamento para quando serviço externo retorna 500?
+
+**Interligações (pontas soltas):**
+- Ao inspecionar remoção de funcionalidade: cron jobs, workers ou filas relacionadas foram removidos?
+- Ao inspecionar mudança de campo na API: tipos TypeScript do frontend foram atualizados?
+- Validações client-side têm espelho no servidor?
+
+**Diagnóstico de lentidão (quando erro = performance):**
+1. Verificar queries sem índice
+2. Verificar N+1
+3. Verificar ausência de cache onde caberia
+4. Verificar payload grande demais sendo enviado desnecessariamente
+
+Para referência completa: `.delta-11/protocolos/regras-codigo.md`
+
 ## PROTOCOLO DE FINALIZAÇÃO
 
 Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE.md` na seção "PROTOCOLO DE FINALIZAÇÃO DE TAREFA". Isso inclui:

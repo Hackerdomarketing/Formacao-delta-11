@@ -223,6 +223,37 @@ Verificar nos arquivos HTML e JS:
 - [ ] Uso de `eval()` (PERIGOSO)
 - [ ] Template literals inseridos via innerHTML (PERIGOSO)
 
+#### Qualidade — N+1 Queries (projetos com banco de dados)
+
+```bash
+# Detectar padrão de query dentro de loop em TypeScript/JavaScript
+grep -rn "for\|forEach\|map\|while" --include="*.ts" --include="*.tsx" --include="*.js" \
+  src/ 2>/dev/null | grep -v node_modules | grep -v "\.test\." \
+  | head -50
+```
+
+Ao encontrar loops, verificar se dentro do loop existe chamada a `prisma.`, `supabase.from`, `db.query`, `fetch(` ou similar. Se SIM, reportar como **BLOCKER** com mensagem: "N+1 query detectado em [arquivo:linha] — use include/join ou batch".
+
+#### Qualidade — Cleanup em useEffect (projetos React/Next.js)
+
+```bash
+# Encontrar useEffect sem return de cleanup
+grep -rn "useEffect" --include="*.tsx" --include="*.ts" src/ 2>/dev/null \
+  | grep -v node_modules | grep -v "\.test\."
+```
+
+Para cada `useEffect` encontrado que usa `addEventListener`, `setInterval`, `setTimeout`, `socket.on`, ou cria `AbortController`: verificar se o corpo do useEffect tem `return () =>` com o cleanup correspondente. Se não tiver, reportar como **WARNING**.
+
+#### Qualidade — Variáveis de ambiente sem validação
+
+```bash
+# Verificar uso de process.env sem verificação de existência
+grep -rn "process\.env\." --include="*.ts" --include="*.tsx" src/ 2>/dev/null \
+  | grep -v "\.test\." | grep -v node_modules
+```
+
+Se `process.env.VARIAVEL` é usado em código de produção mas não há verificação de existência na inicialização do servidor (`src/lib/env.ts` ou similar), reportar como **WARNING**: "Variável de ambiente [NOME] usada sem validação na startup".
+
 ---
 
 ## CHECKS DE CONSISTENCIA CROSS-MODULE (quando disparado com lista de inconsistencias)

@@ -108,6 +108,19 @@ O esquema no `project-core.md` é a verdade absoluta. Se o esquema define `users
 - Nunca implementa rotas de interface de programação de aplicações (isso é do ENGINE)
 - Nunca implementa código de interface de usuário
 
+## REGRAS DE QUALIDADE DE CÓDIGO
+
+Antes de criar qualquer tabela ou migration, leia `.delta-11/protocolos/regras-codigo.md`.
+
+**Itens específicos do VAULT:**
+
+- **Índices obrigatórios:** crie índice para TODO campo usado em `WHERE`, `ORDER BY`, `JOIN` e campos com `UNIQUE`. Não espere o ENGINE reclamar de lentidão.
+- **Migration safety:** NUNCA remova uma coluna antes do código que a usa ser removido e deployado. Ordem: (1) atualiza código, (2) deploya, (3) cria migration de remoção.
+- **Foreign keys:** toda `foreign key` deve declarar `ON DELETE` explicitamente — `CASCADE`, `SET NULL` ou `RESTRICT` com comentário justificando a escolha.
+- **N+1 prevention:** documente no `project-core.md` quais campos têm índice, para que ENGINE e BACK saibam quais filtros são eficientes.
+- **Validação de campo sensível:** campos de senha são armazenados como hash (bcrypt/argon2), NUNCA em texto puro.
+- **Connection pooling:** documente a configuração de pool no `.env.example` (`POOL_MIN`, `POOL_MAX`).
+
 ## PROTOCOLO DE FINALIZAÇÃO
 
 Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE.md` na seção "PROTOCOLO DE FINALIZAÇÃO DE TAREFA". Isso inclui:

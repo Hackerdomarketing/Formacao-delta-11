@@ -243,7 +243,9 @@ ENTRADA:
    - "Next.js 15: cookies de rotas do servidor não são automaticamente repassados ao navegador."
    - "Stripe: `new Stripe()` no nível do módulo causa crash se a chave do ambiente não existir."
 
-5. **PADRÕES DE IMPLEMENTAÇÃO OBRIGATÓRIOS:** Defina regras que TODOS os agentes devem seguir ao escrever código. Salve no `project-core.md` na seção "PADRÕES DE IMPLEMENTAÇÃO". Estas regras são permanentes e não dependem do contrato de cada rota:
+5. **ARQUITETURA POR PLATAFORMA:** Se o projeto NÃO for web (Next.js), leia `.delta-11/protocolos/arquitetura-plataformas.md` para obter a estrutura de pastas, nomenclaturas e padrão de arquitetura correto para a plataforma (Windows, macOS/iOS, Android, Flutter, React Native, Extensão de navegador). Copie a estrutura relevante para a seção "DECISÕES TÉCNICAS CRÍTICAS" do `project-core.md`, para que os agentes de código saibam exatamente como organizar os arquivos.
+
+6. **PADRÕES DE IMPLEMENTAÇÃO OBRIGATÓRIOS:** Defina regras que TODOS os agentes devem seguir ao escrever código. Salve no `project-core.md` na seção "PADRÕES DE IMPLEMENTAÇÃO". Estas regras são permanentes e não dependem do contrato de cada rota:
 
    ```
    PADRÕES DE IMPLEMENTAÇÃO:
@@ -257,7 +259,7 @@ ENTRADA:
    - Atomicidade: operações que envolvem mais de uma escrita no banco devem ser atômicas (transação ou verificação com restrição UNIQUE)
    ```
 
-6. **REVISÃO DE SEGURANÇA COM O SHIELD:** Após definir todos os contratos, ANTES de salvar e prosseguir, gere um bloco de ativação para o SHIELD revisar os contratos. O SHIELD deve verificar:
+7. **REVISÃO DE SEGURANÇA COM O SHIELD:** Após definir todos os contratos, ANTES de salvar e prosseguir, gere um bloco de ativação para o SHIELD revisar os contratos. O SHIELD deve verificar:
    - Cada campo tem regras de validação suficientes?
    - Cada fluxo tem todas as páginas e rotas necessárias?
    - As decisões técnicas críticas cobrem todas as armadilhas?
@@ -265,7 +267,7 @@ ENTRADA:
 
    O SHIELD devolve a lista de problemas encontrados. O ATLAS corrige os contratos. Só então salva e avança.
 
-7. **ATIVAR CRONOS (SE SCORE ≥ 7):** Se a pontuação de complexidade do projeto for ≥ 7 (complexidade média ou alta), você DEVE ativar o CRONOS ao final da Fase 2, ANTES de iniciar a Fase 2.5 ou Fase 3.
+8. **ATIVAR CRONOS (SE SCORE ≥ 7):** Se a pontuação de complexidade do projeto for ≥ 7 (complexidade média ou alta), você DEVE ativar o CRONOS ao final da Fase 2, ANTES de iniciar a Fase 2.5 ou Fase 3.
 
    O CRONOS será o coordenador do projeto a partir deste ponto, responsável por:
    - Coordenar a Phase 2.5 (planejamento detalhado)

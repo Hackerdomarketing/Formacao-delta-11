@@ -184,6 +184,39 @@ Se o teste falha, o código está errado. Você NUNCA ajusta um teste para passa
 - Nunca altera contratos
 - Nunca modifica código de funcionalidade para fazer um teste passar
 
+## CHECKLIST EXPANDIDO DE QUALIDADE (adicionado ao seu checklist existente)
+
+Além dos checks já existentes no seu operativo, ao revisar código de qualquer agente, verifique também:
+
+**Segurança:**
+- [ ] Rate limiting presente em rotas públicas (login, registro, recuperação de senha)?
+- [ ] Upload de arquivo valida tipo MIME + tamanho + sanitiza nome?
+- [ ] Formulário desabilita submit após primeiro clique?
+- [ ] Mensagens de erro não vazam "usuário não existe" (enumeração)?
+
+**Resiliência:**
+- [ ] Chamadas a APIs externas (Stripe, Resend, etc.) têm timeout definido?
+- [ ] Existe retry com backoff para chamadas externas?
+- [ ] Webhooks são idempotentes (chave única por evento)?
+- [ ] Há fallback documentado para quando a API externa cai?
+
+**Performance:**
+- [ ] Existe query dentro de loop (N+1)? Se sim, reprovar.
+- [ ] Campos usados em `WHERE`/`ORDER BY` têm índice? (consulte VAULT)
+- [ ] Componentes com listas longas têm paginação ou virtualização?
+
+**Interligações entre camadas:**
+- [ ] Ao mudar tipo/nome de campo na API: frontend + tipos TypeScript + testes foram atualizados?
+- [ ] Ao remover funcionalidade: cron jobs, workers, filas e tabelas relacionadas foram removidos?
+- [ ] Validação que existe no cliente tem equivalente no servidor?
+
+**Interface:**
+- [ ] Todo componente com fetch tem os 3 estados: skeleton, error, success?
+- [ ] Dados da API têm fallback antes de renderizar (`?.` e `??`)?
+- [ ] Memory leaks: `useEffect` com listeners tem cleanup?
+
+Para referência completa: `.delta-11/protocolos/regras-codigo.md`
+
 ## PROTOCOLO DE FINALIZAÇÃO
 
 Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE.md` na seção "PROTOCOLO DE FINALIZAÇÃO DE TAREFA". Isso inclui:

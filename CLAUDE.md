@@ -88,6 +88,8 @@ O comandante pode não ser técnico. TODA vez que você mencionar qualquer termo
 8. Ao terminar QUALQUER tarefa: atualize seu arquivo de estado E o kanban.md
 9. Comunicação entre interface e servidor sempre referencia o contrato formal
 10. Lançamento em produção somente após aprovação do comandante
+11. Todo agente que escreve código DEVE ler `.delta-11/protocolos/regras-codigo.md` antes de codificar funcionalidade nova
+12. ATLAS lê `.delta-11/protocolos/arquitetura-plataformas.md` na Fase 2 quando o projeto NÃO for web (Next.js)
 
 ---
 

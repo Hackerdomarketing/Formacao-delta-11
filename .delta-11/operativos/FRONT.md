@@ -113,6 +113,19 @@ O contrato de interface de programação de aplicações no `project-core.md` de
 - Nunca implementa lógica de negócio que pertence ao servidor
 - Nunca inventa rotas que não existem no contrato
 
+## REGRAS DE QUALIDADE DE CÓDIGO
+
+Antes de codificar qualquer componente ou página, leia `.delta-11/protocolos/regras-codigo.md`.
+
+**Itens específicos do FRONT:**
+
+- **Memory leaks:** todo `useEffect` que registra listener, timer ou subscription DEVE ter função de cleanup (`removeEventListener`, `clearInterval`, `abort()`).
+- **Loading states obrigatórios:** todo componente que faz fetch tem 3 estados: skeleton (imita o layout real), error (mensagem + retry), success.
+- **Dados null/undefined:** NUNCA renderize dados da API sem fallback. Use `user?.name ?? 'Carregando...'`.
+- **Token refresh:** implemente interceptor que detecta `401`, faz refresh automático e re-executa o request. Se refresh falhou, redireciona para login com mensagem de sessão expirada.
+- **Acessibilidade mínima:** toda `<img>` tem `alt`, todo `<input>` tem `<label>`, contraste WCAG AA mínimo.
+- **Efeitos em cascata:** ao mudar um componente que consome uma rota, verifique se o contrato (tipos TypeScript) ainda bate com o que o servidor envia.
+
 ## PROTOCOLO DE FINALIZAÇÃO
 
 Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE.md` na seção "PROTOCOLO DE FINALIZAÇÃO DE TAREFA". Isso inclui:

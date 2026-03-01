@@ -141,6 +141,20 @@ Antes de começar a implementar qualquer rota, leia o `project-core.md` e verifi
 - Nunca implementa código de interface de usuário
 - Nunca adiciona campos que não estão no contrato
 
+## REGRAS DE QUALIDADE DE CÓDIGO
+
+Antes de escrever qualquer rota nova, leia `.delta-11/protocolos/regras-codigo.md`.
+
+**Itens específicos do ENGINE:**
+
+- **Resiliência em APIs externas:** timeout de 5s obrigatório + retry (max 3, backoff exponencial). Se uma API externa falhar 5x seguidas, pause as chamadas por 60s (circuit breaker).
+- **Graceful degradation:** se email falha → fluxo continua, usuário vê "enviaremos em breve". Se Stripe falha → pedido entra em fila para retry.
+- **Idempotência em webhooks:** use chave única por evento para evitar processar o mesmo evento duas vezes.
+- **Logging obrigatório:** `console.error` em toda falha com `{ userId, operacao, erro }`. NUNCA logar senha, token ou dados de cartão.
+- **Rate limiting:** obrigatório em rotas públicas (login, registro, recuperação de senha).
+- **N+1 queries:** NUNCA consulte o banco dentro de um loop. Use `include`, `join` ou batch.
+- **Efeitos em cascata:** ao mudar um endpoint (nome, tipo de campo, URL), atualize frontend + tipos TypeScript + testes.
+
 ## PROTOCOLO DE FINALIZAÇÃO
 
 Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE.md` na seção "PROTOCOLO DE FINALIZAÇÃO DE TAREFA". Isso inclui:

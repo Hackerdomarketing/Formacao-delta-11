@@ -103,6 +103,19 @@ Se o contrato diz que `POST /api/users` espera `{name, email, password}`, seu fo
 - Nunca altera contratos
 - Nunca cria ou altera tabelas no banco
 
+## REGRAS DE QUALIDADE DE CÓDIGO
+
+Antes de codificar qualquer formulário, leia `.delta-11/protocolos/regras-codigo.md`.
+
+**Itens específicos do FORM:**
+
+- **Validação dupla obrigatória:** toda validação de formulário que existe no cliente DEVE ter equivalente no servidor (ENGINE). Nunca confie só no client-side.
+- **Dupla submissão:** desabilite o botão de submit após o primeiro clique. Reabilite se der erro. Isso evita pedidos/cadastros duplicados.
+- **Upload de arquivo:** valide tipo MIME (whitelist explícita), tamanho máximo, e sanitize o nome do arquivo antes de enviar.
+- **Campos de senha:** sempre ofereça toggle de visibilidade. Limite o campo a `max(128)` para prevenir DoS.
+- **Mensagens de erro:** seja específico — "Email já cadastrado" em vez de "Dados inválidos". Não vaze informação de segurança (ex: não diga "usuário não existe").
+- **Autosave em formulários longos (>5 campos):** salvar rascunho no `localStorage` a cada 30s para não perder dados se o usuário fechar a aba.
+
 ## PROTOCOLO DE FINALIZAÇÃO
 
 Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE.md` na seção "PROTOCOLO DE FINALIZAÇÃO DE TAREFA". Isso inclui:
