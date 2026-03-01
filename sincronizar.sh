@@ -4,9 +4,9 @@
 # FORMACAO D-11 — Sincronizar Sistema em Todos os Projetos
 # ═══════════════════════════════════════════════════════════════
 #
-# Este script sincroniza os arquivos ESTRUTURAIS do sistema D-11
-# (operativos, protocolos, sub-agentes, templates, CLAUDE.md, painel)
-# em TODOS os projetos registrados no registry.
+# Este script detecta AUTOMATICAMENTE todos os projetos com D-11
+# instalado (presença de pasta .delta-11/) nos diretórios de busca
+# e sincroniza os arquivos ESTRUTURAIS do sistema:
 #
 # O que ELE SINCRONIZA (arquivos do sistema):
 #   - CLAUDE.md
@@ -23,8 +23,13 @@
 #   - .delta-11/ativacoes/**
 #   - .delta-11/.dispatch-mode  (modo de dispatch é específico de cada projeto/máquina)
 #
+# Diretórios de busca (configurável na variável SEARCH_PATHS abaixo):
+#   - ~/Documents/VSCODE
+#   - ~/projetos
+#   - ~/Downloads
+#
 # Como usar:
-#   ./sincronizar.sh                    # Sincroniza tudo
+#   ./sincronizar.sh                    # Sincroniza tudo (detecção automática)
 #   ./sincronizar.sh --pull             # git pull antes de sincronizar
 #   ./sincronizar.sh --dry-run          # Mostra o que faria sem fazer
 #   ./sincronizar.sh --diff             # Mostra diff entre repo e projetos
@@ -50,6 +55,13 @@ DRY_RUN=false
 DO_PULL=false
 DO_DIFF=false
 NOTA=""
+
+# ─── Diretórios onde o script vai procurar projetos com D-11 ──
+SEARCH_PATHS=(
+    "$HOME/Documents/VSCODE"
+    "$HOME/projetos"
+    "$HOME/Downloads"
+)
 
 # ─── Parse argumentos ──────────────────────────────────────────
 
@@ -88,26 +100,51 @@ if [ ! -f "$REGISTRY" ]; then
     exit 1
 fi
 
-# ─── Ler registry ──────────────────────────────────────────────
+# ─── Ler metadados do registry ─────────────────────────────────
+# O registry continua sendo usado para: source, backup, historical
+# Mas os projetos a sincronizar são detectados automaticamente
 
 SOURCE=$(jq -r '.source' "$REGISTRY")
 BACKUP=$(jq -r '.backup' "$REGISTRY")
 HISTORICAL=$(jq -r '.historical' "$REGISTRY")
-PROJECTS=($(jq -r '.projects[]' "$REGISTRY"))
+
+# ─── Detectar automaticamente todos os projetos com D-11 ───────
+
+echo -e "  ${BOLD}Detectando projetos com D-11 instalado...${NC}"
+echo -e "  ${DIM}Buscando em: ${SEARCH_PATHS[*]}${NC}"
+echo ""
+
+PROJECTS=()
+for search_path in "${SEARCH_PATHS[@]}"; do
+    if [ ! -d "$search_path" ]; then
+        continue
+    fi
+    while IFS= read -r delta11_dir; do
+        proj_dir=$(dirname "$delta11_dir")
+        # Excluir o repo de distribuição (fonte da verdade)
+        if [ "$proj_dir" = "$SOURCE" ]; then
+            continue
+        fi
+        PROJECTS+=("$proj_dir")
+    done < <(find "$search_path" -maxdepth 3 -name ".delta-11" -type d 2>/dev/null | sort)
+done
 
 echo -e "  ${BOLD}Fonte:${NC}    $SOURCE"
-echo -e "  ${BOLD}Projetos:${NC} ${#PROJECTS[@]} registrados"
+echo -e "  ${BOLD}Projetos:${NC} ${#PROJECTS[@]} encontrados automaticamente"
 echo -e "  ${BOLD}Backup:${NC}   $BACKUP"
 echo ""
 
-# ─── Verificar que estamos no repo fonte ───────────────────────
-
-if [ "$SCRIPT_DIR" != "$SOURCE" ]; then
-    echo -e "${YELLOW}! Script esta rodando de $SCRIPT_DIR${NC}"
-    echo -e "  ${DIM}Esperado: $SOURCE${NC}"
-    echo -e "  Usando $SOURCE como fonte de verdade."
-    echo ""
+if [ ${#PROJECTS[@]} -eq 0 ]; then
+    echo -e "${YELLOW}! Nenhum projeto com D-11 encontrado nos diretórios de busca.${NC}"
+    echo -e "  ${DIM}Verifique se os projetos estão em: ${SEARCH_PATHS[*]}${NC}"
+    exit 0
 fi
+
+echo -e "  ${DIM}Projetos encontrados:${NC}"
+for proj in "${PROJECTS[@]}"; do
+    echo -e "  ${DIM}  - $(basename "$proj") ($proj)${NC}"
+done
+echo ""
 
 # ─── Git pull (opcional) ───────────────────────────────────────
 
@@ -121,7 +158,6 @@ fi
 
 # ─── Definir arquivos a sincronizar ────────────────────────────
 
-# Coleta os arquivos do sistema no repo fonte
 SYNC_FILES=()
 
 # CLAUDE.md
@@ -157,7 +193,6 @@ fi
 # Scripts do sistema (task-done.sh e outros .sh na raiz)
 for f in "$SOURCE"/*.sh; do
     script_name=$(basename "$f")
-    # Não sincronizar os scripts exclusivos do repo de distribuição
     case "$script_name" in
         instalar.sh|novo-projeto.sh|disparar.sh|sincronizar.sh) continue ;;
     esac
@@ -214,7 +249,6 @@ sincronizar_destino() {
     local nome="$2"
     local copiados=0
     local ignorados=0
-    local criados=0
 
     if [ ! -d "$destino" ]; then
         echo -e "    ${RED}x Pasta nao encontrada: $destino${NC}"
@@ -233,7 +267,6 @@ sincronizar_destino() {
             else
                 mkdir -p "$dst_dir"
             fi
-            criados=$((criados + 1))
         fi
 
         # Verificar se precisa copiar
@@ -262,9 +295,9 @@ sincronizar_destino() {
     fi
 }
 
-# ─── Sincronizar projetos ativos ──────────────────────────────
+# ─── Sincronizar todos os projetos detectados ──────────────────
 
-echo -e "  ${BOLD}Sincronizando projetos ativos...${NC}"
+echo -e "  ${BOLD}Sincronizando projetos...${NC}"
 echo ""
 
 PROJ_OK=0
@@ -273,6 +306,7 @@ PROJ_FAIL=0
 for proj in "${PROJECTS[@]}"; do
     proj_name=$(basename "$proj")
     echo -e "  ${CYAN}[$proj_name]${NC}"
+    echo -e "  ${DIM}$proj${NC}"
 
     if sincronizar_destino "$proj" "$proj_name"; then
         PROJ_OK=$((PROJ_OK + 1))
@@ -315,12 +349,11 @@ echo ""
 if [ "$DRY_RUN" = false ]; then
     TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%S")
 
-    # Montar lista de arquivos alterados
     ALTERADOS=""
     for rel_path in "${SYNC_FILES[@]}"; do
         ALTERADOS="$ALTERADOS, $(basename "$rel_path")"
     done
-    ALTERADOS="${ALTERADOS:2}" # remover ", " inicial
+    ALTERADOS="${ALTERADOS:2}"
 
     UPDATE_NOTE="${NOTA:-Sincronizacao automatica}"
 
@@ -354,11 +387,9 @@ if [ $PROJ_FAIL -gt 0 ]; then
     echo -e "  Falhas:   ${RED}$PROJ_FAIL${NC}"
 fi
 echo -e "  Backup:   ${GREEN}Atualizado${NC}"
-echo -e "  Historico: ${DIM}Nao tocado (construcao-delta-11)${NC}"
 echo ""
 
 if [ "$DRY_RUN" = false ]; then
     echo -e "  ${DIM}Para verificar: ./sincronizar.sh --diff${NC}"
-    echo -e "  ${DIM}Registry: $REGISTRY${NC}"
     echo ""
 fi

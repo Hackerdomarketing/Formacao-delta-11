@@ -689,7 +689,7 @@ A Formação Δ-11 é composta por 10 operativos. Cada operativo tem seu própri
 
 ## PROTOCOLO DE ATUALIZAÇÃO DO SISTEMA Δ-11
 
-Quando qualquer alteração for feita ao sistema Δ-11 (operativos, protocolos, sub-agentes, CLAUDE.md, templates, painel), a atualização precisa ser propagada para TODOS os projetos registrados. O sistema usa um **registry global** (`~/.delta-11-registry.json`) que lista todos os projetos com D-11 instalado.
+Quando qualquer alteração for feita ao sistema Δ-11 (operativos, protocolos, sub-agentes, CLAUDE.md, templates, painel), a atualização precisa ser propagada para TODOS os projetos com D-11 instalado. O script `sincronizar.sh` detecta automaticamente todos os projetos que possuem a pasta `.delta-11/` nos diretórios de busca (`~/Documents/VSCODE`, `~/projetos`, `~/Downloads`).
 
 ### Fluxo em 4 passos:
 
@@ -735,8 +735,8 @@ cd /Users/alfa/projetos/Formacao-delta-11
 ```
 
 O script sincronizar.sh automaticamente:
-1. Lê `~/.delta-11-registry.json` para saber quais projetos atualizar
-2. Copia APENAS arquivos de sistema (operativos, protocolos, sub-agentes, templates, CLAUDE.md, painel)
+1. Varre `~/Documents/VSCODE`, `~/projetos` e `~/Downloads` procurando pastas `.delta-11/`
+2. Sincroniza APENAS arquivos de sistema (operativos, protocolos, sub-agentes, templates, CLAUDE.md, painel)
 3. NUNCA toca dados do projeto (kanban, estados, ativações, memória)
 4. Atualiza o backup em Downloads
 5. Cria `.delta-11/.last-update` em cada projeto com timestamp e descrição
