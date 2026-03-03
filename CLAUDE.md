@@ -627,38 +627,80 @@ Diagnostique e corrija o erro acima.
 - **Sempre aguarde 8 segundos entre disparos** de agentes diferentes
 - **Sempre salve o prompt como arquivo em `.delta-11/ativacoes/`** antes de disparar (para registro)
 
-### ⚠️ REGRA CRÍTICA: VSCODE-TAB É PROIBIDO — USE SEMPRE TERMINAL-APP
+### SEGURANÇA DO VSCODE-TAB: TARGETING POR TÍTULO DE JANELA
 
-**NUNCA use o modo `vscode-tab` em nenhum auto-dispatch, sob nenhuma circunstância — nem mesmo quando aparenta ser o mesmo projeto.**
+O modo `vscode-tab` é SEGURO quando usa targeting por título de janela. O AppleScript DEVE:
 
-**Por que é perigoso:** O modo `vscode-tab` abre uma nova aba do Claude Code na janela do VS Code que está **ativa no momento**. O comandante tem dezenas de projetos abertos simultaneamente. O macOS pode focar qualquer janela. Não há garantia de qual projeto será o contexto da nova aba — mesmo que você tente segmentar pelo título da janela. Se a aba cair no projeto errado, o agente edita arquivos do projeto errado **silenciosamente**, sem nenhum aviso.
+1. Extrair o nome da pasta do projeto (`PROJECT_FOLDER`)
+2. Listar TODAS as janelas abertas do VS Code
+3. Encontrar a janela cujo título contém o nome do projeto
+4. Usar `AXRaise` para elevar aquela janela específica ANTES de ativar
+5. Só então enviar keystrokes (`Cmd+Shift+P → Claude Code: Open in New Tab → Cmd+V`)
+6. Se a janela do projeto NÃO está aberta, abrir com `code $PROJECT_PATH` primeiro
 
-**Isso não é apenas perigoso em cross-project. É perigoso em TODOS os casos.** A distinção "mesmo projeto vs projeto diferente" não existe na prática quando múltiplas janelas VS Code estão abertas — e o comandante sempre tem múltiplas janelas abertas.
+**REGRA: Cross-project com vscode-tab é PROIBIDO.** Se o working directory do agente ≠ projeto-alvo, usar `terminal-app` (cd garante contexto correto).
 
-**O modo CORRETO para todo auto-dispatch:** `terminal-app`
+**O AppleScript correto para vscode-tab (dentro do mesmo projeto):**
 
-`terminal-app` usa `cd /caminho/exato/do/projeto && claude` — o working directory correto é garantido **pelo path explícito**, independentemente de qual janela está aberta, qual espaço do Mission Control está ativo, ou qual projeto o usuário estava vendo. É impossível cair no projeto errado.
-
-**Regra obrigatória — antes de qualquer dispatch:**
 ```bash
-# 1. Ler o modo configurado
-DISPATCH_MODE=$(cat .delta-11/.dispatch-mode 2>/dev/null | tr -d '[:space:]')
+# Extrair nome da pasta do projeto para localizar a janela correta
+PROJECT_FOLDER=$(basename "$PROJECT_PATH")
 
-# 2. SE o modo for vscode-tab — BLOQUEAR e avisar
-if [ "$DISPATCH_MODE" = "vscode-tab" ]; then
-  echo "⚠️ AVISO: .dispatch-mode diz vscode-tab. Este modo é INSEGURO."
-  echo "Usando terminal-app por segurança. Para corrigir permanentemente:"
-  echo "  echo 'terminal-app' > .delta-11/.dispatch-mode"
-  DISPATCH_MODE="terminal-app"
+# Verificar se a janela do projeto já está aberta no VS Code
+JANELA_ABERTA=$(osascript -e "tell application \"System Events\" to tell process \"Code\" to get title of windows" 2>/dev/null | tr ',' '\n' | grep -c "$PROJECT_FOLDER" 2>/dev/null || echo "0")
+
+if [ "$JANELA_ABERTA" -eq 0 ] 2>/dev/null; then
+    # Janela não encontrada — abrir o projeto primeiro
+    code "$PROJECT_PATH" 2>/dev/null || open -a "Visual Studio Code" "$PROJECT_PATH"
+    sleep 3
 fi
 
-# 3. Prosseguir SEMPRE com terminal-app
-# (O AppleScript de vscode-tab JAMAIS deve ser executado)
+# AppleScript com targeting por título de janela (garante a janela certa)
+osascript << APPLESCRIPT
+set projectFolder to "$(basename "$PROJECT_PATH")"
+
+-- Localizar a janela correta pelo título (evita abrir em outro projeto)
+tell application "System Events"
+    tell process "Code"
+        set targetWindow to missing value
+        repeat with w in windows
+            try
+                if title of w contains projectFolder then
+                    set targetWindow to w
+                    exit repeat
+                end if
+            end try
+        end repeat
+
+        -- Elevar a janela certa ANTES do activate (reduz troca de Space)
+        if targetWindow is not missing value then
+            perform action "AXRaise" of targetWindow
+            delay 0.3
+        end if
+    end tell
+end tell
+
+-- Ativar VS Code (já deve focar a janela elevada acima)
+tell application "Visual Studio Code"
+    activate
+end tell
+delay 1.5
+
+tell application "System Events"
+    tell process "Code"
+        keystroke "p" using {command down, shift down}
+        delay 0.8
+        keystroke "Claude Code: Open in New Tab"
+        delay 1.2
+        keystroke return
+        delay 3.5
+        keystroke "v" using {command down}
+        delay 0.5
+        keystroke return
+    end tell
+end tell
+APPLESCRIPT
 ```
-
-**Se `.dispatch-mode` diz `vscode-tab`:** O agente DEVE sobrescrever para `terminal-app` silenciosamente e avisar o comandante. Não é responsabilidade do agente perguntar — é responsabilidade do agente proteger o projeto.
-
-**Modo `vscode-tab` existe no código apenas como legado** — pode estar em `.dispatch-mode` de projetos antigos. Trate sempre como `manual` ou `terminal-app`.
 
 ---
 

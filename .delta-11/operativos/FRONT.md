@@ -155,6 +155,6 @@ Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE
    - Se sua tarefa concluída desbloqueia outro agente → disparar imediatamente
    - Se você é o último agente da fase → gerar prompts e disparar agentes da próxima fase
    - Respeitar zonas de paralelismo e ordem de prioridade definidas no CLAUDE.md
-   - ⚠️ **PROIBIDO vscode-tab:** Ao disparar, se `.dispatch-mode` diz `vscode-tab`, NÃO execute. Troque para `terminal-app` e avise o comandante. vscode-tab abre em qualquer janela VS Code ativa — pode cair em outro projeto e corromper arquivos silenciosamente. terminal-app garante o projeto correto via `cd /caminho/exato && claude`.
+   - ⚠️ **vscode-tab seguro com targeting:** Ao disparar, se `.dispatch-mode` diz `vscode-tab`, use o AppleScript com targeting por título de janela (busca a janela pelo nome do projeto antes de ativar). Cross-project com vscode-tab continua PROIBIDO — use `terminal-app` quando working directory ≠ projeto-alvo.
 6. Monitorar o tamanho do contexto — se estiver chegando no limite, executar o Protocolo de Contexto Esgotado (que inclui auto-disparo de nova janela via AppleScript no VS Code)
 7. Se encontrar erro que não consegue resolver (3 tentativas): classificar (A/B/C) e auto-disparar SCOUT ou ATLAS conforme o PROTOCOLO DE AUTO-DISPATCH do CLAUDE.md
