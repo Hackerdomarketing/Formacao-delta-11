@@ -604,26 +604,38 @@ Diagnostique e corrija o erro acima.
 - **Sempre aguarde 8 segundos entre disparos** de agentes diferentes
 - **Sempre salve o prompt como arquivo em `.delta-11/ativacoes/`** antes de disparar (para registro)
 
-### ⚠️ REGRA CRÍTICA: DISPATCH CROSS-PROJECT — PROIBIDO COM VSCODE-TAB
+### ⚠️ REGRA CRÍTICA: VSCODE-TAB É PROIBIDO — USE SEMPRE TERMINAL-APP
 
-**NUNCA use o modo `vscode-tab` para disparar um agente cujo projeto-alvo é DIFERENTE do seu working directory atual.**
+**NUNCA use o modo `vscode-tab` em nenhum auto-dispatch, sob nenhuma circunstância — nem mesmo quando aparenta ser o mesmo projeto.**
 
-**Por que é perigoso:** O modo `vscode-tab` abre uma nova aba do Claude Code na janela do VS Code que está ativa. Se você está rodando no projeto A e tenta disparar um agente para o projeto B usando `vscode-tab`, a nova aba abre no contexto do projeto A — e o agente pode editar arquivos do projeto ERRADO, corrompendo-o silenciosamente.
+**Por que é perigoso:** O modo `vscode-tab` abre uma nova aba do Claude Code na janela do VS Code que está **ativa no momento**. O comandante tem dezenas de projetos abertos simultaneamente. O macOS pode focar qualquer janela. Não há garantia de qual projeto será o contexto da nova aba — mesmo que você tente segmentar pelo título da janela. Se a aba cair no projeto errado, o agente edita arquivos do projeto errado **silenciosamente**, sem nenhum aviso.
 
-**Regra:** Antes de qualquer dispatch, verifique:
+**Isso não é apenas perigoso em cross-project. É perigoso em TODOS os casos.** A distinção "mesmo projeto vs projeto diferente" não existe na prática quando múltiplas janelas VS Code estão abertas — e o comandante sempre tem múltiplas janelas abertas.
+
+**O modo CORRETO para todo auto-dispatch:** `terminal-app`
+
+`terminal-app` usa `cd /caminho/exato/do/projeto && claude` — o working directory correto é garantido **pelo path explícito**, independentemente de qual janela está aberta, qual espaço do Mission Control está ativo, ou qual projeto o usuário estava vendo. É impossível cair no projeto errado.
+
+**Regra obrigatória — antes de qualquer dispatch:**
 ```bash
-MEU_DIR=$(pwd)
-PROJETO_ALVO="/caminho/do/projeto-alvo"
+# 1. Ler o modo configurado
+DISPATCH_MODE=$(cat .delta-11/.dispatch-mode 2>/dev/null | tr -d '[:space:]')
 
-if [ "$MEU_DIR" != "$PROJETO_ALVO" ]; then
-  # CROSS-PROJECT DISPATCH — NUNCA use vscode-tab
-  # Use terminal-app (cd + claude garante contexto correto)
-  # OU informe o comandante para fazer manualmente
-  echo "ATENÇÃO: dispatch cross-project detectado. Use terminal-app ou manual."
+# 2. SE o modo for vscode-tab — BLOQUEAR e avisar
+if [ "$DISPATCH_MODE" = "vscode-tab" ]; then
+  echo "⚠️ AVISO: .dispatch-mode diz vscode-tab. Este modo é INSEGURO."
+  echo "Usando terminal-app por segurança. Para corrigir permanentemente:"
+  echo "  echo 'terminal-app' > .delta-11/.dispatch-mode"
+  DISPATCH_MODE="terminal-app"
 fi
+
+# 3. Prosseguir SEMPRE com terminal-app
+# (O AppleScript de vscode-tab JAMAIS deve ser executado)
 ```
 
-**O modo correto para cross-project:** `terminal-app` — porque `cd /caminho/projeto-alvo && claude` garante que o novo agente inicia com o working directory correto, independentemente de qual projeto está aberto no VS Code.
+**Se `.dispatch-mode` diz `vscode-tab`:** O agente DEVE sobrescrever para `terminal-app` silenciosamente e avisar o comandante. Não é responsabilidade do agente perguntar — é responsabilidade do agente proteger o projeto.
+
+**Modo `vscode-tab` existe no código apenas como legado** — pode estar em `.dispatch-mode` de projetos antigos. Trate sempre como `manual` ou `terminal-app`.
 
 ---
 
