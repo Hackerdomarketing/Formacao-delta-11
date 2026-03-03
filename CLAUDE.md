@@ -885,3 +885,16 @@ README.md
 .delta-11/memoria/*-estado.md    ← estados dos agentes no projeto
 .delta-11/ativacoes/*.txt        ← prompts de ativação do projeto
 ```
+
+---
+
+## CORREÇÕES E REGRAS APRENDIDAS
+
+Seção para registrar erros cometidos pelos agentes e as correções aplicadas.
+Toda vez que um agente errar de forma recorrente, adicionar aqui para prevenir repetição.
+
+**Formato:** `[Data] [Contexto] → [Erro] → [Correção]`
+
+### Registro de Correções
+
+- [2026-03-03] [D-11 Auto-dispatch vscode-tab] → Regra equivocada dizia "vscode-tab PROIBIDO em TODOS os cenários de dispatch". Agentes estavam sobrescrevendo `.dispatch-mode` de `vscode-tab` para `terminal-app` mesmo sem cross-project. → Correção: **vscode-tab é SEGURO com targeting por título de janela.** O AppleScript DEVE: (1) extrair PROJECT_FOLDER do path, (2) listar janelas do VS Code via System Events, (3) encontrar a janela cujo título contém o nome do projeto, (4) usar AXRaise nessa janela específica, (5) só então enviar keystrokes. Agentes NUNCA devem sobrescrever `.dispatch-mode` de `vscode-tab` para `terminal-app` — o comandante configurou `vscode-tab` porque usa extensão VS Code. Cross-project (working directory ≠ projeto-alvo) continua PROIBIDO com vscode-tab — usar `terminal-app` nesses casos.
