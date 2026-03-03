@@ -893,6 +893,8 @@ README.md
 Seção para registrar erros cometidos pelos agentes e as correções aplicadas.
 Toda vez que um agente errar de forma recorrente, adicionar aqui para prevenir repetição.
 
+**REGRA OBRIGATÓRIA:** Toda correção registrada aqui DEVE ser registrada também no CLAUDE.md global (`/Users/alfa/Documents/VSCODE/CLAUDE.md`), seguido de Push no GitHub e `./sincronizar.sh` para propagar aos 13 projetos.
+
 **Formato:** `[Data] [Contexto] → [Erro] → [Correção]`
 
 ### Registro de Correções
