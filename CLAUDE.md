@@ -445,32 +445,44 @@ APPLESCRIPT
 
 elif [ "$DISPATCH_MODE" = "vscode-tab" ]; then
     # MODO VSCODE-TAB: Abre nova aba do Claude Code no VS Code
-    # AVISO: Multiplas instancias podem causar conflito de lock (bug #13287)
     # AVISO PARA COMANDANTE: Se VS Code estiver em Space diferente (Mission Control),
     # o macOS pode mudar de Space ao ativar. Para evitar isso:
     # System Preferences → Mission Control → desmarcar "When switching to an application,
     # switch to a Space with open windows for the application"
-    # Alternativa: usar mode terminal-app (echo "terminal-app" > .delta-11/.dispatch-mode)
 
     # Extrair nome da pasta do projeto para localizar a janela correta
     PROJECT_FOLDER=$(basename "$PROJECT_PATH")
 
+    # Detectar nome do processo VS Code (pode ser "Code" ou "Electron")
+    VSCODE_PROCESS=$(osascript -e 'tell application "System Events" to get name of every process' 2>/dev/null | tr ',' '\n' | grep -o 'Code' | head -1)
+    if [ -z "$VSCODE_PROCESS" ]; then
+        VSCODE_PROCESS="Electron"
+    fi
+
+    # Detectar nome do app VS Code
+    VSCODE_APP=$(ls ~/Desktop/ /Applications/ 2>/dev/null | grep -o "Visual Studio Code[^.]*" | head -1)
+    if [ -z "$VSCODE_APP" ]; then
+        VSCODE_APP="Visual Studio Code"
+    fi
+
     # Verificar se a janela do projeto já está aberta no VS Code
-    JANELA_ABERTA=$(osascript -e "tell application \"System Events\" to tell process \"Code\" to get title of windows" 2>/dev/null | tr ',' '\n' | grep -c "$PROJECT_FOLDER" 2>/dev/null || echo "0")
+    JANELA_ABERTA=$(osascript -e "tell application \"System Events\" to tell process \"$VSCODE_PROCESS\" to get title of windows" 2>/dev/null | tr ',' '\n' | grep -c "$PROJECT_FOLDER" 2>/dev/null || echo "0")
 
     if [ "$JANELA_ABERTA" -eq 0 ] 2>/dev/null; then
         # Janela não encontrada — abrir o projeto primeiro
-        code "$PROJECT_PATH" 2>/dev/null || open -a "Visual Studio Code" "$PROJECT_PATH"
+        code "$PROJECT_PATH" 2>/dev/null || open -a "$VSCODE_APP" "$PROJECT_PATH"
         sleep 3
     fi
 
     # AppleScript com targeting por título de janela (garante a janela certa)
     osascript << APPLESCRIPT
-set projectFolder to "$(basename "$PROJECT_PATH")"
+set projectFolder to "$PROJECT_FOLDER"
+set vsCodeProcess to "$VSCODE_PROCESS"
+set vsCodeApp to "$VSCODE_APP"
 
 -- Localizar a janela correta pelo título (evita abrir em outro projeto)
 tell application "System Events"
-    tell process "Code"
+    tell process vsCodeProcess
         set targetWindow to missing value
         repeat with w in windows
             try
@@ -490,13 +502,13 @@ tell application "System Events"
 end tell
 
 -- Ativar VS Code (já deve focar a janela elevada acima)
-tell application "Visual Studio Code"
+tell application vsCodeApp
     activate
 end tell
 delay 1.5
 
 tell application "System Events"
-    tell process "Code"
+    tell process vsCodeProcess
         keystroke "p" using {command down, shift down}
         delay 0.8
         keystroke "Claude Code: Open in New Tab"
@@ -648,26 +660,48 @@ O modo `vscode-tab` é SEGURO quando usa targeting por título de janela. O Appl
 
 **O AppleScript correto para vscode-tab (dentro do mesmo projeto):**
 
+**IMPORTANTE — Detecção do nome do processo VS Code:**
+O VS Code pode rodar como processos diferentes dependendo da instalação:
+- Instalação padrão: processo `"Code"`, app `"Visual Studio Code"`
+- Instalação customizada (ex: "Visual Studio Code 2.app"): processo `"Electron"`, app `"Visual Studio Code 2"`
+
+O script DEVE detectar o nome correto automaticamente antes de usar:
+
 ```bash
 # Extrair nome da pasta do projeto para localizar a janela correta
 PROJECT_FOLDER=$(basename "$PROJECT_PATH")
 
+# Detectar nome do processo VS Code (pode ser "Code" ou "Electron")
+VSCODE_PROCESS=$(osascript -e 'tell application "System Events" to get name of every process' 2>/dev/null | tr ',' '\n' | grep -o 'Code' | head -1)
+if [ -z "$VSCODE_PROCESS" ]; then
+    # Se não encontrou "Code", verificar se é "Electron" com janelas de VS Code
+    VSCODE_PROCESS="Electron"
+fi
+
+# Detectar nome do app VS Code (pode ser "Visual Studio Code" ou "Visual Studio Code 2")
+VSCODE_APP=$(ls ~/Desktop/ /Applications/ 2>/dev/null | grep -o "Visual Studio Code[^.]*" | head -1)
+if [ -z "$VSCODE_APP" ]; then
+    VSCODE_APP="Visual Studio Code"
+fi
+
 # Verificar se a janela do projeto já está aberta no VS Code
-JANELA_ABERTA=$(osascript -e "tell application \"System Events\" to tell process \"Code\" to get title of windows" 2>/dev/null | tr ',' '\n' | grep -c "$PROJECT_FOLDER" 2>/dev/null || echo "0")
+JANELA_ABERTA=$(osascript -e "tell application \"System Events\" to tell process \"$VSCODE_PROCESS\" to get title of windows" 2>/dev/null | tr ',' '\n' | grep -c "$PROJECT_FOLDER" 2>/dev/null || echo "0")
 
 if [ "$JANELA_ABERTA" -eq 0 ] 2>/dev/null; then
     # Janela não encontrada — abrir o projeto primeiro
-    code "$PROJECT_PATH" 2>/dev/null || open -a "Visual Studio Code" "$PROJECT_PATH"
+    code "$PROJECT_PATH" 2>/dev/null || open -a "$VSCODE_APP" "$PROJECT_PATH"
     sleep 3
 fi
 
 # AppleScript com targeting por título de janela (garante a janela certa)
 osascript << APPLESCRIPT
-set projectFolder to "$(basename "$PROJECT_PATH")"
+set projectFolder to "$PROJECT_FOLDER"
+set vsCodeProcess to "$VSCODE_PROCESS"
+set vsCodeApp to "$VSCODE_APP"
 
 -- Localizar a janela correta pelo título (evita abrir em outro projeto)
 tell application "System Events"
-    tell process "Code"
+    tell process vsCodeProcess
         set targetWindow to missing value
         repeat with w in windows
             try
@@ -687,13 +721,13 @@ tell application "System Events"
 end tell
 
 -- Ativar VS Code (já deve focar a janela elevada acima)
-tell application "Visual Studio Code"
+tell application vsCodeApp
     activate
 end tell
 delay 1.5
 
 tell application "System Events"
-    tell process "Code"
+    tell process vsCodeProcess
         keystroke "p" using {command down, shift down}
         delay 0.8
         keystroke "Claude Code: Open in New Tab"
@@ -907,3 +941,4 @@ Toda vez que um agente errar de forma recorrente, adicionar aqui para prevenir r
 
 - [2026-03-03] [D-11 Auto-dispatch vscode-tab] → Regra equivocada dizia "vscode-tab PROIBIDO em TODOS os cenários de dispatch". Agentes estavam sobrescrevendo `.dispatch-mode` de `vscode-tab` para `terminal-app` mesmo sem cross-project. → Correção: **vscode-tab é SEGURO com targeting por título de janela.** O AppleScript DEVE: (1) extrair PROJECT_FOLDER do path, (2) listar janelas do VS Code via System Events, (3) encontrar a janela cujo título contém o nome do projeto, (4) usar AXRaise nessa janela específica, (5) só então enviar keystrokes. Agentes NUNCA devem sobrescrever `.dispatch-mode` de `vscode-tab` para `terminal-app` — o comandante configurou `vscode-tab` porque usa extensão VS Code. Cross-project (working directory ≠ projeto-alvo) continua PROIBIDO com vscode-tab — usar `terminal-app` nesses casos.
 - [2026-03-09] [D-11 Auto-dispatch detecção errada] → Detecção automática verificava `command -v claude` e, se CLI existisse no PATH, assumia `terminal-app` como padrão. Comandante usa extensão VS Code, não CLI no terminal. Resultado: todo projeto novo recebia `terminal-app` mesmo rodando dentro do VS Code. → Correção: **Detecção agora verifica `$VSCODE_PID` primeiro.** Se a variável existe, o Claude Code está rodando como extensão do VS Code → `vscode-tab`. Só usa `terminal-app` se NÃO está no VS Code E o CLI existe. `vscode-tab` é agora o padrão recomendado, não `terminal-app`. Ter o CLI instalado NÃO significa que o comandante está usando o terminal.
+- [2026-03-09] [D-11 AppleScript nome de processo hardcoded] → AppleScript usava `process "Code"` e `application "Visual Studio Code"` hardcoded. No Mac do comandante o app se chama "Visual Studio Code 2" (instalado no Desktop, não em /Applications) e o processo roda como "Electron", não "Code". Resultado: AppleScript falhava com erro `-1728`. → Correção: **Detecção dinâmica do nome do processo e do app.** Script detecta: (1) nome do processo via `osascript` — se "Code" não existe, usa "Electron"; (2) nome do app via `ls ~/Desktop/ /Applications/` — encontra "Visual Studio Code 2" ou "Visual Studio Code". Variáveis `$VSCODE_PROCESS` e `$VSCODE_APP` são passadas para o AppleScript via `set vsCodeProcess to` / `set vsCodeApp to`.
