@@ -322,11 +322,11 @@ O sistema suporta 3 modos de dispatch. O modo é detectado automaticamente e sal
 
 | Modo | Quando | Como funciona |
 |------|--------|---------------|
-| **terminal-app** | `claude` CLI disponível (padrão recomendado) | Abre aba no Terminal.app, roda `claude`, cola prompt |
-| **vscode-tab** | Só extensão GUI, sem CLI | Abre tab no VS Code via "Open in New Tab" (legado) |
+| **vscode-tab** | Extensão Claude Code no VS Code (padrão) | Abre nova aba no VS Code via "Open in New Tab" com targeting por título de janela |
+| **terminal-app** | CLI `claude` no Terminal (alternativa) | Abre aba no Terminal.app, roda `claude`, cola prompt |
 | **manual** | Nada detectado / fallback | Salva arquivo, pede ao comandante para colar |
 
-**POR QUE terminal-app É O PADRÃO:** Múltiplas instâncias do Claude Code na mesma janela do VS Code causam conflito de lock file e podem travar o VS Code (bug documentado #13287/#13499). Cada agente no Terminal.app roda como processo isolado — zero conflito.
+**DETECÇÃO AUTOMÁTICA:** O sistema detecta de onde está rodando verificando variáveis de ambiente. Se `VSCODE_PID` existe no ambiente, o Claude Code está rodando como extensão do VS Code → usa `vscode-tab`. Se não existe mas o CLI `claude` está disponível → usa `terminal-app`. A presença do CLI no PATH NÃO significa que o comandante está usando o terminal — pode ter o CLI instalado e estar usando a extensão VS Code.
 
 Antes do primeiro auto-dispatch da sessão, detecte o modo:
 
@@ -334,10 +334,13 @@ Antes do primeiro auto-dispatch da sessão, detecte o modo:
 if [ -f .delta-11/.dispatch-mode ]; then
     DISPATCH_MODE=$(cat .delta-11/.dispatch-mode | tr -d '[:space:]')
 else
-    if command -v claude &>/dev/null; then
-        DISPATCH_MODE="terminal-app"
-    elif command -v code &>/dev/null && code --list-extensions 2>/dev/null | grep -q "anthropic.claude-code"; then
+    # Detectar de onde o Claude Code está rodando
+    if [ -n "$VSCODE_PID" ]; then
+        # Rodando dentro do VS Code (extensão) → vscode-tab
         DISPATCH_MODE="vscode-tab"
+    elif command -v claude &>/dev/null; then
+        # CLI disponível e NÃO está no VS Code → terminal-app
+        DISPATCH_MODE="terminal-app"
     else
         DISPATCH_MODE="manual"
     fi
@@ -350,8 +353,8 @@ fi
 O comandante pode forçar um modo específico a qualquer momento:
 
 ```bash
-echo "terminal-app" > .delta-11/.dispatch-mode   # CLI no Terminal.app (recomendado)
-echo "vscode-tab" > .delta-11/.dispatch-mode      # Extensão VS Code (pode travar com muitos agentes)
+echo "vscode-tab" > .delta-11/.dispatch-mode      # Extensão VS Code (padrão)
+echo "terminal-app" > .delta-11/.dispatch-mode   # CLI no Terminal.app (alternativa)
 echo "manual" > .delta-11/.dispatch-mode           # Sempre pedir ao comandante para colar
 rm .delta-11/.dispatch-mode                        # Resetar detecção automática
 ```
@@ -403,10 +406,13 @@ cat .delta-11/ativacoes/[ARQUIVO].txt | pbcopy
 # 2. Aguardar o comandante ler o aviso
 sleep 5
 
-# 3. Ler modo de dispatch
-DISPATCH_MODE="terminal-app"
+# 3. Ler modo de dispatch (detectar automaticamente se não existe arquivo)
 if [ -f .delta-11/.dispatch-mode ]; then
     DISPATCH_MODE=$(cat .delta-11/.dispatch-mode | tr -d '[:space:]')
+elif [ -n "$VSCODE_PID" ]; then
+    DISPATCH_MODE="vscode-tab"
+else
+    DISPATCH_MODE="terminal-app"
 fi
 
 # 4. Pegar caminho do projeto
@@ -900,3 +906,4 @@ Toda vez que um agente errar de forma recorrente, adicionar aqui para prevenir r
 ### Registro de Correções
 
 - [2026-03-03] [D-11 Auto-dispatch vscode-tab] → Regra equivocada dizia "vscode-tab PROIBIDO em TODOS os cenários de dispatch". Agentes estavam sobrescrevendo `.dispatch-mode` de `vscode-tab` para `terminal-app` mesmo sem cross-project. → Correção: **vscode-tab é SEGURO com targeting por título de janela.** O AppleScript DEVE: (1) extrair PROJECT_FOLDER do path, (2) listar janelas do VS Code via System Events, (3) encontrar a janela cujo título contém o nome do projeto, (4) usar AXRaise nessa janela específica, (5) só então enviar keystrokes. Agentes NUNCA devem sobrescrever `.dispatch-mode` de `vscode-tab` para `terminal-app` — o comandante configurou `vscode-tab` porque usa extensão VS Code. Cross-project (working directory ≠ projeto-alvo) continua PROIBIDO com vscode-tab — usar `terminal-app` nesses casos.
+- [2026-03-09] [D-11 Auto-dispatch detecção errada] → Detecção automática verificava `command -v claude` e, se CLI existisse no PATH, assumia `terminal-app` como padrão. Comandante usa extensão VS Code, não CLI no terminal. Resultado: todo projeto novo recebia `terminal-app` mesmo rodando dentro do VS Code. → Correção: **Detecção agora verifica `$VSCODE_PID` primeiro.** Se a variável existe, o Claude Code está rodando como extensão do VS Code → `vscode-tab`. Só usa `terminal-app` se NÃO está no VS Code E o CLI existe. `vscode-tab` é agora o padrão recomendado, não `terminal-app`. Ter o CLI instalado NÃO significa que o comandante está usando o terminal.
