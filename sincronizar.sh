@@ -15,6 +15,8 @@
 #   - .delta-11/sub-agentes/*.md
 #   - .delta-11/templates/*.md
 #   - .delta-11/painel.html
+#   - .delta-11/hooks/*.js          (rastreamento em tempo real)
+#   - .claude/settings.json         (hooks do projeto — merge inteligente)
 #
 # O que ELE NUNCA TOCA (dados do projeto):
 #   - .delta-11/kanban.md
@@ -190,6 +192,16 @@ if [ -f "$SOURCE/.delta-11/painel.html" ]; then
     SYNC_FILES+=(".delta-11/painel.html")
 fi
 
+# Hooks (scripts de rastreamento em tempo real)
+for f in "$SOURCE/.delta-11/hooks/"*.js; do
+    [ -f "$f" ] && SYNC_FILES+=(".delta-11/hooks/$(basename "$f")")
+done
+
+# .claude/settings.json (hooks do projeto)
+if [ -f "$SOURCE/.claude/settings.json" ]; then
+    SYNC_FILES+=(".claude/settings.json")
+fi
+
 # Scripts do sistema (task-done.sh e outros .sh na raiz)
 for f in "$SOURCE"/*.sh; do
     script_name=$(basename "$f")
@@ -255,6 +267,14 @@ sincronizar_destino() {
         return 1
     fi
 
+    # Garantir que pastas de infraestrutura existam
+    if [ "$DRY_RUN" = false ]; then
+        mkdir -p "$destino/.delta-11/hooks" 2>/dev/null
+        mkdir -p "$destino/.delta-11/locks" 2>/dev/null
+        touch "$destino/.delta-11/locks/.gitkeep" 2>/dev/null
+        mkdir -p "$destino/.claude" 2>/dev/null
+    fi
+
     for rel_path in "${SYNC_FILES[@]}"; do
         local src="$SOURCE/$rel_path"
         local dst="$destino/$rel_path"
@@ -272,6 +292,39 @@ sincronizar_destino() {
         # Verificar se precisa copiar
         if [ -f "$dst" ] && diff -q "$src" "$dst" &> /dev/null; then
             ignorados=$((ignorados + 1))
+            continue
+        fi
+
+        # Tratamento especial para .claude/settings.json (merge, não sobrescrever)
+        if [ "$rel_path" = ".claude/settings.json" ] && [ -f "$dst" ]; then
+            if [ "$DRY_RUN" = true ]; then
+                echo -e "    ${YELLOW}~ settings.json${NC} (merge de hooks)"
+            else
+                # Merge: combinar hooks do D-11 com hooks existentes do projeto
+                local merged
+                merged=$(jq -s '
+                  .[0] as $existing |
+                  .[1] as $d11 |
+                  $existing * {
+                    hooks: (
+                      ($existing.hooks // {}) as $eh |
+                      ($d11.hooks // {}) as $dh |
+                      ($eh | keys) + ($dh | keys) | unique | map(
+                        . as $key |
+                        (($eh[$key] // []) + ($dh[$key] // [])) | unique_by(.hooks[0].command) |
+                        {($key): .}
+                      ) | add // {}
+                    )
+                  }
+                ' "$dst" "$src" 2>/dev/null)
+                if [ $? -eq 0 ] && [ -n "$merged" ]; then
+                    echo "$merged" > "$dst"
+                else
+                    # Se merge falhar, copiar direto
+                    cp "$src" "$dst"
+                fi
+            fi
+            copiados=$((copiados + 1))
             continue
         fi
 

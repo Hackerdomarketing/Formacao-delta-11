@@ -237,6 +237,28 @@ O Code Architect é especialmente útil para o CRONOS em projetos de alta comple
 
 **Resultado:** CRONOS alimenta memória institucional do projeto.
 
+**APÓS PÓS-MORTEM — EXPORTAR PADRÕES UNIVERSAIS PARA A INTELIGÊNCIA PROGRESSIVA:**
+
+Quando o Code Architect identificar padrões que funcionam em QUALQUER projeto (não só neste), CRONOS deve exportar para a Inteligência Progressiva central:
+
+```bash
+python3 ~/.claude/skills/inteligencia-progressiva/scripts/capturar.py --json '{
+  "dominio": "[inferir do stack: supabase, extensoes-chrome, nextjs, etc.]",
+  "tipo": "situacao",
+  "titulo": "[nome do padrão]",
+  "situacao_descricao": "[quando usar]",
+  "se": "[condição]",
+  "faca": "[ação correta]",
+  "nunca_faca": "[o que evitar]",
+  "porque": "[justificativa técnica]",
+  "tags": ["[tags relevantes]"]
+}'
+```
+
+**Regra:** Só exportar padrões que sejam UNIVERSAIS (funcionam fora deste projeto). Decisões específicas do projeto ficam apenas no project-core.md.
+
+**Evidência obrigatória:** Incluir nome do projeto, fase e tarefa onde o padrão surgiu.
+
 ---
 
 ## COMO DISPARAR UM SUB-AGENTE

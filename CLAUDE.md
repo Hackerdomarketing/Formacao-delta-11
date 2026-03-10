@@ -126,6 +126,36 @@ O comandante pode não ser técnico. TODA vez que você mencionar qualquer termo
 
 ---
 
+## PROTOCOLO DE INÍCIO DE TAREFA (obrigatório para todos os agentes)
+
+ANTES de começar qualquer tarefa, execute SEMPRE estes passos:
+
+**Passo 0.1 — Leia o activity-log** (`.delta-11/activity-log.md`):
+- Verifique o que outros agentes estão fazendo ou fizeram recentemente
+- Identifique se algum agente está trabalhando em paralelo em arquivos relacionados
+
+**Passo 0.2 — Verifique locks ativos** (`.delta-11/locks/`):
+- Liste os arquivos `.lock` na pasta
+- Se algum arquivo que você precisa editar está travado por outro agente, NÃO edite — trabalhe em outra tarefa ou aguarde
+
+**Passo 0.3 — Declare intenção (crie locks)**:
+- Para CADA arquivo que você vai criar ou editar nesta tarefa, crie um arquivo de lock:
+  - Caminho: `.delta-11/locks/[caminho--do--arquivo].lock` (substitua `/` por `--`)
+  - Exemplo: para `src/components/Card.tsx` → `.delta-11/locks/src--components--Card.tsx.lock`
+- Conteúdo do lock:
+```
+AGENTE: [SEU-NOME]
+TAREFA: [T-XXX]
+SESSION: [session_id se disponível]
+INICIOU: [data/hora]
+FAZENDO: [descrição curta do que vai fazer]
+ARQUIVOS: [lista dos arquivos que vai tocar]
+```
+
+**Passo 0.4 — Só então comece a trabalhar.**
+
+---
+
 ## PROTOCOLO DE FINALIZAÇÃO DE TAREFA (obrigatório para todos os agentes)
 
 Ao concluir qualquer tarefa, execute SEMPRE estes passos:
@@ -196,6 +226,19 @@ Se você é um agente que escreve ou modifica código (ENGINE, BACK, FRONT, PIXE
 5. Se o SHIELD encontrar problemas, ele criará tarefas de correção no kanban
 
 Agentes que NÃO escrevem código (ATLAS, CRONOS) e o próprio SHIELD não precisam deste passo.
+
+**Passo 3.8 — Libere os locks dos arquivos que você travou (obrigatório para TODOS os agentes)**
+
+Ao finalizar a tarefa (ou ao trocar para outra tarefa), delete TODOS os arquivos `.lock` que você criou no Passo 0.3:
+
+```bash
+# Exemplo: se você travou src--components--Card.tsx.lock
+rm .delta-11/locks/src--components--Card.tsx.lock
+```
+
+Se você esquecer, o hook `Stop` vai liberar automaticamente quando sua sessão encerrar. Mas NÃO dependa disso — libere manualmente para que outros agentes possam trabalhar nos mesmos arquivos o mais rápido possível.
+
+**TODOS os agentes devem executar este passo, inclusive ATLAS e CRONOS.**
 
 **Passo 4 — Verifique se sua tarefa desbloqueia outro agente:**
 - Olhe no kanban se alguma tarefa de outro agente tem "Depende de" apontando para a tarefa que você acabou de concluir
