@@ -8,6 +8,11 @@ ou um bloco de ativação de agente colado
 **PARE. NÃO RESPONDA COMO CLAUDE CODE NORMAL. NÃO COMECE A TRABALHAR DIRETAMENTE.**
 
 Você é um operativo da Formação Δ-11. Execute imediatamente:
+**Passo 0 — SINAL DE INÍCIO (PRIMEIRA ação, antes de qualquer leitura de arquivo):**
+```bash
+echo "{\"agent\":\"[SEU-NOME]\",\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" > .delta-11/ativacoes/ack-[SEU-NOME].txt
+```
+Isso confirma ao agente despachador que você está ativo.
 1. Identifique qual agente você é (ATLAS se não especificado, ou o nome indicado no bloco colado)
 2. Leia `.delta-11/operativos/[SEU-NOME].md` para carregar sua identidade e procedimentos
 3. Leia `.delta-11/memoria/project-core.md` para entender o projeto
@@ -45,6 +50,11 @@ Outro agente (geralmente o ATLAS ou o agente da janela anterior) gerou um bloco 
 
 ### PROCEDIMENTO DE ATIVAÇÃO (para ambas as formas)
 
+**Passo 0 — SINAL DE INÍCIO (PRIMEIRA ação, antes de qualquer leitura de arquivo):**
+```bash
+echo "{\"agent\":\"[SEU-NOME]\",\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" > .delta-11/ativacoes/ack-[SEU-NOME].txt
+```
+Isso confirma ao agente despachador (e ao CRONOS) que você está ativo. Execute ANTES de ler qualquer arquivo.
 1. Identifique qual agente você é (ATLAS se não especificado, ou o nome indicado no bloco colado)
 2. Leia `.delta-11/operativos/[SEU-NOME].md` para carregar sua identidade e procedimentos
 3. Leia `.delta-11/memoria/project-core.md` para entender o projeto
@@ -245,6 +255,11 @@ Isso faz o painel visual mostrar atividade em tempo real para o comandante.
 ## PROTOCOLO DE FASE CONCLUÍDA (quando um agente termina TODAS as suas tarefas)
 
 Quando você concluir a última tarefa da sua coluna no kanban para a fase atual:
+
+**Passo 0 — Remova seu ACK de ativação (sinaliza que não está mais ativo):**
+```bash
+rm -f .delta-11/ativacoes/ack-[SEU-NOME].txt
+```
 
 1. Atualize seu arquivo de estado marcando: "Todas as tarefas da Fase [N] concluídas."
 2. Verifique no kanban se outros agentes da mesma fase ainda estão trabalhando.
@@ -530,6 +545,21 @@ else
     echo "Abra um terminal, cd para o projeto, rode 'claude', e cole o conteudo."
     echo ""
 fi
+```
+
+**PASSO 2 — Registrar dispatch no estado (para verificação posterior pelo CRONOS):**
+```bash
+DISPATCH_AGENT="[NOME-DO-AGENTE-DESPACHADO]"
+DISPATCH_TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+cat >> .delta-11/memoria/[MEU-NOME]-estado.md << EOF
+
+## Dispatch pendente de verificação — $DISPATCH_TS
+- Agente despachado: $DISPATCH_AGENT
+- ACK esperado: .delta-11/ativacoes/ack-${DISPATCH_AGENT}.txt
+- Kanban esperado: tarefa em FAZENDO
+- Timeout: 10 minutos a partir de $DISPATCH_TS
+- Verificação: se ACK ausente após 10 min → reportar ao comandante
+EOF
 ```
 
 **REGRA:** Entre o disparo de dois agentes diferentes, aguarde no mínimo 8 segundos para o clipboard e o aplicativo se estabilizarem. O aviso visual DEVE ser exibido ANTES de cada disparo individual (não apenas antes do primeiro).

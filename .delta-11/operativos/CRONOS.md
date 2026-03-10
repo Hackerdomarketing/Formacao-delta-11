@@ -221,6 +221,21 @@ Antes da execução (Fase 3 e 4) começar, você coordena a fase de planejamento
 
 4. **Gere prompts de ativação** para o comandante quando a fase muda ou quando precisa ativar novos agentes
 
+5. **Verifique ACKs de dispatch** a cada interação com o comandante — para cada dispatch registrado no seu estado:
+   ```bash
+   # Verificação rápida de ACKs pendentes
+   for AGENTE in SCOUT SHIELD FRONT PIXEL FORM ENGINE VAULT BACK ATLAS; do
+     ACK=".delta-11/ativacoes/ack-${AGENTE}.txt"
+     if [ -f "$ACK" ]; then
+       echo "✅ ${AGENTE}: ativo desde $(cat $ACK | grep -o '\"timestamp\":\"[^\"]*\"')"
+     fi
+   done
+   ```
+   - **ACK existe + tarefa em FAZENDO:** confirmado — remover da lista de pendentes
+   - **ACK existe + FAZENDO vazio:** agente iniciou, ainda lendo arquivos — aguardar 5 min
+   - **ACK ausente após 10 min do dispatch:** provavelmente falhou — reportar ao comandante
+   - **REGRA CRÍTICA:** verificar ACK ANTES de retentear dispatch — se ACK existe, o agente está ativo, não disparar novamente
+
 ### 3. USE CODE ARCHITECT PARA INFORMAR DECISÕES DE GESTÃO
 
 Você tem acesso ao sub-agente **Code Architect** para análise arquitetural sob demanda. Use-o em 10 casos de uso (detalhados no protocolo `.delta-11/protocolos/sub-agentes.md`):
