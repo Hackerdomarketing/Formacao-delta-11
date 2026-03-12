@@ -18,19 +18,19 @@
     --text-muted: #666666;
 
     --atlas: #ff2020;
-    --cronos: #b03030;
-    --front: #ff4d4d;
-    --pixel: #ff6b6b;
-    --form: #cc3333;
-    --back: #e63946;
-    --engine: #ff1a1a;
-    --vault: #d32f2f;
-    --shield: #ff5252;
-    --scout: #c62828;
+    --cronos: #ff2020;
+    --front: #ff2020;
+    --pixel: #ff2020;
+    --form: #ff2020;
+    --back: #ff2020;
+    --engine: #ff2020;
+    --vault: #ff2020;
+    --shield: #ff2020;
+    --scout: #ff2020;
 
-    --fazendo: #e53935;
-    --revisao: #ff8a80;
-    --concluido: #b71c1c;
+    --fazendo: #ffffff;
+    --revisao: #5ce68a;
+    --concluido: #1b8a2a;
     --bloqueado: #ff1744;
   }
 
@@ -378,12 +378,33 @@
   .card.agent-SCOUT::before { background: var(--scout); }
   .card.agent-SCOUT .card-agent { color: var(--scout); }
 
+  /* === CARD COLORS BY COLUMN === */
+  .column.fazendo .card::before { background: var(--fazendo) !important; }
+  .column.fazendo .card-agent { color: var(--fazendo) !important; }
+  .column.fazendo .card { border-color: rgba(255,255,255,0.12); }
+  .column.fazendo .card:hover { border-color: rgba(255,255,255,0.25); }
+  .column.fazendo .card-id { color: var(--fazendo); }
+
+  .column.revisao .card::before { background: var(--revisao) !important; }
+  .column.revisao .card-agent { color: var(--revisao) !important; }
+  .column.revisao .card { border-color: rgba(92,230,138,0.12); }
+  .column.revisao .card:hover { border-color: rgba(92,230,138,0.25); }
+  .column.revisao .card-id { color: var(--revisao); }
+
+  .column.concluido .card::before { background: var(--concluido) !important; }
+  .column.concluido .card-agent { color: var(--concluido) !important; }
+  .column.concluido .card { border-color: rgba(0,255,65,0.1); }
+  .column.concluido .card:hover { border-color: rgba(0,255,65,0.2); }
+  .column.concluido .card-id { color: var(--concluido); }
+
   /* Bloqueado special */
   .card.blocked {
-    border-color: rgba(239,68,68,0.2);
-    background: rgba(239,68,68,0.03);
+    border-color: rgba(255,23,68,0.2);
+    background: rgba(255,23,68,0.03);
   }
-  .card.blocked::before { background: var(--bloqueado); }
+  .card.blocked::before { background: var(--bloqueado) !important; }
+  .column.bloqueado .card-agent { color: var(--bloqueado) !important; }
+  .column.bloqueado .card-id { color: var(--bloqueado); }
 
   .card-motivo {
     font-size: 11px;
@@ -558,9 +579,9 @@
 <script src="kanban-data.js"></script>
 <script>
   const AGENT_COLORS = {
-    ATLAS: '#ff2020', CRONOS: '#b03030', FRONT: '#ff4d4d',
-    PIXEL: '#ff6b6b', FORM: '#cc3333', BACK: '#e63946',
-    ENGINE: '#ff1a1a', VAULT: '#d32f2f', SHIELD: '#ff5252', SCOUT: '#c62828'
+    ATLAS: '#ff2020', CRONOS: '#ff2020', FRONT: '#ff2020',
+    PIXEL: '#ff2020', FORM: '#ff2020', BACK: '#ff2020',
+    ENGINE: '#ff2020', VAULT: '#ff2020', SHIELD: '#ff2020', SCOUT: '#ff2020'
   };
 
   const AGENT_NAMES = {
