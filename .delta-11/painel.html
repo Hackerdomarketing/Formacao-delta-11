@@ -7,31 +7,31 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg-deep: #0a0b0f;
-    --bg-panel: #11131a;
-    --bg-card: #181b25;
-    --bg-card-hover: #1e2230;
-    --border: #252836;
-    --border-glow: #2a2d3e;
-    --text-primary: #e8eaf0;
-    --text-secondary: #8b8fa3;
-    --text-muted: #555970;
+    --bg-deep: #050505;
+    --bg-panel: #0a0a0a;
+    --bg-card: #0f0f0f;
+    --bg-card-hover: #1a0808;
+    --border: #1c0a0a;
+    --border-glow: #2d1010;
+    --text-primary: #e8e0e0;
+    --text-secondary: #8a7575;
+    --text-muted: #5a4040;
 
-    --atlas: #f0b429;
-    --cronos: #94a3b8;
-    --front: #22d3ee;
-    --pixel: #e879f9;
-    --form: #a78bfa;
-    --back: #fb923c;
-    --engine: #60a5fa;
-    --vault: #f87171;
-    --shield: #4ade80;
-    --scout: #fbbf24;
+    --atlas: #ff2020;
+    --cronos: #b03030;
+    --front: #ff4d4d;
+    --pixel: #ff6b6b;
+    --form: #cc3333;
+    --back: #e63946;
+    --engine: #ff1a1a;
+    --vault: #d32f2f;
+    --shield: #ff5252;
+    --scout: #c62828;
 
-    --fazendo: #3b82f6;
-    --revisao: #f59e0b;
-    --concluido: #22c55e;
-    --bloqueado: #ef4444;
+    --fazendo: #e53935;
+    --revisao: #ff8a80;
+    --concluido: #b71c1c;
+    --bloqueado: #ff1744;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -50,8 +50,8 @@
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     background:
-      radial-gradient(ellipse at 20% 0%, rgba(240,180,41,0.03) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 100%, rgba(34,211,238,0.03) 0%, transparent 50%);
+      radial-gradient(ellipse at 20% 0%, rgba(255,32,32,0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(180,20,20,0.03) 0%, transparent 50%);
     pointer-events: none;
     z-index: 0;
   }
@@ -62,8 +62,8 @@
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     background-image:
-      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      linear-gradient(rgba(255,20,20,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,20,20,0.015) 1px, transparent 1px);
     background-size: 60px 60px;
     pointer-events: none;
     z-index: 0;
@@ -78,7 +78,7 @@
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid var(--border);
-    background: linear-gradient(180deg, rgba(17,19,26,0.95) 0%, rgba(10,11,15,0.8) 100%);
+    background: linear-gradient(180deg, rgba(10,10,10,0.95) 0%, rgba(5,5,5,0.8) 100%);
     backdrop-filter: blur(20px);
   }
 
@@ -102,7 +102,7 @@
     font-weight: 800;
     letter-spacing: -1px;
     color: var(--atlas);
-    text-shadow: 0 0 30px rgba(240,180,41,0.3);
+    text-shadow: 0 0 30px rgba(255,32,32,0.4);
     font-family: 'Outfit', sans-serif;
   }
 
@@ -159,7 +159,7 @@
   .btn-refresh:hover {
     border-color: var(--atlas);
     color: var(--atlas);
-    box-shadow: 0 0 20px rgba(240,180,41,0.1);
+    box-shadow: 0 0 20px rgba(255,32,32,0.15);
   }
 
   .btn-refresh.loading {
@@ -189,9 +189,9 @@
 
   .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--atlas), var(--shield));
+    background: linear-gradient(90deg, #b71c1c, #ff2020);
     transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 0 20px rgba(74,222,128,0.3);
+    box-shadow: 0 0 20px rgba(255,32,32,0.3);
   }
 
   .progress-info {
@@ -558,9 +558,9 @@
 <script src="kanban-data.js"></script>
 <script>
   const AGENT_COLORS = {
-    ATLAS: '#f0b429', CRONOS: '#94a3b8', FRONT: '#22d3ee',
-    PIXEL: '#e879f9', FORM: '#a78bfa', BACK: '#fb923c',
-    ENGINE: '#60a5fa', VAULT: '#f87171', SHIELD: '#4ade80', SCOUT: '#fbbf24'
+    ATLAS: '#ff2020', CRONOS: '#b03030', FRONT: '#ff4d4d',
+    PIXEL: '#ff6b6b', FORM: '#cc3333', BACK: '#e63946',
+    ENGINE: '#ff1a1a', VAULT: '#d32f2f', SHIELD: '#ff5252', SCOUT: '#c62828'
   };
 
   const AGENT_NAMES = {
