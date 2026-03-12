@@ -225,7 +225,7 @@ if command -v jq &> /dev/null; then
         cat > "$REGISTRY" << REGEOF
 {
   "version": "3.2",
-  "source": "/Users/alfa/projetos/Formacao-delta-11",
+  "source": "$PROJECT_PATH",
   "github": "https://github.com/Hackerdomarketing/Formacao-delta-11.git",
   "projects": ["$PROJECT_PATH"],
   "backup": null,

@@ -884,7 +884,7 @@ Quando qualquer alteração for feita ao sistema Δ-11 (operativos, protocolos, 
 ### Fluxo em 4 passos:
 
 ```
-PASSO 1: PULL    → cd /Users/alfa/projetos/Formacao-delta-11 && git pull
+PASSO 1: PULL    → cd ~/projetos/Formacao-delta-11 && git pull
 PASSO 2: EDITAR  → Fazer mudanças no repo de distribuição
 PASSO 3: PUSH    → git add + commit + push
 PASSO 4: SYNC    → ./sincronizar.sh --nota "descrição da mudança"
@@ -895,7 +895,7 @@ PASSO 4: SYNC    → ./sincronizar.sh --nota "descrição da mudança"
 Antes de qualquer edição, puxe a versão mais recente do GitHub:
 
 ```bash
-cd /Users/alfa/projetos/Formacao-delta-11
+cd ~/projetos/Formacao-delta-11
 git pull
 ```
 
@@ -913,14 +913,14 @@ Verifique também os arquivos exclusivos do repo de distribuição:
 ### Passo 3 — PUSH
 
 ```bash
-cd /Users/alfa/projetos/Formacao-delta-11
+cd ~/projetos/Formacao-delta-11
 git add -A && git commit -m "descrição da mudança" && git push
 ```
 
 ### Passo 4 — SYNC
 
 ```bash
-cd /Users/alfa/projetos/Formacao-delta-11
+cd ~/projetos/Formacao-delta-11
 ./sincronizar.sh --nota "descrição da mudança"
 ```
 
@@ -945,17 +945,15 @@ Arquivo que lista TODOS os projetos com D-11 instalado:
 ```json
 {
   "version": "3.2",
-  "source": "/Users/alfa/projetos/Formacao-delta-11",
-  "github": "https://github.com/Hackerdomarketing/Formacao-delta-11.git",
+  "source": "~/projetos/Formacao-delta-11",
+  "github": "https://github.com/SEU-USUARIO/Formacao-delta-11.git",
   "projects": [
-    "/Users/alfa/Documents/VSCODE/salvahacks",
-    "/Users/alfa/Documents/VSCODE/Jarvis/FORMACAO-DELTA-11",
-    "/Users/alfa/projetos/nome-do-meu-app",
-    "/Users/alfa/projetos/Scanner-de-Desvantagens-VANTOR"
+    "~/Documents/VSCODE/meu-projeto-1",
+    "~/projetos/meu-projeto-2"
   ],
-  "backup": "/Users/alfa/Downloads/Formacao-Delta-11-v3.1",
-  "historical": "/Users/alfa/Downloads/construcao-delta-11/sistema-atual",
-  "last_sync": "2026-02-09T..."
+  "backup": "~/Downloads/Formacao-Delta-11-backup",
+  "historical": null,
+  "last_sync": null
 }
 ```
 
@@ -1006,7 +1004,7 @@ README.md
 Seção para registrar erros cometidos pelos agentes e as correções aplicadas.
 Toda vez que um agente errar de forma recorrente, adicionar aqui para prevenir repetição.
 
-**REGRA OBRIGATÓRIA:** Toda correção registrada aqui DEVE ser registrada também no CLAUDE.md global (`/Users/alfa/Documents/VSCODE/CLAUDE.md`), seguido de Push no GitHub e `./sincronizar.sh` para propagar aos 13 projetos.
+**REGRA OBRIGATÓRIA:** Toda correção registrada aqui DEVE ser registrada também no CLAUDE.md global do seu workspace, seguido de Push no GitHub e `./sincronizar.sh` para propagar a todos os projetos.
 
 **Formato:** `[Data] [Contexto] → [Erro] → [Correção]`
 

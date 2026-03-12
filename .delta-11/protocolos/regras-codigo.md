@@ -261,4 +261,4 @@ Para cada feature, criar ao menos:
 Extraído e adaptado de:
 - `pesquisa-ia-programacao/fases/fase-03-interligacoes-camadas.md`
 - `pesquisa-ia-programacao/fases/fase-04-problemas-comuns.md`
-- Repositório: `github.com/Hackerdomarketing/tarefas-pessoais` (branch: `main`)
+- Fonte: pesquisa interna sobre interligações de camadas e problemas comuns em projetos IA

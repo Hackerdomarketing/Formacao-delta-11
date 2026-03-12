@@ -2,7 +2,7 @@
 
 > **Aplicável a:** PIXEL, FRONT, FORM (qualquer agente que gere screenshots)
 > **Criado em:** 2026-02-10
-> **Origem:** Erro crítico na T-104 do projeto salvahacks
+> **Origem:** Erro crítico em tarefa de validação visual de projeto real
 
 ---
 
@@ -91,7 +91,7 @@ node auto-screenshots.js
 
 ---
 
-## EXEMPLO DE FALHA REAL (salvahacks T-104)
+## EXEMPLO DE FALHA REAL
 
 ```
 Script executou: ✅

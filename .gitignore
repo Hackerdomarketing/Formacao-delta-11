@@ -1,0 +1,33 @@
+# macOS
+.DS_Store
+*.swp
+*.swo
+*~
+
+# VS Code
+.vscode/settings.json
+
+# Node
+node_modules/
+
+# Claude Code (local config)
+.claude/
+
+# Memórias locais (dados do projeto, não do sistema)
+.memoria-do-dia.md
+.memoria-projeto.md
+.memoria-ultimas-tarefas.md
+
+# Delta-11 dados locais
+.delta-11/.last-update
+.delta-11/locks/*.lock
+.delta-11/ativacoes/
+.delta-11/memoria/*-estado.md
+.delta-11/.dispatch-mode
+.delta-11/activity-log.md
+.delta-11/.edit-log
+
+# Ambiente
+.env
+.env.local
+credentials.json

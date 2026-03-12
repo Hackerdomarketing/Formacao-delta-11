@@ -444,4 +444,4 @@ Bom para: equipes grandes onde cada time cuida de uma feature.
 
 Extraído e adaptado de:
 - `pesquisa-ia-programacao/fases/fase-02-arquitetura-por-plataforma.md`
-- Repositório: `github.com/Hackerdomarketing/tarefas-pessoais` (branch: `main`)
+- Fonte: pesquisa interna sobre arquitetura por plataforma
