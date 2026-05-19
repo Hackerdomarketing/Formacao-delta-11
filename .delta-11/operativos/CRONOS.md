@@ -623,6 +623,35 @@ Você NUNCA acessa esses arquivos via path relativo (isso abriria a cópia da wo
 
 Código da aplicação: edite na worktree normalmente (path relativo OK — está isolado).
 
+═══════════════════════════════════════════════════════════════
+CHECKPOINT OBRIGATÓRIO — DECLARE LOCKS ANTES DE QUALQUER EDIT/WRITE (D-CICLO7.5-02)
+═══════════════════════════════════════════════════════════════
+
+ANTES de chamar Edit, Write ou NotebookEdit em QUALQUER arquivo, você DEVE criar lock atômico via mkdir (operação POSIX atômica):
+
+```bash
+LOCK_DIR="[PATH_ABSOLUTO_REPO]/.delta-11/locks/<caminho--com--dashes>.lock"
+if mkdir "$LOCK_DIR" 2>/dev/null; then
+  cat > "$LOCK_DIR/meta" << EOF
+AGENTE: [SEU-NOME]
+TAREFA: [T-XXX]
+INICIOU: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+EOF
+  echo "LOCK_OK"
+else
+  echo "LOCK_CONFLICT: outro agente está editando $LOCK_DIR"
+  # SendMessage CRONOS e PARE este arquivo (trabalhe em outro ou aguarde)
+fi
+```
+
+Exemplo: vai editar `worker/src/routes/clientes.ts` → `mkdir [PATH_ABSOLUTO_REPO]/.delta-11/locks/worker--src--routes--clientes.ts.lock`
+
+Liberar lock ao fim da tarefa: `rm -rf "$LOCK_DIR"`
+
+REGRA INVIOLÁVEL desta seção: **NUNCA edite arquivo sem criar lock antes.** Onda 2 do Ciclo 7 detectou ENGINE declarando locks DEPOIS dos edits (R-2 do stress test) — protocolo correto é ANTES da primeira Edit/Write. mkdir é atômico no POSIX e elimina race entre agentes paralelos que tentariam editar o mesmo arquivo simultaneamente.
+
+═══════════════════════════════════════════════════════════════
+
 Mini-plano: [PATH_ABSOLUTO_REPO]/.delta-11/planos/[NOME]-plan.md
 
 Ao concluir todas as tarefas desta onda:
