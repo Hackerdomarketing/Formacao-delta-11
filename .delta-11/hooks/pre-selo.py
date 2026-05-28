@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
 """
-Hook PreToolUse do Delta-11 v4.0.3: bloqueia selo de fase se arquivo
-[AGENTE]-produto.md ultrapassar 500 tokens.
+Hook PreToolUse do Delta-11 v4.0.4: bloqueia selo de fase se arquivo
+[AGENTE]-produto.md ultrapassar o limite do agente.
 
 Materializa o Mecanismo 6 da Geometria da Criação: compactação dura obrigatória
-no Arquivo de Estado. Se o produto não couber em 500 tokens, a compactação foi
+no Arquivo de Estado. Se o produto não couber no limite, a compactação foi
 mal feita — o agente precisa revisar e reduzir.
+
+EXCEÇÃO v4.0.4 (decisão do comandante, 2026-05-22):
+  ATLAS (arquiteto) e CRONOS (orquestrador) ficam SEM LIMITE — carregam
+  visão arquitetural multi-fase e estado de orquestração multi-onda que
+  legitimamente não cabem em 500 tokens. Os 8 agentes executores (BACK,
+  FRONT, PIXEL, FORM, ENGINE, VAULT, SHIELD, SCOUT) MANTÊM 500 tokens —
+  produto deles é foco-por-tarefa, limite força disciplina saudável.
 
 Cross-platform: macOS, Linux, Windows. Requer Python 3.8+.
 
@@ -15,9 +22,11 @@ Invocação:
 
 Lógica:
   1. Verifica se o Edit/Write atinge .delta-11/memoria/[AGENTE]-produto.md
-  2. Conta tokens do novo conteúdo (aproximação: len(content)/4 chars por token)
-  3. Se passou de 500 tokens, exit 2 (bloqueia + injeta mensagem)
-  4. Caso contrário, exit 0
+  2. Resolve o limite do agente (None = ISENTO, int = limite específico)
+  3. Se ISENTO, exit 0 imediato
+  4. Conta tokens do novo conteúdo (aproximação: len(content)/4 chars por token)
+  5. Se passou do limite, exit 2 (bloqueia + injeta mensagem)
+  6. Caso contrário, exit 0
 
 Exit codes:
   0 = pode prosseguir
@@ -25,7 +34,8 @@ Exit codes:
   1 = erro interno (não bloqueia por default — loga e deixa passar)
 
 Política de calibração:
-  LIMITE_TOKENS = 500 (decisão do comandante, 2026-04-18)
+  LIMITE_TOKENS_DEFAULT = 500 (decisão do comandante, 2026-04-18)
+  LIMITES_POR_AGENTE = exceções por papel arquitetural
   APROXIMACAO_TOKEN = 4 chars/token (regra prática GPT/Claude — não exato, mas
                                      suficiente para detectar overflow grosseiro)
 """
@@ -39,7 +49,11 @@ from datetime import datetime
 from pathlib import Path
 
 
-LIMITE_TOKENS = 500
+LIMITE_TOKENS_DEFAULT = 500
+LIMITES_POR_AGENTE: dict[str, int | None] = {
+    "ATLAS": None,   # ISENTO — arquiteto carrega visão arquitetural multi-fase
+    "CRONOS": None,  # ISENTO — orquestrador carrega estado de despachança multi-onda
+}
 APROXIMACAO_CHARS_POR_TOKEN = 4
 
 ACTIVITY_LOG = Path(".delta-11/activity-log.md")
@@ -123,16 +137,27 @@ def obter_novo_conteudo(event: dict) -> str:
     return ""
 
 
-def block_edit(agente: str, tokens: int) -> int:
+def resolver_limite(agente: str) -> int | None:
+    """
+    Retorna o limite efetivo do agente.
+    None = ISENTO (sem limite). int = limite específico.
+    Default = LIMITE_TOKENS_DEFAULT (500).
+    """
+    if agente in LIMITES_POR_AGENTE:
+        return LIMITES_POR_AGENTE[agente]
+    return LIMITE_TOKENS_DEFAULT
+
+
+def block_edit(agente: str, tokens: int, limite: int) -> int:
     """Exit 2 bloqueia a ferramenta (PreToolUse hook convention)."""
-    excesso = tokens - LIMITE_TOKENS
+    excesso = tokens - limite
     print(
-        f"[pre-selo] BLOQUEIO v4.0.3 — Mecanismo 6 da Geometria da Criação\n"
+        f"[pre-selo] BLOQUEIO v4.0.4 — Mecanismo 6 da Geometria da Criação\n"
         f"\n"
-        f"Arquivo {agente}-produto.md excede o limite de {LIMITE_TOKENS} tokens.\n"
+        f"Arquivo {agente}-produto.md excede o limite de {limite} tokens.\n"
         f"Tamanho estimado: {tokens} tokens ({excesso} tokens acima do limite).\n"
         f"\n"
-        f"O produto não cabe em 500 tokens — a compactação foi mal feita.\n"
+        f"O produto não cabe em {limite} tokens — a compactação foi mal feita.\n"
         f"\n"
         f"AÇÃO REQUERIDA:\n"
         f"  1. Releia o CLAUDE.md Passo 1a do Protocolo de Finalização\n"
@@ -146,7 +171,11 @@ def block_edit(agente: str, tokens: int) -> int:
         f"  4. Reescreva e tente novamente\n"
         f"\n"
         f"Princípio: Gênesis 1:2 compacta o estado inicial em UMA frase.\n"
-        f"Se seu produto não cabe em 500 tokens, não está selado.",
+        f"Se seu produto não cabe em {limite} tokens, não está selado.\n"
+        f"\n"
+        f"Obs (v4.0.4): ATLAS e CRONOS são ISENTOS deste limite — papéis\n"
+        f"arquitetural/orquestrador legitimamente carregam visão multi-fase.\n"
+        f"Os 8 executores mantêm 500 tokens.",
         file=sys.stderr,
     )
     return 2
@@ -160,17 +189,23 @@ def main() -> int:
         # Não é edit em arquivo de produto — deixa passar
         return 0
 
+    limite = resolver_limite(agente)
+    if limite is None:
+        # Agente ISENTO (ATLAS / CRONOS) — papel arquitetural sem limite
+        log_activity(f"{agente}-produto.md ISENTO (papel arquitetural sem limite)")
+        return 0
+
     conteudo_novo = obter_novo_conteudo(event)
     tokens = contar_tokens_aproximado(conteudo_novo)
 
-    if tokens <= LIMITE_TOKENS:
-        log_activity(f"{agente}-produto.md OK ({tokens} tokens ≤ {LIMITE_TOKENS})")
+    if tokens <= limite:
+        log_activity(f"{agente}-produto.md OK ({tokens} tokens ≤ {limite})")
         return 0
 
     log_activity(
-        f"{agente}-produto.md BLOQUEADO ({tokens} tokens > {LIMITE_TOKENS})"
+        f"{agente}-produto.md BLOQUEADO ({tokens} tokens > {limite})"
     )
-    return block_edit(agente, tokens)
+    return block_edit(agente, tokens, limite)
 
 
 if __name__ == "__main__":

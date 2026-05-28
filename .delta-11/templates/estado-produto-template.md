@@ -1,6 +1,8 @@
 # [NOME-AGENTE] — Produto
 
-**⚠️ LIMITE DURO: 500 tokens (≈ 2000 caracteres). Hook `pre-selo.py` bloqueia transição de fase se ultrapassar.**
+**⚠️ LIMITE DURO: 500 tokens (≈ 2000 caracteres) para os 8 agentes executores (BACK, FRONT, PIXEL, FORM, ENGINE, VAULT, SHIELD, SCOUT). Hook `pre-selo.py` bloqueia transição de fase se ultrapassar.**
+
+**EXCEÇÃO v4.0.4:** ATLAS (arquiteto) e CRONOS (orquestrador) ficam **SEM LIMITE** — carregam visão arquitetural multi-fase e estado de despachança multi-onda que legitimamente não cabem em 500 tokens. Aplica-se apenas a estes dois.
 
 **Princípio (Gênesis 1:2):** "E a terra era sem forma e vazia" — estado inicial compactado em UMA frase. O que existe, não como foi feito.
 
