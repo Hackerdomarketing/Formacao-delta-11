@@ -1,3 +1,13 @@
-2026-04-17T16:57:27
-Atualizacao: v4.0 — CRONOS orquestrador + hooks Python cross-platform + worktrees + merge guiado + Fase 0 em 7 camadas
-Arquivos sincronizados: CLAUDE.md, ATLAS.md, BACK.md, CRONOS.md, ENGINE.md, FORM.md, FRONT.md, PIXEL.md, SCOUT.md, SHIELD.md, VAULT.md, arquitetura-plataformas.md, classificacao.md, comunicacao.md, correcao-de-erros.md, fluxo-zero-ao-lancamento.md, merge-guiado-contratos.md, regras-codigo.md, regras-inviolaveis.md, sub-agentes.md, validacao-screenshots.md, build-validator.md, code-architect.md, code-simplifier.md, contract-tester.md, impact-mapper.md, schema-validator.md, verify-app.md, estado-agente-template.md, ATLAS.json, BACK.json, CRONOS.json, ENGINE.json, FORM.json, FRONT.json, PIXEL.json, SCOUT.json, SHIELD.json, VAULT.json, engine-mcp.json, vault-mcp.json, back-review.sh, cronos-status.sh, engine-test-api.sh, scout-lighthouse.sh, shield-scan.sh, vault-validate-sql.sh, verificar-dependencias.sh, arquitetura-software-patterns.md, backend-integracao-patterns.md, coordenacao-projeto-patterns.md, debugging-preventivo-patterns.md, nextjs-api-patterns.md, owasp-top10-resumo.md, react-component-patterns.md, react-form-patterns.md, supabase-rls-patterns.md, tailwind-animation-patterns.md, painel.html, bg-delta11.png, ATLAS.png, BACK.png, CRONOS.png, ENGINE.png, FORM.png, FRONT.png, PIXEL.png, SCOUT.png, SHIELD.png, VAULT.png, check-lock.js, log-activity.js, release-locks.js, heartbeat.sh, on-stop.sh, pre-compact.sh, regenerar-contratos.py, validar-contratos-fim-fase.py, validar-deploy.py, monitor-delta11.sh, task-done.sh, vigilante.sh
+2026-06-23T04:20:00
+Atualizacao: v5 — Geracao nova (salto de v4.0.5 para v5 por mudanca estrutural). 7 mudancas aplicadas apenas no sistema-atual (NAO propagado ainda):
+  D2 — hook pre-despacho.py bloqueia despacho de executor com brief > 2000 tokens (forca granularizacao em mais ondas)
+  D3 — template produto.md ganha secoes PORQUES-CHAVE, DESVIOS DO PLANO, RELATORIOS DE SUB-AGENTES (mantem 500 tokens)
+  D4 — hook pre-leitura.py bloqueia executor de ler project-core.md monolitico (somente ATLAS/CRONOS leem)
+  D5 — CLAUDE.md passo 3 diferencia leitura por papel (executores nao leem project-core)
+  D6 — arquivo .modo-selo configura selo manual ou automatico (com auto-reversao para manual em caso de falha)
+  D7 — agente OBRIGADO a citar relatorio compacto de cada sub-agente no produto.md
+  CRONOS.md — principio da granularizacao adicionado, com instrucao para quebrar em mais ondas quando hook bloquear
+Arquivos novos: .delta-11/.modo-selo, .delta-11/hooks/pre-leitura.py, .delta-11/hooks/pre-despacho.py
+Arquivos modificados: CLAUDE.md, operativos/CRONOS.md, templates/estado-produto-template.md, .claude/settings.json
+Propagacao para outros projetos: PENDENTE (rodada separada apos validacao local)
+Versao anterior: v4.0.5 (2026-06-22) — registro obrigatorio de ferramentas externas

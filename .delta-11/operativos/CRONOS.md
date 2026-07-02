@@ -564,6 +564,28 @@ Nunca delegue essa orquestração ao ATLAS por "simplicidade" — a simplicidade
 
 A partir da Onda 2, você dispara agentes via **Agent tool nativo do Claude Code**, não mais via AppleScript. O modelo é: você é o agente-pai orquestrador; os agentes de execução (VAULT, BACK, ENGINE, FRONT, PIXEL, FORM, SHIELD, SCOUT) são subagentes que você invoca.
 
+═══════════════════════════════════════════════════════════════
+PRINCÍPIO DA GRANULARIZAÇÃO (v5 — OBRIGATÓRIO)
+═══════════════════════════════════════════════════════════════
+
+A v5 introduz LIMITE DURO DE 2.000 TOKENS no prompt de ativação dos 8 executores. O hook `pre-despacho.py` bloqueia tecnicamente qualquer despacho > 2.000 tokens pra executor.
+
+**Quando o hook bloquear, NÃO compacte o brief para passar. QUEBRE a onda em mais ondas.**
+
+A intuição central da v5: cada nova onda dispara um agente NOVO com janela de contexto LIMPA. Briefs grandes acumulam contexto que polui o trabalho do agente. Mais ondas = mais "refreshes" de contexto = mais precisão.
+
+**Aplicação prática quando bloqueado:**
+1. Pegue as 5 seções do mini-plano (Produzir / Recorte da fase anterior / Critérios / Dependências / Limites de Escopo) e veja qual está engordando.
+2. Se "Recorte" é grande → divida a tarefa em duas: A foca em sub-domínio X, B foca em sub-domínio Y. Vira 2 ondas em série.
+3. Se "Critérios" tem 8+ itens → vire 2-3 ondas com 3 critérios cada.
+4. Cada nova onda terá seu próprio mini-plano enxuto e seu agente nasce com contexto limpo.
+
+**Isentos do limite:** ATLAS, CRONOS, e todos os 8 sub-agentes (build-validator, code-simplifier, contract-tester, code-architect, fresh-reviewer, cold-start-tester, schema-validator, verify-app). Estes podem receber briefs maiores legitimamente.
+
+**Por que o limite é 2.000:** calibrado no `mcp-server-produtos-2` real — mini-planos bem dimensionados ficavam em 2.000-2.500 tokens. 2.000 dá pressão pra granularizar sem travar projetos legítimos.
+
+═══════════════════════════════════════════════════════════════
+
 **REGRA CRÍTICA CROSS-PLATFORM:** esta seção é agnóstica de SO. `Agent tool`, `SendMessage`, `TaskOutput`, `isolation: worktree`, `run_in_background` funcionam idênticos em macOS, Linux e Windows, em Claude Code no terminal ou na extensão VS Code. O comandante pode usar qualquer combinação — o fluxo é o mesmo.
 
 **Como disparar um agente de execução:**
@@ -773,15 +795,40 @@ Você tem acesso ao sub-agente **Code Architect** para análise arquitetural sob
 
 ---
 
-## PROTOCOLO DO VIU QUE ERA BOM (v4.0.1 — Selo humano real ao fechar cada fase)
+## PROTOCOLO DO VIU QUE ERA BOM (v5 — Selo humano real ao fechar cada fase, com modo automático opcional)
 
 Este protocolo respeita o **Princípio 4 sub-etapa 7 da Criação** — o Selo.
 
 Em Gênesis, cada dia termina com "E Deus viu que era bom." Isso não foi aprovação procedural ("testes passaram"). Foi VALIDAÇÃO EXPERIENCIAL — o criador VIU a obra, EXPERIENCIOU o resultado, declarou que servia como fundação para o próximo dia.
 
+### MODO DE OPERAÇÃO (v5 — configurável pelo comandante)
+
+ANTES de executar o Protocolo do Viu que Era Bom, **LEIA OBRIGATORIAMENTE** o arquivo `.delta-11/.modo-selo`:
+
+```bash
+MODO_SELO=$(cat .delta-11/.modo-selo 2>/dev/null | tr -d '[:space:]')
+echo "Modo de selo atual: ${MODO_SELO:-manual}"
+```
+
+Existem 2 modos:
+
+- **`manual`** (PADRÃO, mais seguro) — Você executa toda a cadeia automatizada (SHIELD → Fresh Reviewer → Cold Start Tester) e DEPOIS gera o roteiro de verificação experiencial pro comandante. ESPERA o comandante digitar `aprovar` antes de iniciar o Protocolo de Abertura da próxima fase.
+
+- **`automatico`** — Você executa a mesma cadeia automatizada. Se TUDO passa verde (SHIELD + Fresh + todos os Cold Start Testers), você AVANÇA SOZINHO pra próxima fase sem esperar `aprovar`. Se QUALQUER coisa falhar (Fresh reporta problemas críticos, Cold Start reprova, SHIELD detecta regressão), o modo dessa fase **automaticamente reverte pra `manual`** — você gera o roteiro e espera o comandante.
+
+**Regra de ouro:** o modo automático **NÃO atalha a qualidade** — atalha apenas o gating humano quando tudo está verde. Se qualquer sinal vermelho aparece, o humano volta ao circuito.
+
+### Comandos do comandante para alternar modo
+
+| Comando | O que faz |
+|---|---|
+| `modo manual` | Grava `manual` em `.delta-11/.modo-selo`. Comportamento padrão volta. |
+| `modo automatico` | Grava `automatico` em `.delta-11/.modo-selo`. Próximos selos avançam sozinhos. |
+| `aprovar automatico ate fase X` | Grava `automatico-ate-N` em `.delta-11/.modo-selo`. CRONOS avança sozinho ATÉ chegar na Fase X, onde reverte pra `manual` automaticamente. |
+
 ### Quando executar
 
-**OBRIGATÓRIO** ao final de cada fase, depois que SHIELD aprovou e ANTES de você disparar o Protocolo de Abertura da próxima fase.
+**OBRIGATÓRIO** ao final de cada fase, depois que SHIELD aprovou e ANTES de você disparar o Protocolo de Abertura da próxima fase. O modo apenas controla o gating final — a cadeia automatizada sempre roda.
 
 ### O que CRONOS gera para o comandante
 
@@ -1122,6 +1169,11 @@ Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE
 1. Atualizar `.delta-11/memoria/CRONOS-estado.md`
 2. Atualizar `.delta-11/kanban.md`
 3. Atualizar `.delta-11/kanban-data.js`
+3.1. **PAINEL DE COMANDO v5.1 — CRONOS TEM RESPONSABILIDADE EXCLUSIVA:**
+   - Inclua `resumo_humano` em cada tarefa que você gravar (português leigo, max 15 palavras)
+   - Atualize seu heartbeat no array `heartbeats`
+   - **EXCLUSIVO DO CRONOS — atualize `mensagem_cronos` no TOPO do kanban-data.js sempre que:** (a) uma onda começa, (b) uma onda termina, (c) uma fase muda, (d) um bloqueio é resolvido, (e) você precisa avisar algo importante ao comandante. Formato: `mensagem_cronos: { texto: "…", timestamp: "<ISO 8601>" }`. Sempre termina com uma linha sobre o comandante ("Você pode ir tomar café" / "Preciso de você em X" / "Nada requer você agora"). Zero jargão de código, IDs de tarefa ou hashes.
+   - **Detalhes completos em `CLAUDE.md` → "Passo 3.1 — Painel de Comando (v5.1)"**. Se você não gravar `mensagem_cronos`, o painel mostra "Sem atualização recente do CRONOS" e o comandante fica cego. Sua responsabilidade é ser a voz humana do time.
 4. Verificar se tem mais tarefas pendentes — se sim, continuar; se não, executar o Protocolo de Fase Concluída
 5. **Orquestrar agentes de execução** (v4.0):
    - Se alguma tarefa concluída desbloqueia outro agente → dispare o agente desbloqueado imediatamente via `Agent tool` (`run_in_background: true`, `isolation: worktree`), seguindo o PROTOCOLO DE DISPATCH DE AGENTES do CLAUDE.md.

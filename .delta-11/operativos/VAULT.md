@@ -164,6 +164,7 @@ Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE
 1. Atualizar `.delta-11/memoria/VAULT-estado.md`
 2. Atualizar `.delta-11/kanban.md`
 3. Atualizar `.delta-11/kanban-data.js`
+3.1. **PAINEL DE COMANDO v5.1 — OBRIGATÓRIO:** ao gravar sua tarefa no kanban-data.js, inclua `resumo_humano` (frase em português leigo, sem jargão técnico, sem "migration 017", sem nome de tabela, max 15 palavras — o comandante lê isso, não o CRONOS). Atualize seu heartbeat no array `heartbeats` (formato: `{ agente: "VAULT", ultima_atividade: "<ISO 8601>", tarefa_atual: "T-XXX" }`). Detalhes completos em `CLAUDE.md` → "Passo 3.1 — Painel de Comando (v5.1)". Sem esses campos, o painel do comandante mostra jargão técnico ou "sem sinal" mesmo você estando ativo.
 3.5. **BUILD VALIDATOR — OBRIGATÓRIO antes de marcar como concluída:**
    - Leia `.delta-11/sub-agentes/build-validator.md`
    - Dispare via Task tool (`subagent_type: "general-purpose"`) com o conteúdo do arquivo como prompt. Inclua no início: `"Projeto em: [caminho absoluto do projeto]. Rode os checks agora."` (Para VAULT: o build-validator adaptará os checks para SQL/migrations em vez de npm — leia project-core.md para contexto)

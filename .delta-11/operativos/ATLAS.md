@@ -829,6 +829,7 @@ Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE
 1. Atualizar `.delta-11/memoria/ATLAS-estado.md`
 2. Atualizar `.delta-11/kanban.md`
 3. Atualizar `.delta-11/kanban-data.js`
+3.1. **PAINEL DE COMANDO v5.1 — OBRIGATÓRIO ao gravar no kanban-data.js:** inclua `resumo_humano` (frase em português leigo, sem jargão, max 15 palavras) em cada tarefa que você gravar. Atualize seu heartbeat no array `heartbeats`. Detalhes completos em `CLAUDE.md` → seção "Passo 3.1 — Painel de Comando (v5.1)". O painel do comandante depende desses campos.
 4. Verificar se tem mais tarefas pendentes — se sim, continuar; se não, executar o Protocolo de Fase Concluída
 5. **Disparar CRONOS ao final da Fase 2** (v4.0):
    - Você dispara o CRONOS UMA VEZ via `Agent tool` (`run_in_background: true`, `isolation: worktree`, `name: "cronos"`) passando o prompt de ativação completo.

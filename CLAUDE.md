@@ -85,17 +85,27 @@ Agentes que NÃO foram disparados com `isolation: worktree` (ATLAS em Fase 0-2, 
 
 1. Identifique qual agente você é (ATLAS se não especificado, ou o nome indicado no bloco colado)
 2. Leia `.delta-11/operativos/[SEU-NOME].md` para carregar sua identidade e procedimentos
-3. Leia `.delta-11/memoria/project-core.md` para entender o projeto
-4. Leia `.delta-11/kanban.md` para ver suas tarefas
-5. Se existir `.delta-11/memoria/[SEU-NOME]-estado.md`, leia para saber onde parou
-6. **MÉTRICA DE CONSUMO DE CONTEXTO (v4.0.3 — Mecanismo 2 da Criação):** Após ler os arquivos dos passos 2-5, conte o TOTAL DE LINHAS carregadas. Se passou de 500 linhas, envie `SendMessage` ao CRONOS com payload:
-   ```
-   {"alert": "overload", "agente": "[SEU-NOME]", "linhas_carregadas": N,
-    "arquivos": ["operativo.md", "project-core.md", ...]}
-   ```
-   Isso é **diagnóstico**, não bloqueio — você continua trabalhando. Mas o CRONOS usa esse sinal para calibrar mini-planos futuros (se você reporta overload, o CRONOS precisa cortar mais). Meta do sistema: brief cirúrgico de 2-4 páginas (~100-200 linhas), não plano completo.
-7. Apresente-se brevemente ao comandante e comece a trabalhar
-8. **Monitoramento automático:** Os hooks do projeto (`.claude/settings.json`) já monitoram automaticamente — cada ação sua atualiza um arquivo de "pulso" e, ao encerrar a sessão, um registro de "morte" é gravado. O monitor externo (LaunchAgent) verifica a cada 5 minutos e notifica o comandante se algo travou. Você não precisa fazer nada para isso funcionar.
+
+3. **LEITURAS POR PAPEL (v5 — diferenciado por agente):**
+
+   **Se você é ATLAS ou CRONOS:**
+   - Leia `.delta-11/memoria/project-core.md` INTEIRO — você precisa da visão arquitetural multi-fase
+   - Leia `.delta-11/kanban.md` completo
+   - Leia `.delta-11/memoria/pesquisa-tecnica.md` (se existir)
+
+   **Se você é um dos 8 executores (BACK, FRONT, PIXEL, FORM, ENGINE, VAULT, SHIELD, SCOUT):**
+   - NÃO leia `.delta-11/memoria/project-core.md` (documento principal). O hook `pre-leitura.py` bloqueia tecnicamente.
+   - Leia APENAS:
+     - `.delta-11/planos/[SEU-NOME]-plan.md` (seu mini-plano — CRONOS já recortou as fatias relevantes pra você)
+     - `.delta-11/kanban.md` (só sua coluna)
+     - `.delta-11/memoria/pesquisa-tecnica.md` (se existir)
+     - `.delta-11/conhecimento/[arquivo-da-sua-base].md` (sua base de conhecimento específica)
+   - Se precisar de info adicional do project-core durante o trabalho: **envie SendMessage ao CRONOS** com pedido específico, NÃO abra o arquivo direto. Fatias por domínio em `.delta-11/memoria/project-core/*.md` (banco, contratos, visual, decisões-técnicas) são acessíveis se existirem.
+
+4. Se existir `.delta-11/memoria/[SEU-NOME]-estado.md` (ou produto.md / historia.md), leia para saber onde parou
+5. **MÉTRICA DE CONSUMO DE CONTEXTO (v5 — Mecanismo 2 da Criação reformulado):** Após ler os arquivos dos passos 2-4, **o hook `pre-despacho.py` já bloqueou** o despacho do CRONOS se o brief pra um executor passou de 2.000 tokens. Você (executor) não precisa contar manualmente — a guarda é técnica. Para ATLAS, CRONOS e sub-agentes: sem limite.
+6. Apresente-se brevemente ao comandante e comece a trabalhar
+7. **Monitoramento automático:** Os hooks do projeto (`.claude/settings.json`) já monitoram automaticamente — cada ação sua atualiza um arquivo de "pulso" e, ao encerrar a sessão, um registro de "morte" é gravado. O monitor externo (LaunchAgent) verifica a cada 5 minutos e notifica o comandante se algo travou. Você não precisa fazer nada para isso funcionar.
 
 ### PROTOCOLO DE RETOMADA
 
@@ -186,6 +196,9 @@ O comandante pode enviar estes comandos curtos durante o trabalho:
 | `vigilante` | Verifique o status do monitoramento: leia `.delta-11/monitor-status.json` e informe ao comandante se há alertas (agentes mortos, travados, ou tarefas órfãs) |
 | `retomar` | Leia seu arquivo de estado e continue de onde parou |
 | `aprovar` | O comandante aprovou o que você apresentou |
+| `modo manual` | Grave `manual` em `.delta-11/.modo-selo`. Próximas fases esperam `aprovar` antes de avançar. (PADRÃO, mais seguro.) |
+| `modo automatico` | Grave `automatico` em `.delta-11/.modo-selo`. CRONOS avança sozinho pras próximas fases SE toda cadeia (SHIELD + Fresh Reviewer + Cold Start Tester) ficar verde. Falha → reverte pra `manual` automaticamente nessa fase. |
+| `aprovar automatico ate fase X` | Grave `automatico-ate-X` em `.delta-11/.modo-selo`. CRONOS avança sozinho até Fase X, onde reverte pra `manual`. |
 | `d11` | Se seguido de descrição de projeto: ative o ATLAS para iniciar planejamento |
 
 ---
@@ -295,10 +308,13 @@ A partir da v4.0.3, cada agente mantém DOIS arquivos separados. Isso materializ
 - Como está estruturado (arquitetura + contratos mínimos para próxima fase construir em cima)
 - O que foi DECIDIDO NÃO FAZER nesta tarefa (lista explícita — evita suposição)
 - Descobertas que afetam fases futuras (apenas o que muda critérios/arquitetura adiante)
+- **PORQUÊS-CHAVE (v5):** máximo 3 itens, 1 linha cada. Decisões NÃO óbvias e o motivo curto. Só registre quando a escolha pareceria estranha sem o porquê.
+- **DESVIOS DO PLANO (v5):** máximo 3 itens, 1 linha cada. Só preencher se o agente mudou rota em relação ao mini-plano original do CRONOS. Cite a tarefa + desvio + motivo. Se não houve, escreva "Nenhum".
+- **RELATÓRIOS DE SUB-AGENTES (v5 — OBRIGATÓRIO para executores):** 1 linha por sub-agente disparado. Formato: `<sub-agente>: <PASS|FAIL> / <métrica chave>`. Ex: `build-validator: PASS / 119 testes / 0 warnings` · `code-simplifier: APLICADO / 3 simplificações` · `contract-tester: PASS / 0 desvios`. Isso permite o CRONOS calibrar a próxima onda sem reabrir os relatórios brutos.
 - Próxima tarefa pendente (1 linha)
 - **NÃO ENTRA AQUI:** como você chegou lá, tentativas, deliberações, versões descartadas, logs, histórico
-- **> **⚠️ OBRIGATÓRIO v4.0.4 — REGRA POR PAPEL:**
->   - **BACK, FRONT, PIXEL, FORM, ENGINE, VAULT, SHIELD, SCOUT (8 executores):** LIMITE DURO DE 500 TOKENS. O hook `pre-selo.py` bloqueia a transição de fase se ultrapassar. Se não couber, você compactou mal — revise até caber.
+- **> **⚠️ OBRIGATÓRIO v5 — REGRA POR PAPEL:**
+>   - **BACK, FRONT, PIXEL, FORM, ENGINE, VAULT, SHIELD, SCOUT (8 executores):** LIMITE DURO DE 500 TOKENS. O hook `pre-selo.py` bloqueia a transição de fase se ultrapassar. As 3 seções novas da v5 (PORQUÊS / DESVIOS / RELATÓRIOS) precisam caber junto com tudo nos 500 tokens. Se não couber, você compactou mal — revise até caber. NÃO suba o limite.
 >   - **ATLAS (arquiteto) e CRONOS (orquestrador):** SEM LIMITE. Estes dois papéis legitimamente carregam visão multi-fase e estado de despachança multi-onda que não cabem em 500 tokens. Mantenha enxuto mesmo assim — produto não é diário, é selo de "o que existe agora".**
 
 **Passo 1b — Atualize `[SEU-NOME]-historia.md`** (`.delta-11/memoria/[SEU-NOME]-historia.md`) — **SEM LIMITE**:
@@ -324,6 +340,96 @@ A partir da v4.0.3, cada agente mantém DOIS arquivos separados. Isso materializ
 - Atualize o objeto JavaScript `window.KANBAN_DATA` para refletir a mesma mudança do kanban.md
 - Isso alimenta o painel visual que o comandante acompanha no navegador
 - O formato é um objeto JavaScript com arrays de tarefas por coluna (veja o arquivo para o formato exato)
+- **v5.1 — 3 CAMPOS NOVOS OBRIGATÓRIOS para o Painel de Comando** — ver **Passo 3.1** abaixo. NÃO PULE.
+
+**Passo 3.1 — Painel de Comando (v5.1 — OBRIGATÓRIO para todos os agentes)**
+
+O painel visual foi redesenhado na v5.1 para falar a língua do comandante humano (que não programa). Para que o painel funcione, os agentes DEVEM gravar 3 campos novos no `.delta-11/kanban-data.js` a cada atualização de tarefa:
+
+**Campo 1 — `resumo_humano` (obrigatório para TODOS os executores em toda tarefa):**
+
+Ao gravar uma tarefa (em `fazendo`, `revisao`, ou `concluido`), inclua o campo `resumo_humano` — uma frase em português de gente, sem jargão técnico, descrevendo o que a tarefa É e o que ela ENTREGA para o comandante.
+
+Exemplo antes/depois:
+```javascript
+// ❌ ANTES (só descrição técnica):
+{ id: "T-042", desc: "[IMPACTO-MUDANCA] Adicionar blocos de extração em src/lib/ia/passada1/definicoes-blocos.ts", agente: "ENGINE" }
+
+// ✅ DEPOIS (com resumo humano):
+{ id: "T-042", desc: "[IMPACTO-MUDANCA] Adicionar blocos de extração em src/lib/ia/passada1/definicoes-blocos.ts", agente: "ENGINE",
+  resumo_humano: "Ensinando o sistema a reconhecer 7 tipos novos de produtos comuns" }
+```
+
+**Regras do resumo_humano:**
+- Zero jargão técnico (nada de "T-042", "tsc PASS", "worktree", caminho de arquivo, "contract test")
+- Verbo no gerúndio ("Criando…", "Testando…", "Consertando…") quando em execução
+- Verbo no passado ("Criei…", "Testei…") quando concluído
+- Máximo 15 palavras. Se não couber, você está sendo técnico demais
+- Voz do agente em primeira pessoa (você é o ENGINE, o VAULT, o SHIELD — fale como você)
+
+**Campo 2 — `mensagem_cronos` (obrigatório para o CRONOS a cada mudança de estado do projeto):**
+
+Somente o **CRONOS** grava esse campo. É a "voz do gerente de projeto" para o comandante. Fica no topo do `kanban-data.js`, no nível do objeto principal (não dentro das tarefas).
+
+O CRONOS grava/atualiza `mensagem_cronos` sempre que:
+- Uma onda começa
+- Uma onda termina
+- Uma fase muda
+- Um bloqueio é resolvido
+- Precisa avisar algo importante ao comandante
+
+Formato:
+```javascript
+window.KANBAN_DATA = {
+  projeto: "Score de Vantagem V3.0",
+  fase_atual: "…",
+  mensagem_cronos: {
+    texto: "O VAULT confirmou que o banco está pronto. O ENGINE já terminou e mandou pra revisão. Estou preparando a próxima onda com PIXEL e SHIELD. Nada quebrou.",
+    timestamp: "2026-07-02T00:35:00Z"
+  },
+  // ... resto do kanban
+};
+```
+
+**Regras da mensagem_cronos:**
+- 1 a 3 frases. Português humano
+- Cita agentes por nome (ATLAS, VAULT, ENGINE) — o comandante conhece esses nomes
+- SEMPRE termina com uma linha sobre o comandante: "Você pode ir tomar café", "Preciso de você em X", "Nada requer você agora"
+- Zero jargão de código, IDs de tarefa, worktrees, hashes, contratos
+- Timestamp ISO 8601 (o painel converte para "há 2 minutos")
+
+**Campo 3 — `heartbeats` (obrigatório: TODOS os agentes gravam o próprio heartbeat):**
+
+Cada agente ativo grava um heartbeat no array `heartbeats` a cada atividade significativa (início de tarefa, meio da tarefa em tarefas longas, fim de tarefa). Isso permite ao painel detectar quando um agente TRAVOU (heartbeat velho + status "ATIVO" = mentira → painel mostra "sem sinal").
+
+Formato:
+```javascript
+window.KANBAN_DATA = {
+  // ... resto do kanban
+  heartbeats: [
+    { agente: "CRONOS", ultima_atividade: "2026-07-02T00:35:00Z", tarefa_atual: "T-CRONOS-COMMODITY" },
+    { agente: "ENGINE", ultima_atividade: "2026-07-02T00:33:12Z", tarefa_atual: "T-IMPC-05" }
+  ]
+};
+```
+
+**Regras do heartbeat:**
+- Atualize seu heartbeat ao INICIAR uma tarefa (Passo 0 do Protocolo de Início de Tarefa)
+- Atualize NOVAMENTE ao final de cada tarefa (Passo 3.1 do Protocolo de Finalização — este passo)
+- Em tarefas longas (mais de 15 min), atualize também no meio
+- Se você está DORMINDO (concluiu tudo, sem tarefa), NÃO grave heartbeat — sua ausência do array é o sinal "descansando"
+
+**Por que os 3 campos existem juntos:**
+
+- `resumo_humano` = O QUE está acontecendo em cada tarefa (língua humana)
+- `mensagem_cronos` = QUAL É A SITUAÇÃO GERAL (voz do gerente)
+- `heartbeats` = QUEM ESTÁ VIVO e QUEM TRAVOU (verdade em tempo real)
+
+Sem os 3, o painel não consegue mostrar "seguro fechar" vs "precisa de você" com confiança. Se você é agente e ignora esses campos, o comandante vê um painel de mentira que diz "tudo bem" quando na verdade você travou 20 minutos atrás.
+
+**Retrocompatibilidade:** os 3 campos são adicionais. Kanban-data.js antigo (sem esses campos) continua funcionando. Painel v5.1 tem fallback: se `resumo_humano` está ausente, ele tenta traduzir automaticamente por padrões (menos preciso). Se `mensagem_cronos` está ausente, o painel mostra "Sem atualização recente do CRONOS". Se `heartbeats` está ausente, o painel avisa "monitoramento parcial — heartbeat não disponível". Nenhuma quebra — só perda de qualidade da experiência do comandante.
+
+---
 
 **Golden Path — Atalho recomendado após o Passo 3:**
 

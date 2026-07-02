@@ -14,12 +14,11 @@
 #   - .delta-11/protocolos/*.md
 #   - .delta-11/sub-agentes/*.md
 #   - .delta-11/templates/*.md
-#   - .delta-11/perfis/*.json        (perfil de cada agente: modelo, MCP, ferramentas)
-#   - .delta-11/mcp/*.json           (configurações MCP por agente)
-#   - .delta-11/ferramentas/*.sh     (scripts de ferramentas por agente)
-#   - .delta-11/conhecimento/*.md    (base de conhecimento por agente)
 #   - .delta-11/painel.html
 #   - .delta-11/hooks/*.js          (rastreamento em tempo real)
+#   - .delta-11/hooks/*.py          (v5 — pre-despacho, pre-leitura, pre-selo)
+#   - .delta-11/hooks/*.sh          (heartbeat, on-stop, pre-compact)
+#   - .delta-11/.modo-selo          (v5 — modo manual/automatico do Selo humano)
 #   - .claude/settings.json         (hooks do projeto — merge inteligente)
 #
 # O que ELE NUNCA TOCA (dados do projeto):
@@ -191,26 +190,6 @@ for f in "$SOURCE/.delta-11/templates/"*.md; do
     [ -f "$f" ] && SYNC_FILES+=(".delta-11/templates/$(basename "$f")")
 done
 
-# Perfis de agentes (.json)
-for f in "$SOURCE/.delta-11/perfis/"*.json; do
-    [ -f "$f" ] && SYNC_FILES+=(".delta-11/perfis/$(basename "$f")")
-done
-
-# Configurações MCP por agente (.json)
-for f in "$SOURCE/.delta-11/mcp/"*.json; do
-    [ -f "$f" ] && SYNC_FILES+=(".delta-11/mcp/$(basename "$f")")
-done
-
-# Ferramentas por agente (.sh)
-for f in "$SOURCE/.delta-11/ferramentas/"*.sh; do
-    [ -f "$f" ] && SYNC_FILES+=(".delta-11/ferramentas/$(basename "$f")")
-done
-
-# Conhecimento por agente (.md)
-for f in "$SOURCE/.delta-11/conhecimento/"*.md; do
-    [ -f "$f" ] && SYNC_FILES+=(".delta-11/conhecimento/$(basename "$f")")
-done
-
 # Painel + imagem de fundo + sprites dos agentes
 if [ -f "$SOURCE/.delta-11/painel.html" ]; then
     SYNC_FILES+=(".delta-11/painel.html")
@@ -222,11 +201,18 @@ for f in "$SOURCE/.delta-11/sprites/"*.png; do
     [ -f "$f" ] && SYNC_FILES+=(".delta-11/sprites/$(basename "$f")")
 done
 
-# Hooks (scripts de rastreamento em tempo real e cross-platform — .js, .sh, .py)
-# v4.0: hooks .py sao obrigatorios (cross-platform — macOS, Linux, Windows)
+# Hooks (scripts de rastreamento em tempo real — .js, .sh, .py)
+# v5 adicionou hooks Python (pre-despacho.py, pre-leitura.py) — inclusos aqui
 for f in "$SOURCE/.delta-11/hooks/"*.js "$SOURCE/.delta-11/hooks/"*.sh "$SOURCE/.delta-11/hooks/"*.py; do
     [ -f "$f" ] && SYNC_FILES+=(".delta-11/hooks/$(basename "$f")")
 done
+
+# .modo-selo (v5 — configuração de gating manual/automatico do Selo humano)
+# NOTA: este arquivo é sincronizado apenas se não existir no destino.
+# Se já existir, respeita a configuração local do projeto (pode estar em modo diferente).
+if [ -f "$SOURCE/.delta-11/.modo-selo" ]; then
+    SYNC_FILES+=(".delta-11/.modo-selo")
+fi
 
 # .claude/settings.json — tratado separadamente na função sincronizar_projeto
 # Fonte: template de hooks em .delta-11/templates/settings-hooks.json
@@ -334,10 +320,6 @@ sincronizar_destino() {
         mkdir -p "$destino/.delta-11/hooks" 2>/dev/null
         mkdir -p "$destino/.delta-11/locks" 2>/dev/null
         touch "$destino/.delta-11/locks/.gitkeep" 2>/dev/null
-        mkdir -p "$destino/.delta-11/perfis" 2>/dev/null
-        mkdir -p "$destino/.delta-11/mcp" 2>/dev/null
-        mkdir -p "$destino/.delta-11/ferramentas" 2>/dev/null
-        mkdir -p "$destino/.delta-11/conhecimento" 2>/dev/null
         mkdir -p "$destino/.claude" 2>/dev/null
     fi
 

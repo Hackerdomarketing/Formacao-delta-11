@@ -352,6 +352,7 @@ Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE
 1. Atualizar `.delta-11/memoria/SHIELD-estado.md`
 2. Atualizar `.delta-11/kanban.md`
 3. Atualizar `.delta-11/kanban-data.js`
+3.1. **PAINEL DE COMANDO v5.1 — OBRIGATÓRIO:** ao gravar sua tarefa no kanban-data.js, inclua `resumo_humano` (frase em português leigo, sem jargão técnico, sem "contract test", sem "hash mismatch", max 15 palavras — o comandante lê isso). Atualize seu heartbeat no array `heartbeats` (formato: `{ agente: "SHIELD", ultima_atividade: "<ISO 8601>", tarefa_atual: "T-XXX" }`). Detalhes completos em `CLAUDE.md` → "Passo 3.1 — Painel de Comando (v5.1)".
 4. Verificar se tem mais tarefas pendentes — se sim, continuar; se não, executar o Protocolo de Fase Concluída
 5. **Notificar CRONOS via SendMessage** (v4.0):
    - Se sua tarefa concluída desbloqueia outro agente → envie `SendMessage` ao CRONOS informando qual agente Y pode ser ativado agora e para qual tarefa. Você NÃO dispara o próximo agente — apenas notifica. CRONOS decide se dispara imediatamente via `Agent tool` (`run_in_background`, `isolation: worktree`).
