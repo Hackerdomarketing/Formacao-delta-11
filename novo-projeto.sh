@@ -69,12 +69,6 @@ echo "  Copiando arquivos da Formação Δ-11..."
 cp -r "$SCRIPT_DIR/.delta-11" "$TARGET_DIR/.delta-11"
 cp "$SCRIPT_DIR/CLAUDE.md" "$TARGET_DIR/CLAUDE.md"
 
-# Copiar configurações do Claude Code (permissões + hooks)
-if [ -d "$SCRIPT_DIR/.claude" ]; then
-    mkdir -p "$TARGET_DIR/.claude"
-    cp "$SCRIPT_DIR/.claude/settings.json" "$TARGET_DIR/.claude/settings.json" 2>/dev/null || true
-fi
-
 # Limpar os dados do kanban (começar do zero)
 cat > "$TARGET_DIR/.delta-11/kanban-data.js" << 'EOF'
 window.KANBAN_DATA = {

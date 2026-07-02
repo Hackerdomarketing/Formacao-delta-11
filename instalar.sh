@@ -146,15 +146,6 @@ fi
 
 FILE_COUNT=$(find . -type f -not -path './.git/*' -not -name 'instalar.sh' -not -name '.DS_Store' | wc -l | xargs)
 echo -e "  ${GREEN}✓${NC} ${FILE_COUNT} arquivos encontrados"
-
-# Garantir que todas as pastas de sistema existam
-mkdir -p .delta-11/perfis
-mkdir -p .delta-11/mcp
-mkdir -p .delta-11/ferramentas
-mkdir -p .delta-11/conhecimento
-mkdir -p .delta-11/hooks
-mkdir -p .delta-11/locks
-echo -e "  ${GREEN}✓${NC} Pastas de sistema verificadas"
 echo ""
 
 # ─── PASSO 4: Inicializar Git e criar repositório ────────────
@@ -192,44 +183,6 @@ fi
 
 echo ""
 
-# ─── PASSO 4.5: Detectar modo de dispatch ────────────────────
-
-echo -e "${YELLOW}[4.5/6]${NC} Detectando modo de dispatch..."
-
-if [ -n "$VSCODE_PID" ]; then
-    # Rodando dentro do terminal integrado do VS Code
-    echo "vscode-tab" > .delta-11/.dispatch-mode
-    echo -e "  ${GREEN}✓${NC} Detectado: VS Code (extensão) → ${CYAN}vscode-tab${NC}"
-elif [ -n "$TERM_PROGRAM" ] && [ "$TERM_PROGRAM" = "vscode" ]; then
-    # Outra forma de detectar terminal integrado do VS Code
-    echo "vscode-tab" > .delta-11/.dispatch-mode
-    echo -e "  ${GREEN}✓${NC} Detectado: VS Code (terminal integrado) → ${CYAN}vscode-tab${NC}"
-else
-    # Rodando no Terminal do macOS — não grava o arquivo
-    # ATLAS detectará automaticamente na primeira ativação dentro do VS Code
-    echo -e "  ${YELLOW}→${NC} Terminal externo detectado — modo será detectado automaticamente"
-    echo -e "    pelo ATLAS na primeira ativação dentro do VS Code"
-fi
-
-echo ""
-
-# ─── PASSO 4.7: Instalar skill fluxo-ux-completo ─────────────
-
-echo -e "${YELLOW}[4.7/6]${NC} Instalando skill fluxo-ux-completo..."
-
-SKILL_DEST="$HOME/.claude/skills/fluxo-ux-completo"
-SKILL_SRC="$(pwd)/skills/fluxo-ux-completo"
-
-if [ -d "$SKILL_SRC" ]; then
-    mkdir -p "$SKILL_DEST"
-    cp -r "$SKILL_SRC/." "$SKILL_DEST/"
-    echo -e "  ${GREEN}✓${NC} Skill fluxo-ux-completo instalada em ~/.claude/skills/"
-else
-    echo -e "  ${YELLOW}⚠${NC} Pasta skills/fluxo-ux-completo não encontrada — pulando"
-fi
-
-echo ""
-
 # ─── PASSO 5: Commit e Push ──────────────────────────────────
 
 echo -e "${YELLOW}[5/6]${NC} Fazendo commit e push..."
@@ -247,94 +200,6 @@ Inclui: protocolos, kanban, painel visual, templates de memória.
 
 git push -u origin main 2>/dev/null || git push origin main
 echo -e "  ${GREEN}✓${NC} Código enviado para o GitHub"
-echo ""
-
-# ─── PASSO 5.5: Registrar no registry global ──────────────────
-
-REGISTRY="$HOME/.delta-11-registry.json"
-PROJECT_PATH="$(pwd)"
-
-if command -v jq &> /dev/null; then
-    if [ -f "$REGISTRY" ]; then
-        # Verificar se o projeto ja esta registrado
-        ALREADY=$(jq --arg p "$PROJECT_PATH" '.projects | index($p)' "$REGISTRY")
-        if [ "$ALREADY" = "null" ]; then
-            echo -e "  Registrando projeto no registry global..."
-            TMP_REG=$(mktemp)
-            jq --arg p "$PROJECT_PATH" '.projects += [$p]' "$REGISTRY" > "$TMP_REG" && mv "$TMP_REG" "$REGISTRY"
-            echo -e "  ${GREEN}✓${NC} Projeto registrado em $REGISTRY"
-        else
-            echo -e "  ${GREEN}✓${NC} Projeto ja registrado no registry"
-        fi
-    else
-        # Criar registry novo
-        echo -e "  Criando registry global..."
-        cat > "$REGISTRY" << REGEOF
-{
-  "version": "3.2",
-  "source": "$PROJECT_PATH",
-  "github": "https://github.com/Hackerdomarketing/Formacao-delta-11.git",
-  "projects": ["$PROJECT_PATH"],
-  "backup": null,
-  "historical": null,
-  "last_sync": null
-}
-REGEOF
-        echo -e "  ${GREEN}✓${NC} Registry criado em $REGISTRY"
-    fi
-else
-    echo -e "  ${YELLOW}⚠${NC} jq nao encontrado — registro no registry ignorado"
-    echo "    Instale jq (brew install jq) e rode sincronizar.sh depois"
-fi
-
-echo ""
-
-# ─── PASSO 5.7: Instalar hooks e monitor invisível ─────────────
-
-echo -e "${YELLOW}[5.7/6]${NC} Configurando monitoramento de agentes..."
-
-# 5.7a: Configurar hooks do projeto (heartbeat, stop, pre-compact)
-if [ -f ".delta-11/templates/settings-hooks.json" ]; then
-    PROJETO_SETTINGS=".claude/settings.json"
-    mkdir -p .claude
-    if [ -f "$PROJETO_SETTINGS" ]; then
-        echo -e "  ${GREEN}✓${NC} Hooks do projeto já configurados"
-    else
-        cp .delta-11/templates/settings-hooks.json "$PROJETO_SETTINGS"
-        echo -e "  ${GREEN}✓${NC} Hooks instalados (heartbeat, stop, pre-compact)"
-    fi
-else
-    echo -e "  ${YELLOW}⚠${NC} Template de hooks não encontrado — pulando"
-fi
-
-# 5.7b: Tornar hooks executáveis
-for hook in .delta-11/hooks/*.sh; do
-    [ -f "$hook" ] && chmod +x "$hook"
-done
-
-# 5.7c: Instalar LaunchAgent (monitor invisível que substitui vigilante.sh)
-PLIST_SRC="$(cd "$(dirname "$0")" && pwd)/com.delta11.monitor.plist"
-PLIST_DST="$HOME/Library/LaunchAgents/com.delta11.monitor.plist"
-
-if [ -f "$PLIST_SRC" ]; then
-    if [ -f "$PLIST_DST" ]; then
-        echo -e "  ${GREEN}✓${NC} Monitor LaunchAgent já instalado"
-    else
-        mkdir -p "$HOME/Library/LaunchAgents"
-        cp "$PLIST_SRC" "$PLIST_DST"
-        launchctl load "$PLIST_DST" 2>/dev/null
-        echo -e "  ${GREEN}✓${NC} Monitor instalado (verifica a cada 5 min, invisível)"
-    fi
-else
-    echo -e "  ${YELLOW}⚠${NC} LaunchAgent plist não encontrado — pulando"
-fi
-
-# 5.7d: Parar vigilante.sh antigo se estiver rodando
-if pgrep -f "vigilante.sh" > /dev/null 2>&1; then
-    pkill -f "vigilante.sh" 2>/dev/null
-    echo -e "  ${GREEN}✓${NC} Vigilante antigo parado (substituído pelo monitor)"
-fi
-
 echo ""
 
 # ─── PASSO 6: Abrir tudo ─────────────────────────────────────
