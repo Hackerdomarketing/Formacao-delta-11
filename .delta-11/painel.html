@@ -133,11 +133,103 @@ body::after {
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255,32,32,0.020) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,32,32,0.020) 1px, transparent 1px);
-  background-size: 80px 80px;
+    linear-gradient(rgba(255,32,32,0.010) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,32,32,0.010) 1px, transparent 1px);
+  background-size: 120px 120px;
   pointer-events: none;
   z-index: 0;
+}
+
+/* PROGRESSO GERAL DA MISSÃO (bloco de destaque) */
+.mission-progress {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--s-8);
+  padding: var(--s-6) var(--s-8);
+  margin-bottom: var(--s-8);
+  background: linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.35));
+  border: var(--border-md) solid var(--line-2);
+  border-left: var(--border-heavy) solid var(--brand);
+  border-radius: 4px;
+  animation: rise 500ms var(--ease-military) 60ms both;
+}
+.mp-num {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 120px;
+}
+.mp-pct {
+  font-family: var(--font-display);
+  font-size: 4.5rem;
+  font-weight: 400;
+  color: var(--brand);
+  line-height: 0.9;
+  letter-spacing: var(--ls-display);
+  text-shadow: 0 0 24px var(--brand-glow-soft);
+}
+.mp-label {
+  font-family: var(--font-mono);
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  color: var(--ink-60);
+  letter-spacing: var(--ls-military);
+  text-transform: uppercase;
+  margin-top: var(--s-2);
+}
+.mp-right {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.mp-bar {
+  height: 14px;
+  background: var(--surface-3);
+  border: var(--border-thin) solid var(--line-2);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+.mp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--brand-deep), var(--brand), var(--brand-strong));
+  transition: width var(--d-slow) var(--ease-military);
+  box-shadow: 0 0 12px var(--brand-glow);
+  position: relative;
+}
+.mp-bar-fill::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: -3px;
+  bottom: -3px;
+  width: 3px;
+  background: var(--brand-strong);
+  box-shadow: 0 0 8px var(--brand-glow);
+}
+.mp-meta {
+  display: flex;
+  gap: var(--s-4);
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  font-weight: 500;
+  color: var(--ink-60);
+  letter-spacing: var(--ls-mono);
+  text-transform: uppercase;
+  flex-wrap: wrap;
+}
+.mp-meta strong {
+  color: var(--ink-100);
+  font-weight: 700;
+}
+.mp-meta .m-done { color: var(--done); }
+.mp-meta .m-live { color: var(--brand); }
+.mp-meta .m-todo { color: var(--ink-80); }
+@media (max-width: 720px) {
+  .mission-progress { grid-template-columns: 1fr; gap: var(--s-4); }
+  .mp-num { align-items: center; }
+  .mp-pct { font-size: 3.5rem; }
 }
 
 .skip {
@@ -154,7 +246,7 @@ body::after {
   letter-spacing: var(--ls-mono);
   text-transform: uppercase;
   text-decoration: none;
-  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  border-radius: 3px;
   transition: top var(--d-base) var(--ease-military);
 }
 .skip:focus { top: var(--s-4); }
@@ -517,7 +609,7 @@ body::after {
   padding: var(--s-5);
   background: rgba(0,0,0,0.35);
   border: var(--border-thin) solid var(--line-1);
-  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  border-radius: 6px;
 }
 
 .op-cell {
@@ -525,7 +617,7 @@ body::after {
   padding: var(--s-3);
   background: var(--surface-2);
   border: var(--border-md) solid var(--ink-20);
-  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+  border-radius: 4px;
   cursor: pointer;
   transition: all var(--d-fast) var(--ease-military);
   text-align: left;
@@ -684,7 +776,7 @@ body::after {
   margin-bottom: var(--s-6);
   background: rgba(255,255,255,0.018);
   border: var(--border-thin) solid var(--line-1);
-  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  border-radius: 6px;
 }
 .wave-line {
   display: flex;
@@ -907,7 +999,7 @@ body::after {
   transition: all var(--d-fast) var(--ease-military);
   text-align: left;
   min-height: 46px;
-  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  border-radius: 4px;
 }
 .history-toggle:hover {
   background: var(--done-soft);
@@ -985,7 +1077,7 @@ body::after {
   background: var(--surface-0);
   border: var(--border-thin) solid var(--line-1);
   padding: var(--s-5);
-  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  border-radius: 4px;
 }
 .engineer-content[data-open="1"] {
   display: block;
@@ -1034,7 +1126,7 @@ body::after {
   text-transform: uppercase;
   cursor: pointer;
   transition: all var(--d-fast) var(--ease-military);
-  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  border-radius: 6px;
   box-shadow: 0 6px 24px rgba(0,0,0,0.5), 0 0 20px var(--brand-glow-soft);
   min-height: 48px;
 }
@@ -1141,7 +1233,7 @@ body::after {
   font-weight: 700;
   cursor: pointer;
   transition: all var(--d-fast) var(--ease-military);
-  clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px));
+  border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1171,28 +1263,29 @@ body::after {
 }
 
 .drawer-agent {
-  margin-bottom: var(--s-4);
-  border: var(--border-thin) solid var(--line-1);
-  background: rgba(255,255,255,0.015);
+  margin-bottom: var(--s-3);
+  border: var(--border-md) solid var(--line-1);
+  background: rgba(255,255,255,0.02);
   transition: all var(--d-fast) var(--ease-military);
-  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  border-radius: 4px;
+  overflow: hidden;
 }
 .drawer-agent[data-state="active"] {
   border-color: var(--brand);
-  background: rgba(255,32,32,0.04);
+  background: rgba(255,32,32,0.06);
 }
 .drawer-agent[data-state="blocked"] {
   border-color: var(--brand-strong);
-  background: rgba(255,32,32,0.10);
+  background: rgba(255,32,32,0.12);
 }
-.drawer-agent[data-state="stalled"] { border: var(--border-thin) dashed var(--brand); }
+.drawer-agent[data-state="stalled"] { border: var(--border-md) dashed var(--brand); }
 .drawer-agent[data-state="done"] { border-color: var(--done-line); }
-.drawer-agent[data-state="idle"] { opacity: 0.5; }
+.drawer-agent[data-state="idle"] { opacity: 0.6; }
 
 .drawer-agent-head {
   display: block;
   width: 100%;
-  padding: var(--s-4) var(--s-4);
+  padding: var(--s-4) var(--s-10) var(--s-4) var(--s-4);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -1200,9 +1293,40 @@ body::after {
   color: inherit;
   font: inherit;
   transition: background var(--d-fast) var(--ease-military);
+  position: relative;
 }
-.drawer-agent-head:hover { background: rgba(255,32,32,0.04); }
-.drawer-agent-head[aria-expanded="true"] { background: rgba(255,32,32,0.04); }
+.drawer-agent-head:hover { background: rgba(255,255,255,0.04); }
+.drawer-agent-head[aria-expanded="true"] { background: rgba(255,255,255,0.04); }
+
+.drawer-agent-chevron {
+  position: absolute;
+  right: var(--s-5);
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink-60);
+  transition: transform var(--d-base) var(--ease-military), color var(--d-fast);
+  line-height: 1;
+  pointer-events: none;
+  opacity: 0.9;
+}
+.drawer-agent-head:hover .drawer-agent-chevron {
+  color: var(--brand);
+  opacity: 1;
+  transform: translateY(-50%) translateX(3px);
+}
+.drawer-agent-head[aria-expanded="true"] .drawer-agent-chevron {
+  transform: translateY(-50%) rotate(90deg);
+  color: var(--brand);
+  opacity: 1;
+}
+.drawer-agent-head:hover[aria-expanded="true"] .drawer-agent-chevron {
+  transform: translateY(-50%) rotate(90deg) translateY(-3px);
+}
+.drawer-agent[data-state="done"] .drawer-agent-chevron { color: var(--done); }
+.drawer-agent[data-state="done"] .drawer-agent-head:hover .drawer-agent-chevron { color: var(--done); }
 
 .drawer-agent-line-1 {
   display: flex;
@@ -1371,7 +1495,7 @@ body::after {
   font-size: var(--t-sm);
   color: var(--brand);
   letter-spacing: var(--ls-mono);
-  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+  border-radius: 4px;
 }
 
 /* SKELETON */
@@ -1738,6 +1862,24 @@ function renderMain(data) {
         <p class="verdict-line">${esc(verdict.line)}</p>
       </div>
     </section>
+    <section class="mission-progress" aria-label="Progresso geral da missão">
+      <div class="mp-num">
+        <span class="mp-pct">${progress.pct}%</span>
+        <span class="mp-label">da missão</span>
+      </div>
+      <div class="mp-right">
+        <div class="mp-bar" role="progressbar" aria-valuenow="${progress.pct}" aria-valuemin="0" aria-valuemax="100">
+          <div class="mp-bar-fill" style="width: ${progress.pct}%"></div>
+        </div>
+        <div class="mp-meta">
+          <span><strong class="m-done">${progress.done}</strong> concluídas</span>
+          <span><strong class="m-live">${progress.doing}</strong> em curso</span>
+          <span><strong>${progress.rev}</strong> em revisão</span>
+          <span><strong class="m-todo">${progress.todo}</strong> pendentes</span>
+          <span>de <strong>${progress.total}</strong> no total</span>
+        </div>
+      </div>
+    </section>
   `;
 
   if (cronos && cronos.texto) {
@@ -1857,6 +1999,13 @@ function renderDrawer(data) {
     return;
   }
 
+  // Preserva quais agentes estavam expandidos antes de re-renderizar
+  const previousOpen = new Set();
+  body.querySelectorAll('.drawer-agent-head[aria-expanded="true"]').forEach(el => {
+    const wrap = el.closest('.drawer-agent');
+    if (wrap && wrap.dataset.agente) previousOpen.add(wrap.dataset.agente);
+  });
+
   summary.textContent = `${data.projeto} · ${faseTag(data.fase_atual)}`;
 
   let html = '';
@@ -1905,9 +2054,11 @@ function renderDrawer(data) {
       </div>`;
     }
 
+    const wasOpen = previousOpen.has(a);
     html += `
       <div class="drawer-agent" data-state="${state}" data-agente="${a}">
-        <button class="drawer-agent-head" type="button" aria-expanded="false" onclick="toggleAgentTasks(this)" aria-controls="agent-tasks-${a}">
+        <button class="drawer-agent-head" type="button" aria-expanded="${wasOpen ? 'true' : 'false'}" onclick="toggleAgentTasks(this)" aria-controls="agent-tasks-${a}">
+          <span class="drawer-agent-chevron" aria-hidden="true">▸</span>
           <div class="drawer-agent-line-1">
             <div>
               <div class="drawer-agent-nome">${a}</div>
@@ -1918,7 +2069,7 @@ function renderDrawer(data) {
           <div class="drawer-agent-bar" aria-hidden="true"><div class="drawer-agent-bar-fill" style="width: ${prog.pct}%"></div></div>
           <div class="drawer-agent-meta">${metaLine.join(' · ')}</div>
         </button>
-        <div class="drawer-agent-tasks" id="agent-tasks-${a}">${tasksHtml}</div>
+        <div class="drawer-agent-tasks" id="agent-tasks-${a}" data-open="${wasOpen ? '1' : '0'}">${tasksHtml}</div>
       </div>
     `;
   });
