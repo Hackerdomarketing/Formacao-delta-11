@@ -1,5 +1,5 @@
 {
-  "verificado_em": "2026-07-02T01:31:23Z",
-  "epoch": 1782955881,
+  "verificado_em": "2026-07-02T03:36:48Z",
+  "epoch": 1782963407,
   "projetos": [{"projeto":"Scanner-de-Desvantagens-VANTOR","path":"/Users/alfa/projetos/Scanner-de-Desvantagens-VANTOR","alertas":[{"tipo":"orfa","agente":"SHIELD"}]}]
 }

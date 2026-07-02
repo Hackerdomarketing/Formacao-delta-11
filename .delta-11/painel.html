@@ -3,1058 +3,1418 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FORMAÇÃO Δ-11 — Centro de Comando</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<title>Δ-11 · Score de Vantagem V3.0</title>
+<meta name="theme-color" content="#080808">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg-deep: #080808;
-    --bg-panel: #0e0e0e;
-    --bg-card: #141414;
-    --bg-card-hover: #1c1010;
-    --border: #2a2a2a;
-    --border-glow: #3a2020;
-    --text-primary: #f0f0f0;
-    --text-secondary: #999999;
-    --text-muted: #666666;
+/* ═══════════════════════════════════════════════════════════════
+   PAINEL v6 · SALA DE OPERAÇÕES · Formação Δ-11
+   Visão de produto do zero. Comando sem decifração.
+   Steve Jobs + Analista dos 3 Vetores + preservações Δ-11.
+   ═══════════════════════════════════════════════════════════════ */
 
-    /* Δ-11 vermelho característico — todos os agentes */
-    --atlas: #ff2020; --cronos: #ff2020; --front: #ff2020;
-    --pixel: #ff2020; --form: #ff2020; --back: #ff2020;
-    --engine: #ff2020; --vault: #ff2020; --shield: #ff2020; --scout: #ff2020;
+/* ─── TOKENS ────────────────────────────────────────────────── */
+:root {
+  /* Superfícies (paleta preta Δ-11 preservada) */
+  --surface-0: #050505;      /* void */
+  --surface-1: #0a0a0a;      /* base */
+  --surface-2: #101010;      /* elevated */
+  --surface-3: #161616;      /* card */
+  --surface-4: #1c1815;      /* card-hover (whisper red) */
 
-    /* Estados funcionais */
-    --fazendo: #ffffff;
-    --revisao: #5ce68a;
-    --concluido: #1b8a2a;
-    --bloqueado: #ff1744;
+  /* Bordas */
+  --line-1: rgba(255,255,255,0.06);
+  --line-2: rgba(255,255,255,0.10);
+  --line-3: rgba(255,255,255,0.16);
+  --line-brand: rgba(255,32,32,0.4);
 
-    /* Selo binário v5.1 */
-    --calmo: #5ce68a;
-    --atencao: #ffb020;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Outfit', sans-serif; background: var(--bg-deep); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; }
-  body::before {
-    content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(180deg, rgba(8,8,8,0.82) 0%, rgba(8,8,8,0.87) 40%, rgba(8,8,8,0.92) 100%), url('bg-delta11.png') center center / cover no-repeat;
-    pointer-events: none; z-index: 0;
-  }
-  body::after {
-    content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-    background-size: 60px 60px; pointer-events: none; z-index: 0;
-  }
+  /* Δ-11 vermelho (preservado + escala) */
+  --brand: #ff2020;
+  --brand-strong: #ff3535;
+  --brand-glow: rgba(255,32,32,0.55);
+  --brand-glow-soft: rgba(255,32,32,0.12);
+  --brand-wash: rgba(255,32,32,0.04);
 
-  /* ═══════════════════════════════════════════════════════════════
-     HEADER (idêntico v4 — cinematográfico Δ-11)
-     ═══════════════════════════════════════════════════════════════ */
-  .header {
-    position: relative; z-index: 1; padding: 24px 40px 18px;
-    display: flex; align-items: center; justify-content: space-between;
-    border-bottom: 1px solid var(--border);
-    background: linear-gradient(180deg, rgba(10,10,10,0.97) 0%, rgba(5,5,5,0.85) 100%);
-    backdrop-filter: blur(20px);
-  }
-  .header-left { display: flex; align-items: center; gap: 20px; }
-  .logo { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: var(--text-muted); }
-  .logo .delta { font-size: 28px; font-weight: 800; letter-spacing: -1px; color: var(--atlas); text-shadow: 0 0 30px rgba(255,32,32,0.4); font-family: 'Outfit', sans-serif; }
-  .logo .eleven { color: var(--text-primary); font-size: 28px; font-weight: 800; font-family: 'Outfit', sans-serif; }
+  /* Estados semânticos (contraste AA verificado em fundo #0a0a0a) */
+  --calm: #5ce68a;           /* 12.8:1 */
+  --calm-soft: rgba(92,230,138,0.08);
+  --calm-line: rgba(92,230,138,0.22);
+  --alert: #ffb020;          /* 10.4:1 */
+  --alert-soft: rgba(255,176,32,0.08);
+  --alert-line: rgba(255,176,32,0.35);
+  --danger: #ff2020;
+  --danger-soft: rgba(255,32,32,0.08);
 
-  .header-status { display: flex; align-items: center; gap: 32px; flex-wrap: wrap; justify-content: flex-end; }
-  .status-item { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-  .status-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); }
-  .status-value { font-weight: 600; font-size: 15px; color: var(--text-primary); max-width: 320px; text-align: right; }
-  .status-value.fase { color: var(--atlas); font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+  /* Texto (contraste testado) */
+  --ink-100: #f5f5f5;        /* 18.7:1 */
+  --ink-80: #d4d4d4;         /* 13:1 */
+  --ink-60: #a0a0a0;         /* 7.3:1 */
+  --ink-40: #6b6b6b;         /* 4.5:1 · limite WCAG AA */
+  --ink-20: #3a3a3a;         /* decorativo apenas */
 
-  /* SELO BINÁRIO no header — grande e cinematográfico */
-  .selo {
-    display: inline-flex; align-items: center; gap: 10px;
-    padding: 10px 18px; border-radius: 6px;
-    font-family: 'JetBrains Mono', monospace; font-size: 12px;
-    font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
-    border: 1px solid transparent;
-    transition: all 0.3s;
-  }
-  .selo.calmo {
-    background: rgba(92,230,138,0.06);
-    color: var(--calmo);
-    border-color: rgba(92,230,138,0.35);
-    text-shadow: 0 0 12px rgba(92,230,138,0.5);
-  }
-  .selo.atencao {
-    background: rgba(255,176,32,0.08);
-    color: var(--atencao);
-    border-color: rgba(255,176,32,0.5);
-    text-shadow: 0 0 12px rgba(255,176,32,0.6);
-    animation: pulse-atencao 2s ease-in-out infinite;
-  }
-  .selo.emergencia {
-    background: rgba(255,32,32,0.08);
-    color: var(--atlas);
-    border-color: rgba(255,32,32,0.6);
-    text-shadow: 0 0 14px rgba(255,32,32,0.7);
-    animation: pulse-emergencia 1s ease-in-out infinite;
-  }
-  .selo-icone { font-size: 14px; line-height: 1; }
+  /* Tipografia — escala 1.250 Major Third */
+  --font-body: 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
-  /* ═══════════════════════════════════════════════════════════════
-     OPERATIVOS BAR — sprites soldados (idêntico v4)
-     ═══════════════════════════════════════════════════════════════ */
-  .operativos-bar {
-    position: relative; z-index: 1;
-    display: flex; justify-content: center; align-items: flex-end; gap: 8px;
-    padding: 12px 20px 10px;
-    background: linear-gradient(180deg, rgba(4,4,4,0.98), rgba(8,8,8,0.96));
-    border-bottom: 1px solid #1a1a1a;
-    overflow-x: auto;
-  }
-  .operativo { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 58px; position: relative; }
-  .operativo-nome { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; color: #333; white-space: nowrap; }
-  .operativo.ativo .operativo-nome { color: var(--atlas); text-shadow: 0 0 8px rgba(255,32,32,0.6); }
-  .operativo.sem-sinal .operativo-nome { color: var(--atencao); text-shadow: 0 0 6px rgba(255,176,32,0.5); }
-  .operativo-sprite-wrap { position: relative; height: 136px; display: flex; align-items: flex-end; justify-content: center; overflow: visible; }
-  .operativo-sprite { image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
+  --t-2xs: 0.6875rem;   /* 11px · micro */
+  --t-xs: 0.75rem;      /* 12px · meta */
+  --t-sm: 0.875rem;     /* 14px · aux */
+  --t-md: 1rem;         /* 16px · body */
+  --t-lg: 1.25rem;      /* 20px · destaque */
+  --t-xl: 1.5625rem;    /* 25px · voz do CRONOS */
+  --t-2xl: 1.953rem;    /* 31px · projeto */
+  --t-hero: 3.5rem;     /* 56px · selo binário */
 
-  @keyframes soldier-fight {
-    0%,100% { transform: translateY(0px) rotate(0deg); }
-    15%     { transform: translateY(-7px) rotate(-6deg); }
-    30%     { transform: translateY(-13px) rotate(7deg); }
-    50%     { transform: translateY(-4px) rotate(0deg); }
-    65%     { transform: translateY(-10px) rotate(-5deg) scaleX(-1); }
-    82%     { transform: translateY(-5px) rotate(4deg) scaleX(-1); }
-  }
+  /* Espaçamento — múltiplos de 4 */
+  --s-1: 4px;  --s-2: 8px;   --s-3: 12px;  --s-4: 16px;
+  --s-5: 20px; --s-6: 24px;  --s-8: 32px;  --s-10: 40px;
+  --s-12: 48px; --s-16: 64px; --s-20: 80px; --s-24: 96px;
 
-  .zzz-wrap { position: absolute; top: 4px; right: 0px; width: 28px; height: 32px; pointer-events: none; }
-  .zzz { position: absolute; font-family: 'JetBrains Mono', monospace; color: #3355aa; opacity: 0; line-height: 1; }
-  .zzz:nth-child(1) { font-size: 7px; left: 2px; bottom: 0; animation: floatZ 2.6s ease-out infinite 0s; }
-  .zzz:nth-child(2) { font-size: 9px; left: 7px; bottom: 0; animation: floatZ 2.6s ease-out infinite 0.87s; }
-  .zzz:nth-child(3) { font-size: 12px; left: 11px; bottom: 0; animation: floatZ 2.6s ease-out infinite 1.74s; }
-  @keyframes floatZ {
-    0%   { opacity: 0; transform: translateY(0) translateX(0); }
-    15%  { opacity: 0.85; }
-    85%  { opacity: 0.2; }
-    100% { opacity: 0; transform: translateY(-28px) translateX(12px); }
-  }
+  /* Raios */
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-full: 999px;
 
-  .operativo-status { font-family: 'JetBrains Mono', monospace; font-size: 7px; letter-spacing: 0.5px; text-transform: uppercase; }
-  .operativo.ativo .operativo-status { color: var(--atlas); }
-  .operativo.sem-sinal .operativo-status { color: var(--atencao); }
-  .operativo:not(.ativo):not(.sem-sinal) .operativo-status { color: #282828; }
+  /* Timing */
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-both: cubic-bezier(0.4, 0, 0.2, 1);
+  --d-fast: 150ms;
+  --d-base: 250ms;
+  --d-slow: 400ms;
 
-  /* ═══════════════════════════════════════════════════════════════
-     PROGRESS (idêntico v4 — barra vermelha característica)
-     ═══════════════════════════════════════════════════════════════ */
-  .progress-bar-container { position: relative; z-index: 1; padding: 0 40px; background: var(--bg-deep); border-bottom: 1px solid var(--border); }
-  .progress-track { height: 3px; background: var(--border); position: relative; overflow: hidden; }
-  .progress-fill { height: 100%; background: linear-gradient(90deg, #b71c1c, #ff2020); transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 20px rgba(255,32,32,0.3); }
-  .progress-info { display: flex; justify-content: space-between; padding: 8px 0; gap: 12px; flex-wrap: wrap; }
-  .progress-text { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); letter-spacing: 1px; }
-  .progress-percent { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--revisao); font-weight: 600; }
+  /* Sombras / glows */
+  --glow-brand: 0 0 24px var(--brand-glow-soft);
+  --glow-alert: 0 0 24px rgba(255,176,32,0.15);
+  --shadow-lift: 0 8px 32px rgba(0,0,0,0.5);
 
-  /* ═══════════════════════════════════════════════════════════════
-     LAYOUT PRINCIPAL — UMA COLUNA VERTICAL (v5.1)
-     ═══════════════════════════════════════════════════════════════ */
-  .painel-coluna {
-    position: relative; z-index: 1;
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 32px 40px 60px;
-  }
+  /* Layout */
+  --container: 720px;
+}
 
-  /* ─── Voz do CRONOS ─── */
-  .voz-cronos {
-    background: linear-gradient(180deg, rgba(20,20,20,0.9), rgba(14,14,14,0.9));
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--atlas);
-    border-radius: 6px;
-    padding: 24px 28px;
-    margin-bottom: 28px;
-    position: relative;
-    animation: fadeIn 0.4s ease-out both;
-  }
-  .voz-cronos::before {
-    content: 'CRONOS · TRANSMISSÃO';
-    position: absolute;
-    top: -8px; left: 20px;
-    background: var(--bg-deep);
-    padding: 0 10px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 3px;
-    color: var(--atlas);
-    text-shadow: 0 0 8px rgba(255,32,32,0.5);
-  }
-  .voz-cronos-texto {
-    font-family: 'Outfit', sans-serif;
-    font-size: 16px;
-    font-weight: 400;
-    color: var(--text-primary);
-    line-height: 1.55;
-  }
-  .voz-cronos-assinatura {
-    margin-top: 14px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--text-muted);
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-  }
-  .voz-cronos.vazio {
-    opacity: 0.5;
-    border-left-color: var(--text-muted);
-  }
-  .voz-cronos.vazio::before { color: var(--text-muted); text-shadow: none; }
-  .voz-cronos.vazio .voz-cronos-texto {
-    font-style: italic;
-    color: var(--text-muted);
-    font-size: 14px;
-  }
+/* ─── RESET ─────────────────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-  /* ─── Convocação (só aparece quando precisa) ─── */
-  .convocacao {
-    background: rgba(255,176,32,0.06);
-    border: 1px solid rgba(255,176,32,0.45);
-    border-radius: 6px;
-    padding: 22px 26px;
-    margin-bottom: 28px;
-    position: relative;
-    animation: fadeIn 0.4s ease-out both, pulse-atencao 3s ease-in-out infinite;
-  }
-  .convocacao::before {
-    content: 'PRECISA DE VOCÊ';
-    position: absolute;
-    top: -8px; left: 20px;
-    background: var(--bg-deep);
-    padding: 0 10px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 3px;
-    color: var(--atencao);
-    text-shadow: 0 0 8px rgba(255,176,32,0.6);
-  }
-  .convocacao-texto {
-    font-family: 'Outfit', sans-serif;
-    font-size: 15px;
-    color: var(--text-primary);
-    line-height: 1.5;
-  }
+html { scroll-behavior: smooth; }
 
-  /* ─── Título de seção ─── */
-  .secao-titulo {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin: 32px 0 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .live-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--fazendo);
-    box-shadow: 0 0 8px var(--fazendo);
-    animation: blink 2s ease-in-out infinite;
-  }
-  .secao-count {
-    margin-left: auto;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--text-muted);
-    background: var(--bg-card);
-    padding: 2px 8px;
-    border-radius: 3px;
-  }
+body {
+  font-family: var(--font-body);
+  font-size: var(--t-md);
+  line-height: 1.5;
+  background: var(--surface-1);
+  color: var(--ink-100);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
 
-  /* ─── Cards de tarefa (estética v4 preservada) ─── */
-  .tarefas {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .tarefa-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 14px 18px;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.2s;
-    animation: fadeIn 0.3s ease-out both;
-  }
-  .tarefa-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; bottom: 0;
-    width: 3px;
-    background: var(--fazendo);
-  }
-  .tarefa-card:hover {
-    background: var(--bg-card-hover);
-    border-color: var(--border-glow);
-    transform: translateY(-1px);
-  }
-  .tarefa-card.sem-sinal::before {
-    background: var(--atencao);
-    box-shadow: 0 0 8px rgba(255,176,32,0.5);
-  }
-  .tarefa-card.sem-sinal {
-    background: rgba(255,176,32,0.03);
-    border-color: rgba(255,176,32,0.25);
-  }
-  .tarefa-card.revisao::before { background: var(--revisao); box-shadow: 0 0 6px rgba(92,230,138,0.4); }
-  .tarefa-card.revisao { border-color: rgba(92,230,138,0.15); }
-  .tarefa-card.concluido::before { background: var(--concluido); }
-  .tarefa-card.concluido { border-color: rgba(0,255,65,0.1); opacity: 0.85; }
-  .tarefa-card.bloqueado::before { background: var(--bloqueado); box-shadow: 0 0 10px rgba(255,23,68,0.6); }
-  .tarefa-card.bloqueado {
-    background: rgba(255,23,68,0.03);
-    border-color: rgba(255,23,68,0.3);
-    animation: fadeIn 0.3s ease-out both, pulse-bloqueio 2.5s ease-in-out infinite;
-  }
+/* Fundo bg-delta11.png preservado, mas rebaixado — não compete mais com conteúdo */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255,32,32,0.03), transparent 60%),
+    linear-gradient(180deg, rgba(5,5,5,0.94), rgba(5,5,5,0.98)),
+    url('bg-delta11.png') center center / cover no-repeat;
+  pointer-events: none;
+  z-index: 0;
+}
 
-  .tarefa-topo {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    margin-bottom: 6px;
-  }
-  .tarefa-agente {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--atlas);
-    text-shadow: 0 0 8px rgba(255,32,32,0.35);
-  }
-  .tarefa-card.revisao .tarefa-agente { color: var(--revisao); text-shadow: 0 0 6px rgba(92,230,138,0.4); }
-  .tarefa-card.concluido .tarefa-agente { color: var(--concluido); text-shadow: none; }
-  .tarefa-card.bloqueado .tarefa-agente { color: var(--bloqueado); text-shadow: 0 0 8px rgba(255,23,68,0.5); }
+/* Grid militar sutil — quase invisível */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 80px 80px;
+  pointer-events: none;
+  z-index: 0;
+}
 
-  .tarefa-agente-humano {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    color: var(--text-muted);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-  .tarefa-id {
-    margin-left: auto;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    color: var(--text-muted);
-    opacity: 0.5;
-    letter-spacing: 0.5px;
-  }
-  .tarefa-desc {
-    font-family: 'Outfit', sans-serif;
-    font-size: 14px;
-    font-weight: 400;
-    color: var(--text-primary);
-    line-height: 1.45;
-    margin-bottom: 8px;
-  }
-  .tarefa-meta {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--text-muted);
-    letter-spacing: 1px;
-  }
-  .tarefa-tempo.velho {
-    color: var(--atencao);
-    text-shadow: 0 0 6px rgba(255,176,32,0.5);
-    font-weight: 600;
-  }
-  .tarefa-motivo {
-    font-family: 'Outfit', sans-serif;
-    font-size: 12px;
-    color: var(--bloqueado);
-    font-style: italic;
-    margin-top: 6px;
-    padding-top: 8px;
-    border-top: 1px solid rgba(255,23,68,0.15);
-  }
+/* ─── SKIP LINK ─────────────────────────────────────────────── */
+.skip {
+  position: absolute;
+  top: -100px;
+  left: var(--s-4);
+  z-index: 999;
+  padding: var(--s-3) var(--s-5);
+  background: var(--brand);
+  color: white;
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: var(--r-sm);
+  transition: top var(--d-base) var(--ease-out);
+}
+.skip:focus { top: var(--s-4); }
 
-  /* ─── Histórico colapsável ─── */
-  .historico-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 16px;
-    background: rgba(27,138,42,0.04);
-    border: 1px solid rgba(27,138,42,0.15);
-    border-radius: 4px;
-    margin-bottom: 5px;
-    font-family: 'Outfit', sans-serif;
-    font-size: 13px;
-    color: var(--text-secondary);
-  }
-  .historico-item .check {
-    color: var(--concluido);
-    font-weight: 700;
-    font-size: 12px;
-  }
-  .historico-item .meta {
-    margin-left: auto;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    color: var(--text-muted);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-  .historico-toggle {
-    margin-top: 14px;
-    text-align: center;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--text-muted);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    cursor: pointer;
-    padding: 10px;
-    border-radius: 4px;
-    transition: all 0.2s;
-    border: 1px solid transparent;
-    user-select: none;
-  }
-  .historico-toggle:hover {
-    color: var(--atlas);
-    border-color: var(--border);
-    text-shadow: 0 0 6px rgba(255,32,32,0.3);
-  }
-  .historico-lista-completa {
-    margin-top: 12px;
-    max-height: 480px;
-    overflow-y: auto;
-    display: none;
-  }
-  .historico-lista-completa.aberto { display: block; }
+:focus-visible {
+  outline: 2px solid var(--brand-strong);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
 
-  /* ─── Vazio ─── */
-  .vazio-msg {
-    padding: 24px 20px;
-    text-align: center;
-    color: var(--text-muted);
-    font-family: 'Outfit', sans-serif;
-    font-size: 13px;
-    font-style: italic;
-    border: 1px dashed var(--border);
-    border-radius: 6px;
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
+}
 
-  /* ─── Estado inicial ─── */
-  .empty-state { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; height: calc(100vh - 240px); text-align: center; padding: 40px; }
-  .empty-delta { font-family: 'Outfit', sans-serif; font-size: 120px; font-weight: 900; color: var(--atlas); opacity: 0.08; line-height: 1; margin-bottom: -20px; }
-  .empty-title { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; }
-  .empty-desc { font-size: 15px; color: var(--text-muted); max-width: 400px; line-height: 1.6; }
-  .empty-code { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--atlas); background: var(--bg-card); border: 1px solid var(--border); padding: 12px 24px; border-radius: 8px; margin-top: 24px; }
+/* ═══════════════════════════════════════════════════════════════
+   CABEÇALHO — mínimo. Logo + identificação. Sem selo aqui.
+   ═══════════════════════════════════════════════════════════════ */
+.top {
+  position: relative;
+  z-index: 2;
+  padding: var(--s-6) var(--s-8);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-6);
+}
 
-  /* ═══════════════════════════════════════════════════════════════
-     ANIMAÇÕES
-     ═══════════════════════════════════════════════════════════════ */
-  ::-webkit-scrollbar { width: 4px; height: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
-  @keyframes pulse-atencao {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(255,176,32,0.35); }
-    50% { box-shadow: 0 0 24px 0 rgba(255,176,32,0.15); }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-family: var(--font-mono);
+  font-size: var(--t-2xs);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+.brand-mark {
+  font-family: var(--font-body);
+  font-size: 1.375rem;
+  font-weight: 900;
+  color: var(--brand);
+  text-shadow: 0 0 18px var(--brand-glow-soft);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.brand-mark .num { color: var(--ink-80); }
+.brand-divider { width: 1px; height: 20px; background: var(--line-2); }
+
+.pulso {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-family: var(--font-mono);
+  font-size: var(--t-2xs);
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  color: var(--ink-40);
+  text-transform: uppercase;
+}
+.pulso-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--calm);
+  box-shadow: 0 0 8px rgba(92,230,138,0.6);
+  animation: dot-pulse 2s ease-in-out infinite;
+}
+.pulso[data-old="1"] .pulso-dot {
+  background: var(--alert);
+  box-shadow: 0 0 8px rgba(255,176,32,0.6);
+}
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CONTAINER PRINCIPAL — uma coluna centralizada, respirando
+   ═══════════════════════════════════════════════════════════════ */
+.main {
+  position: relative;
+  z-index: 1;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: var(--s-10) var(--s-6) var(--s-24);
+}
+
+/* ─── BLOCO 1 · IDENTIFICAÇÃO DO PROJETO (discreta) ─────────── */
+.project {
+  text-align: center;
+  margin-bottom: var(--s-10);
+}
+.project-tag {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--brand);
+  text-shadow: 0 0 12px var(--brand-glow-soft);
+  margin-bottom: var(--s-3);
+}
+.project-name {
+  font-family: var(--font-body);
+  font-size: var(--t-2xl);
+  font-weight: 300;
+  color: var(--ink-100);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+/* ─── BLOCO 2 · SELO BINÁRIO — o momento de arrepio ─────────── */
+.verdict {
+  margin-bottom: var(--s-12);
+  text-align: center;
+  animation: rise 600ms var(--ease-out) both;
+}
+
+.verdict-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-4) var(--s-8);
+  border-radius: var(--r-full);
+  border: 1.5px solid;
+  font-family: var(--font-mono);
+  font-size: var(--t-md);
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  transition: all var(--d-base) var(--ease-both);
+  margin-bottom: var(--s-5);
+}
+.verdict-badge[data-state="calm"] {
+  background: var(--calm-soft);
+  border-color: var(--calm-line);
+  color: var(--calm);
+  text-shadow: 0 0 16px rgba(92,230,138,0.6);
+}
+.verdict-badge[data-state="alert"] {
+  background: var(--alert-soft);
+  border-color: var(--alert-line);
+  color: var(--alert);
+  text-shadow: 0 0 16px rgba(255,176,32,0.7);
+  animation: alert-breath 2.6s ease-in-out infinite;
+}
+.verdict-badge[data-state="danger"] {
+  background: var(--danger-soft);
+  border-color: var(--brand);
+  color: var(--brand);
+  text-shadow: 0 0 20px var(--brand-glow);
+  animation: danger-breath 1.4s ease-in-out infinite;
+}
+.verdict-icon {
+  font-size: 1.4em;
+  line-height: 1;
+  letter-spacing: 0;
+}
+@keyframes alert-breath {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,176,32,0.28); }
+  50% { box-shadow: 0 0 40px 0 rgba(255,176,32,0.2); }
+}
+@keyframes danger-breath {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,32,32,0.4); }
+  50% { box-shadow: 0 0 48px 0 rgba(255,32,32,0.3); }
+}
+
+.verdict-line {
+  font-family: var(--font-body);
+  font-size: var(--t-lg);
+  font-weight: 300;
+  color: var(--ink-80);
+  line-height: 1.4;
+  max-width: 480px;
+  margin: 0 auto;
+  letter-spacing: -0.005em;
+}
+
+/* ─── BLOCO 3 · CONVOCAÇÃO — só quando existe ───────────────── */
+.summon {
+  background: var(--alert-soft);
+  border: 1.5px solid var(--alert-line);
+  border-radius: var(--r-lg);
+  padding: var(--s-6) var(--s-8);
+  margin-bottom: var(--s-10);
+  animation: rise 500ms var(--ease-out) both, glow-alert 3s ease-in-out infinite;
+}
+.summon-label {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--alert);
+  margin-bottom: var(--s-3);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.summon-text {
+  font-family: var(--font-body);
+  font-size: var(--t-lg);
+  color: var(--ink-100);
+  line-height: 1.5;
+  font-weight: 400;
+}
+@keyframes glow-alert {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
+  50% { box-shadow: var(--glow-alert); }
+}
+
+/* ─── BLOCO 4 · TRANSMISSÃO DO CRONOS ───────────────────────── */
+.transmission {
+  background: linear-gradient(180deg, rgba(28,20,20,0.65), rgba(20,16,16,0.65));
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-lg);
+  padding: var(--s-8);
+  margin-bottom: var(--s-10);
+  position: relative;
+  animation: rise 500ms var(--ease-out) 150ms both;
+}
+.transmission::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--brand);
+  box-shadow: 0 0 12px var(--brand-glow-soft);
+  border-radius: var(--r-lg) 0 0 var(--r-lg);
+}
+.transmission-label {
+  font-family: var(--font-mono);
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--brand);
+  text-shadow: 0 0 10px var(--brand-glow-soft);
+  margin-bottom: var(--s-4);
+  display: block;
+}
+.transmission-text {
+  font-family: var(--font-body);
+  font-size: var(--t-xl);
+  font-weight: 300;
+  color: var(--ink-100);
+  line-height: 1.5;
+  letter-spacing: -0.005em;
+}
+.transmission-sign {
+  margin-top: var(--s-5);
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  color: var(--ink-40);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.transmission[data-state="empty"] {
+  border-color: var(--line-1);
+  opacity: 0.55;
+  padding: var(--s-5) var(--s-8);
+}
+.transmission[data-state="empty"]::before { background: var(--ink-20); box-shadow: none; }
+.transmission[data-state="empty"] .transmission-label { color: var(--ink-40); text-shadow: none; }
+.transmission[data-state="empty"] .transmission-text {
+  font-size: var(--t-md);
+  font-style: italic;
+  color: var(--ink-40);
+}
+
+/* ─── BLOCO 5 · MISSÃO (progresso + agentes ativos unificados) */
+.mission {
+  margin-bottom: var(--s-10);
+  animation: rise 500ms var(--ease-out) 300ms both;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding-bottom: var(--s-4);
+  margin-bottom: var(--s-5);
+  border-bottom: 1px solid var(--line-1);
+}
+.section-arrow {
+  color: var(--brand);
+  font-family: var(--font-mono);
+  font-size: var(--t-sm);
+  line-height: 1;
+}
+.section-title {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-80);
+}
+.section-meta {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--t-2xs);
+  color: var(--ink-40);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* Trilha de ondas — visual de mission control */
+.wave-track {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--s-4);
+  margin-bottom: var(--s-8);
+  padding: var(--s-5) var(--s-6);
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-md);
+}
+.wave-line {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.wave-node {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-shrink: 0;
+}
+.wave-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1.5px solid var(--ink-20);
+  transition: all var(--d-base) var(--ease-out);
+  flex-shrink: 0;
+}
+.wave-dot[data-state="done"] {
+  background: var(--calm);
+  border-color: var(--calm);
+  box-shadow: 0 0 10px rgba(92,230,138,0.5);
+}
+.wave-dot[data-state="current"] {
+  background: var(--brand);
+  border-color: var(--brand);
+  box-shadow: 0 0 14px var(--brand-glow);
+  animation: current-pulse 1.6s ease-in-out infinite;
+}
+.wave-connector {
+  flex: 1;
+  height: 1.5px;
+  background: linear-gradient(90deg, var(--ink-20) 0%, var(--ink-20) 100%);
+  transition: background var(--d-base) var(--ease-out);
+}
+.wave-connector[data-state="done"] {
+  background: linear-gradient(90deg, var(--calm) 0%, var(--brand) 100%);
+}
+.wave-label {
+  font-family: var(--font-mono);
+  font-size: var(--t-2xs);
+  color: var(--ink-40);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.wave-label[data-state="current"] {
+  color: var(--brand);
+  font-weight: 700;
+}
+.wave-label[data-state="done"] {
+  color: var(--calm);
+}
+.wave-estimate {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  color: var(--ink-60);
+  letter-spacing: 0.1em;
+  text-align: center;
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line-1);
+}
+@keyframes current-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 14px var(--brand-glow); }
+  50% { transform: scale(1.25); box-shadow: 0 0 22px rgba(255,32,32,0.7); }
+}
+
+/* Lista de agentes em ação — linhas de operação (Warp/Linear pattern) */
+.ops {
+  display: flex;
+  flex-direction: column;
+}
+.op-line {
+  display: grid;
+  grid-template-columns: 90px 1fr auto;
+  gap: var(--s-4);
+  align-items: baseline;
+  padding: var(--s-4) var(--s-2);
+  border-bottom: 1px solid var(--line-1);
+  transition: background var(--d-fast) var(--ease-out);
+}
+.op-line:last-child { border-bottom: none; }
+.op-line:hover { background: rgba(255,255,255,0.015); }
+.op-line[data-state="stalled"] {
+  background: rgba(255,176,32,0.03);
+}
+
+.op-agent {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--brand);
+  text-shadow: 0 0 8px var(--brand-glow-soft);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.op-line[data-state="stalled"] .op-agent {
+  color: var(--alert);
+  text-shadow: 0 0 8px rgba(255,176,32,0.5);
+}
+.op-marker {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 6px var(--brand-glow);
+  animation: dot-pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.op-line[data-state="stalled"] .op-marker {
+  background: var(--alert);
+  box-shadow: 0 0 6px rgba(255,176,32,0.6);
+  animation: none;
+}
+
+.op-action {
+  font-family: var(--font-body);
+  font-size: var(--t-md);
+  color: var(--ink-100);
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: -0.005em;
+}
+
+.op-time {
+  font-family: var(--font-mono);
+  font-size: var(--t-2xs);
+  color: var(--ink-40);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.op-line[data-state="stalled"] .op-time {
+  color: var(--alert);
+  font-weight: 700;
+}
+
+.ops-empty {
+  padding: var(--s-6);
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: var(--t-md);
+  color: var(--ink-40);
+  font-style: italic;
+}
+
+/* Bloqueados (emergência) — mesma linha de operação, cor vermelha */
+.op-line[data-state="blocked"] {
+  background: var(--danger-soft);
+  border-left: 3px solid var(--brand);
+  padding-left: var(--s-4);
+  animation: block-breath 2s ease-in-out infinite;
+}
+.op-line[data-state="blocked"] .op-agent {
+  color: var(--brand);
+}
+.op-blocked-reason {
+  grid-column: 2 / 4;
+  font-family: var(--font-body);
+  font-size: var(--t-sm);
+  color: var(--brand);
+  font-style: italic;
+  margin-top: var(--s-2);
+  padding-top: var(--s-2);
+  border-top: 1px solid rgba(255,32,32,0.15);
+}
+@keyframes block-breath {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
+  50% { box-shadow: inset 0 0 24px rgba(255,32,32,0.08); }
+}
+
+/* ─── BLOCO 6 · HISTÓRICO — sutil, colapsado ────────────────── */
+.history-block {
+  margin-bottom: var(--s-8);
+  animation: rise 500ms var(--ease-out) 450ms both;
+}
+.history-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  width: 100%;
+  padding: var(--s-4) var(--s-5);
+  background: transparent;
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-md);
+  color: var(--ink-60);
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--d-fast) var(--ease-out);
+  text-align: left;
+  min-height: 44px;
+}
+.history-toggle:hover {
+  background: var(--calm-soft);
+  border-color: var(--calm-line);
+  color: var(--calm);
+}
+.history-toggle .count {
+  color: var(--calm);
+  font-weight: 700;
+}
+.history-toggle .chevron {
+  transition: transform var(--d-base) var(--ease-both);
+}
+.history-toggle[aria-expanded="true"] .chevron {
+  transform: rotate(180deg);
+}
+.history-content {
+  display: none;
+  margin-top: var(--s-3);
+  max-height: 480px;
+  overflow-y: auto;
+  padding-right: var(--s-2);
+}
+.history-content[data-open="1"] {
+  display: block;
+  animation: rise 300ms var(--ease-out) both;
+}
+.history-item {
+  display: grid;
+  grid-template-columns: 20px 1fr auto;
+  gap: var(--s-3);
+  align-items: baseline;
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--line-1);
+  font-family: var(--font-body);
+  font-size: var(--t-sm);
+  color: var(--ink-60);
+}
+.history-item:last-child { border-bottom: none; }
+.history-item .check {
+  color: var(--calm);
+  font-weight: 700;
+  line-height: 1;
+}
+.history-item .who {
+  font-family: var(--font-mono);
+  font-size: var(--t-2xs);
+  color: var(--ink-40);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* ─── BLOCO 7 · MODO ENGENHEIRO ─────────────────────────────── */
+.engineer {
+  padding-top: var(--s-8);
+  border-top: 1px solid var(--line-1);
+  animation: rise 500ms var(--ease-out) 600ms both;
+}
+.engineer-toggle {
+  display: block;
+  width: 100%;
+  padding: var(--s-3) var(--s-4);
+  background: transparent;
+  border: none;
+  color: var(--ink-40);
+  font-family: var(--font-mono);
+  font-size: var(--t-2xs);
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: center;
+  transition: color var(--d-fast) var(--ease-out);
+  min-height: 44px;
+}
+.engineer-toggle:hover { color: var(--ink-80); }
+.engineer-content {
+  display: none;
+  margin-top: var(--s-4);
+  background: var(--surface-0);
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-md);
+  padding: var(--s-5);
+  animation: rise 300ms var(--ease-out) both;
+}
+.engineer-content[data-open="1"] { display: block; }
+.engineer-title {
+  font-family: var(--font-mono);
+  font-size: var(--t-2xs);
+  color: var(--ink-40);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-bottom: var(--s-4);
+  display: flex;
+  justify-content: space-between;
+}
+.engineer-row {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  color: var(--ink-60);
+  padding: var(--s-2) 0;
+  border-bottom: 1px solid var(--line-1);
+  word-break: break-all;
+  line-height: 1.6;
+}
+.engineer-row .key { color: var(--brand); font-weight: 700; }
+.engineer-row .val { color: var(--ink-80); }
+
+/* ─── ESTADO INICIAL VAZIO ──────────────────────────────────── */
+.empty {
+  min-height: calc(100vh - 200px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--s-10);
+}
+.empty-icon {
+  font-family: var(--font-body);
+  font-size: 8rem;
+  font-weight: 900;
+  color: var(--brand);
+  opacity: 0.12;
+  line-height: 1;
+  margin-bottom: var(--s-6);
+}
+.empty-title {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+  margin-bottom: var(--s-4);
+}
+.empty-desc {
+  font-family: var(--font-body);
+  font-size: var(--t-md);
+  color: var(--ink-60);
+  max-width: 400px;
+  line-height: 1.6;
+  margin-bottom: var(--s-6);
+}
+.empty-code {
+  display: inline-block;
+  padding: var(--s-3) var(--s-6);
+  background: var(--surface-3);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  font-family: var(--font-mono);
+  font-size: var(--t-sm);
+  color: var(--brand);
+  letter-spacing: 0.1em;
+}
+
+/* ─── ANIMAÇÕES ─────────────────────────────────────────────── */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── SCROLLBAR ─────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line-3); border-radius: var(--r-sm); }
+::-webkit-scrollbar-thumb:hover { background: var(--brand); }
+
+/* ─── SR-ONLY ───────────────────────────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ─── RESPONSIVE ────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .top { padding: var(--s-4) var(--s-4); flex-wrap: wrap; }
+  .main { padding: var(--s-6) var(--s-4) var(--s-16); }
+  .project-name { font-size: 1.75rem; }
+  .verdict-badge {
+    font-size: var(--t-sm);
+    letter-spacing: 0.2em;
+    padding: var(--s-3) var(--s-5);
+    gap: var(--s-3);
   }
-  @keyframes pulse-emergencia {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(255,32,32,0.45); }
-    50% { box-shadow: 0 0 30px 0 rgba(255,32,32,0.25); }
-  }
-  @keyframes pulse-bloqueio {
-    0%, 100% { border-color: rgba(255,23,68,0.3); }
-    50% { border-color: rgba(255,23,68,0.55); }
-  }
+  .verdict-line { font-size: var(--t-md); }
+  .transmission-text { font-size: var(--t-lg); }
+  .op-line { grid-template-columns: 70px 1fr auto; gap: var(--s-3); }
+  .op-agent { font-size: 10px; }
+  .op-action { font-size: var(--t-sm); }
+  .wave-label { font-size: 9px; }
+}
 </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     HEADER (idêntico v4)
-     ═══════════════════════════════════════════════════════════════ -->
-<div class="header">
-  <div class="header-left">
-    <div class="logo">
-      <span class="delta">Δ</span><span class="eleven">-11</span>
-      <br>CENTRO DE COMANDO
-    </div>
-  </div>
-  <div class="header-status">
-    <div class="status-item"><span class="status-label">Projeto</span><span class="status-value" id="st-projeto">—</span></div>
-    <div class="status-item"><span class="status-label">Fase</span><span class="status-value fase" id="st-fase">—</span></div>
-    <div class="status-item"><span class="status-label">Última atividade</span><span class="status-value" id="st-update">—</span></div>
-    <div id="st-selo-wrap"></div>
-  </div>
-</div>
+<a href="#main" class="skip">Pular para o painel</a>
 
-<!-- Barra dos operativos (sprites soldados) -->
-<div class="operativos-bar" id="operativos-bar"></div>
-
-<!-- Barra de progresso vermelha -->
-<div class="progress-bar-container">
-  <div class="progress-info">
-    <span class="progress-text" id="progress-text">Aguardando dados...</span>
-    <span class="progress-percent" id="progress-percent">0%</span>
+<!-- CABEÇALHO — logo + pulso apenas -->
+<header class="top" role="banner">
+  <div class="brand" aria-label="Formação Delta-11">
+    <span class="brand-mark">Δ<span class="num">-11</span></span>
+    <span class="brand-divider" aria-hidden="true"></span>
+    Centro de comando
   </div>
-  <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-</div>
+  <div class="pulso" id="pulso" aria-label="Última sincronização">
+    <span class="pulso-dot" aria-hidden="true"></span>
+    <span id="pulso-text">—</span>
+  </div>
+</header>
 
-<!-- Coluna vertical principal -->
-<div class="painel-coluna" id="painel-coluna">
-  <!-- renderizado por JS -->
-</div>
+<main id="main" class="main">
+  <!-- Renderizado por JS -->
+</main>
 
 <script src="kanban-data.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════════
-// PAINEL v5.1 — Formação Δ-11 (estética v4 preservada)
+// PAINEL v6 · SALA DE OPERAÇÕES · Δ-11
 // ═══════════════════════════════════════════════════════════════
 
-const AGENT_NAMES = {
-  ATLAS:'Arquiteto', CRONOS:'Gerente', FRONT:'Interface', PIXEL:'Visual',
-  FORM:'Formulários', BACK:'Servidor', ENGINE:'Motor', VAULT:'Banco',
-  SHIELD:'Qualidade', SCOUT:'Diagnóstico'
+const AGENT_ROLES = {
+  ATLAS: 'Arquiteto', CRONOS: 'Gerente', FRONT: 'Interface',
+  PIXEL: 'Visual', FORM: 'Formulários', BACK: 'Servidor',
+  ENGINE: 'Motor', VAULT: 'Banco', SHIELD: 'Qualidade', SCOUT: 'Diagnóstico'
 };
 
-const AGENTS = ['ATLAS','CRONOS','FRONT','PIXEL','FORM','BACK','ENGINE','VAULT','SHIELD','SCOUT'];
-const SP_W = 40, SP_H = 120;
-
-const LIMITE_HEARTBEAT_MIN = 5;
-const LIMITE_TAREFA_VELHA_MIN = 30;
+const HB_STALE_MIN = 5;
+const TASK_OLD_MIN = 30;
+const PULSE_STALE_S = 30;
 const REFRESH_MS = 5000;
-const HISTORICO_RECENTE_TAM = 5;
 
-// ── Pré-carrega sprites (idêntico v4) ─────────────────────────────
-const _imgs = {};
-let _imgsLoaded = 0, _pendingAnim = false;
-AGENTS.forEach(ag => {
-  const img = new Image();
-  img.onload = () => { _imgsLoaded++; if (_imgsLoaded >= AGENTS.length && _pendingAnim) { _pendingAnim = false; _loop(); } };
-  img.src = 'sprites/' + ag + '.png';
-  _imgs[ag] = img;
-});
-
-let _raf = null;
-function _loop() {
-  document.querySelectorAll('.operativo-canvas').forEach(cv => {
-    const ctx = cv.getContext('2d');
-    const img = _imgs[cv.dataset.ag];
-    if (!img || !img.complete) return;
-    ctx.clearRect(0, 0, cv.width, cv.height);
-    ctx.imageSmoothingEnabled = false;
-    if (cv.dataset.act === '1') {
-      ctx.drawImage(img, 0, 0, 96, 288, 0, 0, SP_W, SP_H);
-    } else {
-      ctx.save();
-      ctx.translate(0, cv.height);
-      ctx.rotate(-Math.PI / 2);
-      ctx.drawImage(img, 0, 0, 96, 288, 0, 0, SP_W, SP_H);
-      ctx.restore();
-    }
-  });
-  _raf = requestAnimationFrame(_loop);
-}
-function _startAnim() {
-  if (_raf) cancelAnimationFrame(_raf);
-  if (_imgsLoaded >= AGENTS.length) _loop();
-  else _pendingAnim = true;
-}
-
-// ═══════════════════════════════════════════════════════════════
-// UTILITÁRIOS DE TEMPO
-// ═══════════════════════════════════════════════════════════════
-
-function parseTimestamp(iso) {
+// ── Tempo ────────────────────────────────────────────────────
+function parseTS(iso) {
   if (!iso) return null;
   const d = new Date(iso);
   return isNaN(d) ? null : d;
 }
-
-function tempoRelativo(iso) {
-  const d = parseTimestamp(iso);
+function tempoRel(iso) {
+  const d = parseTS(iso);
   if (!d) return null;
-  const diffMin = Math.floor((Date.now() - d.getTime()) / 60000);
-  if (diffMin < 1) return 'agora';
-  if (diffMin === 1) return 'há 1 min';
-  if (diffMin < 60) return `há ${diffMin} min`;
-  const diffH = Math.floor(diffMin / 60);
-  if (diffH === 1) return 'há 1 hora';
-  if (diffH < 24) return `há ${diffH} horas`;
-  const diffD = Math.floor(diffH / 24);
-  if (diffD === 1) return 'há 1 dia';
-  return `há ${diffD} dias`;
+  const s = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (s < 30) return 'agora';
+  if (s < 60) return `há ${s}s`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `há ${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `há ${h}h`;
+  const dd = Math.floor(h / 24);
+  return `há ${dd}d`;
 }
-
-function minutosDesde(iso) {
-  const d = parseTimestamp(iso);
+function minSince(iso) {
+  const d = parseTS(iso);
   if (!d) return null;
   return Math.floor((Date.now() - d.getTime()) / 60000);
 }
 
-// ═══════════════════════════════════════════════════════════════
-// TRADUÇÃO AUTOMÁTICA (fallback quando resumo_humano ausente)
-// ═══════════════════════════════════════════════════════════════
-
-const PADROES_TRADUCAO = [
-  { regex: /\[IMPACTO-MUDANCA\]/i, fala: 'Fazendo uma mudança de impacto no sistema' },
-  { regex: /migration|migração|migrations/i, fala: 'Mexendo na estrutura do banco de dados' },
-  { regex: /webhook|webhooks/i, fala: 'Configurando integração externa' },
-  { regex: /rota|route|api\//i, fala: 'Criando uma rota do servidor' },
-  { regex: /contract test|contract-tester|contract_test/i, fala: 'Testando contratos do sistema' },
-  { regex: /tabela|table|schema/i, fala: 'Trabalhando na estrutura do banco' },
-  { regex: /componente|component|tela|page\.tsx/i, fala: 'Construindo uma tela' },
-  { regex: /formulário|formulario|form|validation/i, fala: 'Fazendo formulário' },
-  { regex: /auth|autenticação|login/i, fala: 'Trabalhando na autenticação' },
-  { regex: /orquestrar|orquestração/i, fala: 'Coordenando os agentes' },
-  { regex: /merge|revisão/i, fala: 'Consolidando trabalho pronto' },
-  { regex: /bug|error|erro|corrigir/i, fala: 'Corrigindo um problema' },
-  { regex: /teste|test|spec/i, fala: 'Testando o sistema' }
+// ── Tradução automática (fallback) ───────────────────────────
+const PADROES = [
+  { re: /\[IMPACTO-MUDANCA\]/i, fala: 'Fazendo uma mudança de impacto' },
+  { re: /migration|migração|migrations/i, fala: 'Mexendo no banco de dados' },
+  { re: /webhook/i, fala: 'Configurando integração externa' },
+  { re: /rota|route|api\//i, fala: 'Criando rota do servidor' },
+  { re: /contract test|contract-tester/i, fala: 'Testando contratos' },
+  { re: /tabela|table|schema/i, fala: 'Trabalhando na estrutura do banco' },
+  { re: /componente|component|tela|page\.tsx/i, fala: 'Construindo uma tela' },
+  { re: /formulário|formulario|form|validation/i, fala: 'Fazendo formulário' },
+  { re: /auth|autenticação|login/i, fala: 'Trabalhando na autenticação' },
+  { re: /orquestrar|orquestração/i, fala: 'Coordenando os agentes' },
+  { re: /merge|revisão/i, fala: 'Consolidando trabalho' },
+  { re: /bug|error|erro|corrigir/i, fala: 'Corrigindo um problema' },
+  { re: /teste|test|spec/i, fala: 'Testando o sistema' }
 ];
-
-function traduzirParaHumano(tarefa) {
-  if (tarefa.resumo_humano) return tarefa.resumo_humano;
-  const texto = (tarefa.desc || '').toString();
-  for (const p of PADROES_TRADUCAO) {
-    if (p.regex.test(texto)) return p.fala;
-  }
-  const limpo = texto
-    .replace(/\[[^\]]+\]/g, '')
-    .replace(/`[^`]+`/g, '')
-    .replace(/T-[A-Z0-9-]+/gi, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  const ponto = limpo.indexOf('.');
-  const corte = ponto > 0 && ponto < 80 ? ponto : 80;
-  return limpo.substring(0, corte).trim() || 'Trabalhando na próxima etapa';
+function traduzir(t) {
+  if (t.resumo_humano) return t.resumo_humano;
+  const texto = (t.desc || '').toString();
+  for (const p of PADROES) if (p.re.test(texto)) return p.fala;
+  const clean = texto
+    .replace(/\[[^\]]+\]/g, '').replace(/`[^`]+`/g, '')
+    .replace(/T-[A-Z0-9-]+/gi, '').replace(/\s+/g, ' ').trim();
+  const dot = clean.indexOf('.');
+  return (dot > 0 && dot < 80 ? clean.substring(0, dot) : clean.substring(0, 80)).trim() || 'Trabalhando';
 }
 
-// ═══════════════════════════════════════════════════════════════
-// SELO BINÁRIO
-// ═══════════════════════════════════════════════════════════════
+// ── Escape ───────────────────────────────────────────────────
+function esc(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 
-function calcularSelo(data) {
-  if (!data) return { estado: 'calmo', icone: '●', texto: 'AGUARDANDO' };
-  const bloqueados = data.bloqueado || [];
-  if (bloqueados.length > 0) {
-    return { estado: 'emergencia', icone: '⚠', texto: `${bloqueados.length} TRAVADO${bloqueados.length > 1 ? 'S' : ''}` };
+// ── Selo binário + linha de contexto ─────────────────────────
+function verdictOf(data) {
+  if (!data) return {
+    state: 'calm', icon: '●', text: 'AGUARDANDO',
+    line: 'Nenhuma missão em execução.'
+  };
+
+  const blocked = data.bloqueado || [];
+  const doing = data.fazendo || [];
+  const hbs = data.heartbeats || [];
+
+  if (blocked.length > 0) {
+    return {
+      state: 'danger',
+      icon: '⚠',
+      text: blocked.length > 1 ? `${blocked.length} TRAVADOS` : `${blocked.length} TRAVADO`,
+      line: `${blocked.length > 1 ? 'Agentes' : 'Um agente'} precisa da sua decisão para destravar.`
+    };
   }
-  const fazendo = data.fazendo || [];
-  const heartbeats = data.heartbeats || [];
-  for (const t of fazendo) {
-    const hb = heartbeats.find(h => h.agente === t.agente);
+
+  // Agente sem sinal
+  for (const t of doing) {
+    const hb = hbs.find(h => h.agente === t.agente);
     if (hb) {
-      const min = minutosDesde(hb.ultima_atividade);
-      if (min !== null && min > LIMITE_HEARTBEAT_MIN) {
-        return { estado: 'atencao', icone: '!', texto: 'AGENTE SEM SINAL' };
+      const m = minSince(hb.ultima_atividade);
+      if (m !== null && m > HB_STALE_MIN) {
+        return {
+          state: 'alert',
+          icon: '!',
+          text: 'AGENTE SEM SINAL',
+          line: `${t.agente} não dá sinal há ${m} minutos. Verifique se travou.`
+        };
       }
     }
   }
-  for (const t of fazendo) {
-    const min = minutosDesde(t.inicio);
-    if (min !== null && min > LIMITE_TAREFA_VELHA_MIN) {
-      return { estado: 'atencao', icone: '!', texto: 'TAREFA DEMORANDO' };
+
+  // Tarefa velha
+  for (const t of doing) {
+    const m = minSince(t.inicio);
+    if (m !== null && m > TASK_OLD_MIN) {
+      return {
+        state: 'alert',
+        icon: '!',
+        text: 'TAREFA DEMORANDO',
+        line: `Uma tarefa está aberta há mais de ${TASK_OLD_MIN} minutos. Talvez precise de você.`
+      };
     }
   }
+
+  // Precisa comandante
   if (data.mensagem_cronos && data.mensagem_cronos.precisa_comandante) {
-    return { estado: 'atencao', icone: '!', texto: 'PRECISA DE VOCÊ' };
+    return {
+      state: 'alert',
+      icon: '!',
+      text: 'PRECISA DE VOCÊ',
+      line: data.mensagem_cronos.precisa_comandante
+    };
   }
-  if (fazendo.length > 0) {
-    return { estado: 'calmo', icone: '●', texto: 'SEGURO FECHAR' };
+
+  if (doing.length > 0) {
+    const nomes = doing.map(t => t.agente).filter(Boolean);
+    const q = nomes.length;
+    return {
+      state: 'calm',
+      icon: '●',
+      text: 'SEGURO FECHAR',
+      line: q === 1
+        ? `${nomes[0]} está no comando. Nada requer você agora.`
+        : `${q} agentes coordenados. Nada requer você agora.`
+    };
   }
-  return { estado: 'calmo', icone: '●', texto: 'DESCANSANDO' };
+
+  return {
+    state: 'calm',
+    icon: '●',
+    text: 'DESCANSANDO',
+    line: 'Todos os agentes concluíram suas tarefas.'
+  };
 }
 
-// ═══════════════════════════════════════════════════════════════
-// PROGRESSO
-// ═══════════════════════════════════════════════════════════════
-
-function calcularProgresso(data) {
-  if (!data) return { concluidas: 0, total: 0, pct: 0 };
-  const concluidas = (data.concluido || []).length;
-  let pendentes = 0;
-  Object.values(data.a_fazer || {}).forEach(arr => pendentes += arr.length);
-  const fazendo = (data.fazendo || []).length;
-  const revisao = (data.revisao || []).length;
-  const bloqueado = (data.bloqueado || []).length;
-  const total = concluidas + pendentes + fazendo + revisao + bloqueado;
-  const pct = total > 0 ? Math.round((concluidas / total) * 100) : 0;
-  return { concluidas, total, pct, pendentes, fazendo, revisao };
+// ── Progresso + ondas ────────────────────────────────────────
+function progressOf(data) {
+  if (!data) return { done: 0, total: 0, pct: 0 };
+  const done = (data.concluido || []).length;
+  let todo = 0;
+  Object.values(data.a_fazer || {}).forEach(a => todo += a.length);
+  const doing = (data.fazendo || []).length;
+  const rev = (data.revisao || []).length;
+  const bl = (data.bloqueado || []).length;
+  const total = done + todo + doing + rev + bl;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  return { done, total, pct, todo, doing, rev };
 }
-
-// ═══════════════════════════════════════════════════════════════
-// HEARTBEAT DE AGENTE
-// ═══════════════════════════════════════════════════════════════
-
-function statusAgente(agente, heartbeats, ativos) {
-  const hb = (heartbeats || []).find(h => h.agente === agente);
-  if (ativos.has(agente)) {
-    if (!hb) return 'ativo'; // aparece em fazendo mas sem heartbeat = assume ativo (retrocompat)
-    const min = minutosDesde(hb.ultima_atividade);
-    if (min !== null && min > LIMITE_HEARTBEAT_MIN) return 'sem-sinal';
-    return 'ativo';
+function wavesOf(data) {
+  const fc = (data && data.fase_atual) || '';
+  const s = fc.toString();
+  const m1 = s.match(/onda\s*(\d+)\s*de\s*(\d+)/i);
+  if (m1) return { curr: parseInt(m1[1]), total: parseInt(m1[2]) };
+  const m2 = s.match(/onda\s*(\d+)/i);
+  if (m2) {
+    if (data && data.total_ondas) return { curr: parseInt(m2[1]), total: parseInt(data.total_ondas) };
+    return { curr: parseInt(m2[1]), total: null };
   }
-  return 'rest';
+  return null;
+}
+function faseTag(fc) {
+  if (!fc) return 'AGUARDANDO';
+  const s = fc.toString();
+  const c = s.match(/ciclo\s*([A-Z0-9]+)/i);
+  const o = s.match(/onda\s*(\d+)/i);
+  const f = s.match(/fase\s*(\d+)/i);
+  if (c && o) return `CICLO ${c[1].toUpperCase()} · ONDA ${o[1]}`;
+  if (o) return `ONDA ${o[1]}`;
+  if (c) return `CICLO ${c[1].toUpperCase()}`;
+  if (f) return `FASE ${f[1]}`;
+  return s.substring(0, 40).toUpperCase();
 }
 
-function statusTarefa(tarefa, heartbeats) {
-  const hb = (heartbeats || []).find(h => h.agente === tarefa.agente);
-  if (!hb) return null;
-  const min = minutosDesde(hb.ultima_atividade);
-  if (min === null) return null;
-  if (min > LIMITE_HEARTBEAT_MIN) return 'sem-sinal';
-  return 'ativo';
+// ── Estado dos agentes ativos (para linhas de operação) ──────
+function opStatus(agent, hbs) {
+  const hb = hbs.find(h => h.agente === agent);
+  if (!hb) return 'active';
+  const m = minSince(hb.ultima_atividade);
+  if (m !== null && m > HB_STALE_MIN) return 'stalled';
+  return 'active';
 }
 
 // ═══════════════════════════════════════════════════════════════
-// RENDER — OPERATIVOS BAR (sprites soldados)
+// RENDER
 // ═══════════════════════════════════════════════════════════════
+function renderEmpty() {
+  return `
+    <div class="empty">
+      <div class="empty-icon" aria-hidden="true">Δ</div>
+      <div class="empty-title">Aguardando missão</div>
+      <p class="empty-desc">Nenhum projeto ativo. Abra o Claude Code e inicie com:</p>
+      <div class="empty-code">d11 + descrição do projeto</div>
+    </div>
+  `;
+}
 
-function renderOperativos(data) {
-  const bar = document.getElementById('operativos-bar');
-  if (!bar) return;
-  const ativos = new Set();
-  if (data) (data.fazendo || []).forEach(t => t.agente && ativos.add(t.agente));
-  const heartbeats = (data && data.heartbeats) || [];
-
-  bar.innerHTML = AGENTS.map(ag => {
-    const status = statusAgente(ag, heartbeats, ativos);
-    const isAct = status === 'ativo';
-    const isSemSinal = status === 'sem-sinal';
-    const nome = ag + (ag === 'SHIELD' ? ' ♀' : '');
-
-    const cw = isAct || isSemSinal ? SP_W : SP_H;
-    const ch = isAct || isSemSinal ? SP_H : SP_W;
-
-    let filt, anim, statusTxt, classe;
-    if (isAct) {
-      filt = 'drop-shadow(0 0 8px rgba(255,50,50,0.9)) drop-shadow(0 0 22px rgba(255,50,50,0.35))';
-      anim = 'animation:soldier-fight 1.1s ease-in-out infinite;';
-      statusTxt = '◉ ATIVO';
-      classe = 'ativo';
-    } else if (isSemSinal) {
-      filt = 'drop-shadow(0 0 6px rgba(255,176,32,0.7)) saturate(0.6) brightness(0.7)';
-      anim = 'opacity:0.85;';
-      statusTxt = '! SEM SINAL';
-      classe = 'sem-sinal';
-    } else {
-      filt = 'saturate(0.12) brightness(0.35)';
-      anim = 'opacity:0.45;';
-      statusTxt = '· rest';
-      classe = '';
-    }
-    const style = `filter:${filt};${anim}`;
-
-    const zzz = (!isAct && !isSemSinal)
-      ? `<div class="zzz-wrap"><span class="zzz">z</span><span class="zzz">z</span><span class="zzz">Z</span></div>`
-      : '';
-
+function renderWaveTrack(waves) {
+  if (!waves) return '';
+  if (!waves.total) {
     return `
-      <div class="operativo ${classe}">
-        <div class="operativo-nome">${nome}</div>
-        <div class="operativo-sprite-wrap">
-          ${zzz}
-          <canvas class="operativo-canvas operativo-sprite"
-            width="${cw}" height="${ch}"
-            data-act="${isAct || isSemSinal ? '1' : '0'}"
-            data-ag="${ag}"
-            style="${style}"
-          ></canvas>
+      <div class="wave-track">
+        <div class="wave-line">
+          <div class="wave-node">
+            <span class="wave-dot" data-state="current"></span>
+            <span class="wave-label" data-state="current">Onda ${esc(waves.curr)}</span>
+          </div>
         </div>
-        <div class="operativo-status">${statusTxt}</div>
-      </div>`;
-  }).join('');
-
-  _startAnim();
-}
-
-// ═══════════════════════════════════════════════════════════════
-// EXTRAÇÃO DE FASE
-// ═══════════════════════════════════════════════════════════════
-
-function extrairFase(faseCompleta) {
-  if (!faseCompleta) return '—';
-  const s = faseCompleta.toString();
-  const ondaMatch = s.match(/onda\s*(\d+)/i);
-  const cicloMatch = s.match(/ciclo\s*([A-Z0-9]+)/i);
-  const faseMatch = s.match(/fase\s*(\d+)/i);
-  if (cicloMatch && ondaMatch) return `Ciclo ${cicloMatch[1]} · Onda ${ondaMatch[1]}`;
-  if (ondaMatch) return `Onda ${ondaMatch[1]}`;
-  if (cicloMatch) return `Ciclo ${cicloMatch[1]}`;
-  if (faseMatch) return `Fase ${faseMatch[1]}`;
-  const ponto = s.indexOf('.');
-  const corte = ponto > 0 && ponto < 50 ? ponto : 50;
-  return s.substring(0, corte).trim();
-}
-
-function escapar(str) {
-  if (str === null || str === undefined) return '';
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-// ═══════════════════════════════════════════════════════════════
-// RENDER PRINCIPAL
-// ═══════════════════════════════════════════════════════════════
-
-function renderPainel(data) {
-  renderOperativos(data);
-
-  if (!data || !data.projeto) {
-    document.getElementById('painel-coluna').innerHTML = `
-      <div class="empty-state">
-        <div class="empty-delta">Δ</div>
-        <div class="empty-title">Aguardando missão</div>
-        <div class="empty-desc">Nenhum projeto ativo. Abra o Claude Code e inicie com:</div>
-        <div class="empty-code">d11 + descrição do projeto</div>
       </div>
     `;
+  }
+  let nodes = '';
+  for (let i = 1; i <= waves.total; i++) {
+    let state = '';
+    if (i < waves.curr) state = 'done';
+    else if (i === waves.curr) state = 'current';
+    const lbl = state === 'done' ? 'concluída'
+              : state === 'current' ? 'em execução'
+              : 'pendente';
+    nodes += `
+      <div class="wave-node">
+        <span class="wave-dot" data-state="${state}" aria-hidden="true"></span>
+        <span class="wave-label" data-state="${state}">Onda ${i} · ${lbl}</span>
+      </div>
+    `;
+    if (i < waves.total) {
+      const cs = i < waves.curr ? 'done' : '';
+      nodes += `<span class="wave-connector" data-state="${cs}" aria-hidden="true"></span>`;
+    }
+  }
+  return `
+    <div class="wave-track" role="progressbar" aria-valuenow="${waves.curr}" aria-valuemin="1" aria-valuemax="${waves.total}">
+      <div class="wave-line">${nodes}</div>
+    </div>
+  `;
+}
+
+function renderOpLine(t, hbs, forcedState) {
+  const agent = t.agente || t.por || '?';
+  const role = AGENT_ROLES[agent] || '';
+  const state = forcedState || opStatus(agent, hbs);
+  const hb = hbs.find(h => h.agente === agent);
+  const tempo = tempoRel(hb ? hb.ultima_atividade : t.inicio) || '—';
+  const acao = traduzir(t);
+  const motivo = t.motivo ? `<div class="op-blocked-reason">⚠ ${esc(t.motivo)}</div>` : '';
+
+  return `
+    <div class="op-line" data-state="${state}">
+      <div class="op-agent">
+        <span class="op-marker" aria-hidden="true"></span>
+        ${esc(agent)}
+      </div>
+      <div class="op-action">
+        ${esc(acao)}
+        <span class="sr-only"> — ${esc(role)}</span>
+      </div>
+      <div class="op-time">${esc(tempo)}</div>
+      ${motivo}
+    </div>
+  `;
+}
+
+function renderMain(data) {
+  const main = document.getElementById('main');
+
+  if (!data || !data.projeto) {
+    main.innerHTML = renderEmpty();
     return;
   }
 
-  const selo = calcularSelo(data);
-  const progresso = calcularProgresso(data);
-  const heartbeats = data.heartbeats || [];
-  const mensagemCronos = data.mensagem_cronos;
-  const fazendo = data.fazendo || [];
-  const revisao = data.revisao || [];
-  const bloqueado = data.bloqueado || [];
-  const concluido = data.concluido || [];
+  const verdict = verdictOf(data);
+  const progress = progressOf(data);
+  const waves = wavesOf(data);
+  const cronos = data.mensagem_cronos;
+  const doing = data.fazendo || [];
+  const rev = data.revisao || [];
+  const blocked = data.bloqueado || [];
+  const done = data.concluido || [];
+  const hbs = data.heartbeats || [];
 
-  // ─── Header data ───
-  document.getElementById('st-projeto').textContent = data.projeto || '—';
-  document.getElementById('st-fase').textContent = extrairFase(data.fase_atual);
-
-  // Última atividade — pega o heartbeat mais recente
-  let ultimaAtividade = null;
-  heartbeats.forEach(h => {
-    const d = parseTimestamp(h.ultima_atividade);
-    if (d && (!ultimaAtividade || d > ultimaAtividade)) ultimaAtividade = d;
-  });
-  if (!ultimaAtividade && mensagemCronos) {
-    ultimaAtividade = parseTimestamp(mensagemCronos.timestamp);
-  }
-  document.getElementById('st-update').textContent = ultimaAtividade
-    ? tempoRelativo(ultimaAtividade.toISOString())
-    : '—';
-
-  // Selo binário
-  document.getElementById('st-selo-wrap').innerHTML = `
-    <div class="selo ${selo.estado}">
-      <span class="selo-icone">${selo.icone}</span>
-      ${selo.texto}
-    </div>
-  `;
-
-  // Progresso
-  document.getElementById('progress-fill').style.width = progresso.pct + '%';
-  document.getElementById('progress-percent').textContent = progresso.pct + '%';
-  document.getElementById('progress-text').textContent =
-    `${progresso.concluidas} de ${progresso.total} tarefas concluídas${progresso.fazendo > 0 ? ' · ' + progresso.fazendo + ' em execução' : ''}${progresso.revisao > 0 ? ' · ' + progresso.revisao + ' em revisão' : ''}${progresso.pendentes > 0 ? ' · ' + progresso.pendentes + ' pendentes' : ''}`;
-
-  // ─── Coluna principal ───
   let html = '';
 
-  // Voz do CRONOS
-  if (mensagemCronos && mensagemCronos.texto) {
-    html += `
-      <div class="voz-cronos">
-        <div class="voz-cronos-texto">${escapar(mensagemCronos.texto)}</div>
-        <div class="voz-cronos-assinatura">CRONOS · ${tempoRelativo(mensagemCronos.timestamp) || 'sem carimbo'}</div>
-      </div>
-    `;
-  } else {
-    html += `
-      <div class="voz-cronos vazio">
-        <div class="voz-cronos-texto">Sem transmissão recente do CRONOS.</div>
-      </div>
-    `;
-  }
-
-  // Convocação (só quando precisa)
-  if (mensagemCronos && mensagemCronos.precisa_comandante) {
-    html += `
-      <div class="convocacao">
-        <div class="convocacao-texto">${escapar(mensagemCronos.precisa_comandante)}</div>
-      </div>
-    `;
-  }
-
-  // ─── Bloqueado (emergência — se existir, mostra primeiro) ───
-  if (bloqueado.length > 0) {
-    html += `
-      <div class="secao-titulo">
-        <span class="live-dot" style="background:var(--bloqueado);box-shadow:0 0 8px var(--bloqueado)"></span>
-        Travados
-        <span class="secao-count">${bloqueado.length}</span>
-      </div>
-      <div class="tarefas">
-        ${bloqueado.map(t => renderTarefaCard(t, heartbeats, 'bloqueado')).join('')}
-      </div>
-    `;
-  }
-
-  // ─── Acontecendo agora ───
+  // Projeto + Selo unificados (ponto focal do topo)
   html += `
-    <div class="secao-titulo">
-      <span class="live-dot"></span>
-      Acontecendo agora
-      <span class="secao-count">${fazendo.length}</span>
-    </div>
+    <section class="project" aria-label="Projeto ativo">
+      <div class="project-tag">${esc(faseTag(data.fase_atual))}</div>
+      <h1 class="project-name">${esc(data.projeto)}</h1>
+    </section>
+
+    <section class="verdict" aria-label="Estado da missão">
+      <div class="verdict-badge" data-state="${verdict.state}" role="status" aria-live="polite">
+        <span class="verdict-icon" aria-hidden="true">${verdict.icon}</span>
+        ${esc(verdict.text)}
+      </div>
+      <p class="verdict-line">${esc(verdict.line)}</p>
+    </section>
   `;
-  if (fazendo.length === 0) {
-    html += `<div class="vazio-msg">Nenhuma tarefa em execução no momento.</div>`;
+
+  // Convocação — só quando o CRONOS marca precisa_comandante explícito
+  if (cronos && cronos.precisa_comandante && verdict.state !== 'danger') {
+    html += `
+      <section class="summon" role="alert">
+        <div class="summon-label">
+          <span aria-hidden="true">⚠</span>
+          Precisa de você
+        </div>
+        <p class="summon-text">${esc(cronos.precisa_comandante)}</p>
+      </section>
+    `;
+  }
+
+  // Transmissão do CRONOS
+  if (cronos && cronos.texto) {
+    html += `
+      <section class="transmission" aria-labelledby="tr-lbl">
+        <span id="tr-lbl" class="transmission-label">CRONOS · Transmissão</span>
+        <p class="transmission-text">${esc(cronos.texto)}</p>
+        <div class="transmission-sign">${esc(tempoRel(cronos.timestamp) || 'sem carimbo')}</div>
+      </section>
+    `;
   } else {
-    html += `<div class="tarefas">${fazendo.map(t => renderTarefaCard(t, heartbeats, 'fazendo')).join('')}</div>`;
-  }
-
-  // ─── Revisão ───
-  if (revisao.length > 0) {
     html += `
-      <div class="secao-titulo">
-        <span class="live-dot" style="background:var(--revisao);box-shadow:0 0 8px var(--revisao)"></span>
-        Em revisão do SHIELD
-        <span class="secao-count">${revisao.length}</span>
-      </div>
-      <div class="tarefas">
-        ${revisao.map(t => renderTarefaCard(t, heartbeats, 'revisao')).join('')}
-      </div>
+      <section class="transmission" data-state="empty">
+        <span class="transmission-label">CRONOS · Transmissão</span>
+        <p class="transmission-text">Sem transmissão recente.</p>
+      </section>
     `;
   }
 
-  // ─── Histórico recente + colapsável ───
-  if (concluido.length > 0) {
-    const recente = concluido.slice(-HISTORICO_RECENTE_TAM).reverse();
-    const antigo = concluido.slice(0, -HISTORICO_RECENTE_TAM).reverse();
-    html += `
-      <div class="secao-titulo">
-        <span class="live-dot" style="background:var(--concluido);box-shadow:0 0 8px var(--concluido)"></span>
-        Aconteceu há pouco
-        <span class="secao-count">${concluido.length}</span>
+  // Missão atual (progresso + agentes em ação unificados)
+  html += `
+    <section class="mission" aria-labelledby="mis-lbl">
+      <div class="section-header">
+        <span class="section-arrow" aria-hidden="true">▸</span>
+        <span id="mis-lbl" class="section-title">Missão atual</span>
+        <span class="section-meta">${progress.done}/${progress.total} · ${progress.pct}%</span>
       </div>
+      ${renderWaveTrack(waves)}
+      <div class="ops" role="list">
+  `;
+
+  // Bloqueados vêm primeiro dentro da missão
+  blocked.forEach(t => { html += renderOpLine(t, hbs, 'blocked'); });
+
+  if (doing.length === 0 && blocked.length === 0) {
+    html += `<div class="ops-empty">Nenhum agente em ação no momento.</div>`;
+  } else {
+    doing.forEach(t => { html += renderOpLine(t, hbs); });
+  }
+
+  html += `</div>`;
+
+  // Em revisão (se houver, aparece como sub-seção discreta)
+  if (rev.length > 0) {
+    html += `
+      <div class="section-header" style="margin-top:var(--s-6)">
+        <span class="section-arrow" aria-hidden="true">▸</span>
+        <span class="section-title">Em revisão do SHIELD</span>
+        <span class="section-meta">${rev.length}</span>
+      </div>
+      <div class="ops" role="list">
     `;
-    recente.forEach(t => {
-      html += `
-        <div class="historico-item">
-          <span class="check">✓</span>
-          <span>${escapar(traduzirParaHumano(t))}</span>
-          <span class="meta">${escapar(t.por || '')}${t.data ? ' · ' + escapar(t.data) : ''}</span>
-        </div>
-      `;
-    });
-    if (antigo.length > 0) {
-      html += `
-        <div class="historico-toggle" onclick="toggleHistorico(this)">
-          ↓ Ver histórico completo (${antigo.length} outras tarefas)
-        </div>
-        <div class="historico-lista-completa">
-          ${antigo.map(t => `
-            <div class="historico-item">
-              <span class="check">✓</span>
-              <span>${escapar(traduzirParaHumano(t))}</span>
-              <span class="meta">${escapar(t.por || '')}${t.data ? ' · ' + escapar(t.data) : ''}</span>
+    rev.forEach(t => { html += renderOpLine(t, hbs, 'review'); });
+    html += `</div>`;
+  }
+
+  html += `</section>`;
+
+  // Histórico
+  if (done.length > 0) {
+    html += `
+      <section class="history-block">
+        <button class="history-toggle" type="button" aria-expanded="false" aria-controls="hist-content" onclick="toggleHistory(this)">
+          <span>Histórico · <span class="count">${done.length} tarefas prontas</span></span>
+          <span class="chevron" aria-hidden="true">▾</span>
+        </button>
+        <div id="hist-content" class="history-content">
+          ${done.slice().reverse().map(t => `
+            <div class="history-item">
+              <span class="check" aria-hidden="true">✓</span>
+              <span>${esc(traduzir(t))}</span>
+              <span class="who">${esc(t.por || '')}${t.data ? ' · ' + esc(t.data) : ''}</span>
             </div>
           `).join('')}
         </div>
-      `;
-    }
+      </section>
+    `;
   }
 
-  document.getElementById('painel-coluna').innerHTML = html;
-}
-
-function renderTarefaCard(t, heartbeats, tipo) {
-  const stTarefa = statusTarefa(t, heartbeats);
-  const semSinal = stTarefa === 'sem-sinal';
-  const agente = t.agente || t.por || '?';
-  const humano = traduzirParaHumano(t);
-  const hb = heartbeats.find(h => h.agente === agente);
-  const tempoIso = hb ? hb.ultima_atividade : t.inicio;
-  const tempo = tempoRelativo(tempoIso);
-  const min = minutosDesde(tempoIso);
-  const tempoClasse = (min !== null && min > LIMITE_HEARTBEAT_MIN) ? 'velho' : '';
-  const motivoHtml = t.motivo ? `<div class="tarefa-motivo">⚠ ${escapar(t.motivo)}</div>` : '';
-
-  const classes = ['tarefa-card'];
-  if (semSinal && tipo === 'fazendo') classes.push('sem-sinal');
-  if (tipo === 'revisao') classes.push('revisao');
-  if (tipo === 'concluido') classes.push('concluido');
-  if (tipo === 'bloqueado') classes.push('bloqueado');
-
-  return `
-    <div class="${classes.join(' ')}">
-      <div class="tarefa-topo">
-        <span class="tarefa-agente">${escapar(agente)}</span>
-        <span class="tarefa-agente-humano">· ${AGENT_NAMES[agente] || ''}</span>
-        <span class="tarefa-id">${escapar(t.id || '')}</span>
+  // Modo engenheiro
+  html += `
+    <section class="engineer">
+      <button class="engineer-toggle" type="button" aria-expanded="false" aria-controls="eng-content" onclick="toggleEngineer(this)">
+        · modo engenheiro ·
+      </button>
+      <div id="eng-content" class="engineer-content">
+        <div class="engineer-title">
+          <span>Dados brutos</span>
+          <span>kanban-data.js</span>
+        </div>
+        ${renderEngineerRaw(data)}
       </div>
-      <div class="tarefa-desc">${escapar(humano)}</div>
-      <div class="tarefa-meta">
-        <span class="tarefa-tempo ${tempoClasse}">${tempo || 'sem tempo'}${semSinal ? ' · SEM SINAL' : ''}</span>
-        ${t.revisor ? `<span>· revisor: ${escapar(t.revisor)}</span>` : ''}
-      </div>
-      ${motivoHtml}
-    </div>
+    </section>
   `;
+
+  main.innerHTML = html;
 }
 
-function toggleHistorico(el) {
-  const lista = el.nextElementSibling;
-  if (!lista) return;
-  const aberto = lista.classList.toggle('aberto');
-  if (aberto) {
-    el.innerHTML = '↑ Fechar histórico';
-  } else {
-    const total = lista.querySelectorAll('.historico-item').length;
-    el.innerHTML = `↓ Ver histórico completo (${total} outras tarefas)`;
+function renderEngineerRaw(data) {
+  let html = '';
+  ['projeto','complexidade','fase_atual','ultima_atualizacao','agente_atualizador'].forEach(k => {
+    if (data[k]) {
+      html += `<div class="engineer-row"><span class="key">${esc(k)}:</span> <span class="val">${esc(data[k])}</span></div>`;
+    }
+  });
+  const doing = data.fazendo || [];
+  if (doing.length > 0) {
+    html += `<div class="engineer-row" style="margin-top:8px"><span class="key">FAZENDO (${doing.length}):</span></div>`;
+    doing.forEach(t => {
+      html += `<div class="engineer-row" style="padding-left:12px">${esc(t.id || '?')} · ${esc(t.agente || '?')} · ${esc((t.desc || '').substring(0,120))}</div>`;
+    });
   }
+  const hbs = data.heartbeats || [];
+  if (hbs.length > 0) {
+    html += `<div class="engineer-row" style="margin-top:8px"><span class="key">HEARTBEATS:</span></div>`;
+    hbs.forEach(h => {
+      html += `<div class="engineer-row" style="padding-left:12px">${esc(h.agente)} · ${esc(h.ultima_atividade)} · ${esc(h.tarefa_atual || '')}</div>`;
+    });
+  }
+  return html;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// REFRESH + INIT
-// ═══════════════════════════════════════════════════════════════
+function toggleHistory(btn) {
+  const c = document.getElementById('hist-content');
+  if (!c) return;
+  const open = c.dataset.open !== '1';
+  c.dataset.open = open ? '1' : '0';
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+function toggleEngineer(btn) {
+  const c = document.getElementById('eng-content');
+  if (!c) return;
+  const open = c.dataset.open !== '1';
+  c.dataset.open = open ? '1' : '0';
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
 
+// ── Pulso ────────────────────────────────────────────────────
+let lastRefresh = Date.now();
+function updatePulse() {
+  const s = Math.floor((Date.now() - lastRefresh) / 1000);
+  const txt = s < 5 ? 'sincronizado agora'
+            : s < 60 ? `sincronizado há ${s}s`
+            : `sincronizado há ${Math.floor(s/60)}min`;
+  const el = document.getElementById('pulso-text');
+  const wrap = document.getElementById('pulso');
+  if (el) el.textContent = txt;
+  if (wrap) wrap.dataset.old = s > PULSE_STALE_S ? '1' : '0';
+}
+
+// ── Refresh loop ─────────────────────────────────────────────
 let lastHash = '';
-function hashData(d) { try { return JSON.stringify(d); } catch { return String(Date.now()); } }
-
-function refreshData() {
-  const oldScripts = document.querySelectorAll('script[src^="kanban-data.js"]');
-  oldScripts.forEach(s => s.remove());
+function hash(d) { try { return JSON.stringify(d); } catch { return String(Date.now()); } }
+function reload() {
+  document.querySelectorAll('script[src^="kanban-data.js"]').forEach(s => s.remove());
   const s = document.createElement('script');
   s.src = 'kanban-data.js?t=' + Date.now();
   s.onload = () => {
-    const h = hashData(window.KANBAN_DATA);
+    const h = hash(window.KANBAN_DATA);
     if (h !== lastHash) {
       lastHash = h;
-      renderPainel(window.KANBAN_DATA);
+      renderMain(window.KANBAN_DATA);
     }
+    lastRefresh = Date.now();
+    updatePulse();
   };
   document.head.appendChild(s);
 }
 
 if (window.KANBAN_DATA) {
-  lastHash = hashData(window.KANBAN_DATA);
-  renderPainel(window.KANBAN_DATA);
+  lastHash = hash(window.KANBAN_DATA);
+  renderMain(window.KANBAN_DATA);
 } else {
-  renderOperativos(null);
-  renderPainel(null);
+  renderMain(null);
 }
 
-// Auto-refresh a cada 5s (mudanças nos dados)
-setInterval(refreshData, REFRESH_MS);
-
-// Re-render a cada 30s (atualiza tempos relativos)
-setInterval(() => {
-  if (window.KANBAN_DATA) renderPainel(window.KANBAN_DATA);
-}, 30000);
+setInterval(reload, REFRESH_MS);
+setInterval(updatePulse, 1000);
+setInterval(() => { if (window.KANBAN_DATA) renderMain(window.KANBAN_DATA); }, 30000);
 </script>
 </body>
 </html>
