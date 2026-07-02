@@ -7,98 +7,106 @@
 <meta name="theme-color" content="#080808">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════════════════════════
-   PAINEL v6 · SALA DE OPERAÇÕES · Formação Δ-11
-   Visão de produto do zero. Comando sem decifração.
-   Steve Jobs + Analista dos 3 Vetores + preservações Δ-11.
+   PAINEL v7 · SALA DE OPERAÇÕES · Formação Δ-11
+   Fontes masculinas + paleta radar sem amarelo
+   7 camadas aplicadas como bagagem sênior
    ═══════════════════════════════════════════════════════════════ */
 
-/* ─── TOKENS ────────────────────────────────────────────────── */
 :root {
-  /* Superfícies (paleta preta Δ-11 preservada) */
-  --surface-0: #050505;      /* void */
-  --surface-1: #0a0a0a;      /* base */
-  --surface-2: #101010;      /* elevated */
-  --surface-3: #161616;      /* card */
-  --surface-4: #1c1815;      /* card-hover (whisper red) */
+  /* ─── SUPERFÍCIES (paleta Δ-11 preservada) ─── */
+  --surface-0: #050505;
+  --surface-1: #0a0a0a;
+  --surface-2: #101010;
+  --surface-3: #161616;
+  --surface-4: #1c1815;
 
-  /* Bordas */
   --line-1: rgba(255,255,255,0.06);
   --line-2: rgba(255,255,255,0.10);
   --line-3: rgba(255,255,255,0.16);
-  --line-brand: rgba(255,32,32,0.4);
 
-  /* Δ-11 vermelho (preservado + escala) */
+  /* ─── Δ-11 VERMELHO (preservado) ─── */
   --brand: #ff2020;
   --brand-strong: #ff3535;
   --brand-glow: rgba(255,32,32,0.55);
   --brand-glow-soft: rgba(255,32,32,0.12);
   --brand-wash: rgba(255,32,32,0.04);
 
-  /* Estados semânticos (contraste AA verificado em fundo #0a0a0a) */
-  --calm: #5ce68a;           /* 12.8:1 */
+  /* ─── SEMÂNTICA (sem amarelo, radar-style) ─── */
+  --calm: #5ce68a;                        /* verde Δ-11 v4 preservado */
   --calm-soft: rgba(92,230,138,0.08);
   --calm-line: rgba(92,230,138,0.22);
-  --alert: #ffb020;          /* 10.4:1 */
-  --alert-soft: rgba(255,176,32,0.08);
-  --alert-line: rgba(255,176,32,0.35);
-  --danger: #ff2020;
+
+  --alert: #4ac4ff;                       /* cyan radar/sonar militar */
+  --alert-soft: rgba(74,196,255,0.08);
+  --alert-line: rgba(74,196,255,0.35);
+  --alert-glow: rgba(74,196,255,0.55);
+
+  --danger: #ff2020;                      /* vermelho Δ-11 */
   --danger-soft: rgba(255,32,32,0.08);
 
-  /* Texto (contraste testado) */
-  --ink-100: #f5f5f5;        /* 18.7:1 */
-  --ink-80: #d4d4d4;         /* 13:1 */
-  --ink-60: #a0a0a0;         /* 7.3:1 */
-  --ink-40: #6b6b6b;         /* 4.5:1 · limite WCAG AA */
-  --ink-20: #3a3a3a;         /* decorativo apenas */
+  /* ─── TEXTO (contraste AA verificado em #0a0a0a) ─── */
+  --ink-100: #f5f5f5;                     /* 18.7:1 */
+  --ink-80: #d4d4d4;                      /* 13:1 */
+  --ink-60: #a0a0a0;                      /* 7.3:1 */
+  --ink-40: #6b6b6b;                      /* 4.5:1 limite AA */
+  --ink-20: #3a3a3a;                      /* decorativo */
 
-  /* Tipografia — escala 1.250 Major Third */
-  --font-body: 'Outfit', system-ui, -apple-system, sans-serif;
+  /* ─── TIPOGRAFIA ─── */
+  --font-display: 'Bebas Neue', 'Impact', sans-serif;
+  --font-body: 'Chakra Petch', 'Rajdhani', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
-  --t-2xs: 0.6875rem;   /* 11px · micro */
-  --t-xs: 0.75rem;      /* 12px · meta */
-  --t-sm: 0.875rem;     /* 14px · aux */
-  --t-md: 1rem;         /* 16px · body */
-  --t-lg: 1.25rem;      /* 20px · destaque */
-  --t-xl: 1.5625rem;    /* 25px · voz do CRONOS */
-  --t-2xl: 1.953rem;    /* 31px · projeto */
-  --t-hero: 3.5rem;     /* 56px · selo binário */
+  /* Escala 1.250 Major Third */
+  --t-2xs: 0.6875rem;   /* 11px */
+  --t-xs: 0.75rem;      /* 12px */
+  --t-sm: 0.875rem;     /* 14px */
+  --t-md: 1rem;         /* 16px */
+  --t-lg: 1.25rem;      /* 20px */
+  --t-xl: 1.5625rem;    /* 25px */
+  --t-2xl: 1.953rem;    /* 31px */
+  --t-3xl: 2.441rem;    /* 39px */
+  --t-hero: 4.25rem;    /* 68px · display cinema */
 
-  /* Espaçamento — múltiplos de 4 */
+  /* Letter spacing por família (Chakra Petch tem tracking natural) */
+  --ls-display: 0.02em;
+  --ls-body: -0.005em;
+  --ls-mono: 0.15em;
+  --ls-mono-wide: 0.28em;
+  --ls-military: 0.35em;
+
+  /* ─── ESPAÇAMENTO ─── */
   --s-1: 4px;  --s-2: 8px;   --s-3: 12px;  --s-4: 16px;
   --s-5: 20px; --s-6: 24px;  --s-8: 32px;  --s-10: 40px;
   --s-12: 48px; --s-16: 64px; --s-20: 80px; --s-24: 96px;
 
-  /* Raios */
-  --r-sm: 4px;
-  --r-md: 8px;
-  --r-lg: 14px;
-  --r-xl: 20px;
+  /* ─── RAIOS (mínimos — cantos militares) ─── */
+  --r-sm: 2px;
+  --r-md: 4px;
+  --r-lg: 6px;
   --r-full: 999px;
 
-  /* Timing */
+  /* ─── TIMING ─── */
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --ease-both: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-military: cubic-bezier(0.16, 1, 0.3, 1);
   --d-fast: 150ms;
   --d-base: 250ms;
   --d-slow: 400ms;
 
-  /* Sombras / glows */
+  /* ─── GLOWS ─── */
   --glow-brand: 0 0 24px var(--brand-glow-soft);
-  --glow-alert: 0 0 24px rgba(255,176,32,0.15);
-  --shadow-lift: 0 8px 32px rgba(0,0,0,0.5);
+  --glow-alert: 0 0 24px rgba(74,196,255,0.15);
 
-  /* Layout */
-  --container: 720px;
+  /* ─── LAYOUT ─── */
+  --container: 780px;
 }
 
-/* ─── RESET ─────────────────────────────────────────────────── */
+/* ─── RESET ─── */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
 html { scroll-behavior: smooth; }
 
 body {
@@ -112,22 +120,23 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  letter-spacing: var(--ls-body);
 }
 
-/* Fundo bg-delta11.png preservado, mas rebaixado — não compete mais com conteúdo */
+/* Fundo bg-delta11.png preservado, rebaixado */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(circle at 50% 20%, rgba(255,32,32,0.03), transparent 60%),
+    radial-gradient(ellipse at 50% 15%, rgba(255,32,32,0.045), transparent 55%),
     linear-gradient(180deg, rgba(5,5,5,0.94), rgba(5,5,5,0.98)),
     url('bg-delta11.png') center center / cover no-repeat;
   pointer-events: none;
   z-index: 0;
 }
 
-/* Grid militar sutil — quase invisível */
+/* Grid militar sutil */
 body::after {
   content: '';
   position: fixed;
@@ -140,7 +149,7 @@ body::after {
   z-index: 0;
 }
 
-/* ─── SKIP LINK ─────────────────────────────────────────────── */
+/* Skip-link */
 .skip {
   position: absolute;
   top: -100px;
@@ -152,18 +161,17 @@ body::after {
   font-family: var(--font-mono);
   font-size: var(--t-xs);
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: var(--ls-mono);
   text-transform: uppercase;
   text-decoration: none;
-  border-radius: var(--r-sm);
-  transition: top var(--d-base) var(--ease-out);
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  transition: top var(--d-base) var(--ease-military);
 }
 .skip:focus { top: var(--s-4); }
 
 :focus-visible {
   outline: 2px solid var(--brand-strong);
   outline-offset: 3px;
-  border-radius: var(--r-sm);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -176,16 +184,20 @@ body::after {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   CABEÇALHO — mínimo. Logo + identificação. Sem selo aqui.
+   CABEÇALHO — mínimo, militar
    ═══════════════════════════════════════════════════════════════ */
 .top {
   position: relative;
   z-index: 2;
-  padding: var(--s-6) var(--s-8);
+  padding: var(--s-5) var(--s-8);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--s-6);
+  border-bottom: 1px solid var(--line-1);
+  background: linear-gradient(180deg, rgba(8,8,8,0.85), rgba(8,8,8,0.6));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .brand {
@@ -194,21 +206,26 @@ body::after {
   gap: var(--s-3);
   font-family: var(--font-mono);
   font-size: var(--t-2xs);
-  letter-spacing: 0.2em;
+  font-weight: 600;
+  letter-spacing: var(--ls-military);
   text-transform: uppercase;
   color: var(--ink-40);
 }
 .brand-mark {
-  font-family: var(--font-body);
-  font-size: 1.375rem;
-  font-weight: 900;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 400;
   color: var(--brand);
   text-shadow: 0 0 18px var(--brand-glow-soft);
-  line-height: 1;
-  letter-spacing: -0.02em;
+  line-height: 0.9;
+  letter-spacing: 0.02em;
 }
 .brand-mark .num { color: var(--ink-80); }
-.brand-divider { width: 1px; height: 20px; background: var(--line-2); }
+.brand-divider {
+  width: 1px;
+  height: 22px;
+  background: linear-gradient(180deg, transparent, var(--line-3), transparent);
+}
 
 .pulso {
   display: inline-flex;
@@ -217,7 +234,7 @@ body::after {
   font-family: var(--font-mono);
   font-size: var(--t-2xs);
   font-weight: 500;
-  letter-spacing: 0.15em;
+  letter-spacing: var(--ls-mono);
   color: var(--ink-40);
   text-transform: uppercase;
 }
@@ -231,7 +248,7 @@ body::after {
 }
 .pulso[data-old="1"] .pulso-dot {
   background: var(--alert);
-  box-shadow: 0 0 8px rgba(255,176,32,0.6);
+  box-shadow: 0 0 8px var(--alert-glow);
 }
 @keyframes dot-pulse {
   0%, 100% { opacity: 1; }
@@ -239,7 +256,7 @@ body::after {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   CONTAINER PRINCIPAL — uma coluna centralizada, respirando
+   MAIN
    ═══════════════════════════════════════════════════════════════ */
 .main {
   position: relative;
@@ -249,139 +266,174 @@ body::after {
   padding: var(--s-10) var(--s-6) var(--s-24);
 }
 
-/* ─── BLOCO 1 · IDENTIFICAÇÃO DO PROJETO (discreta) ─────────── */
+/* ═══════════════════════════════════════════════════════════════
+   BLOCO 1 · PROJETO (identificação editorial)
+   ═══════════════════════════════════════════════════════════════ */
 .project {
   text-align: center;
-  margin-bottom: var(--s-10);
+  margin-bottom: var(--s-8);
+  animation: rise 500ms var(--ease-military) both;
 }
 .project-tag {
   font-family: var(--font-mono);
   font-size: var(--t-xs);
   font-weight: 600;
-  letter-spacing: 0.28em;
+  letter-spacing: var(--ls-military);
   text-transform: uppercase;
   color: var(--brand);
   text-shadow: 0 0 12px var(--brand-glow-soft);
-  margin-bottom: var(--s-3);
-}
-.project-name {
-  font-family: var(--font-body);
-  font-size: var(--t-2xl);
-  font-weight: 300;
-  color: var(--ink-100);
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-}
-
-/* ─── BLOCO 2 · SELO BINÁRIO — o momento de arrepio ─────────── */
-.verdict {
-  margin-bottom: var(--s-12);
-  text-align: center;
-  animation: rise 600ms var(--ease-out) both;
-}
-
-.verdict-badge {
+  margin-bottom: var(--s-4);
   display: inline-flex;
   align-items: center;
-  gap: var(--s-4);
-  padding: var(--s-4) var(--s-8);
-  border-radius: var(--r-full);
-  border: 1.5px solid;
-  font-family: var(--font-mono);
-  font-size: var(--t-md);
-  font-weight: 700;
-  letter-spacing: 0.32em;
+  gap: var(--s-3);
+}
+.project-tag::before,
+.project-tag::after {
+  content: '';
+  display: inline-block;
+  width: 24px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--brand), transparent);
+}
+.project-name {
+  font-family: var(--font-display);
+  font-size: var(--t-hero);
+  font-weight: 400;
+  color: var(--ink-100);
+  line-height: 0.95;
+  letter-spacing: var(--ls-display);
   text-transform: uppercase;
-  transition: all var(--d-base) var(--ease-both);
-  margin-bottom: var(--s-5);
 }
-.verdict-badge[data-state="calm"] {
-  background: var(--calm-soft);
+
+/* ═══════════════════════════════════════════════════════════════
+   BLOCO 2 · SELO BINÁRIO (o momento de arrepio)
+   Card com cantos cortados militares — feel painel F1/aviação
+   ═══════════════════════════════════════════════════════════════ */
+.verdict {
+  margin-bottom: var(--s-10);
+  animation: rise 500ms var(--ease-military) 100ms both;
+}
+
+.verdict-card {
+  position: relative;
+  padding: var(--s-6) var(--s-8);
+  background: linear-gradient(180deg, rgba(20,20,20,0.75), rgba(14,14,14,0.75));
+  border: 1.5px solid;
+  clip-path: polygon(
+    0 0, calc(100% - 16px) 0, 100% 16px,
+    100% 100%, 16px 100%, 0 calc(100% - 16px)
+  );
+  transition: all var(--d-base) var(--ease-military);
+}
+.verdict-card[data-state="calm"] {
   border-color: var(--calm-line);
-  color: var(--calm);
-  text-shadow: 0 0 16px rgba(92,230,138,0.6);
+  background:
+    linear-gradient(180deg, rgba(92,230,138,0.04), rgba(92,230,138,0.02)),
+    linear-gradient(180deg, rgba(20,20,20,0.75), rgba(14,14,14,0.75));
 }
-.verdict-badge[data-state="alert"] {
-  background: var(--alert-soft);
+.verdict-card[data-state="alert"] {
   border-color: var(--alert-line);
-  color: var(--alert);
-  text-shadow: 0 0 16px rgba(255,176,32,0.7);
+  background:
+    linear-gradient(180deg, rgba(74,196,255,0.05), rgba(74,196,255,0.02)),
+    linear-gradient(180deg, rgba(20,20,20,0.75), rgba(14,14,14,0.75));
   animation: alert-breath 2.6s ease-in-out infinite;
 }
-.verdict-badge[data-state="danger"] {
-  background: var(--danger-soft);
-  border-color: var(--brand);
-  color: var(--brand);
-  text-shadow: 0 0 20px var(--brand-glow);
+.verdict-card[data-state="danger"] {
+  border-color: rgba(255,32,32,0.6);
+  background:
+    linear-gradient(180deg, rgba(255,32,32,0.05), rgba(255,32,32,0.02)),
+    linear-gradient(180deg, rgba(20,20,20,0.75), rgba(14,14,14,0.75));
   animation: danger-breath 1.4s ease-in-out infinite;
 }
-.verdict-icon {
-  font-size: 1.4em;
-  line-height: 1;
-  letter-spacing: 0;
-}
 @keyframes alert-breath {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255,176,32,0.28); }
-  50% { box-shadow: 0 0 40px 0 rgba(255,176,32,0.2); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74,196,255,0.28); }
+  50% { box-shadow: 0 0 40px 0 rgba(74,196,255,0.2); }
 }
 @keyframes danger-breath {
   0%, 100% { box-shadow: 0 0 0 0 rgba(255,32,32,0.4); }
-  50% { box-shadow: 0 0 48px 0 rgba(255,32,32,0.3); }
+  50% { box-shadow: 0 0 48px 0 rgba(255,32,32,0.28); }
+}
+
+.verdict-top {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  margin-bottom: var(--s-4);
+}
+.verdict-icon-box {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+  border: 1.5px solid;
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+  flex-shrink: 0;
+}
+.verdict-card[data-state="calm"] .verdict-icon-box {
+  color: var(--calm);
+  border-color: var(--calm-line);
+  background: var(--calm-soft);
+  text-shadow: 0 0 12px rgba(92,230,138,0.6);
+}
+.verdict-card[data-state="alert"] .verdict-icon-box {
+  color: var(--alert);
+  border-color: var(--alert-line);
+  background: var(--alert-soft);
+  text-shadow: 0 0 12px var(--alert-glow);
+}
+.verdict-card[data-state="danger"] .verdict-icon-box {
+  color: var(--danger);
+  border-color: rgba(255,32,32,0.6);
+  background: var(--danger-soft);
+  text-shadow: 0 0 14px var(--brand-glow);
+}
+
+.verdict-label {
+  font-family: var(--font-body);
+  font-size: var(--t-lg);
+  font-weight: 700;
+  letter-spacing: var(--ls-military);
+  text-transform: uppercase;
+  line-height: 1;
+}
+.verdict-card[data-state="calm"] .verdict-label {
+  color: var(--calm);
+  text-shadow: 0 0 14px rgba(92,230,138,0.5);
+}
+.verdict-card[data-state="alert"] .verdict-label {
+  color: var(--alert);
+  text-shadow: 0 0 14px var(--alert-glow);
+}
+.verdict-card[data-state="danger"] .verdict-label {
+  color: var(--danger);
+  text-shadow: 0 0 16px var(--brand-glow);
 }
 
 .verdict-line {
   font-family: var(--font-body);
   font-size: var(--t-lg);
-  font-weight: 300;
+  font-weight: 400;
   color: var(--ink-80);
-  line-height: 1.4;
-  max-width: 480px;
-  margin: 0 auto;
-  letter-spacing: -0.005em;
+  line-height: 1.45;
+  padding-left: calc(44px + var(--s-4));
 }
 
-/* ─── BLOCO 3 · CONVOCAÇÃO — só quando existe ───────────────── */
-.summon {
-  background: var(--alert-soft);
-  border: 1.5px solid var(--alert-line);
-  border-radius: var(--r-lg);
+/* ═══════════════════════════════════════════════════════════════
+   BLOCO 3 · TRANSMISSÃO DO CRONOS
+   ═══════════════════════════════════════════════════════════════ */
+.transmission {
+  position: relative;
   padding: var(--s-6) var(--s-8);
   margin-bottom: var(--s-10);
-  animation: rise 500ms var(--ease-out) both, glow-alert 3s ease-in-out infinite;
-}
-.summon-label {
-  font-family: var(--font-mono);
-  font-size: var(--t-xs);
-  font-weight: 700;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--alert);
-  margin-bottom: var(--s-3);
-  display: flex;
-  align-items: center;
-  gap: var(--s-2);
-}
-.summon-text {
-  font-family: var(--font-body);
-  font-size: var(--t-lg);
-  color: var(--ink-100);
-  line-height: 1.5;
-  font-weight: 400;
-}
-@keyframes glow-alert {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
-  50% { box-shadow: var(--glow-alert); }
-}
-
-/* ─── BLOCO 4 · TRANSMISSÃO DO CRONOS ───────────────────────── */
-.transmission {
-  background: linear-gradient(180deg, rgba(28,20,20,0.65), rgba(20,16,16,0.65));
+  background: linear-gradient(180deg, rgba(28,20,20,0.6), rgba(20,16,16,0.6));
   border: 1px solid var(--line-1);
-  border-radius: var(--r-lg);
-  padding: var(--s-8);
-  margin-bottom: var(--s-10);
-  position: relative;
-  animation: rise 500ms var(--ease-out) 150ms both;
+  animation: rise 500ms var(--ease-military) 200ms both;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
 }
 .transmission::before {
   content: '';
@@ -392,39 +444,37 @@ body::after {
   width: 3px;
   background: var(--brand);
   box-shadow: 0 0 12px var(--brand-glow-soft);
-  border-radius: var(--r-lg) 0 0 var(--r-lg);
 }
 .transmission-label {
+  display: block;
   font-family: var(--font-mono);
   font-size: var(--t-2xs);
-  font-weight: 600;
-  letter-spacing: 0.3em;
+  font-weight: 700;
+  letter-spacing: var(--ls-military);
   text-transform: uppercase;
   color: var(--brand);
   text-shadow: 0 0 10px var(--brand-glow-soft);
   margin-bottom: var(--s-4);
-  display: block;
 }
 .transmission-text {
   font-family: var(--font-body);
   font-size: var(--t-xl);
-  font-weight: 300;
+  font-weight: 400;
   color: var(--ink-100);
   line-height: 1.5;
-  letter-spacing: -0.005em;
 }
 .transmission-sign {
   margin-top: var(--s-5);
   font-family: var(--font-mono);
   font-size: var(--t-xs);
+  font-weight: 500;
   color: var(--ink-40);
-  letter-spacing: 0.15em;
+  letter-spacing: var(--ls-mono);
   text-transform: uppercase;
 }
 .transmission[data-state="empty"] {
-  border-color: var(--line-1);
   opacity: 0.55;
-  padding: var(--s-5) var(--s-8);
+  padding: var(--s-4) var(--s-8);
 }
 .transmission[data-state="empty"]::before { background: var(--ink-20); box-shadow: none; }
 .transmission[data-state="empty"] .transmission-label { color: var(--ink-40); text-shadow: none; }
@@ -434,31 +484,44 @@ body::after {
   color: var(--ink-40);
 }
 
-/* ─── BLOCO 5 · MISSÃO (progresso + agentes ativos unificados) */
-.mission {
+/* ═══════════════════════════════════════════════════════════════
+   SECTION HEADER (overline vermelha + título mono uppercase)
+   ═══════════════════════════════════════════════════════════════ */
+.section {
   margin-bottom: var(--s-10);
-  animation: rise 500ms var(--ease-out) 300ms both;
+  animation: rise 500ms var(--ease-military) 300ms both;
 }
-
 .section-header {
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: var(--s-3);
-  padding-bottom: var(--s-4);
+  align-items: baseline;
+  gap: var(--s-4);
+  padding: var(--s-4) 0 var(--s-4);
   margin-bottom: var(--s-5);
-  border-bottom: 1px solid var(--line-1);
+  border-top: 1px solid var(--line-2);
+}
+.section-header::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 40px;
+  height: 2px;
+  background: var(--brand);
+  box-shadow: 0 0 8px var(--brand-glow-soft);
 }
 .section-arrow {
   color: var(--brand);
   font-family: var(--font-mono);
   font-size: var(--t-sm);
   line-height: 1;
+  font-weight: 700;
 }
 .section-title {
   font-family: var(--font-mono);
   font-size: var(--t-xs);
   font-weight: 700;
-  letter-spacing: 0.3em;
+  letter-spacing: var(--ls-military);
   text-transform: uppercase;
   color: var(--ink-80);
 }
@@ -466,21 +529,21 @@ body::after {
   margin-left: auto;
   font-family: var(--font-mono);
   font-size: var(--t-2xs);
+  font-weight: 500;
   color: var(--ink-40);
-  letter-spacing: 0.2em;
+  letter-spacing: var(--ls-mono-wide);
   text-transform: uppercase;
 }
 
-/* Trilha de ondas — visual de mission control */
+/* ═══════════════════════════════════════════════════════════════
+   TRILHA DE ONDAS — quadrados angulares em vez de círculos
+   ═══════════════════════════════════════════════════════════════ */
 .wave-track {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--s-4);
-  margin-bottom: var(--s-8);
   padding: var(--s-5) var(--s-6);
-  background: rgba(255,255,255,0.02);
+  margin-bottom: var(--s-6);
+  background: rgba(255,255,255,0.015);
   border: 1px solid var(--line-1);
-  border-radius: var(--r-md);
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
 }
 .wave-line {
   display: flex;
@@ -493,21 +556,21 @@ body::after {
   gap: var(--s-2);
   flex-shrink: 0;
 }
-.wave-dot {
+.wave-square {
   width: 12px;
   height: 12px;
-  border-radius: 50%;
   background: transparent;
   border: 1.5px solid var(--ink-20);
-  transition: all var(--d-base) var(--ease-out);
+  transform: rotate(45deg);
+  transition: all var(--d-base) var(--ease-military);
   flex-shrink: 0;
 }
-.wave-dot[data-state="done"] {
+.wave-square[data-state="done"] {
   background: var(--calm);
   border-color: var(--calm);
   box-shadow: 0 0 10px rgba(92,230,138,0.5);
 }
-.wave-dot[data-state="current"] {
+.wave-square[data-state="current"] {
   background: var(--brand);
   border-color: var(--brand);
   box-shadow: 0 0 14px var(--brand-glow);
@@ -516,17 +579,18 @@ body::after {
 .wave-connector {
   flex: 1;
   height: 1.5px;
-  background: linear-gradient(90deg, var(--ink-20) 0%, var(--ink-20) 100%);
-  transition: background var(--d-base) var(--ease-out);
+  background: var(--ink-20);
+  transition: background var(--d-base) var(--ease-military);
 }
 .wave-connector[data-state="done"] {
   background: linear-gradient(90deg, var(--calm) 0%, var(--brand) 100%);
 }
 .wave-label {
   font-family: var(--font-mono);
-  font-size: var(--t-2xs);
+  font-size: 10px;
+  font-weight: 500;
   color: var(--ink-40);
-  letter-spacing: 0.15em;
+  letter-spacing: var(--ls-mono);
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -534,58 +598,65 @@ body::after {
   color: var(--brand);
   font-weight: 700;
 }
-.wave-label[data-state="done"] {
-  color: var(--calm);
-}
-.wave-estimate {
-  font-family: var(--font-mono);
-  font-size: var(--t-xs);
-  color: var(--ink-60);
-  letter-spacing: 0.1em;
-  text-align: center;
-  padding-top: var(--s-3);
-  border-top: 1px solid var(--line-1);
-}
+.wave-label[data-state="done"] { color: var(--calm); }
 @keyframes current-pulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 14px var(--brand-glow); }
-  50% { transform: scale(1.25); box-shadow: 0 0 22px rgba(255,32,32,0.7); }
+  0%, 100% { transform: rotate(45deg) scale(1); box-shadow: 0 0 14px var(--brand-glow); }
+  50% { transform: rotate(45deg) scale(1.3); box-shadow: 0 0 22px rgba(255,32,32,0.75); }
 }
 
-/* Lista de agentes em ação — linhas de operação (Warp/Linear pattern) */
+/* ═══════════════════════════════════════════════════════════════
+   LINHAS DE OPERAÇÃO — numeração militar
+   ═══════════════════════════════════════════════════════════════ */
 .ops {
   display: flex;
   flex-direction: column;
 }
 .op-line {
   display: grid;
-  grid-template-columns: 90px 1fr auto;
+  grid-template-columns: 28px 100px 1fr auto;
   gap: var(--s-4);
   align-items: baseline;
-  padding: var(--s-4) var(--s-2);
+  padding: var(--s-4) var(--s-3);
   border-bottom: 1px solid var(--line-1);
   transition: background var(--d-fast) var(--ease-out);
+  position: relative;
 }
 .op-line:last-child { border-bottom: none; }
-.op-line:hover { background: rgba(255,255,255,0.015); }
-.op-line[data-state="stalled"] {
-  background: rgba(255,176,32,0.03);
+.op-line:hover { background: rgba(255,255,255,0.02); }
+.op-line[data-state="stalled"] { background: rgba(74,196,255,0.03); }
+.op-line[data-state="blocked"] {
+  background: var(--danger-soft);
+  border-left: 3px solid var(--brand);
+  padding-left: var(--s-4);
+  animation: block-breath 2s ease-in-out infinite;
 }
 
-.op-agent {
+.op-num {
   font-family: var(--font-mono);
-  font-size: var(--t-xs);
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--brand);
-  text-shadow: 0 0 8px var(--brand-glow-soft);
+  font-size: var(--t-2xs);
+  font-weight: 500;
+  color: var(--ink-20);
+  letter-spacing: var(--ls-mono);
+}
+.op-agent {
   display: flex;
   align-items: center;
   gap: var(--s-2);
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: var(--ls-mono-wide);
+  text-transform: uppercase;
+  color: var(--brand);
+  text-shadow: 0 0 8px var(--brand-glow-soft);
 }
 .op-line[data-state="stalled"] .op-agent {
   color: var(--alert);
-  text-shadow: 0 0 8px rgba(255,176,32,0.5);
+  text-shadow: 0 0 8px var(--alert-glow);
+}
+.op-line[data-state="blocked"] .op-agent {
+  color: var(--brand);
+  text-shadow: 0 0 10px var(--brand-glow);
 }
 .op-marker {
   width: 6px;
@@ -598,30 +669,54 @@ body::after {
 }
 .op-line[data-state="stalled"] .op-marker {
   background: var(--alert);
-  box-shadow: 0 0 6px rgba(255,176,32,0.6);
+  box-shadow: 0 0 6px var(--alert-glow);
   animation: none;
+}
+.op-line[data-state="blocked"] .op-marker {
+  background: var(--brand);
+  box-shadow: 0 0 8px var(--brand-glow);
 }
 
 .op-action {
   font-family: var(--font-body);
   font-size: var(--t-md);
+  font-weight: 500;
   color: var(--ink-100);
-  font-weight: 400;
   line-height: 1.4;
-  letter-spacing: -0.005em;
 }
-
 .op-time {
   font-family: var(--font-mono);
   font-size: var(--t-2xs);
+  font-weight: 500;
   color: var(--ink-40);
-  letter-spacing: 0.15em;
+  letter-spacing: var(--ls-mono);
   text-transform: uppercase;
   white-space: nowrap;
 }
 .op-line[data-state="stalled"] .op-time {
   color: var(--alert);
   font-weight: 700;
+}
+.op-line[data-state="blocked"] .op-time {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.op-blocked-reason {
+  grid-column: 2 / 5;
+  font-family: var(--font-body);
+  font-size: var(--t-sm);
+  font-weight: 400;
+  color: var(--brand);
+  font-style: italic;
+  margin-top: var(--s-2);
+  padding-top: var(--s-2);
+  border-top: 1px solid rgba(255,32,32,0.15);
+}
+
+@keyframes block-breath {
+  0%, 100% { box-shadow: inset 0 0 0 0 rgba(0,0,0,0); }
+  50% { box-shadow: inset 0 0 24px rgba(255,32,32,0.08); }
 }
 
 .ops-empty {
@@ -633,35 +728,12 @@ body::after {
   font-style: italic;
 }
 
-/* Bloqueados (emergência) — mesma linha de operação, cor vermelha */
-.op-line[data-state="blocked"] {
-  background: var(--danger-soft);
-  border-left: 3px solid var(--brand);
-  padding-left: var(--s-4);
-  animation: block-breath 2s ease-in-out infinite;
-}
-.op-line[data-state="blocked"] .op-agent {
-  color: var(--brand);
-}
-.op-blocked-reason {
-  grid-column: 2 / 4;
-  font-family: var(--font-body);
-  font-size: var(--t-sm);
-  color: var(--brand);
-  font-style: italic;
-  margin-top: var(--s-2);
-  padding-top: var(--s-2);
-  border-top: 1px solid rgba(255,32,32,0.15);
-}
-@keyframes block-breath {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
-  50% { box-shadow: inset 0 0 24px rgba(255,32,32,0.08); }
-}
-
-/* ─── BLOCO 6 · HISTÓRICO — sutil, colapsado ────────────────── */
-.history-block {
+/* ═══════════════════════════════════════════════════════════════
+   OPERAÇÕES CONCLUÍDAS (histórico)
+   ═══════════════════════════════════════════════════════════════ */
+.history {
   margin-bottom: var(--s-8);
-  animation: rise 500ms var(--ease-out) 450ms both;
+  animation: rise 500ms var(--ease-military) 400ms both;
 }
 .history-toggle {
   display: flex;
@@ -672,33 +744,27 @@ body::after {
   padding: var(--s-4) var(--s-5);
   background: transparent;
   border: 1px solid var(--line-1);
-  border-radius: var(--r-md);
   color: var(--ink-60);
   font-family: var(--font-mono);
   font-size: var(--t-xs);
-  font-weight: 500;
-  letter-spacing: 0.2em;
+  font-weight: 600;
+  letter-spacing: var(--ls-military);
   text-transform: uppercase;
   cursor: pointer;
-  transition: all var(--d-fast) var(--ease-out);
+  transition: all var(--d-fast) var(--ease-military);
   text-align: left;
   min-height: 44px;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
 }
 .history-toggle:hover {
   background: var(--calm-soft);
   border-color: var(--calm-line);
   color: var(--calm);
 }
-.history-toggle .count {
-  color: var(--calm);
-  font-weight: 700;
-}
-.history-toggle .chevron {
-  transition: transform var(--d-base) var(--ease-both);
-}
-.history-toggle[aria-expanded="true"] .chevron {
-  transform: rotate(180deg);
-}
+.history-toggle .count { color: var(--calm); font-weight: 700; }
+.history-toggle .chevron { transition: transform var(--d-base) var(--ease-military); }
+.history-toggle[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+
 .history-content {
   display: none;
   margin-top: var(--s-3);
@@ -730,16 +796,19 @@ body::after {
 .history-item .who {
   font-family: var(--font-mono);
   font-size: var(--t-2xs);
+  font-weight: 500;
   color: var(--ink-40);
-  letter-spacing: 0.15em;
+  letter-spacing: var(--ls-mono);
   text-transform: uppercase;
 }
 
-/* ─── BLOCO 7 · MODO ENGENHEIRO ─────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   DADOS TÉCNICOS (modo engenheiro)
+   ═══════════════════════════════════════════════════════════════ */
 .engineer {
   padding-top: var(--s-8);
   border-top: 1px solid var(--line-1);
-  animation: rise 500ms var(--ease-out) 600ms both;
+  animation: rise 500ms var(--ease-military) 500ms both;
 }
 .engineer-toggle {
   display: block;
@@ -751,11 +820,11 @@ body::after {
   font-family: var(--font-mono);
   font-size: var(--t-2xs);
   font-weight: 500;
-  letter-spacing: 0.3em;
+  letter-spacing: var(--ls-military);
   text-transform: uppercase;
   cursor: pointer;
   text-align: center;
-  transition: color var(--d-fast) var(--ease-out);
+  transition: color var(--d-fast) var(--ease-military);
   min-height: 44px;
 }
 .engineer-toggle:hover { color: var(--ink-80); }
@@ -764,16 +833,19 @@ body::after {
   margin-top: var(--s-4);
   background: var(--surface-0);
   border: 1px solid var(--line-1);
-  border-radius: var(--r-md);
   padding: var(--s-5);
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+.engineer-content[data-open="1"] {
+  display: block;
   animation: rise 300ms var(--ease-out) both;
 }
-.engineer-content[data-open="1"] { display: block; }
 .engineer-title {
   font-family: var(--font-mono);
   font-size: var(--t-2xs);
+  font-weight: 600;
   color: var(--ink-40);
-  letter-spacing: 0.3em;
+  letter-spacing: var(--ls-military);
   text-transform: uppercase;
   margin-bottom: var(--s-4);
   display: flex;
@@ -791,7 +863,9 @@ body::after {
 .engineer-row .key { color: var(--brand); font-weight: 700; }
 .engineer-row .val { color: var(--ink-80); }
 
-/* ─── ESTADO INICIAL VAZIO ──────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   ESTADO INICIAL VAZIO
+   ═══════════════════════════════════════════════════════════════ */
 .empty {
   min-height: calc(100vh - 200px);
   display: flex;
@@ -802,9 +876,9 @@ body::after {
   padding: var(--s-10);
 }
 .empty-icon {
-  font-family: var(--font-body);
+  font-family: var(--font-display);
   font-size: 8rem;
-  font-weight: 900;
+  font-weight: 400;
   color: var(--brand);
   opacity: 0.12;
   line-height: 1;
@@ -814,7 +888,7 @@ body::after {
   font-family: var(--font-mono);
   font-size: var(--t-xs);
   font-weight: 700;
-  letter-spacing: 0.4em;
+  letter-spacing: var(--ls-military);
   text-transform: uppercase;
   color: var(--ink-40);
   margin-bottom: var(--s-4);
@@ -832,54 +906,67 @@ body::after {
   padding: var(--s-3) var(--s-6);
   background: var(--surface-3);
   border: 1px solid var(--line-2);
-  border-radius: var(--r-md);
   font-family: var(--font-mono);
   font-size: var(--t-sm);
   color: var(--brand);
-  letter-spacing: 0.1em;
+  letter-spacing: var(--ls-mono);
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
 }
 
-/* ─── ANIMAÇÕES ─────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   SKELETON (Camada 5 · performance percebida)
+   ═══════════════════════════════════════════════════════════════ */
+.skel {
+  animation: skel-pulse 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg,
+    var(--surface-2) 25%,
+    var(--surface-3) 50%,
+    var(--surface-2) 75%);
+  background-size: 200% 100%;
+  border-radius: var(--r-sm);
+}
+.skel-h1 { height: 68px; width: 60%; margin: 0 auto var(--s-4); }
+.skel-tag { height: 12px; width: 200px; margin: 0 auto var(--s-4); }
+.skel-verdict { height: 120px; margin-bottom: var(--s-10); }
+.skel-block { height: 80px; margin-bottom: var(--s-6); }
+@keyframes skel-pulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ANIMAÇÕES
+   ═══════════════════════════════════════════════════════════════ */
 @keyframes rise {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ─── SCROLLBAR ─────────────────────────────────────────────── */
+/* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--line-3); border-radius: var(--r-sm); }
+::-webkit-scrollbar-thumb { background: var(--line-3); }
 ::-webkit-scrollbar-thumb:hover { background: var(--brand); }
 
-/* ─── SR-ONLY ───────────────────────────────────────────────── */
+/* SR-only */
 .sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
 }
 
-/* ─── RESPONSIVE ────────────────────────────────────────────── */
+/* Responsive */
 @media (max-width: 640px) {
-  .top { padding: var(--s-4) var(--s-4); flex-wrap: wrap; }
+  .top { padding: var(--s-4); flex-wrap: wrap; }
   .main { padding: var(--s-6) var(--s-4) var(--s-16); }
-  .project-name { font-size: 1.75rem; }
-  .verdict-badge {
-    font-size: var(--t-sm);
-    letter-spacing: 0.2em;
-    padding: var(--s-3) var(--s-5);
-    gap: var(--s-3);
-  }
-  .verdict-line { font-size: var(--t-md); }
+  .project-name { font-size: 2.5rem; }
+  .verdict-card { padding: var(--s-5); }
+  .verdict-icon-box { width: 36px; height: 36px; font-size: 1.4rem; }
+  .verdict-label { font-size: var(--t-md); }
+  .verdict-line { padding-left: 0; margin-top: var(--s-3); font-size: var(--t-md); }
+  .verdict-top { flex-wrap: wrap; }
   .transmission-text { font-size: var(--t-lg); }
-  .op-line { grid-template-columns: 70px 1fr auto; gap: var(--s-3); }
-  .op-agent { font-size: 10px; }
-  .op-action { font-size: var(--t-sm); }
+  .op-line { grid-template-columns: 24px 78px 1fr auto; gap: var(--s-2); }
   .wave-label { font-size: 9px; }
 }
 </style>
@@ -888,7 +975,6 @@ body::after {
 
 <a href="#main" class="skip">Pular para o painel</a>
 
-<!-- CABEÇALHO — logo + pulso apenas -->
 <header class="top" role="banner">
   <div class="brand" aria-label="Formação Delta-11">
     <span class="brand-mark">Δ<span class="num">-11</span></span>
@@ -902,13 +988,17 @@ body::after {
 </header>
 
 <main id="main" class="main">
-  <!-- Renderizado por JS -->
+  <!-- Skeleton inicial -->
+  <div class="skel skel-tag"></div>
+  <div class="skel skel-h1"></div>
+  <div class="skel skel-verdict"></div>
+  <div class="skel skel-block"></div>
 </main>
 
 <script src="kanban-data.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════════
-// PAINEL v6 · SALA DE OPERAÇÕES · Δ-11
+// PAINEL v7 — Sala de Operações Δ-11
 // ═══════════════════════════════════════════════════════════════
 
 const AGENT_ROLES = {
@@ -922,7 +1012,6 @@ const TASK_OLD_MIN = 30;
 const PULSE_STALE_S = 30;
 const REFRESH_MS = 5000;
 
-// ── Tempo ────────────────────────────────────────────────────
 function parseTS(iso) {
   if (!iso) return null;
   const d = new Date(iso);
@@ -938,8 +1027,7 @@ function tempoRel(iso) {
   if (m < 60) return `há ${m} min`;
   const h = Math.floor(m / 60);
   if (h < 24) return `há ${h}h`;
-  const dd = Math.floor(h / 24);
-  return `há ${dd}d`;
+  return `há ${Math.floor(h / 24)}d`;
 }
 function minSince(iso) {
   const d = parseTS(iso);
@@ -947,7 +1035,6 @@ function minSince(iso) {
   return Math.floor((Date.now() - d.getTime()) / 60000);
 }
 
-// ── Tradução automática (fallback) ───────────────────────────
 const PADROES = [
   { re: /\[IMPACTO-MUDANCA\]/i, fala: 'Fazendo uma mudança de impacto' },
   { re: /migration|migração|migrations/i, fala: 'Mexendo no banco de dados' },
@@ -973,8 +1060,6 @@ function traduzir(t) {
   const dot = clean.indexOf('.');
   return (dot > 0 && dot < 80 ? clean.substring(0, dot) : clean.substring(0, 80)).trim() || 'Trabalhando';
 }
-
-// ── Escape ───────────────────────────────────────────────────
 function esc(str) {
   if (str == null) return '';
   return String(str)
@@ -982,87 +1067,55 @@ function esc(str) {
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-// ── Selo binário + linha de contexto ─────────────────────────
 function verdictOf(data) {
   if (!data) return {
     state: 'calm', icon: '●', text: 'AGUARDANDO',
     line: 'Nenhuma missão em execução.'
   };
-
   const blocked = data.bloqueado || [];
   const doing = data.fazendo || [];
   const hbs = data.heartbeats || [];
 
   if (blocked.length > 0) {
     return {
-      state: 'danger',
-      icon: '⚠',
+      state: 'danger', icon: '⚠',
       text: blocked.length > 1 ? `${blocked.length} TRAVADOS` : `${blocked.length} TRAVADO`,
       line: `${blocked.length > 1 ? 'Agentes' : 'Um agente'} precisa da sua decisão para destravar.`
     };
   }
-
-  // Agente sem sinal
   for (const t of doing) {
     const hb = hbs.find(h => h.agente === t.agente);
     if (hb) {
       const m = minSince(hb.ultima_atividade);
       if (m !== null && m > HB_STALE_MIN) {
-        return {
-          state: 'alert',
-          icon: '!',
-          text: 'AGENTE SEM SINAL',
-          line: `${t.agente} não dá sinal há ${m} minutos. Verifique se travou.`
-        };
+        return { state: 'alert', icon: '!', text: 'AGENTE SEM SINAL',
+          line: `${t.agente} não dá sinal há ${m} minutos. Verifique se travou.` };
       }
     }
   }
-
-  // Tarefa velha
   for (const t of doing) {
     const m = minSince(t.inicio);
     if (m !== null && m > TASK_OLD_MIN) {
-      return {
-        state: 'alert',
-        icon: '!',
-        text: 'TAREFA DEMORANDO',
-        line: `Uma tarefa está aberta há mais de ${TASK_OLD_MIN} minutos. Talvez precise de você.`
-      };
+      return { state: 'alert', icon: '!', text: 'TAREFA DEMORANDO',
+        line: `Uma tarefa está aberta há mais de ${TASK_OLD_MIN} minutos. Talvez precise de você.` };
     }
   }
-
-  // Precisa comandante
   if (data.mensagem_cronos && data.mensagem_cronos.precisa_comandante) {
-    return {
-      state: 'alert',
-      icon: '!',
-      text: 'PRECISA DE VOCÊ',
-      line: data.mensagem_cronos.precisa_comandante
-    };
+    return { state: 'alert', icon: '!', text: 'PRECISA DE VOCÊ',
+      line: data.mensagem_cronos.precisa_comandante };
   }
-
   if (doing.length > 0) {
     const nomes = doing.map(t => t.agente).filter(Boolean);
     const q = nomes.length;
-    return {
-      state: 'calm',
-      icon: '●',
-      text: 'SEGURO FECHAR',
+    return { state: 'calm', icon: '●', text: 'SEGURO FECHAR',
       line: q === 1
         ? `${nomes[0]} está no comando. Nada requer você agora.`
-        : `${q} agentes coordenados. Nada requer você agora.`
-    };
+        : `${q} agentes coordenados. Nada requer você agora.` };
   }
-
-  return {
-    state: 'calm',
-    icon: '●',
-    text: 'DESCANSANDO',
-    line: 'Todos os agentes concluíram suas tarefas.'
-  };
+  return { state: 'calm', icon: '●', text: 'DESCANSANDO',
+    line: 'Todos os agentes concluíram suas tarefas.' };
 }
 
-// ── Progresso + ondas ────────────────────────────────────────
 function progressOf(data) {
   if (!data) return { done: 0, total: 0, pct: 0 };
   const done = (data.concluido || []).length;
@@ -1100,7 +1153,6 @@ function faseTag(fc) {
   return s.substring(0, 40).toUpperCase();
 }
 
-// ── Estado dos agentes ativos (para linhas de operação) ──────
 function opStatus(agent, hbs) {
   const hb = hbs.find(h => h.agente === agent);
   if (!hb) return 'active';
@@ -1109,9 +1161,7 @@ function opStatus(agent, hbs) {
   return 'active';
 }
 
-// ═══════════════════════════════════════════════════════════════
-// RENDER
-// ═══════════════════════════════════════════════════════════════
+// ── RENDER ─────────────────────────────────────
 function renderEmpty() {
   return `
     <div class="empty">
@@ -1130,7 +1180,7 @@ function renderWaveTrack(waves) {
       <div class="wave-track">
         <div class="wave-line">
           <div class="wave-node">
-            <span class="wave-dot" data-state="current"></span>
+            <span class="wave-square" data-state="current" aria-hidden="true"></span>
             <span class="wave-label" data-state="current">Onda ${esc(waves.curr)}</span>
           </div>
         </div>
@@ -1147,7 +1197,7 @@ function renderWaveTrack(waves) {
               : 'pendente';
     nodes += `
       <div class="wave-node">
-        <span class="wave-dot" data-state="${state}" aria-hidden="true"></span>
+        <span class="wave-square" data-state="${state}" aria-hidden="true"></span>
         <span class="wave-label" data-state="${state}">Onda ${i} · ${lbl}</span>
       </div>
     `;
@@ -1163,7 +1213,7 @@ function renderWaveTrack(waves) {
   `;
 }
 
-function renderOpLine(t, hbs, forcedState) {
+function renderOpLine(t, hbs, index, forcedState) {
   const agent = t.agente || t.por || '?';
   const role = AGENT_ROLES[agent] || '';
   const state = forcedState || opStatus(agent, hbs);
@@ -1171,9 +1221,11 @@ function renderOpLine(t, hbs, forcedState) {
   const tempo = tempoRel(hb ? hb.ultima_atividade : t.inicio) || '—';
   const acao = traduzir(t);
   const motivo = t.motivo ? `<div class="op-blocked-reason">⚠ ${esc(t.motivo)}</div>` : '';
+  const num = String(index + 1).padStart(2, '0');
 
   return `
     <div class="op-line" data-state="${state}">
+      <div class="op-num">${num}</div>
       <div class="op-agent">
         <span class="op-marker" aria-hidden="true"></span>
         ${esc(agent)}
@@ -1190,7 +1242,6 @@ function renderOpLine(t, hbs, forcedState) {
 
 function renderMain(data) {
   const main = document.getElementById('main');
-
   if (!data || !data.projeto) {
     main.innerHTML = renderEmpty();
     return;
@@ -1208,7 +1259,6 @@ function renderMain(data) {
 
   let html = '';
 
-  // Projeto + Selo unificados (ponto focal do topo)
   html += `
     <section class="project" aria-label="Projeto ativo">
       <div class="project-tag">${esc(faseTag(data.fase_atual))}</div>
@@ -1216,28 +1266,16 @@ function renderMain(data) {
     </section>
 
     <section class="verdict" aria-label="Estado da missão">
-      <div class="verdict-badge" data-state="${verdict.state}" role="status" aria-live="polite">
-        <span class="verdict-icon" aria-hidden="true">${verdict.icon}</span>
-        ${esc(verdict.text)}
+      <div class="verdict-card" data-state="${verdict.state}">
+        <div class="verdict-top">
+          <div class="verdict-icon-box" aria-hidden="true">${verdict.icon}</div>
+          <div class="verdict-label" role="status" aria-live="polite">${esc(verdict.text)}</div>
+        </div>
+        <p class="verdict-line">${esc(verdict.line)}</p>
       </div>
-      <p class="verdict-line">${esc(verdict.line)}</p>
     </section>
   `;
 
-  // Convocação — só quando o CRONOS marca precisa_comandante explícito
-  if (cronos && cronos.precisa_comandante && verdict.state !== 'danger') {
-    html += `
-      <section class="summon" role="alert">
-        <div class="summon-label">
-          <span aria-hidden="true">⚠</span>
-          Precisa de você
-        </div>
-        <p class="summon-text">${esc(cronos.precisa_comandante)}</p>
-      </section>
-    `;
-  }
-
-  // Transmissão do CRONOS
   if (cronos && cronos.texto) {
     html += `
       <section class="transmission" aria-labelledby="tr-lbl">
@@ -1255,30 +1293,26 @@ function renderMain(data) {
     `;
   }
 
-  // Missão atual (progresso + agentes em ação unificados)
   html += `
-    <section class="mission" aria-labelledby="mis-lbl">
+    <section class="section" aria-labelledby="ops-lbl">
       <div class="section-header">
         <span class="section-arrow" aria-hidden="true">▸</span>
-        <span id="mis-lbl" class="section-title">Missão atual</span>
+        <span id="ops-lbl" class="section-title">Operações em curso</span>
         <span class="section-meta">${progress.done}/${progress.total} · ${progress.pct}%</span>
       </div>
       ${renderWaveTrack(waves)}
       <div class="ops" role="list">
   `;
 
-  // Bloqueados vêm primeiro dentro da missão
-  blocked.forEach(t => { html += renderOpLine(t, hbs, 'blocked'); });
-
+  let opIdx = 0;
+  blocked.forEach(t => { html += renderOpLine(t, hbs, opIdx++, 'blocked'); });
   if (doing.length === 0 && blocked.length === 0) {
     html += `<div class="ops-empty">Nenhum agente em ação no momento.</div>`;
   } else {
-    doing.forEach(t => { html += renderOpLine(t, hbs); });
+    doing.forEach(t => { html += renderOpLine(t, hbs, opIdx++); });
   }
-
   html += `</div>`;
 
-  // Em revisão (se houver, aparece como sub-seção discreta)
   if (rev.length > 0) {
     html += `
       <div class="section-header" style="margin-top:var(--s-6)">
@@ -1288,18 +1322,17 @@ function renderMain(data) {
       </div>
       <div class="ops" role="list">
     `;
-    rev.forEach(t => { html += renderOpLine(t, hbs, 'review'); });
+    let ri = 0;
+    rev.forEach(t => { html += renderOpLine(t, hbs, ri++, 'review'); });
     html += `</div>`;
   }
-
   html += `</section>`;
 
-  // Histórico
   if (done.length > 0) {
     html += `
-      <section class="history-block">
+      <section class="history">
         <button class="history-toggle" type="button" aria-expanded="false" aria-controls="hist-content" onclick="toggleHistory(this)">
-          <span>Histórico · <span class="count">${done.length} tarefas prontas</span></span>
+          <span>Operações concluídas · <span class="count">${done.length}</span></span>
           <span class="chevron" aria-hidden="true">▾</span>
         </button>
         <div id="hist-content" class="history-content">
@@ -1315,15 +1348,14 @@ function renderMain(data) {
     `;
   }
 
-  // Modo engenheiro
   html += `
     <section class="engineer">
       <button class="engineer-toggle" type="button" aria-expanded="false" aria-controls="eng-content" onclick="toggleEngineer(this)">
-        · modo engenheiro ·
+        · dados técnicos ·
       </button>
       <div id="eng-content" class="engineer-content">
         <div class="engineer-title">
-          <span>Dados brutos</span>
+          <span>Kanban bruto</span>
           <span>kanban-data.js</span>
         </div>
         ${renderEngineerRaw(data)}
@@ -1337,23 +1369,17 @@ function renderMain(data) {
 function renderEngineerRaw(data) {
   let html = '';
   ['projeto','complexidade','fase_atual','ultima_atualizacao','agente_atualizador'].forEach(k => {
-    if (data[k]) {
-      html += `<div class="engineer-row"><span class="key">${esc(k)}:</span> <span class="val">${esc(data[k])}</span></div>`;
-    }
+    if (data[k]) html += `<div class="engineer-row"><span class="key">${esc(k)}:</span> <span class="val">${esc(data[k])}</span></div>`;
   });
   const doing = data.fazendo || [];
   if (doing.length > 0) {
     html += `<div class="engineer-row" style="margin-top:8px"><span class="key">FAZENDO (${doing.length}):</span></div>`;
-    doing.forEach(t => {
-      html += `<div class="engineer-row" style="padding-left:12px">${esc(t.id || '?')} · ${esc(t.agente || '?')} · ${esc((t.desc || '').substring(0,120))}</div>`;
-    });
+    doing.forEach(t => html += `<div class="engineer-row" style="padding-left:12px">${esc(t.id || '?')} · ${esc(t.agente || '?')} · ${esc((t.desc || '').substring(0,120))}</div>`);
   }
   const hbs = data.heartbeats || [];
   if (hbs.length > 0) {
     html += `<div class="engineer-row" style="margin-top:8px"><span class="key">HEARTBEATS:</span></div>`;
-    hbs.forEach(h => {
-      html += `<div class="engineer-row" style="padding-left:12px">${esc(h.agente)} · ${esc(h.ultima_atividade)} · ${esc(h.tarefa_atual || '')}</div>`;
-    });
+    hbs.forEach(h => html += `<div class="engineer-row" style="padding-left:12px">${esc(h.agente)} · ${esc(h.ultima_atividade)} · ${esc(h.tarefa_atual || '')}</div>`);
   }
   return html;
 }
@@ -1373,7 +1399,6 @@ function toggleEngineer(btn) {
   btn.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
 
-// ── Pulso ────────────────────────────────────────────────────
 let lastRefresh = Date.now();
 function updatePulse() {
   const s = Math.floor((Date.now() - lastRefresh) / 1000);
@@ -1386,7 +1411,6 @@ function updatePulse() {
   if (wrap) wrap.dataset.old = s > PULSE_STALE_S ? '1' : '0';
 }
 
-// ── Refresh loop ─────────────────────────────────────────────
 let lastHash = '';
 function hash(d) { try { return JSON.stringify(d); } catch { return String(Date.now()); } }
 function reload() {
@@ -1409,7 +1433,7 @@ if (window.KANBAN_DATA) {
   lastHash = hash(window.KANBAN_DATA);
   renderMain(window.KANBAN_DATA);
 } else {
-  renderMain(null);
+  setTimeout(() => renderMain(null), 400);
 }
 
 setInterval(reload, REFRESH_MS);
