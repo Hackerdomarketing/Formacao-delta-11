@@ -484,9 +484,12 @@ UPDATEEOF
         fi
     done
 
-    # Atualizar timestamp no registry
+    # Atualizar timestamp e lista real de projetos no registry
+    # A lista projects[] e reescrita com o que a varredura encontrou e sincronizou,
+    # para o registry nunca ficar desatualizado em relacao a realidade
     TMP_REG=$(mktemp)
-    jq --arg ts "$TIMESTAMP" '.last_sync = $ts' "$REGISTRY" > "$TMP_REG" && mv "$TMP_REG" "$REGISTRY"
+    PROJECTS_JSON=$(printf '%s\n' "${PROJECTS[@]}" | jq -R . | jq -s .)
+    jq --arg ts "$TIMESTAMP" --argjson projetos "$PROJECTS_JSON" '.last_sync = $ts | .projects = $projetos' "$REGISTRY" > "$TMP_REG" && mv "$TMP_REG" "$REGISTRY"
 fi
 
 # ─── Relatorio final ──────────────────────────────────────────

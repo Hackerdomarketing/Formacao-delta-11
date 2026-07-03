@@ -920,7 +920,7 @@ O script sincronizar.sh automaticamente:
 3. NUNCA toca dados do projeto (kanban, estados, ativações, memória)
 4. Atualiza o backup em Downloads
 5. Cria `.delta-11/.last-update` em cada projeto com timestamp e descrição
-6. Atualiza o timestamp no registry
+6. Atualiza o timestamp no registry E reescreve a lista `projects[]` com os projetos que a varredura encontrou de verdade — a lista do registry é ESPELHO da realidade, não fonte de decisão
 
 Opções do sincronizar.sh:
 - `--pull` → Faz git pull antes de sincronizar
@@ -930,11 +930,13 @@ Opções do sincronizar.sh:
 
 ### Registry global: `~/.delta-11-registry.json`
 
-Arquivo que lista TODOS os projetos com D-11 instalado:
+Arquivo que lista TODOS os projetos com D-11 instalado.
+
+**IMPORTANTE (desde a v5):** a lista `projects[]` é apenas INFORMATIVA — o `sincronizar.sh` NÃO usa essa lista para decidir quem atualizar. Ele varre `~/Documents/VSCODE`, `~/projetos` e `~/Downloads` automaticamente e sincroniza todo projeto com pasta `.delta-11/` que encontrar. A cada sincronização, a lista `projects[]` é reescrita com o resultado real da varredura. Um projeto fora da lista NÃO fica sem atualização — basta estar em um dos 3 diretórios de busca.
 
 ```json
 {
-  "version": "3.2",
+  "version": "5.0",
   "source": "~/projetos/Formacao-delta-11",
   "github": "https://github.com/SEU-USUARIO/Formacao-delta-11.git",
   "projects": [
