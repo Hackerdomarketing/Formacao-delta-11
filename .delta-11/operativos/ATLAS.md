@@ -831,8 +831,9 @@ Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE
 3. Atualizar `.delta-11/kanban-data.js`
 3.1. **PAINEL DE COMANDO v5.1 — OBRIGATÓRIO ao gravar no kanban-data.js:** inclua `resumo_humano` (frase em português leigo, sem jargão, max 15 palavras) em cada tarefa que você gravar. Atualize seu heartbeat no array `heartbeats`. Detalhes completos em `CLAUDE.md` → seção "Passo 3.1 — Painel de Comando (v5.1)". O painel do comandante depende desses campos.
 4. Verificar se tem mais tarefas pendentes — se sim, continuar; se não, executar o Protocolo de Fase Concluída
-5. **Disparar CRONOS ao final da Fase 2** (v4.0):
-   - Você dispara o CRONOS UMA VEZ via `Agent tool` (`run_in_background: true`, `isolation: worktree`, `name: "cronos"`) passando o prompt de ativação completo.
+5. **Disparar CRONOS ao final da Fase 2** (v4.0; corrigido em 2026-07-03):
+   - Você dispara o CRONOS UMA VEZ via `Agent tool` (`run_in_background: true`, `name: "cronos"`) passando o prompt de ativação completo. **SEM `isolation: worktree`** — o CRONOS é o orquestrador: ele opera o REPO PRINCIPAL (edita kanban, cria as worktrees dos executores, faz merges). CRONOS dentro de worktree gravaria kanban/estados em cópias invisíveis. Inclua `NASCEU_EM_WORKTREE: nao` no prompt dele.
+   - **Se VOCÊ (ATLAS) for reativado depois via despacho com `isolation: worktree`:** o Passo 0.VW do CLAUDE.md vale para você também — a isenção do 0.VW é por MODO DE DESPACHO, não por ser o ATLAS. Verifique com `git rev-parse --show-toplevel` que não nasceu na main (bug #39886) antes de qualquer edição.
    - A partir do dispatch do CRONOS, você se retira da linha de frente. Não dispara mais agentes de execução — CRONOS orquestra o restante do projeto.
    - Se durante o projeto o comandante reativar você (ex: mudança arquitetural), você edita o `project-core.md` e o hook PostToolUse regenera testes automaticamente. Ao terminar a revisão arquitetural, envie `SendMessage` ao CRONOS informando o que mudou.
 6. Monitorar o tamanho do seu próprio contexto — se estiver chegando no limite na Fase 2, salve estado em `ATLAS-estado.md` e peça ao comandante que abra nova sessão com o prompt de retomada.

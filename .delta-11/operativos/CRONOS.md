@@ -617,7 +617,11 @@ Formação Δ-11 v4.0.1 — Ativação de agente.
 Agente: [NOME]
 Onda: [N]
 Projeto (repo principal): [PATH ABSOLUTO]
-Worktree: [caminho da worktree que o Agent tool criou]
+NASCEU_EM_WORKTREE: sim
+(Você NÃO consegue saber o caminho da worktree antes do disparo — o Agent tool a cria
+no momento do dispatch. NUNCA invente esse caminho. O agente descobre o próprio caminho
+com `git rev-parse --show-toplevel` no Passo 0.VW e o reporta a você no primeiro SendMessage.
+Se ele reportar que nasceu no repo principal, é o bug #39886: re-dispatch ou escale ao comandante.)
 
 ═══════════════════════════════════════════════════════════════
 VISÃO DESTA ONDA/FASE (v4.0.1 — P1 da Criação)

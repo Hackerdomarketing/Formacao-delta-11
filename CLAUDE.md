@@ -56,30 +56,31 @@ echo "{\"agent\":\"[SEU-NOME]\",\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
 ```
 Isso confirma ao agente despachador (e ao CRONOS) que você está ativo. Execute ANTES de ler qualquer arquivo.
 
-**Passo 0.VW — Verificação Proativa de Worktree (v4.0.1 — OBRIGATÓRIO quando ativado via `isolation: worktree`):**
+**Passo 0.VW — Verificação Proativa de Worktree (corrigido em 2026-07-03 — OBRIGATÓRIO quando ativado via `isolation: worktree`):**
 
 Bug conhecido da Anthropic (issue #39886): `isolation: worktree` com `run_in_background: true` às vezes faz o subagente nascer na branch `main` em vez da worktree solicitada — silenciosamente. Se não detectar, você pode commitar código direto na main.
 
-Se o seu bloco de ativação indica que você nasceu em worktree (campo `Worktree:` preenchido pelo CRONOS, diferente do repo principal), execute ANTES de qualquer Edit/Write:
+**A isenção é por MODO DE DESPACHO, nunca por nome de agente.** Se o seu bloco de ativação contém `NASCEU_EM_WORKTREE: sim`, este passo é obrigatório — não importa se você é ENGINE, SHIELD ou o próprio ATLAS reativado. Só pula quem tem `NASCEU_EM_WORKTREE: nao` no bloco ou foi aberto diretamente pelo comandante.
+
+O despachador NÃO consegue saber o caminho da worktree antes de criá-la (o Agent tool cria a worktree NO momento do disparo). Por isso a verificação usa apenas o que é conhecível — o path do repo principal:
 
 ```bash
 CURRENT_TOP=$(git rev-parse --show-toplevel 2>/dev/null)
-EXPECTED_WORKTREE="<path da worktree passado pelo CRONOS>"
-REPO_PRINCIPAL="<path do repo principal>"
+REPO_PRINCIPAL="<path do repo principal — vem no seu bloco de ativação>"
 
-if [ "$CURRENT_TOP" = "$REPO_PRINCIPAL" ] && [ "$EXPECTED_WORKTREE" != "$REPO_PRINCIPAL" ]; then
-  echo "ABORT: esperado worktree=$EXPECTED_WORKTREE, mas nasci na main=$CURRENT_TOP (bug #39886)"
+if [ "$CURRENT_TOP" = "$REPO_PRINCIPAL" ]; then
+  echo "ABORT: fui despachado com isolation:worktree mas nasci na main=$CURRENT_TOP (bug #39886)"
   # Avisa CRONOS via SendMessage e PARA — NÃO edite nada
   exit 1
 fi
 echo "WORKTREE_OK: $CURRENT_TOP"
 ```
 
-Se `CURRENT_TOP` = repo principal mas `EXPECTED_WORKTREE` ≠ repo principal → **PARE**. Envie `SendMessage` ao CRONOS com payload `{"bug": "#39886", "current": "$CURRENT_TOP", "expected": "$EXPECTED_WORKTREE"}`. O CRONOS decide re-dispatch ou escala ao comandante.
+Se `CURRENT_TOP` = repo principal → **PARE**. Envie `SendMessage` ao CRONOS com payload `{"bug": "#39886", "current": "$CURRENT_TOP"}`. O CRONOS decide re-dispatch ou escala ao comandante.
 
-Se `CURRENT_TOP` = `EXPECTED_WORKTREE` → siga normal, é a worktree correta.
+Se `CURRENT_TOP` ≠ repo principal → siga normal, você está numa worktree.
 
-Agentes que NÃO foram disparados com `isolation: worktree` (ATLAS em Fase 0-2, CRONOS, ou execução direta pelo comandante) pulam este passo.
+**Rede de segurança técnica:** mesmo que você esqueça este passo, o hook `guarda-worktree.py` (PreToolUse Edit|Write) bloqueia automaticamente edição de código no repo principal enquanto houver worktrees de execução ativas, edição de arquivos compartilhados do `.delta-11` pela cópia da worktree (use path absoluto), e edição de código do principal por path absoluto de dentro da worktree. Se o hook bloquear você, NÃO tente contornar — siga a instrução da mensagem de bloqueio. O comandante (e só ele) pode liberar edição na main criando `.delta-11/.permitir-edicao-main`.
 
 **Continuação do procedimento:**
 
@@ -179,6 +180,8 @@ Issues públicos do Claude Code que podem afetar `isolation: worktree`:
 - #39886 — `isolation: worktree` pode rodar na main em vez da worktree
 
 O modelo dual **mitiga o risco**: se worktree falhar, kanban continua mostrando o estado das tarefas. CRONOS verifica periodicamente `git worktree list` e escala ao comandante se algo não bate.
+
+**Desde 2026-07-03 o #39886 tem guarda TÉCNICA:** o hook `guarda-worktree.py` (PreToolUse Edit|Write) bloqueia edição de código no repo principal enquanto houver worktrees de execução ativas — o sintoma exato do bug. A defesa não depende mais do agente lembrar do Passo 0.VW.
 
 Ver detalhes em: `.delta-11/operativos/CRONOS.md` (seção ORQUESTRAÇÃO VIA AGENT SDK), `.delta-11/protocolos/merge-guiado-contratos.md`.
 
@@ -685,7 +688,10 @@ Formação Δ-11 v4.0.1 — Ativação de agente.
 Agente: [NOME]
 Onda: [N]
 Projeto (repo principal): [PATH ABSOLUTO DO REPO]
-Worktree: [path que o Agent tool criou — você está nele]
+NASCEU_EM_WORKTREE: sim
+(O despachador NÃO preenche o caminho da worktree — ele não existe antes do disparo.
+Você descobre o seu com `git rev-parse --show-toplevel` no Passo 0.VW e o reporta
+ao CRONOS no seu primeiro SendMessage.)
 
 ═══════════════════════════════════════════════════════════════
 VISÃO DESTA ONDA/FASE (v4.0.1 — P1 da Criação)
@@ -1011,4 +1017,6 @@ Toda vez que um agente errar de forma recorrente, adicionar aqui para prevenir r
 - [2026-03-09] [D-11 Auto-dispatch detecção errada] → Detecção automática verificava `command -v claude` e, se CLI existisse no PATH, assumia `terminal-app` como padrão. Comandante usa extensão VS Code, não CLI no terminal. Resultado: todo projeto novo recebia `terminal-app` mesmo rodando dentro do VS Code. → Correção: **Detecção agora verifica `$VSCODE_PID` primeiro.** Se a variável existe, o Claude Code está rodando como extensão do VS Code → `vscode-tab`. Só usa `terminal-app` se NÃO está no VS Code E o CLI existe. `vscode-tab` é agora o padrão recomendado, não `terminal-app`. Ter o CLI instalado NÃO significa que o comandante está usando o terminal.
 - [2026-03-09] [D-11 AppleScript nome de processo hardcoded] → AppleScript usava `process "Code"` e `application "Visual Studio Code"` hardcoded. No Mac do comandante o app se chama "Visual Studio Code 2" (instalado no Desktop, não em /Applications) e o processo roda como "Electron", não "Code". Resultado: AppleScript falhava com erro `-1728`. → Correção: **Detecção dinâmica do nome do processo e do app.** Script detecta: (1) nome do processo via `osascript` — se "Code" não existe, usa "Electron"; (2) nome do app via `ls ~/Desktop/ /Applications/` — encontra "Visual Studio Code 2" ou "Visual Studio Code". Variáveis `$VSCODE_PROCESS` e `$VSCODE_APP` são passadas para o AppleScript via `set vsCodeProcess to` / `set vsCodeApp to`.
 - [2026-03-31] [D-11 Contract-First Protocol] → SHIELD comparava contratos e código manualmente na Fase 4, gerando ciclos ENGINE→SHIELD→ENGINE quando implementação desviava do contrato. Sem testes automáticos, erros só apareciam depois de muito trabalho pronto. → Adicionado: **Contract-First Protocol** com novo sub-agente `contract-tester` (`.delta-11/sub-agentes/contract-tester.md`). SHIELD executa Passo 2.7 ao final da Fase 2: converte contratos do `project-core.md` em arquivos de teste executáveis em `tests/contracts/`. Build Validator passa a incluir testes de contrato como BLOCKER se existirem e falharem. Critério de conclusão de tarefa na Fase 4 passa a incluir verificação automática de contrato antes da revisão manual do SHIELD.
+- [2026-07-03] [D-11 bug #39886 — ATLAS editou código direto na main] → ATLAS despachado com `isolation: worktree` nasceu na main (bug Anthropic #39886) e editou arquivos direto no repo principal sem nenhuma barreira. Auditoria achou 4 furos: (1) a verificação 0.VW era só instrução em prompt, sem hook técnico; (2) o template mandava CRONOS preencher `Worktree: [caminho]` ANTES do disparo — caminho que não existe ainda, então o campo ia vazio e a condição do 0.VW nunca se cumpria; (3) a isenção do 0.VW era por NOME de agente ("ATLAS pula"), então ATLAS reativado com worktree pulava; ATLAS.md nem mencionava 0.VW/#39886; (4) ATLAS.md mandava disparar CRONOS COM worktree, contradizendo o desenho (CRONOS opera o repo principal). → Correção: hook técnico `guarda-worktree.py` (PreToolUse Edit|Write) bloqueia código na main com worktrees ativas (CASO A = #39886), arquivo compartilhado editado pela cópia da worktree (CASO B) e código do principal editado por path absoluto de dentro da worktree (CASO C); escape do comandante via `.delta-11/.permitir-edicao-main`. Template trocou `Worktree: [caminho]` por `NASCEU_EM_WORKTREE: sim/nao` (flag que o despachador SABE preencher); 0.VW reescrito para comparar só com o repo principal; isenção agora é por modo de despacho, nunca por nome; ATLAS dispara CRONOS SEM worktree. REGRA GERAL: proteção que depende de agente obedecer prompt NÃO é proteção — toda regra crítica precisa de hook técnico (mesma lição do Code Simplifier de 2026-02-17).
+- [2026-07-03] [D-11 hooks da v5 nunca ativados nos projetos] → Os arquivos `pre-leitura.py`, `pre-despacho.py` e `pre-selo.py` eram SINCRONIZADOS para os projetos, mas o `sincronizar.sh` monta o settings.json dos projetos a partir do template `.delta-11/templates/settings-hooks.json` — e o template nunca foi atualizado na v5. Resultado: as proteções da v5 rodavam SÓ no repo de distribuição; nos projetos, os .py ficavam mortos no disco sem nada os invocando. → Correção: template atualizado com TODOS os hooks (guarda-worktree, check-lock, pre-selo, validar-contratos, pre-leitura, pre-despacho). REGRA GERAL: ao criar hook novo, atualizar SEMPRE três lugares: (1) o arquivo .py em `.delta-11/hooks/`, (2) o `.claude/settings.json` do repo de distribuição, (3) o template `settings-hooks.json` — é o item 3 que liga o hook nos projetos.
 - [2026-03-31] [D-11 .dispatch-mode gravado errado na instalação] → Arquivo `.dispatch-mode` era gravado como `terminal-app` durante instalação quando o CLI `claude` estava no PATH. Quando o agente ativava mais tarde dentro do VS Code, verificava o arquivo primeiro — e usava `terminal-app` mesmo com `$VSCODE_PID` ativo. Resultado: agente pedia ao comandante para colar prompt manualmente em vez de fazer auto-dispatch. → Correção: **`$VSCODE_PID` passa a ter prioridade absoluta sobre o arquivo em disco.** Lógica nova: se `$VSCODE_PID` existe → sempre `vscode-tab` E sobrescreve o arquivo. Só usa o arquivo se `$VSCODE_PID` está ausente. Isso garante que um arquivo gravado errado na instalação seja corrigido automaticamente na primeira sessão dentro do VS Code.

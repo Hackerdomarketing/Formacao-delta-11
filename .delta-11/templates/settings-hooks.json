@@ -34,6 +34,16 @@
     ],
     "PreToolUse": [
       {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/guarda-worktree.py || python .delta-11/hooks/guarda-worktree.py",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
         "matcher": "Write|Edit",
         "hooks": [
           {
@@ -48,8 +58,38 @@
         "hooks": [
           {
             "type": "command",
+            "command": "python3 .delta-11/hooks/pre-selo.py || python .delta-11/hooks/pre-selo.py",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
             "command": "python3 .delta-11/hooks/validar-contratos-fim-fase.py || python .delta-11/hooks/validar-contratos-fim-fase.py",
             "timeout": 300000
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/pre-leitura.py || python .delta-11/hooks/pre-leitura.py",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/pre-despacho.py || python .delta-11/hooks/pre-despacho.py",
+            "timeout": 3000
           }
         ]
       }
