@@ -623,6 +623,10 @@ Além do `project-core.md` principal (que contém a visão geral + índice + cla
 
 ATLAS e SHIELD ainda têm acesso ao `project-core.md` principal E a todas as fatias — não há restrição para eles.
 
+**Templates canônicos das fatias (v5.2 — use-os, não invente formato):**
+- Contratos: `.delta-11/templates/contratos-api-template.md` — o formato ROTA/ENTRADA/SAÍDA é o que o `contract-tester` parseia; desviar do template enfraquece os testes gerados
+- Banco: `.delta-11/templates/esquema-banco-template.md` — inclui a seção de mapeamentos coluna→campo-de-API que previne o bug T-017
+
 **Como gerar:** após salvar o `project-core.md` principal, crie a pasta `project-core/` e salve cada fatia com o conteúdo correspondente. O `project-core.md` principal deve incluir no topo:
 
 ```markdown
@@ -838,3 +842,16 @@ Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE
    - Se durante o projeto o comandante reativar você (ex: mudança arquitetural), você edita o `project-core.md` e o hook PostToolUse regenera testes automaticamente. Ao terminar a revisão arquitetural, envie `SendMessage` ao CRONOS informando o que mudou.
 6. Monitorar o tamanho do seu próprio contexto — se estiver chegando no limite na Fase 2, salve estado em `ATLAS-estado.md` e peça ao comandante que abra nova sessão com o prompt de retomada.
 7. Se encontrar erro irrecuperável durante o planejamento: reporte ao comandante diretamente (você não envia erros a agentes subordinados — você é o arquiteto).
+
+---
+
+## ADENDO v5.2 — ZONEAMENTO DOCUMENTAL E PERSISTÊNCIA DE EVIDÊNCIAS (2026-07-03)
+
+Quatro regras novas valem para TODOS os agentes (detalhes em `.delta-11/protocolos/regras-inviolaveis.md`, Regras 14-17):
+
+1. **Ferramenta externa nova?** Atualize `.delta-11/memoria/ferramentas-do-projeto.md` ANTES de instalar (Regra 14). A documentação da integração vai em `src/lib/[dominio]/[etapa]/README.md` usando `.delta-11/templates/config-integracao-externa-template.md` — nome pela FUNÇÃO, nunca pelo vendor (Regra 15).
+2. **Arquivo temporário?** (preview, debug, output de teste) → `.delta-11/scratch/` com nome datado. NUNCA no `/tmp` do sistema. Expira em 7 dias (Regra 16).
+3. **Screenshot de evidência?** → `.delta-11/evidencias/screenshots/[AAAA-MM-DD]/[HHMM]-[contexto]-[SEU-NOME].png` (Regra 16).
+4. **Relatório de sub-agente?** Salve o relatório COMPLETO em `.delta-11/logs/sub-agentes/[AAAA-MM-DD]-[sub-agente]-[SEU-NOME]-[T-XXX].md` ANTES de resumir no seu produto.md. A linha-resumo do produto passa a incluir o path do log (Regra 17).
+
+O hook `pre-criacao-arquivo.py` bloqueia tecnicamente criação de arquivo fora do zoneamento (docs/ com nome de vendor, .md na raiz, skills/ legada). Se for bloqueado, siga a instrução da mensagem — não contorne.

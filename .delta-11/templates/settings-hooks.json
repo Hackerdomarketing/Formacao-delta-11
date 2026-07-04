@@ -92,6 +92,28 @@
             "timeout": 3000
           }
         ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/pre-criacao-arquivo.py || python .delta-11/hooks/pre-criacao-arquivo.py",
+            "timeout": 3000
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/gc-locks.py || python .delta-11/hooks/gc-locks.py",
+            "timeout": 5000
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [

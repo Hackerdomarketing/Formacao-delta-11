@@ -24,6 +24,35 @@ Isso confirma ao agente despachador que você está ativo.
 
 ---
 
+## 🚧 VOCÊ NÃO É UM AGENTE Δ-11? LEIA ISTO ANTES DE CRIAR QUALQUER ARQUIVO (v5.2)
+
+**Se você é um agente Δ-11 formal (ativado via `d11` ou bloco de ativação): pule esta seção.**
+
+Esta seção é para QUALQUER outra IA trabalhando neste projeto: sessão comum do Claude Code, Codex, Cursor, ChatGPT, MiniMax, Gemini, Aider, ou qualquer ferramenta futura. Este projeto é operado pela Formação Δ-11 — um sistema multi-agente com regras de organização que você DEVE respeitar mesmo sem ser parte dele.
+
+### Mapa de zoneamento — onde cada tipo de arquivo vive
+
+| Tipo de arquivo | Endereço canônico | NUNCA em |
+|---|---|---|
+| Código da aplicação | `src/` (ou pasta do framework) | raiz |
+| Documentação de integração externa (config de API, chave, vendor, modelo de IA) | `src/lib/[dominio]/[etapa]/README.md` — nomeado pela FUNÇÃO no produto, nunca pelo vendor | `docs/`, raiz |
+| Spec de produto do comandante | `docs/` | raiz |
+| Documentos pessoais do comandante (planejamentos, reflexões, guias) | `docs/comandante/` | raiz |
+| Conhecimento técnico para agentes | `.delta-11/conhecimento/` | `skills/` (pasta legada — NÃO crie nada lá) |
+| Arquivos temporários (previews, debug, outputs de teste) | `.delta-11/scratch/` (expiram em 7 dias) | `/tmp` do sistema, raiz |
+| Screenshots de evidência | `.delta-11/evidencias/screenshots/AAAA-MM-DD/` | qualquer outro lugar |
+| Logs de validação | `.delta-11/logs/sub-agentes/` | perdidos no chat |
+
+### As 3 regras mínimas para IA externa
+
+1. **Antes de criar QUALQUER arquivo `.md` novo:** verifique se existe template canônico em `.delta-11/templates/`. Se existir, use-o. Se não existir e o arquivo for de um tipo recorrente, PARE e pergunte ao comandante onde deve viver.
+2. **Antes de adicionar chave de API, SDK ou serviço externo:** atualize `.delta-11/memoria/ferramentas-do-projeto.md` PRIMEIRO (Regra Inviolável 14). A documentação da integração vai em `src/lib/[dominio]/[etapa]/README.md` usando o template `.delta-11/templates/config-integracao-externa-template.md` (Regra Inviolável 15). Nome pela função ("ia-da-analise-competitiva"), NUNCA pelo vendor ("kimi-moonshot").
+3. **Nunca crie arquivo na raiz do projeto.** A raiz é só para: código de configuração do framework (package.json, next.config, etc.), `CLAUDE.md` e `README.md`. Todo o resto tem pasta.
+
+**Por que isto existe:** em 2026-07-03 uma IA externa criou `docs/configuracao-kimi-moonshot.md` — configuração de API nomeada pelo vendor, jogada numa pasta de specs. Ninguém encontra por função, o nome vira mentira quando o vendor troca, e a bagunça acumula. Um hook técnico (`pre-criacao-arquivo.py`) agora bloqueia esse padrão. Se você for bloqueado, a mensagem do hook diz exatamente onde o arquivo deve ir.
+
+---
+
 # FORMAÇÃO Δ-11 — SISTEMA OPERACIONAL DE DESENVOLVIMENTO
 
 Você é um operativo da Formação Δ-11: um sistema de desenvolvimento de software composto por 10 agentes especializados de inteligência artificial e 1 comandante humano.
@@ -436,9 +465,12 @@ Sem os 3, o painel não consegue mostrar "seguro fechar" vs "precisa de você" c
 
 **Golden Path — Atalho recomendado após o Passo 3:**
 
-Se o projeto tem o script `task-done.sh` na raiz, use-o via Bash tool ANTES de executar os passos 3.5 e 3.7. Ele automaticamente gera o prompt do SHIELD e exibe o checklist completo:
+Se o projeto tem o script `task-done.sh`, use-o via Bash tool ANTES de executar os passos 3.5 e 3.7. Ele automaticamente gera o prompt do SHIELD e exibe o checklist completo:
 
 ```bash
+# Projetos v5.2+ (endereço canônico):
+bash .delta-11/scripts/task-done.sh SEU-NOME T-XXX "Descrição da tarefa" "arquivos/modificados.js"
+# Projetos anteriores (script ainda na raiz):
 ./task-done.sh SEU-NOME T-XXX "Descrição da tarefa" "arquivos/modificados.js"
 ```
 
@@ -1020,3 +1052,4 @@ Toda vez que um agente errar de forma recorrente, adicionar aqui para prevenir r
 - [2026-07-03] [D-11 bug #39886 — ATLAS editou código direto na main] → ATLAS despachado com `isolation: worktree` nasceu na main (bug Anthropic #39886) e editou arquivos direto no repo principal sem nenhuma barreira. Auditoria achou 4 furos: (1) a verificação 0.VW era só instrução em prompt, sem hook técnico; (2) o template mandava CRONOS preencher `Worktree: [caminho]` ANTES do disparo — caminho que não existe ainda, então o campo ia vazio e a condição do 0.VW nunca se cumpria; (3) a isenção do 0.VW era por NOME de agente ("ATLAS pula"), então ATLAS reativado com worktree pulava; ATLAS.md nem mencionava 0.VW/#39886; (4) ATLAS.md mandava disparar CRONOS COM worktree, contradizendo o desenho (CRONOS opera o repo principal). → Correção: hook técnico `guarda-worktree.py` (PreToolUse Edit|Write) bloqueia código na main com worktrees ativas (CASO A = #39886), arquivo compartilhado editado pela cópia da worktree (CASO B) e código do principal editado por path absoluto de dentro da worktree (CASO C); escape do comandante via `.delta-11/.permitir-edicao-main`. Template trocou `Worktree: [caminho]` por `NASCEU_EM_WORKTREE: sim/nao` (flag que o despachador SABE preencher); 0.VW reescrito para comparar só com o repo principal; isenção agora é por modo de despacho, nunca por nome; ATLAS dispara CRONOS SEM worktree. REGRA GERAL: proteção que depende de agente obedecer prompt NÃO é proteção — toda regra crítica precisa de hook técnico (mesma lição do Code Simplifier de 2026-02-17).
 - [2026-07-03] [D-11 hooks da v5 nunca ativados nos projetos] → Os arquivos `pre-leitura.py`, `pre-despacho.py` e `pre-selo.py` eram SINCRONIZADOS para os projetos, mas o `sincronizar.sh` monta o settings.json dos projetos a partir do template `.delta-11/templates/settings-hooks.json` — e o template nunca foi atualizado na v5. Resultado: as proteções da v5 rodavam SÓ no repo de distribuição; nos projetos, os .py ficavam mortos no disco sem nada os invocando. → Correção: template atualizado com TODOS os hooks (guarda-worktree, check-lock, pre-selo, validar-contratos, pre-leitura, pre-despacho). REGRA GERAL: ao criar hook novo, atualizar SEMPRE três lugares: (1) o arquivo .py em `.delta-11/hooks/`, (2) o `.claude/settings.json` do repo de distribuição, (3) o template `settings-hooks.json` — é o item 3 que liga o hook nos projetos.
 - [2026-03-31] [D-11 .dispatch-mode gravado errado na instalação] → Arquivo `.dispatch-mode` era gravado como `terminal-app` durante instalação quando o CLI `claude` estava no PATH. Quando o agente ativava mais tarde dentro do VS Code, verificava o arquivo primeiro — e usava `terminal-app` mesmo com `$VSCODE_PID` ativo. Resultado: agente pedia ao comandante para colar prompt manualmente em vez de fazer auto-dispatch. → Correção: **`$VSCODE_PID` passa a ter prioridade absoluta sobre o arquivo em disco.** Lógica nova: se `$VSCODE_PID` existe → sempre `vscode-tab` E sobrescreve o arquivo. Só usa o arquivo se `$VSCODE_PID` está ausente. Isso garante que um arquivo gravado errado na instalação seja corrigido automaticamente na primeira sessão dentro do VS Code.
+- [2026-07-03] [D-11 v5.2 — Ciclo de Zoneamento Documental] → Estudo comparativo com o framework M2C1 + auditoria do projeto scanner-de-desvantagens-v3 revelaram 23 deficiências em 4 frentes: (1) IA externa (MiniMax/Codex/GPT) criava arquivo em endereço aleatório — caso real `docs/configuracao-kimi-moonshot.md`, config de API nomeada pelo vendor na pasta de specs; (2) 10 tipos de artefato gerados em produção sem template canônico (27 planos por imitação no projeto real); (3) housekeeping zero — locks de 45 dias pendurados, 13 backups de contrato sem rotação, arquivos efêmeros no /tmp do sistema; (4) setup de ferramentas 100% manual do comandante. → Correção v5.2 em 4 pilares: **Doutrina** (seção "PARA IA EXTERNA" no topo deste CLAUDE.md + Regras Invioláveis 14-17 + hook `pre-criacao-arquivo.py` que bloqueia config-de-vendor em docs/, .md na raiz e skills/ legada); **Templates** (10 novos em `.delta-11/templates/`: mini-plano, sequenciamento, dependências, abertura-de-fase, selo-experiencial, contratos-api, esquema-banco, pesquisa-tecnica, impacto-mudanca, config-integracao-externa — referenciados nos operativos ATLAS/CRONOS e no impact-mapper); **Housekeeping** (hook `gc-locks.py` em SessionStart: locks >2h, scratch >7d, logs >30d; rotação de `.contract-backup/` mantendo 5; pastas canônicas `.delta-11/scratch/`, `.delta-11/evidencias/screenshots/`, `.delta-11/logs/sub-agentes/`; novo-projeto.sh migra `.memoria-*` legado interativamente e põe shells de operação em `.delta-11/scripts/`); **Capacidade** (sub-agente `tool-provisioner` na nova Fase 2.4 — provisiona MCPs/chaves/contas com verificação real, import aprovado do M2C1). Gap extra fechado: projetos novos nasciam sem `.claude/settings.json` (hooks mortos até o primeiro sync) — novo-projeto.sh agora copia o template de hooks na criação. REGRA GERAL (reafirmada): proteção que depende de agente obedecer prompt NÃO é proteção — regra crítica de organização também precisa de hook técnico. Análises de risco em `~/.claude/plans/testes/analises-4-cenarios-v5.2.md`; plano completo em `~/.claude/plans/deep-wandering-thimble.md`.

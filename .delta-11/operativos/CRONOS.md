@@ -336,6 +336,19 @@ Posso prosseguir para montar os mini-planos e sequenciar os agentes (Phase 2.5)?
 
 ---
 
+### 1.5 FASE 2.4 — PROVISIONAMENTO DE FERRAMENTAS (v5.2 — entre a Pesquisa Técnica e os Mini-planos)
+
+Depois da Fase 2.3 e ANTES da Fase 2.5, dispare o sub-agente `tool-provisioner`:
+
+1. Leia `.delta-11/sub-agentes/tool-provisioner.md` e use como prompt do Task (`subagent_type: "general-purpose"`). Inclua no início: `"Projeto em: [caminho absoluto]. Fase 2.4 — provisione e verifique todas as ferramentas do projeto."`
+2. Ele instala MCPs e CLIs sozinho, configura dashboards via Playwright quando possível, pede credenciais ao comandante EM LOTE (nunca item por item), verifica CADA ferramenta com chamada real, e produz `.delta-11/memoria/tool-verification.md`.
+3. Analise o retorno:
+   - **Se algum FAIL bloqueia a Fase 3** (ex: banco não conecta): resolva com o comandante ANTES de montar mini-planos
+   - **Se pendências não bloqueiam** (ex: e-mail de produção): registre no kanban como tarefa do comandante com `resumo_humano` e siga para a 2.5
+4. **Em projeto já em andamento:** o tool-provisioner apenas VERIFICA e gera o relatório — não reconfigura o que funciona.
+
+**Por que esta fase existe (v5.2):** antes dela, o setup de ferramentas era 100% manual do comandante — tarefas como "configurar chave de e-mail em produção" ficavam penduradas no kanban por dias. Import aprovado do framework M2C1 (Phase 5) após estudo comparativo.
+
 ### 2. PHASE 2.5 — ANÁLISE DE CAMINHO CRÍTICO E SEQUENCIAMENTO (obrigatória em TODO projeto)
 
 Antes da execução (Fase 3 e 4) começar, você analisa os contratos do ATLAS + a pesquisa técnica da Fase 2.3, identifica o caminho crítico, e define a ordem de execução dos agentes. Os agentes NÃO criam planos — você cria o sequenciamento e os mini-planos e eles executam.
@@ -457,6 +470,15 @@ Com o caminho crítico identificado, crie `.delta-11/planos/CRONOS-sequenciament
 ```
 
 ### FORMATO OBRIGATÓRIO DO MINI-PLANO POR AGENTE (v4.0.3 — Mecanismo 1 da Criação)
+
+> **v5.2 — TEMPLATES CANÔNICOS (não escreva estes artefatos de memória):**
+> - Mini-plano: `.delta-11/templates/mini-plano-agente-template.md`
+> - Sequenciamento (PASSO 4): `.delta-11/templates/cronos-sequenciamento-template.md`
+> - Mapa de dependências (PASSO 2): `.delta-11/templates/cronos-dependencias-template.md`
+> - Abertura de fase: `.delta-11/templates/cronos-abertura-fase-template.md`
+> - Pesquisa técnica (Fase 2.3): `.delta-11/templates/pesquisa-tecnica-template.md`
+> - Roteiro do Selo (Viu que Era Bom): `.delta-11/templates/selo-experiencial-template.md`
+> Convenção de nome dos planos: `[AGENTE]-plan-[ciclo]-onda-[N][-subtopico].md`.
 
 Cada `.delta-11/planos/[AGENTE]-plan.md` gerado por você DEVE conter 5 seções obrigatórias. As 4 primeiras já existiam implicitamente; a 5ª (LIMITES DE ESCOPO) é nova na v4.0.3 e é OBRIGATÓRIA.
 
@@ -1185,3 +1207,16 @@ Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE
    - Respeite paralelismo por zona (máx 3 agentes simultâneos) e ordem de prioridade (VAULT → BACK/ENGINE → FRONT → PIXEL/FORM).
 6. Monitorar o tamanho do seu próprio contexto — se estiver chegando no limite, você é o único agente que pede ajuda ao comandante diretamente (não há CRONOS acima de você). Gere `.delta-11/ativacoes/retomada-CRONOS.txt` e peça ao comandante que abra nova sessão com o prompt de retomada.
 7. Se receber `SendMessage` de um agente reportando erro irrecuperável: classifique (A/B/C) e dispare SCOUT ou ATLAS conforme o caso.
+
+---
+
+## ADENDO v5.2 — ZONEAMENTO DOCUMENTAL E PERSISTÊNCIA DE EVIDÊNCIAS (2026-07-03)
+
+Quatro regras novas valem para TODOS os agentes (detalhes em `.delta-11/protocolos/regras-inviolaveis.md`, Regras 14-17):
+
+1. **Ferramenta externa nova?** Atualize `.delta-11/memoria/ferramentas-do-projeto.md` ANTES de instalar (Regra 14). A documentação da integração vai em `src/lib/[dominio]/[etapa]/README.md` usando `.delta-11/templates/config-integracao-externa-template.md` — nome pela FUNÇÃO, nunca pelo vendor (Regra 15).
+2. **Arquivo temporário?** (preview, debug, output de teste) → `.delta-11/scratch/` com nome datado. NUNCA no `/tmp` do sistema. Expira em 7 dias (Regra 16).
+3. **Screenshot de evidência?** → `.delta-11/evidencias/screenshots/[AAAA-MM-DD]/[HHMM]-[contexto]-[SEU-NOME].png` (Regra 16).
+4. **Relatório de sub-agente?** Salve o relatório COMPLETO em `.delta-11/logs/sub-agentes/[AAAA-MM-DD]-[sub-agente]-[SEU-NOME]-[T-XXX].md` ANTES de resumir no seu produto.md. A linha-resumo do produto passa a incluir o path do log (Regra 17).
+
+O hook `pre-criacao-arquivo.py` bloqueia tecnicamente criação de arquivo fora do zoneamento (docs/ com nome de vendor, .md na raiz, skills/ legada). Se for bloqueado, siga a instrução da mensagem — não contorne.

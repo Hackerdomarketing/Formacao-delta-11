@@ -94,6 +94,9 @@ Para cada arquivo afetado, verifique se há tarefa no kanban relacionada:
 
 ### PASSO 5 — Gerar relatório
 
+> **v5.2:** o formato canônico vive em `.delta-11/templates/impacto-mudanca-template.md` — siga-o.
+> O modelo abaixo é a referência inline do mesmo formato.
+
 Escreva em `.delta-11/memoria/impacto-mudanca-[timestamp].md` no formato:
 
 ```markdown

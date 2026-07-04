@@ -84,6 +84,24 @@ Antes de montar mini-planos ou disparar qualquer agente de execução, o CRONOS 
 
 ---
 
+### FASE 2.4 — PROVISIONAMENTO DE FERRAMENTAS (v5.2 — OBRIGATÓRIA EM TODO PROJETO)
+
+**Quem:** CRONOS + sub-agente `tool-provisioner` (disparado via Task `general-purpose`)
+**Janelas:** 1 (CRONOS; sub-agente roda interno)
+
+Depois da pesquisa técnica e ANTES dos mini-planos, o CRONOS dispara o `tool-provisioner`, que transforma a lista de ferramentas do projeto em capacidade VERIFICADA:
+
+1. Inventário completo: MCPs, chaves de API, contas, variáveis de ambiente, CLIs
+2. Classificação: AUTO-CLI (instala sozinho) · AUTO-BROWSER (configura via Playwright) · CREDENCIAL (pede ao comandante em lote) · HUMANO (pagamento/telefone — checklist em linguagem leiga)
+3. Verificação de CADA ferramenta com chamada real — não só "a chave existe"
+4. Relatório em `.delta-11/memoria/tool-verification.md` + log completo em `.delta-11/logs/sub-agentes/`
+
+**Por que existe:** setup manual de ferramentas era a maior fricção do comandante — tarefas de configuração ficavam penduradas no kanban por dias. Import aprovado do framework M2C1 (Phase 5) no ciclo v5.2.
+
+**Resultado:** todas as ferramentas verificadas OU pendências explícitas com dono claro (comandante) e instruções passo a passo. FAIL que bloqueia a Fase 3 é resolvido ANTES dos mini-planos.
+
+---
+
 ### FASE 2.5 — SEQUENCIAMENTO E MINI-PLANOS (v4.0 — OBRIGATÓRIA EM TODO PROJETO)
 
 **Quem:** CRONOS (executa sozinho — agentes de execução NÃO criam planos próprios)

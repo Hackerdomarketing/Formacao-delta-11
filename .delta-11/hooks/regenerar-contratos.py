@@ -100,13 +100,31 @@ def log_activity(message: str) -> None:
         f.write(entry)
 
 
+BACKUPS_MANTIDOS = 5  # v5.2 (M-16): rotação — auditoria antiga vive no git, não no disco
+
+
 def backup_contracts() -> Path | None:
-    """Copia tests/contracts/ atual para .delta-11/.contract-backup/[timestamp]/."""
+    """Copia tests/contracts/ atual para .delta-11/.contract-backup/[timestamp]/.
+
+    v5.2: após criar o backup novo, remove os mais antigos além de BACKUPS_MANTIDOS.
+    Achado empírico: 13 backups acumulados em projeto real sem regra de rotação.
+    """
     if not CONTRACTS_DIR.exists():
         return None
     BACKUP_ROOT.mkdir(parents=True, exist_ok=True)
     target = BACKUP_ROOT / timestamp_filename()
     shutil.copytree(CONTRACTS_DIR, target)
+
+    # Rotação: nomes são timestamps ISO-compactos — ordenação lexicográfica = cronológica
+    backups = sorted(
+        (p for p in BACKUP_ROOT.iterdir() if p.is_dir()),
+        key=lambda p: p.name,
+        reverse=True,
+    )
+    for antigo in backups[BACKUPS_MANTIDOS:]:
+        shutil.rmtree(antigo, ignore_errors=True)
+        log_activity(f"backup antigo rotacionado (M-16): {antigo.name}")
+
     return target
 
 

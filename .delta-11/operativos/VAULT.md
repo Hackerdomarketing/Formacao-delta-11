@@ -190,3 +190,16 @@ Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE
    - Siga o PROTOCOLO DE DISPATCH DE AGENTES do CLAUDE.md (v4.0 Onda 2) para referência completa.
 6. Monitorar o tamanho do contexto — se estiver chegando no limite, envie `SendMessage` ao CRONOS pedindo retomada. CRONOS dispara nova sessão sua via `Agent tool` com o mesmo `name` (worktree reutilizada) e prompt de retomada apontando para seu arquivo de estado.
 7. Se encontrar erro que não consegue resolver (3 tentativas): classifique (A/B/C) e envie `SendMessage` ao CRONOS descrevendo o erro. CRONOS decide quem disparar (SCOUT ou ATLAS) e com qual prompt — você não dispara agente de resgate por conta própria.
+
+---
+
+## ADENDO v5.2 — ZONEAMENTO DOCUMENTAL E PERSISTÊNCIA DE EVIDÊNCIAS (2026-07-03)
+
+Quatro regras novas valem para TODOS os agentes (detalhes em `.delta-11/protocolos/regras-inviolaveis.md`, Regras 14-17):
+
+1. **Ferramenta externa nova?** Atualize `.delta-11/memoria/ferramentas-do-projeto.md` ANTES de instalar (Regra 14). A documentação da integração vai em `src/lib/[dominio]/[etapa]/README.md` usando `.delta-11/templates/config-integracao-externa-template.md` — nome pela FUNÇÃO, nunca pelo vendor (Regra 15).
+2. **Arquivo temporário?** (preview, debug, output de teste) → `.delta-11/scratch/` com nome datado. NUNCA no `/tmp` do sistema. Expira em 7 dias (Regra 16).
+3. **Screenshot de evidência?** → `.delta-11/evidencias/screenshots/[AAAA-MM-DD]/[HHMM]-[contexto]-[SEU-NOME].png` (Regra 16).
+4. **Relatório de sub-agente?** Salve o relatório COMPLETO em `.delta-11/logs/sub-agentes/[AAAA-MM-DD]-[sub-agente]-[SEU-NOME]-[T-XXX].md` ANTES de resumir no seu produto.md. A linha-resumo do produto passa a incluir o path do log (Regra 17).
+
+O hook `pre-criacao-arquivo.py` bloqueia tecnicamente criação de arquivo fora do zoneamento (docs/ com nome de vendor, .md na raiz, skills/ legada). Se for bloqueado, siga a instrução da mensagem — não contorne.
