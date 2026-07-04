@@ -2,6 +2,15 @@
   "hooks": {
     "PreToolUse": [
       {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .delta-11/hooks/check-lock.js"
+          }
+        ]
+      },
+      {
         "matcher": "Edit|Write",
         "hooks": [
           {
@@ -12,11 +21,32 @@
         ]
       },
       {
-        "matcher": "Write|Edit",
+        "matcher": "Write",
         "hooks": [
           {
             "type": "command",
-            "command": "node .delta-11/hooks/check-lock.js"
+            "command": "python3 .delta-11/hooks/pre-criacao-arquivo.py || python .delta-11/hooks/pre-criacao-arquivo.py",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/pre-despacho.py || python .delta-11/hooks/pre-despacho.py",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/pre-leitura.py || python .delta-11/hooks/pre-leitura.py",
+            "timeout": 3000
           }
         ]
       },
@@ -37,36 +67,6 @@
             "type": "command",
             "command": "python3 .delta-11/hooks/validar-contratos-fim-fase.py || python .delta-11/hooks/validar-contratos-fim-fase.py",
             "timeout": 300000
-          }
-        ]
-      },
-      {
-        "matcher": "Read",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/pre-leitura.py || python .delta-11/hooks/pre-leitura.py",
-            "timeout": 3000
-          }
-        ]
-      },
-      {
-        "matcher": "Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/pre-despacho.py || python .delta-11/hooks/pre-despacho.py",
-            "timeout": 3000
-          }
-        ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/pre-criacao-arquivo.py || python .delta-11/hooks/pre-criacao-arquivo.py",
-            "timeout": 3000
           }
         ]
       }
