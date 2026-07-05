@@ -190,6 +190,13 @@ for f in "$SOURCE/.delta-11/templates/"*.md; do
     [ -f "$f" ] && SYNC_FILES+=(".delta-11/templates/$(basename "$f")")
 done
 
+# Conhecimento (bases de conhecimento dos agentes — arquivos de SISTEMA)
+# Corrigido em 2026-07-05: a pasta ficava fora da lista e mudanças nesses
+# arquivos nunca chegavam aos projetos (descoberto na remoção do Code Simplifier)
+for f in "$SOURCE/.delta-11/conhecimento/"*.md; do
+    [ -f "$f" ] && SYNC_FILES+=(".delta-11/conhecimento/$(basename "$f")")
+done
+
 # Painel + imagem de fundo + sprites dos agentes
 if [ -f "$SOURCE/.delta-11/painel.html" ]; then
     SYNC_FILES+=(".delta-11/painel.html")

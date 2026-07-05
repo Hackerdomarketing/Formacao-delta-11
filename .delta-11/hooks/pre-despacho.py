@@ -60,6 +60,7 @@ SUBAGENTES_NOMES = {
     "build-validator", "contract-tester",
     "code-architect", "schema-validator", "verify-app",
     "fresh-reviewer", "cold-start-tester", "impact-mapper",
+    "tool-provisioner",
 }
 
 ACTIVITY_LOG = Path(".delta-11/activity-log.md")

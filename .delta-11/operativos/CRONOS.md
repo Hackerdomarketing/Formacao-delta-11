@@ -602,7 +602,7 @@ A intuição central da v5: cada nova onda dispara um agente NOVO com janela de 
 3. Se "Critérios" tem 8+ itens → vire 2-3 ondas com 3 critérios cada.
 4. Cada nova onda terá seu próprio mini-plano enxuto e seu agente nasce com contexto limpo.
 
-**Isentos do limite:** ATLAS, CRONOS, e todos os sub-agentes (build-validator, contract-tester, code-architect, fresh-reviewer, cold-start-tester, schema-validator, verify-app). Estes podem receber briefs maiores legitimamente.
+**Isentos do limite:** ATLAS, CRONOS, e todos os sub-agentes (build-validator, contract-tester, code-architect, fresh-reviewer, cold-start-tester, schema-validator, verify-app, impact-mapper, tool-provisioner). Estes podem receber briefs maiores legitimamente.
 
 **Por que o limite é 2.000:** calibrado no `mcp-server-produtos-2` real — mini-planos bem dimensionados ficavam em 2.000-2.500 tokens. 2.000 dá pressão pra granularizar sem travar projetos legítimos.
 

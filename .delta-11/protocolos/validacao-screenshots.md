@@ -193,7 +193,7 @@ Quando a tarefa envolve screenshots, adicione ao Passo 3.5 (após validação de
 
 ```
 3.5 — Validação de build (obrigatório para agentes que escrevem código)
-3.6 — Validação visual de screenshots (obrigatório quando tarefa gera screenshots)
+3.5.1 — Validação visual de screenshots (obrigatório quando tarefa gera screenshots)
       Use Read tool para visualizar cada imagem
       Valide conteúdo, dados populados, renderização completa
       Só prossiga se TODOS os screenshots estiverem corretos

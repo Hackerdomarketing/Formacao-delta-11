@@ -274,7 +274,12 @@ Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE
    - Aguarde o relatório completo
    - **FAIL com blockers** → corrija ANTES de avançar. NÃO mova a tarefa para revisão.
    - **PASS ou warnings apenas** → registre o resultado no seu arquivo de estado e continue
-3.7. **REVISÃO DO SHIELD — OBRIGATÓRIO na Fase 4 para agentes que escrevem código:**
+3.7. **CONTRACT TESTER — OBRIGATÓRIO após build-validator e ANTES do SHIELD:**
+   - Leia `.delta-11/sub-agentes/contract-tester.md`
+   - Dispare via Task tool (`subagent_type: "general-purpose"`) com o conteúdo do arquivo como prompt. Inclua: `"Projeto em: [caminho do projeto]. Agente: SCOUT. Arquivos modificados nesta tarefa: [lista]. Verifique conformidade com os contratos em project-core.md."`
+   - Se encontrar desvios entre implementação e contrato: corrija ANTES de avançar. NÃO mova para revisão.
+   - **POR QUE ESTE PASSO É OBRIGATÓRIO PARA VOCÊ:** sua correção de bug pode violar outra parte do contrato sem você perceber (ver seção sobre disparar contract-tester após cada correção). Este passo materializa aquela regra no protocolo de finalização.
+3.8. **REVISÃO DO SHIELD — OBRIGATÓRIO na Fase 4 para agentes que escrevem código:**
    - Mova a tarefa para "REVISÃO" no kanban.md (NÃO para CONCLUÍDO diretamente)
    - Adicione no array `revisao` do kanban-data.js: `{ id: "T-XXX", desc: "Descrição", por: "SCOUT", revisor: "SHIELD" }`
    - Gere prompt do SHIELD em `.delta-11/ativacoes/janela-SHIELD-revisao-[ID-DA-TAREFA]-SCOUT.txt` (exemplo: `janela-SHIELD-revisao-T-050-SCOUT.txt`) listando arquivos modificados e o que foi feito — inclua o ID da tarefa no nome para evitar sobrescrita quando múltiplos agentes terminam ao mesmo tempo

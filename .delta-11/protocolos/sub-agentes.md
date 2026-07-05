@@ -10,7 +10,7 @@ Diferença chave:
 
 ---
 
-## OS 8 SUB-AGENTES
+## OS 9 SUB-AGENTES
 
 ### 1. BUILD VALIDATOR — Validação de Build
 
@@ -186,6 +186,26 @@ Diferença chave:
 
 ---
 
+### 9. TOOL PROVISIONER — Provisionamento de Ferramentas Externas (v5.2)
+
+**Arquivo:** `.delta-11/sub-agentes/tool-provisioner.md`
+
+**Quando disparar:** na Fase 2.4 (entre a Pesquisa Técnica 2.3 e os Mini-planos 2.5) — OBRIGATÓRIO em projeto com integrações externas. Também sob demanda quando uma integração nova entra no projeto (ex: troca de vendor de IA).
+
+**Quem dispara:** CRONOS
+
+**O que faz:**
+- Compila o inventário de ferramentas externas (MCPs, chaves de API, contas, variáveis de ambiente, CLIs)
+- Classifica cada item: AUTO-CLI (instala sozinho), AUTO-BROWSER (configura via Playwright), CREDENCIAL (pede ao comandante em lote), HUMANO (pagamento/telefone — gera checklist leigo)
+- Verifica cada ferramenta com teste REAL (chamada de API mínima, conexão de banco, ping de webhook) — não só "a chave existe"
+- Atualiza `.delta-11/memoria/ferramentas-do-projeto.md`
+
+**Output:** Relatório com status por ferramenta (OK/FAIL/PENDENTE-HUMANO) + checklist leigo do que só o comandante pode fazer
+
+**Regra de ouro:** ferramenta listada mas não configurada é promessa, não capacidade. Nenhum agente de execução deve travar por ferramenta não provisionada.
+
+---
+
 ## QUANDO CADA SUB-AGENTE É OBRIGATÓRIO (v4.0.3)
 
 | Sub-agente | Frequência | Fase | Disparado por | Obrigatório? |
@@ -205,6 +225,7 @@ Diferença chave:
 | Verify App | Antes de deploy | Fase 6 | SHIELD + Hook UserPromptSubmit | ✅ SIM |
 | Fresh Reviewer (v4.0.1) | Final de cada fase, antes do selo humano | Todas as fases após build | CRONOS | ✅ SIM — Revisão Cruzada P4/5 |
 | Cold Start Tester (v4.0.3) | Final de cada fase, após Fresh Reviewer, antes do selo — 1 por agente | Todas as fases com produto | CRONOS | ✅ SIM — Mecanismo 4b da Criação |
+| Tool Provisioner (v5.2) | Fase 2.4 + quando integração nova entra | Fase 2.4 | CRONOS | ✅ SIM — se há integrações externas |
 
 ---
 
