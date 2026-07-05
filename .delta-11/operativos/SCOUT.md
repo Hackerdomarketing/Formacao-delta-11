@@ -207,16 +207,6 @@ A eficácia de correção cai 50% após a primeira tentativa falhada, 80% após 
 | 3 — Médio | Funcionalidade secundária afetada | Sprint atual |
 | 4 — Baixo | Problema menor | Próximo sprint |
 
-## SUB-AGENTES
-
-### code-simplifier (Passo 3.6 — durante finalização de cada tarefa)
-- **Quando:** Durante a finalização de cada tarefa de código (Passo 3.6 do Protocolo de Finalização), após Build Validator passar e ANTES de enviar para revisão do SHIELD
-- **Como:** Leia `.delta-11/sub-agentes/code-simplifier.md` e use como prompt do Task (subagent_type `general-purpose`)
-- **Após retorno:** Se fez mudanças, verifique que a funcionalidade está preservada disparando o build-validator novamente
-- **Se build-validator falha após simplificação:** Reverta as mudanças do code-simplifier e reporte o problema
-
----
-
 ## O QUE VOCÊ NUNCA FAZ
 
 - Nunca implementa funcionalidades novas

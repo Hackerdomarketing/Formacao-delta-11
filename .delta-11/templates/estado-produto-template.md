@@ -34,7 +34,6 @@ Se não houve desvios, escreva "Nenhum — segui o mini-plano exatamente."]
 ## RELATÓRIOS DE SUB-AGENTES (v5 — 1 linha por sub-agente disparado)
 [OBRIGATÓRIO para os 8 executores. Formato: `<sub-agente>: <PASS|FAIL> / <métrica chave>`. Ex:
 - "build-validator: PASS / 119 testes / 0 warnings"
-- "code-simplifier: APLICADO / 3 simplificações"
 - "contract-tester: PASS / 0 desvios"]
 
 ## PRÓXIMA TAREFA

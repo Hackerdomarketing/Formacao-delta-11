@@ -57,7 +57,7 @@ AGENTES_EXECUTORES = {
 # Isentos: ATLAS (arquiteto), CRONOS (orquestrador), e todos os sub-agentes
 AGENTES_ISENTOS = {"ATLAS", "CRONOS"}
 SUBAGENTES_NOMES = {
-    "build-validator", "code-simplifier", "contract-tester",
+    "build-validator", "contract-tester",
     "code-architect", "schema-validator", "verify-app",
     "fresh-reviewer", "cold-start-tester", "impact-mapper",
 }
@@ -172,7 +172,7 @@ def bloquear_despacho(alvo: str, tokens: int, prompt_preview: str) -> int:
         f"{prompt_preview[:300]}...\n"
         f"\n"
         f"Agentes ISENTOS deste limite: ATLAS, CRONOS, todos os sub-agentes\n"
-        f"(build-validator, code-simplifier, contract-tester, code-architect,\n"
+        f"(build-validator, contract-tester, code-architect,\n"
         f"fresh-reviewer, cold-start-tester, etc.).",
         file=sys.stderr,
     )

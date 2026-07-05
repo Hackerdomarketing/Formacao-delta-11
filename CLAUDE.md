@@ -342,7 +342,7 @@ A partir da v4.0.3, cada agente mantém DOIS arquivos separados. Isso materializ
 - Descobertas que afetam fases futuras (apenas o que muda critérios/arquitetura adiante)
 - **PORQUÊS-CHAVE (v5):** máximo 3 itens, 1 linha cada. Decisões NÃO óbvias e o motivo curto. Só registre quando a escolha pareceria estranha sem o porquê.
 - **DESVIOS DO PLANO (v5):** máximo 3 itens, 1 linha cada. Só preencher se o agente mudou rota em relação ao mini-plano original do CRONOS. Cite a tarefa + desvio + motivo. Se não houve, escreva "Nenhum".
-- **RELATÓRIOS DE SUB-AGENTES (v5 — OBRIGATÓRIO para executores):** 1 linha por sub-agente disparado. Formato: `<sub-agente>: <PASS|FAIL> / <métrica chave>`. Ex: `build-validator: PASS / 119 testes / 0 warnings` · `code-simplifier: APLICADO / 3 simplificações` · `contract-tester: PASS / 0 desvios`. Isso permite o CRONOS calibrar a próxima onda sem reabrir os relatórios brutos.
+- **RELATÓRIOS DE SUB-AGENTES (v5 — OBRIGATÓRIO para executores):** 1 linha por sub-agente disparado. Formato: `<sub-agente>: <PASS|FAIL> / <métrica chave>`. Ex: `build-validator: PASS / 119 testes / 0 warnings` · `contract-tester: PASS / 0 desvios`. Isso permite o CRONOS calibrar a próxima onda sem reabrir os relatórios brutos.
 - Próxima tarefa pendente (1 linha)
 - **NÃO ENTRA AQUI:** como você chegou lá, tentativas, deliberações, versões descartadas, logs, histórico
 - **> **⚠️ OBRIGATÓRIO v5 — REGRA POR PAPEL:**
@@ -491,23 +491,11 @@ Se você é um agente que escreve ou modifica código (ENGINE, BACK, FRONT, PIXE
 
 Agentes que NÃO escrevem código (ATLAS, CRONOS) não precisam deste passo.
 
-**Passo 3.6 — Simplificação de código (obrigatório para agentes que escrevem código)**
-
-Se você é um agente que escreve ou modifica código (ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT), dispare o sub-agente `code-simplifier` APÓS o build-validator passar e ANTES do contract-tester. **VAULT está isento** deste passo — SQL declarativo não se beneficia de simplificação:
-
-1. Leia o arquivo `.delta-11/sub-agentes/code-simplifier.md`
-2. Use a ferramenta Task para disparar um sub-agente do tipo `general-purpose` com o conteúdo desse arquivo como prompt, incluindo: "Projeto em: [caminho do projeto]. Arquivos modificados nesta tarefa: [lista de arquivos]. Simplifique agora."
-3. Analise o relatório retornado:
-   - Se fez mudanças: verifique que a funcionalidade está preservada
-   - Se nenhuma mudança necessária: continue normalmente
-
-**POR QUE ESTE PASSO É OBRIGATÓRIO E NÃO OPCIONAL:** O agente que escreveu o código NUNCA vai achar que precisa simplificar — senão teria simplificado na hora. Este passo existe justamente para ter um "olho externo" obrigatório sobre a complexidade do código produzido. NÃO depende do julgamento do agente que escreveu.
-
-Agentes que NÃO escrevem código (ATLAS, CRONOS) não precisam deste passo.
-
 **Passo 3.7 — Verificação de contrato (obrigatório para agentes que escrevem código)**
 
-Se você é um agente que escreve ou modifica código (ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT, VAULT), dispare o sub-agente `contract-tester` APÓS o code-simplifier (ou após o build-validator, no caso do VAULT) e ANTES de enviar para revisão do SHIELD:
+*(Nota: o Passo 3.6 — Code Simplifier — foi removido do sistema em 2026-07-05. A numeração dos passos seguintes foi mantida para não quebrar referências cruzadas nos operativos e protocolos.)*
+
+Se você é um agente que escreve ou modifica código (ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT, VAULT), dispare o sub-agente `contract-tester` APÓS o build-validator passar e ANTES de enviar para revisão do SHIELD:
 
 1. Leia o arquivo `.delta-11/sub-agentes/contract-tester.md`
 2. Use a ferramenta Task para disparar um sub-agente do tipo `general-purpose` com o conteúdo desse arquivo como prompt, incluindo no início: "Projeto em: [caminho do projeto]. Agente: [SEU-NOME]. Arquivos modificados nesta tarefa: [lista de arquivos]. Verifique se a implementação está conforme os contratos em project-core.md."
@@ -515,7 +503,7 @@ Se você é um agente que escreve ou modifica código (ENGINE, BACK, FRONT, PIXE
    - Se encontrar desvios entre implementação e contrato: corrija ANTES de avançar. NÃO mova a tarefa para revisão.
    - Se conforme: registre o resultado no seu arquivo de estado e continue
 
-**POR QUE ESTE PASSO É OBRIGATÓRIO:** Build Validator verifica que o build funciona e que os testes de contrato existentes passam. Code Simplifier foca em complexidade desnecessária. Contract Tester é a camada de verificação holística que lê diretamente os contratos do project-core.md e confirma que o que foi implementado corresponde exatamente ao que foi definido — campos, validações, formatos, erros. Sem esta verificação, desvios do contrato só aparecem na revisão do SHIELD ou pior, em produção.
+**POR QUE ESTE PASSO É OBRIGATÓRIO:** Build Validator verifica que o build funciona e que os testes de contrato existentes passam. Contract Tester é a camada de verificação holística que lê diretamente os contratos do project-core.md e confirma que o que foi implementado corresponde exatamente ao que foi definido — campos, validações, formatos, erros. Sem esta verificação, desvios do contrato só aparecem na revisão do SHIELD ou pior, em produção.
 
 Agentes que NÃO escrevem código (ATLAS, CRONOS) não precisam deste passo.
 
@@ -757,7 +745,7 @@ Passos na ativação (em ordem):
 5. Comece a primeira tarefa do mini-plano
 
 Ao concluir todas as tarefas da onda:
-1. Rode sub-agentes obrigatórios (build-validator → code-simplifier → contract-tester)
+1. Rode sub-agentes obrigatórios (build-validator → contract-tester)
 2. Atualize kanban.md e seu arquivo de estado (path absoluto — repo principal)
 3. Commite na branch da worktree
 4. Envie SendMessage para o CRONOS com payload estruturado (ver merge-guiado-contratos.md)
@@ -777,7 +765,6 @@ Ao concluir todas as tarefas da onda:
   "arquivos_modificados": ["src/app/api/users/route.ts"],
   "contract_tests": "PASSED",
   "build_validator": "PASSED",
-  "code_simplifier": "APLICADO",
   "mensagem": "Descrição curta do que foi feito"
 }
 ```
@@ -1001,7 +988,7 @@ Se quiser que um agente JÁ rodando pegue mudanças, reinicie a janela dele.
 CLAUDE.md                                    ← protocolo mestre
 .delta-11/operativos/*.md                    ← 10 agentes
 .delta-11/protocolos/*.md                    ← 5 protocolos
-.delta-11/sub-agentes/*.md                   ← 4 sub-agentes
+.delta-11/sub-agentes/*.md                   ← 9 sub-agentes
 .delta-11/templates/*.md                     ← templates
 .delta-11/painel.html                        ← painel visual
 ```
@@ -1042,7 +1029,7 @@ Toda vez que um agente errar de forma recorrente, adicionar aqui para prevenir r
 
 - [2026-02-05] [Inicial] → Esta seção foi criada seguindo as best practices do Boris Cherny (criador do Claude Code) → Sempre que o Claude errar, registrar aqui para criar memória institucional.
 - [2026-02-15] [Auto-dispatch D-11] → SCOUT disparou SHIELD usando `terminal-app` sem ler `.dispatch-mode` (que continha `vscode-tab`). Comandante usa extensão VS Code, não CLI no terminal. → Correção: Adicionados lembretes inline em TODOS os pontos onde agentes fazem auto-dispatch no CLAUDE.md do projeto (Finalização de Tarefa Passo 3.7 e Passo 4, Fase Concluída, Contexto Esgotado). Regra: SEMPRE ler `.delta-11/.dispatch-mode` ANTES de disparar. NUNCA assumir o modo. (Nota: superseded pela correção de 2026-03-31 — `$VSCODE_PID` agora tem prioridade absoluta sobre o arquivo).
-- [2026-02-17] [D-11 Code Simplifier] → Code Simplifier era acionado sob demanda (quando o agente "acha necessário"). RESULTADO: 0 ativações em 30+ tarefas de código. → INSIGHT DO COMANDANTE: "Se foram os agentes que escreveram o código daquela forma, eles nunca vão achar que precisa simplificar." → Correção: Code Simplifier agora é PASSO OBRIGATÓRIO (Passo 3.6) no protocolo de finalização de tarefa, entre o Build Validator (3.5) e a revisão do SHIELD (3.7). Nunca depende do julgamento do agente que escreveu o código.
+- [2026-02-17] [D-11 Code Simplifier] → Code Simplifier era acionado sob demanda (quando o agente "acha necessário"). RESULTADO: 0 ativações em 30+ tarefas de código. → INSIGHT DO COMANDANTE: "Se foram os agentes que escreveram o código daquela forma, eles nunca vão achar que precisa simplificar." → Correção: Code Simplifier agora é PASSO OBRIGATÓRIO (Passo 3.6) no protocolo de finalização de tarefa, entre o Build Validator (3.5) e a revisão do SHIELD (3.7). Nunca depende do julgamento do agente que escreveu o código. **(NOTA HISTÓRICA: o Code Simplifier foi REMOVIDO do sistema em 2026-07-05 por decisão do comandante — ver registro daquela data. A LIÇÃO desta correção permanece válida: passo de qualidade que depende do julgamento de quem escreveu o código não é passo, é loteria.)**
 - [2026-02-17] [D-11 Build Validator] → Build Validator assumia package.json (npm scripts). Projeto de extensão Chrome não tem package.json. RESULTADO: apenas 1 ativação em 30+ tarefas. → Correção: Build Validator reescrito com detecção automática de tipo de projeto (NODE, CHROME_EXTENSION, RUST, PYTHON, GENERICO). Cada tipo tem checks específicos. Chrome Extension: validação de manifest, node --check, JSON parsing, message passing, XSS scan, cross-module consistency.
 - [2026-02-28] [D-11 Auto-dispatch cross-project] → SHIELD rodando em projeto A (testando-versoes-delta-11-a) disparou BACK para projeto B (testando-versoes-delta-11-b) usando modo `vscode-tab`. O AppleScript abriu nova aba do Claude Code na janela VS Code ativa — que estava no contexto do projeto A. O agente BACK teria editado arquivos do projeto ERRADO. → Correção: **Dispatch cross-project com `vscode-tab` é PROIBIDO.** Quando o working directory do agente executor ≠ projeto-alvo, usar SEMPRE `terminal-app` (cd /caminho/correto && claude garante contexto exato) ou informar o comandante para fazer manualmente. Regra adicionada em CUIDADOS OBRIGATÓRIOS no CLAUDE.md do projeto D-11 e capturada na Inteligência Progressiva.
 - [2026-03-03] [D-11 Auto-dispatch vscode-tab] → Regra equivocada dizia "vscode-tab PROIBIDO em TODOS os cenários de dispatch". Agentes estavam sobrescrevendo `.dispatch-mode` de `vscode-tab` para `terminal-app` mesmo sem cross-project. → Correção: **vscode-tab é SEGURO com targeting por título de janela.** O AppleScript DEVE: (1) extrair PROJECT_FOLDER do path, (2) listar janelas do VS Code via System Events, (3) encontrar a janela cujo título contém o nome do projeto, (4) usar AXRaise nessa janela específica, (5) só então enviar keystrokes. Agentes NUNCA devem sobrescrever `.dispatch-mode` de `vscode-tab` para `terminal-app` — o comandante configurou `vscode-tab` porque usa extensão VS Code. Cross-project (working directory ≠ projeto-alvo) continua PROIBIDO com vscode-tab — usar `terminal-app` nesses casos.
@@ -1053,3 +1040,4 @@ Toda vez que um agente errar de forma recorrente, adicionar aqui para prevenir r
 - [2026-07-03] [D-11 hooks da v5 nunca ativados nos projetos] → Os arquivos `pre-leitura.py`, `pre-despacho.py` e `pre-selo.py` eram SINCRONIZADOS para os projetos, mas o `sincronizar.sh` monta o settings.json dos projetos a partir do template `.delta-11/templates/settings-hooks.json` — e o template nunca foi atualizado na v5. Resultado: as proteções da v5 rodavam SÓ no repo de distribuição; nos projetos, os .py ficavam mortos no disco sem nada os invocando. → Correção: template atualizado com TODOS os hooks (guarda-worktree, check-lock, pre-selo, validar-contratos, pre-leitura, pre-despacho). REGRA GERAL: ao criar hook novo, atualizar SEMPRE três lugares: (1) o arquivo .py em `.delta-11/hooks/`, (2) o `.claude/settings.json` do repo de distribuição, (3) o template `settings-hooks.json` — é o item 3 que liga o hook nos projetos.
 - [2026-03-31] [D-11 .dispatch-mode gravado errado na instalação] → Arquivo `.dispatch-mode` era gravado como `terminal-app` durante instalação quando o CLI `claude` estava no PATH. Quando o agente ativava mais tarde dentro do VS Code, verificava o arquivo primeiro — e usava `terminal-app` mesmo com `$VSCODE_PID` ativo. Resultado: agente pedia ao comandante para colar prompt manualmente em vez de fazer auto-dispatch. → Correção: **`$VSCODE_PID` passa a ter prioridade absoluta sobre o arquivo em disco.** Lógica nova: se `$VSCODE_PID` existe → sempre `vscode-tab` E sobrescreve o arquivo. Só usa o arquivo se `$VSCODE_PID` está ausente. Isso garante que um arquivo gravado errado na instalação seja corrigido automaticamente na primeira sessão dentro do VS Code.
 - [2026-07-03] [D-11 v5.2 — Ciclo de Zoneamento Documental] → Estudo comparativo com o framework M2C1 + auditoria do projeto scanner-de-desvantagens-v3 revelaram 23 deficiências em 4 frentes: (1) IA externa (MiniMax/Codex/GPT) criava arquivo em endereço aleatório — caso real `docs/configuracao-kimi-moonshot.md`, config de API nomeada pelo vendor na pasta de specs; (2) 10 tipos de artefato gerados em produção sem template canônico (27 planos por imitação no projeto real); (3) housekeeping zero — locks de 45 dias pendurados, 13 backups de contrato sem rotação, arquivos efêmeros no /tmp do sistema; (4) setup de ferramentas 100% manual do comandante. → Correção v5.2 em 4 pilares: **Doutrina** (seção "PARA IA EXTERNA" no topo deste CLAUDE.md + Regras Invioláveis 14-17 + hook `pre-criacao-arquivo.py` que bloqueia config-de-vendor em docs/, .md na raiz e skills/ legada); **Templates** (10 novos em `.delta-11/templates/`: mini-plano, sequenciamento, dependências, abertura-de-fase, selo-experiencial, contratos-api, esquema-banco, pesquisa-tecnica, impacto-mudanca, config-integracao-externa — referenciados nos operativos ATLAS/CRONOS e no impact-mapper); **Housekeeping** (hook `gc-locks.py` em SessionStart: locks >2h, scratch >7d, logs >30d; rotação de `.contract-backup/` mantendo 5; pastas canônicas `.delta-11/scratch/`, `.delta-11/evidencias/screenshots/`, `.delta-11/logs/sub-agentes/`; novo-projeto.sh migra `.memoria-*` legado interativamente e põe shells de operação em `.delta-11/scripts/`); **Capacidade** (sub-agente `tool-provisioner` na nova Fase 2.4 — provisiona MCPs/chaves/contas com verificação real, import aprovado do M2C1). Gap extra fechado: projetos novos nasciam sem `.claude/settings.json` (hooks mortos até o primeiro sync) — novo-projeto.sh agora copia o template de hooks na criação. REGRA GERAL (reafirmada): proteção que depende de agente obedecer prompt NÃO é proteção — regra crítica de organização também precisa de hook técnico. Análises de risco em `~/.claude/plans/testes/analises-4-cenarios-v5.2.md`; plano completo em `~/.claude/plans/deep-wandering-thimble.md`.
+- [2026-07-05] [D-11 remoção do Code Simplifier] → Por decisão do comandante, o sub-agente Code Simplifier foi REMOVIDO de todo o sistema Δ-11. O que mudou: (1) arquivo `.delta-11/sub-agentes/code-simplifier.md` deletado; (2) Passo 3.6 do Protocolo de Finalização removido — a numeração dos passos seguintes (3.7, 3.8, 3.9) foi MANTIDA para não quebrar referências cruzadas; (3) cadeia obrigatória de sub-agentes agora é `build-validator → contract-tester`; (4) payload de SendMessage ao CRONOS não tem mais o campo `code_simplifier`; (5) removidas todas as menções em operativos (ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT, VAULT, CRONOS), protocolos (sub-agentes, fluxo-zero-ao-lancamento, regras-inviolaveis, merge-guiado-contratos), templates (mini-plano, estado-produto), hook `pre-despacho.py` e base de conhecimento backend. Responsabilidade por legibilidade/simplicidade do código passa a ser dos próprios executores durante a escrita + revisão do SHIELD.

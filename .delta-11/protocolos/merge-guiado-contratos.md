@@ -28,7 +28,7 @@ Consequência prática: o agente, na worktree dele, acessa `kanban.md` e `projec
 
 Quando um agente finaliza todas as tarefas da onda atual:
 
-1. Roda sua cadeia de sub-agentes (build-validator, code-simplifier, contract-tester)
+1. Roda sua cadeia de sub-agentes (build-validator, contract-tester)
 2. Atualiza `kanban.md` no repo principal (marca tarefas como REVISÃO ou CONCLUÍDO)
 3. Atualiza seu arquivo de estado no repo principal
 4. **Commita** na branch da worktree

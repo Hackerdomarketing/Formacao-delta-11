@@ -48,7 +48,7 @@ viola os limites. Se violar, PARE e envie SendMessage ao CRONOS.
 
 ## Formato de output (ao concluir)
 
-1. Cadeia de sub-agentes obrigatória (build-validator → code-simplifier → contract-tester),
+1. Cadeia de sub-agentes obrigatória (build-validator → contract-tester),
    relatórios persistidos em `.delta-11/logs/sub-agentes/` (v5.2 — M-12)
 2. Atualizar kanban.md + kanban-data.js + [AGENTE]-produto.md (path absoluto do repo principal)
 3. Commit na branch da worktree

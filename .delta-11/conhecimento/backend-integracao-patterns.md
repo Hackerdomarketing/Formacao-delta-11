@@ -327,7 +327,6 @@ try {
 - [ ] Todos os campos do contrato estao implementados (entrada E saida)?
 - [ ] Todos os cenarios de erro listados no contrato retornam o status correto?
 - [ ] Build Validator passou sem blockers?
-- [ ] Code Simplifier revisou (pode simplificar algo)?
 - [ ] Contract Tester verificou conformidade com `project-core.md`?
 
 ### Antes de aprovar tarefa do ENGINE ou VAULT

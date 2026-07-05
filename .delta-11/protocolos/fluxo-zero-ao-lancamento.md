@@ -164,11 +164,10 @@ Todo agente que escreve código (ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT) **DEVE
 Se CRONOS percebe que um agente está demorando muito ou fazendo muitos commits, pode disparar Code Architect para verificar se o agente está seguindo o mini-plano ou improvisando. Se detectar drift significativo, CRONOS pode parar o agente e forçar replanejamento. Em projetos simples (score < 7), o drift costuma ser mais raro — mas a regra é a mesma.
 
 **Ao final da Fase 4 (quando todos os agentes de desenvolvimento terminam):**
-1. **Code Simplifier (OBRIGATÓRIO):** O último agente a terminar dispara o sub-agente `code-simplifier` para simplificar todo o código escrito na fase. Após simplificação, dispara `build-validator` para confirmar que nada quebrou.
-2. **Varredura preventiva (OBRIGATÓRIO):** SCOUT é ativado automaticamente para varredura completa de todo o código antes da Fase 5. Busca: inicializações perigosas, bypass de contratos, validações ausentes, links quebrados, condições de corrida, falhas de segurança.
-3. **Auditoria arquitetural (OBRIGATÓRIO):** CRONOS dispara o sub-agente `code-architect` para comparar código real vs arquitetura planejada no `project-core.md`. Se score for C ou menor, CRONOS cria tarefas de correção no kanban antes de avançar. Se detectar problema estrutural que exige mudança de contrato, CRONOS escala para o comandante reativar o ATLAS.
+1. **Varredura preventiva (OBRIGATÓRIO):** SCOUT é ativado automaticamente para varredura completa de todo o código antes da Fase 5. Busca: inicializações perigosas, bypass de contratos, validações ausentes, links quebrados, condições de corrida, falhas de segurança.
+2. **Auditoria arquitetural (OBRIGATÓRIO):** CRONOS dispara o sub-agente `code-architect` para comparar código real vs arquitetura planejada no `project-core.md`. Se score for C ou menor, CRONOS cria tarefas de correção no kanban antes de avançar. Se detectar problema estrutural que exige mudança de contrato, CRONOS escala para o comandante reativar o ATLAS.
 
-**Resultado:** Todas as funcionalidades implementadas, código simplificado, testadas individualmente pelo SHIELD, varridas pelo SCOUT, e auditadas arquiteturalmente. Problemas encontrados são corrigidos antes de avançar.
+**Resultado:** Todas as funcionalidades implementadas, testadas individualmente pelo SHIELD, varridas pelo SCOUT, e auditadas arquiteturalmente. Problemas encontrados são corrigidos antes de avançar.
 
 ---
 
@@ -180,8 +179,6 @@ Se CRONOS percebe que um agente está demorando muito ou fazendo muitos commits,
 O SHIELD executa testes de ponta a ponta: cada fluxo completo (usuário se cadastra → faz login → executa ação → vê resultado). Verifica coerência total entre interface, servidor, e banco.
 
 **Resultado:** Todos os fluxos passando nos testes. Todos os erros encontrados corrigidos.
-
-**NOTA:** Code Simplifier já foi executado ao final da Fase 4. Esta fase foca 100% em testes de integração.
 
 ---
 

@@ -33,7 +33,7 @@ Nenhum agente de interface combina informalmente com agente de servidor sobre fo
 O deploy para produção nunca acontece automaticamente. O comandante dá o aval final.
 
 ## 11. SUB-AGENTES OBRIGATÓRIOS NÃO SÃO OPCIONAIS
-Build Validator APÓS cada tarefa de código (Passo 3.5). Code Simplifier APÓS Build Validator passar e ANTES do SHIELD, em cada tarefa (Passo 3.6). Code Architect AO FINAL da Fase 4, antes de iniciar a Fase 5. Verify App ANTES de deploy. Sem exceção.
+Build Validator APÓS cada tarefa de código (Passo 3.5). Code Architect AO FINAL da Fase 4, antes de iniciar a Fase 5. Verify App ANTES de deploy. Sem exceção.
 
 ## 12. CRONOS COORDENA EM PROJETOS COMPLEXOS (SCORE ≥ 7)
 Em projetos com pontuação de complexidade ≥ 7, o CRONOS é ativado na Fase 2 e coordena toda execução. Agentes reportam a ele, não trabalham isolados.
@@ -58,4 +58,4 @@ Cada tipo de arquivo tem endereço canônico — o mapa completo está no CLAUDE
 Arquivos EXISTENTES fora do zoneamento NÃO são movidos automaticamente — mencionar ao comandante e perguntar (regra global de organização).
 
 ## 17. RELATÓRIOS DE SUB-AGENTES SÃO PERSISTIDOS (v5.2)
-Todo relatório de sub-agente (build-validator, code-simplifier, contract-tester, code-architect, fresh-reviewer, cold-start-tester, schema-validator, verify-app, tool-provisioner) é salvo em `.delta-11/logs/sub-agentes/[AAAA-MM-DD]-[sub-agente]-[AGENTE-que-disparou]-[T-XXX].md` ANTES de ser resumido. O `[AGENTE]-produto.md` continua com a linha-resumo (formato v5) + o path do log completo. Sem o log persistido, auditoria pós-morte é impossível — a linha-resumo não diz POR QUE passou.
+Todo relatório de sub-agente (build-validator, contract-tester, code-architect, fresh-reviewer, cold-start-tester, schema-validator, verify-app, tool-provisioner) é salvo em `.delta-11/logs/sub-agentes/[AAAA-MM-DD]-[sub-agente]-[AGENTE-que-disparou]-[T-XXX].md` ANTES de ser resumido. O `[AGENTE]-produto.md` continua com a linha-resumo (formato v5) + o path do log completo. Sem o log persistido, auditoria pós-morte é impossível — a linha-resumo não diz POR QUE passou.

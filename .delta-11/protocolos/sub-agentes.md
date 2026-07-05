@@ -2,7 +2,7 @@
 
 ## O QUE SÃO SUB-AGENTES
 
-Sub-agentes são agentes especializados que são disparados POR outros agentes para executar tarefas específicas de validação, análise, ou correção. Eles retornam relatórios estruturados e nunca modificam código diretamente (exceto Code Simplifier).
+Sub-agentes são agentes especializados que são disparados POR outros agentes para executar tarefas específicas de validação, análise, ou correção. Eles retornam relatórios estruturados e nunca modificam código diretamente.
 
 Diferença chave:
 - **Agentes principais** (ATLAS, FRONT, ENGINE, etc.) executam tarefas do kanban e constroem o projeto
@@ -10,7 +10,7 @@ Diferença chave:
 
 ---
 
-## OS 7 SUB-AGENTES (v4.0)
+## OS 8 SUB-AGENTES
 
 ### 1. BUILD VALIDATOR — Validação de Build
 
@@ -32,28 +32,7 @@ Diferença chave:
 
 ---
 
-### 2. CODE SIMPLIFIER — Simplificação de Código
-
-**Arquivo:** `.delta-11/sub-agentes/code-simplifier.md`
-
-**Quando disparar:** OBRIGATÓRIO durante a finalização de cada tarefa individual (Passo 3.6 do Protocolo de Finalização), após o Build Validator passar e ANTES de enviar para revisão do SHIELD
-
-**Quem dispara:**
-- ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT (qualquer agente que escreve código, em cada tarefa)
-
-**O que faz:**
-- Simplifica código mantendo funcionalidade idêntica
-- Remove duplicação, variáveis genéricas, condicionais aninhadas
-- Renomeia para clareza
-- Remove imports não usados
-
-**Output:** Relatório de simplificações + testes antes/depois
-
-**Regra de ouro:** NUNCA pular este passo. O agente que escreveu o código nunca vai achar que precisa simplificar — senão teria simplificado na hora. O "olho externo" obrigatório é o ponto.
-
----
-
-### 3. CODE ARCHITECT — Análise Arquitetural
+### 2. CODE ARCHITECT — Análise Arquitetural
 
 **Arquivo:** `.delta-11/sub-agentes/code-architect.md`
 
@@ -79,7 +58,7 @@ Diferença chave:
 
 ---
 
-### 4. VERIFY APP — Testes E2E no Browser
+### 3. VERIFY APP — Testes E2E no Browser
 
 **Arquivo:** `.delta-11/sub-agentes/verify-app.md`
 
@@ -99,7 +78,7 @@ Diferença chave:
 
 ---
 
-### 5. CONTRACT TESTER — Geração e Arbitragem de Testes de Contrato
+### 4. CONTRACT TESTER — Geração e Arbitragem de Testes de Contrato
 
 **Arquivo:** `.delta-11/sub-agentes/contract-tester.md`
 
@@ -122,7 +101,7 @@ Diferença chave:
 
 ---
 
-### 6. SCHEMA VALIDATOR — Validação de Migrações de Banco
+### 5. SCHEMA VALIDATOR — Validação de Migrações de Banco
 
 **Arquivo:** `.delta-11/sub-agentes/schema-validator.md`
 
@@ -142,7 +121,7 @@ Diferença chave:
 
 ---
 
-### 7. IMPACT MAPPER — Mapeamento de Impacto de Mudança de Contrato
+### 6. IMPACT MAPPER — Mapeamento de Impacto de Mudança de Contrato
 
 **Arquivo:** `.delta-11/sub-agentes/impact-mapper.md`
 
@@ -165,7 +144,7 @@ Diferença chave:
 
 ---
 
-### 8. FRESH REVIEWER — Revisão Cruzada por Olhos Virgens (v4.0.1)
+### 7. FRESH REVIEWER — Revisão Cruzada por Olhos Virgens (v4.0.1)
 
 **Arquivo:** `.delta-11/sub-agentes/fresh-reviewer.md`
 
@@ -186,7 +165,7 @@ Diferença chave:
 
 ---
 
-### 9. COLD START TESTER — Validação de Suficiência de Handoff (v4.0.3)
+### 8. COLD START TESTER — Validação de Suficiência de Handoff (v4.0.3)
 
 **Arquivo:** `.delta-11/sub-agentes/cold-start-tester.md`
 
@@ -212,7 +191,6 @@ Diferença chave:
 | Sub-agente | Frequência | Fase | Disparado por | Obrigatório? |
 |------------|-----------|------|---------------|--------------|
 | Build Validator | Após cada tarefa de código | Fase 4, 5 | ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT, VAULT | ✅ SIM |
-| Code Simplifier | Por tarefa (Passo 3.6) | Fase 4 | ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT | ✅ SIM |
 | Contract Tester — geração inicial | Final da Fase 2 | Fase 2 | SHIELD | ✅ SIM |
 | Contract Tester — regeneração | Automática sempre que `project-core.md` muda | Qualquer fase | Hook PostToolUse (sistema) | ✅ SIM — impossível falhar |
 | Contract Tester — fim de fase | Antes de transição de fase via kanban | Qualquer fase | Hook PreToolUse (sistema) | ✅ SIM — bloqueia transição |
@@ -234,7 +212,7 @@ Diferença chave:
 
 A partir da Onda 2, cada agente de execução trabalha em uma worktree isolada. Isso afeta COMO os sub-agentes são disparados:
 
-- **build-validator, code-simplifier, contract-tester:** o agente dispara dentro da sua própria worktree, usando path relativo para arquivos de código. O resultado volta para o próprio agente. NÃO disparados por outros agentes.
+- **build-validator, contract-tester:** o agente dispara dentro da sua própria worktree, usando path relativo para arquivos de código. O resultado volta para o próprio agente. NÃO disparados por outros agentes.
 - **code-architect:** disparado pelo CRONOS a partir do repo principal. Lê código das worktrees ativas (via `git worktree list`) para ter visão consolidada. Produz relatório único cobrindo todas.
 - **impact-mapper:** disparado pelo hook PostToolUse no repo principal quando `project-core.md` muda. Como a mudança em project-core é compartilhada, o impact-mapper precisa olhar código de todas as worktrees ativas + main. Pode usar `git worktree list` para descobrir branches e `git show <branch>:<path>` para ler arquivos de worktrees irmãs.
 - **schema-validator:** disparado pelo VAULT dentro da própria worktree.
@@ -417,14 +395,12 @@ Use a ferramenta `Task` com `subagent_type="general-purpose"` e passe o conteúd
 ## REGRAS DE OURO
 
 1. **Build Validator** = SEMPRE após código
-2. **Code Simplifier** = SEMPRE após Build Validator passar, ANTES de enviar ao SHIELD (Passo 3.6 do Protocolo de Finalização)
-3. **Code Architect** = SEMPRE ao final da Fase 4 + sob demanda do CRONOS
-4. **Verify App** = SEMPRE antes de deploy
+2. **Code Architect** = SEMPRE ao final da Fase 4 + sob demanda do CRONOS
+3. **Verify App** = SEMPRE antes de deploy
 
-5. **Sub-agentes NUNCA decidem sozinhos** — eles reportam, o agente que disparou decide
-6. **CRONOS usa Code Architect para INFORMAR decisões de gestão**
-7. **ATLAS usa Code Architect para validar conformidade arquitetural**
-8. **SCOUT usa Code Simplifier para limpar código ao final de fases**
+4. **Sub-agentes NUNCA decidem sozinhos** — eles reportam, o agente que disparou decide
+5. **CRONOS usa Code Architect para INFORMAR decisões de gestão**
+6. **ATLAS usa Code Architect para validar conformidade arquitetural**
 
 ---
 
@@ -434,7 +410,6 @@ Antes de marcar qualquer fase como concluída, verificar:
 
 **Ao final da Fase 4:**
 - [ ] Build Validator rodou após CADA tarefa de código?
-- [ ] Code Simplifier rodou após CADA tarefa de código (Passo 3.6 do Protocolo de Finalização)?
 - [ ] Code Architect rodou e deu score B ou superior?
 - [ ] SCOUT fez varredura preventiva completa?
 - [ ] Todos os problemas encontrados foram corrigidos?

@@ -602,7 +602,7 @@ A intuição central da v5: cada nova onda dispara um agente NOVO com janela de 
 3. Se "Critérios" tem 8+ itens → vire 2-3 ondas com 3 critérios cada.
 4. Cada nova onda terá seu próprio mini-plano enxuto e seu agente nasce com contexto limpo.
 
-**Isentos do limite:** ATLAS, CRONOS, e todos os 8 sub-agentes (build-validator, code-simplifier, contract-tester, code-architect, fresh-reviewer, cold-start-tester, schema-validator, verify-app). Estes podem receber briefs maiores legitimamente.
+**Isentos do limite:** ATLAS, CRONOS, e todos os sub-agentes (build-validator, contract-tester, code-architect, fresh-reviewer, cold-start-tester, schema-validator, verify-app). Estes podem receber briefs maiores legitimamente.
 
 **Por que o limite é 2.000:** calibrado no `mcp-server-produtos-2` real — mini-planos bem dimensionados ficavam em 2.000-2.500 tokens. 2.000 dá pressão pra granularizar sem travar projetos legítimos.
 
@@ -703,7 +703,7 @@ REGRA INVIOLÁVEL desta seção: **NUNCA edite arquivo sem criar lock antes.** O
 Mini-plano: [PATH_ABSOLUTO_REPO]/.delta-11/planos/[NOME]-plan.md
 
 Ao concluir todas as tarefas desta onda:
-1. Rode a cadeia de sub-agentes obrigatória (build-validator, code-simplifier, contract-tester)
+1. Rode a cadeia de sub-agentes obrigatória (build-validator, contract-tester)
 2. Atualize kanban.md e seu arquivo de estado (ambos no repo principal, path absoluto)
 3. Commite o trabalho na branch da worktree
 4. Envie SendMessage para o CRONOS com payload estruturado (ver merge-guiado-contratos.md)
@@ -726,7 +726,6 @@ Agentes terminam enviando `SendMessage` para você. Monitore sua caixa de mensag
   "arquivos_modificados": ["src/app/api/users/route.ts"],
   "contract_tests": "PASSED",
   "build_validator": "PASSED",
-  "code_simplifier": "APLICADO",
   "mensagem": "Rotas de users e posts implementadas conforme mini-plano"
 }
 ```

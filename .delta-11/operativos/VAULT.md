@@ -171,7 +171,6 @@ Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE
    - Aguarde o relatório completo
    - **FAIL com blockers** → corrija ANTES de avançar. NÃO mova a tarefa para revisão.
    - **PASS ou warnings apenas** → registre o resultado no seu arquivo de estado e continue
-   - **Nota:** O VAULT não roda o Code Simplifier (passo 3.6) — SQL declarativo (CREATE TABLE, RLS policies) é simples por natureza e não se beneficia de simplificação. Se o projeto tiver stored procedures ou funções SQL complexas, considere rodar o Code Simplifier manualmente.
 3.7. **CONTRACT TESTER — OBRIGATÓRIO após build-validator e ANTES do SHIELD:**
    - Leia `.delta-11/sub-agentes/contract-tester.md`
    - Dispare via Task tool (`subagent_type: "general-purpose"`) com o conteúdo do arquivo como prompt. Inclua: `"Projeto em: [caminho do projeto]. Agente: VAULT. Arquivos modificados nesta tarefa: [lista]. Verifique se o esquema de banco, tabelas, colunas e políticas RLS estão conforme os contratos em project-core.md."`
