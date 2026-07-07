@@ -133,6 +133,14 @@ Esta fase existe para evitar que agentes "pensem enquanto fazem". A partir da v4
 **Quem:** VAULT (obrigatório) + SHIELD (sempre acompanha para preparar testes) + CRONOS (orquestrando)
 **Janelas:** 2 a 3
 
+**Boilerplate PRIMEIRO (v5.3 — projetos web Next.js):** antes de construir do zero, o agente da fundação cria o projeto com `npx create-next-app@latest` e aplica o overlay padrão do sistema:
+
+```bash
+~/projetos/Formacao-delta-11/boilerplate-delta-11-nextjs/aplicar-boilerplate.sh /caminho/do/projeto
+```
+
+Isso entrega pronto: limites de código no linter, formato único de erro, validação de ambiente, endereço do monitoramento de erros e pasta de testes de contrato (detalhes no README do boilerplate). Só depois o VAULT constrói o que é específico do projeto.
+
 O VAULT cria o banco de dados, autenticação, e políticas de segurança. O SHIELD prepara infraestrutura e estratégia de testes em paralelo. Em projetos de baixa complexidade, o SHIELD foca mais em checklists rápidos; em projetos maiores, já monta suíte de testes. A decisão de escopo do SHIELD fica com o mini-plano que o CRONOS entregou.
 
 **Resultado:** Banco pronto, autenticação funcionando, infraestrutura configurada. NENHUM agente de funcionalidade começa antes disso estar concluído.
