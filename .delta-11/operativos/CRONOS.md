@@ -972,7 +972,7 @@ Ferramentas: `git log`, `ls supabase/migrations/`, `grep` nas rotas, leitura dos
 **Passo 2 — Comparar com o contrato maior.** Leia a VISÃO DO PRODUTO + CONTRATOS + ESQUEMA no `project-core.md` que o ATLAS selou na Fase 2. Compare com o que foi REALMENTE construído. Identifique:
 - Drift positivo (agente fez melhor que o planejado — absorva no contrato)
 - Drift negativo (agente fez diferente sem aprovação — precisa escalar para ATLAS)
-- Decisões emergentes (surgiram durante execução — documentar no project-core se são permanentes)
+- Decisões emergentes (surgiram durante execução — documentar no project-core se são permanentes E gravar um ADR em `.delta-11/memoria/decisoes/` usando o template `adr-registro-de-decisao-arquitetural-template.md` quando a decisão custaria caro reverter)
 - Lacunas (algo que o contrato pediu mas não foi feito — adicionar à próxima fase)
 
 **Passo 3 — Ajustar os mini-planos da próxima fase.** NÃO criar do zero — ajustar o que CRONOS montou na Fase 2.5 com base na realidade:

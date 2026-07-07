@@ -55,6 +55,9 @@ Cada tipo de arquivo tem endereço canônico — o mapa completo está no CLAUDE
 - Arquivos temporários (previews, debug): `.delta-11/scratch/` — NUNCA no `/tmp` do sistema (some sem aviso). Expiram em 7 dias (GC automático).
 - Screenshots de evidência: `.delta-11/evidencias/screenshots/AAAA-MM-DD/`
 - Logs completos de sub-agentes: `.delta-11/logs/sub-agentes/` (Regra 17)
+- Decisões arquiteturais (ADR): `.delta-11/memoria/decisoes/AAAA-MM-DD-titulo.md` (template `adr-registro-de-decisao-arquitetural-template.md`)
+- Bug reports: `.delta-11/bugs/BUG-NNN-titulo.md` (template `bug-report-template.md`)
+- PRD (documento de requisitos): `docs/prd.md` (template `prd-documento-de-requisitos-template.md`)
 Arquivos EXISTENTES fora do zoneamento NÃO são movidos automaticamente — mencionar ao comandante e perguntar (regra global de organização).
 
 ## 17. RELATÓRIOS DE SUB-AGENTES SÃO PERSISTIDOS

@@ -275,11 +275,13 @@ Depois de receber todas as respostas das 7 camadas, apresente um **resumo comple
 - O que está em aberto tecnicamente (P31-P33)
 - O que define "pronto" para essa fase (P34-P36)
 
-Pergunte ao final:
+**Gere o PRD (documento de requisitos do produto):** consolide a descoberta em `docs/prd.md` usando o template `.delta-11/templates/prd-documento-de-requisitos-template.md` (máx. ~300 linhas, linguagem que o comandante lê sem tradutor). Execute a **auditoria de completude** do template: para cada funcionalidade, pergunte "um agente conseguiria implementar isto sem chutar nenhuma decisão?" — se NÃO, volte à camada correspondente e pergunte ao comandante ANTES de apresentar.
 
-> *"Aqui está o resumo de tudo que a gente descobriu. Lê com calma e me fala: isso é o projeto que você quer construir? Se algo estiver errado ou faltando, a gente ajusta antes de avançar."*
+Pergunte ao final (apresentando o PRD):
 
-Espere confirmação explícita (`aprovar` ou equivalente claro). Só depois salve a VISÃO DO PRODUTO no `project-core.md` e avance para a Fase 1.
+> *"Aqui está o documento do produto com tudo que a gente descobriu. Lê com calma e me fala: isso é o projeto que você quer construir? Se algo estiver errado ou faltando, a gente ajusta antes de avançar."*
+
+Espere confirmação explícita (`aprovar` ou equivalente claro). Registre a aprovação no cabeçalho do PRD. Só depois salve a VISÃO DO PRODUTO no `project-core.md` e avance para a Fase 1.
 
 ---
 
@@ -561,6 +563,7 @@ ENTRADA:
    [ ] Cada rota tem VALIDAÇÃO completa (min, max, tipos, regex)?
    [ ] Fluxos de várias etapas têm TODAS as rotas e páginas destino documentadas?
    [ ] Decisões técnicas críticas no project-core.md?
+   [ ] Um ADR salvo em .delta-11/memoria/decisoes/ para cada decisão de arquitetura que custaria caro reverter (template adr-registro-de-decisao-arquitetural-template.md)?
    [ ] Armadilhas da tecnologia listadas (mínimo 3)?
    [ ] URLs rejeitam protocolos perigosos (javascript:, data:, file:)?
    [ ] Senhas têm TANTO mínimo QUANTO máximo definidos?

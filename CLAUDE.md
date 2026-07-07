@@ -42,6 +42,9 @@ Esta seção é para QUALQUER outra IA trabalhando neste projeto: sessão comum 
 | Arquivos temporários (previews, debug, outputs de teste) | `.delta-11/scratch/` (expiram em 7 dias) | `/tmp` do sistema, raiz |
 | Screenshots de evidência | `.delta-11/evidencias/screenshots/AAAA-MM-DD/` | qualquer outro lugar |
 | Logs de validação | `.delta-11/logs/sub-agentes/` | perdidos no chat |
+| Decisão arquitetural (ADR) | `.delta-11/memoria/decisoes/AAAA-MM-DD-titulo.md` | perdida no chat, raiz |
+| Bug report | `.delta-11/bugs/BUG-NNN-titulo.md` | perdido no chat, kanban sem arquivo |
+| PRD (requisitos do produto) | `docs/prd.md` | raiz, `.delta-11/` |
 
 ### As 3 regras mínimas para IA externa
 

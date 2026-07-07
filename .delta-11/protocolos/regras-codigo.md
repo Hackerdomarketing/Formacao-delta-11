@@ -277,6 +277,7 @@ Regras de aplicação:
 1. **Valem para todo código NOVO.** Código existente que viola: refatorar quando uma tarefa já toca aquele arquivo — não abrir tarefa só para isso sem ordem do CRONOS.
 2. **Enforcement técnico:** os limites correspondem a regras prontas do ESLint — `max-params: 3`, `max-lines-per-function: 50`, `max-lines: 400`, `max-classes-per-file: 1`, `max-depth: 3`, `complexity: 10`, `sonarjs/cognitive-complexity: 15`. A configuração canônica está em `.delta-11/templates/eslint-limites-codigo.md`. ENGINE/FRONT ativam essas regras na Fase 3/4; o **build-validator trata violação como BLOCKER**.
 3. **Exceções legítimas** (arquivo gerado por ferramenta, migration SQL longa, arquivo de dados/seed): permitidas — registrar 1 linha de justificativa no `[AGENTE]-produto.md`.
+4. **Padrões de projeto:** antes de criar estrutura nova (fábrica, fila, cache, variação de algoritmo, máquina de estados), consulte `.delta-11/conhecimento/design-patterns-praticos.md` — inclusive as 5 perguntas anti-exagero. Padrão sem sintoma real = cargo cult = reprovável.
 
 ## 9. CONVENÇÃO DE IDIOMA (código em inglês, conteúdo em português)
 

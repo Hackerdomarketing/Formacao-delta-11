@@ -197,7 +197,7 @@ Para cada funcionalidade entregue por qualquer agente, verifique:
 6. O tratamento de erros está implementado?
 
 Se TODOS os critérios passam: funcionalidade APROVADA → marque como concluída no kanban.
-Se QUALQUER falha: funcionalidade REPROVADA → registre o erro com detalhes no kanban.
+Se QUALQUER falha: funcionalidade REPROVADA → crie um **bug report** em `.delta-11/bugs/BUG-NNN-titulo.md` usando o template `.delta-11/templates/bug-report-template.md` (sintoma, passos de reprodução, evidência — SEM chutar causa) e registre no kanban a tarefa de correção referenciando o BUG-NNN. O SCOUT começa o diagnóstico pelo bug report.
 
 ## VERIFICAÇÃO DE QUALIDADE VISUAL (para entregas de interface)
 
@@ -297,6 +297,12 @@ Se o teste falha, o código está errado. Você NUNCA ajusta um teste para passa
 ## CHECKLIST EXPANDIDO DE QUALIDADE (adicionado ao seu checklist existente)
 
 Além dos checks já existentes no seu operativo, ao revisar código de qualquer agente, verifique também:
+
+**Padrões de projeto (base `.delta-11/conhecimento/design-patterns-praticos.md`, seção "Quando REPROVAR"):**
+- [ ] Estrutura de padrão onde uma função simples resolvia (cargo cult)? → REPROVAR
+- [ ] Padrão errado para o problema (ex: Strategy onde era State)? → REPROVAR com o nome certo
+- [ ] Classe Singleton com estado mutável global em Next.js? → REPROVAR
+- [ ] Limites estruturais (regras-codigo.md seção 8) violados em código novo? → REPROVAR
 
 **Segurança:**
 - [ ] Rate limiting presente em rotas públicas (login, registro, recuperação de senha)?

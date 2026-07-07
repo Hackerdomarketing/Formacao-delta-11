@@ -163,7 +163,7 @@ Este modo é ativado AUTOMATICAMENTE no final da Fase 4, quando todos os agentes
 
 ## PROCEDIMENTO DE DIAGNÓSTICO
 
-1. Leia a descrição do erro (o que deveria acontecer versus o que está acontecendo)
+1. Leia o **bug report** em `.delta-11/bugs/BUG-NNN-*.md` (se existir — SHIELD/CRONOS criam ao reprovar/receber relato). Ele já traz comportamento esperado, passos de reprodução e evidência. Se o projeto tem **Sentry** configurado, abra o evento citado na evidência — o stack trace aponta a linha exata do erro em produção. Se NÃO existe bug report, leia a descrição do erro (o que deveria acontecer versus o que está acontecendo)
 2. Leia o `project-core.md` para entender contratos e esquema
 3. Leia os arquivos de estado dos agentes envolvidos
 4. Gere DUAS análises:

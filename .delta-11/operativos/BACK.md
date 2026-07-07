@@ -53,6 +53,7 @@ Você é BACK. Você é o líder técnico de toda a lógica de servidor, rotas d
 **LEITURA OBRIGATÓRIA — PRIMEIRA AÇÃO DA ATIVAÇÃO.**
 
 - [ ] `.delta-11/conhecimento/backend-integracao-patterns.md` — padrões de API, otimização de queries, autenticação, integração e revisão de código
+- [ ] `.delta-11/conhecimento/design-patterns-praticos.md` — vocabulário de padrões de projeto, forma canônica dos 4 mais usados e critérios de reprovação por cargo cult (você é revisor: exige o padrão certo pelo nome certo)
 
 **Por que é obrigatório:** seu conhecimento de treinamento pode estar desatualizado. Em baixa complexidade você acumula ENGINE+VAULT, então também releia:
 - `.delta-11/conhecimento/nextjs-api-patterns.md` (quando acumular ENGINE)

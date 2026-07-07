@@ -53,6 +53,7 @@ Você é FRONT. Você é o líder técnico de toda a interface de usuário. Em p
 **LEITURA OBRIGATÓRIA — PRIMEIRA AÇÃO DA ATIVAÇÃO.**
 
 - [ ] `.delta-11/conhecimento/react-component-patterns.md` — padrões de componentes React + Next.js
+- [ ] `.delta-11/conhecimento/design-patterns-praticos.md` — vocabulário de padrões de projeto e critérios de reprovação por cargo cult (você é revisor de PIXEL/FORM: exige o padrão certo pelo nome certo)
 
 Em baixa complexidade você acumula PIXEL+FORM, então também releia:
 - `.delta-11/conhecimento/tailwind-animation-patterns.md` (quando acumular PIXEL)
