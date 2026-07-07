@@ -35,19 +35,19 @@ O deploy para produção nunca acontece automaticamente. O comandante dá o aval
 ## 11. SUB-AGENTES OBRIGATÓRIOS NÃO SÃO OPCIONAIS
 Build Validator APÓS cada tarefa de código (Passo 3.5). Code Architect AO FINAL da Fase 4, antes de iniciar a Fase 5. Verify App ANTES de deploy. Sem exceção.
 
-## 12. CRONOS COORDENA TODO PROJETO (v4.0)
+## 12. CRONOS COORDENA TODO PROJETO
 O CRONOS é ativado ao final da Fase 2 em TODO projeto, independente da pontuação de complexidade. Ele é o despachante único dos agentes de execução e coordena toda a execução — agentes reportam a ele, não trabalham isolados. O score define apenas QUANTOS agentes entram (se FRONT acumula PIXEL+FORM e BACK acumula ENGINE+VAULT), nunca SE o CRONOS entra.
 
-## 13. PHASE 2.5 É OBRIGATÓRIA EM TODO PROJETO (v4.0)
+## 13. PHASE 2.5 É OBRIGATÓRIA EM TODO PROJETO
 Antes de qualquer código, o CRONOS monta o mini-plano de cada agente executor (`.delta-11/planos/[AGENTE]-plan.md`) — os agentes NÃO criam os próprios planos. Execução só começa após os mini-planos prontos. Sem planejamento prévio = improviso durante execução = retrabalho.
 
-## 14. FERRAMENTAS EXTERNAS SÃO REGISTRADAS ANTES DE SEREM INSTALADAS (v5.2 — formaliza regra que existia só no template)
+## 14. FERRAMENTAS EXTERNAS SÃO REGISTRADAS ANTES DE SEREM INSTALADAS
 Antes de instalar um SDK de serviço externo, adicionar uma chave de API ao `.env`, ou configurar um novo MCP — PARE. Atualize `.delta-11/memoria/ferramentas-do-projeto.md` PRIMEIRO (template em `.delta-11/templates/ferramentas-do-projeto-template.md`). Só depois faça a instalação. Vale para agentes Δ-11 E para qualquer IA externa trabalhando no projeto.
 
-## 15. DOCUMENTAÇÃO DE INTEGRAÇÃO EXTERNA VIVE AO LADO DO CÓDIGO (v5.2)
+## 15. DOCUMENTAÇÃO DE INTEGRAÇÃO EXTERNA VIVE AO LADO DO CÓDIGO
 Toda documentação de integração externa (configuração de API, chave, vendor, modelo de IA) vive em `src/lib/[dominio]/[etapa]/README.md` — AO LADO do código que a consome — usando o template `.delta-11/templates/config-integracao-externa-template.md`. O nome é pela FUNÇÃO no produto ("ia-da-analise-competitiva"), NUNCA pelo vendor ("kimi-moonshot"). NUNCA em `docs/` (que é para spec de produto) nem na raiz. O hook `pre-criacao-arquivo.py` bloqueia violações. Origem: caso real de 2026-07-03 (`docs/configuracao-kimi-moonshot.md` criado por IA externa).
 
-## 16. ZONEAMENTO DOCUMENTAL DO PROJETO (v5.2)
+## 16. ZONEAMENTO DOCUMENTAL DO PROJETO
 Cada tipo de arquivo tem endereço canônico — o mapa completo está no CLAUDE.md, seção "PARA IA EXTERNA":
 - Raiz do projeto: SÓ código/config de framework + `CLAUDE.md` + `README.md`. Nada mais.
 - Documentos pessoais do comandante (planejamentos, reflexões, guias): `docs/comandante/`
@@ -57,5 +57,5 @@ Cada tipo de arquivo tem endereço canônico — o mapa completo está no CLAUDE
 - Logs completos de sub-agentes: `.delta-11/logs/sub-agentes/` (Regra 17)
 Arquivos EXISTENTES fora do zoneamento NÃO são movidos automaticamente — mencionar ao comandante e perguntar (regra global de organização).
 
-## 17. RELATÓRIOS DE SUB-AGENTES SÃO PERSISTIDOS (v5.2)
+## 17. RELATÓRIOS DE SUB-AGENTES SÃO PERSISTIDOS
 Todo relatório de sub-agente (build-validator, contract-tester, code-architect, fresh-reviewer, cold-start-tester, schema-validator, verify-app, tool-provisioner) é salvo em `.delta-11/logs/sub-agentes/[AAAA-MM-DD]-[sub-agente]-[AGENTE-que-disparou]-[T-XXX].md` ANTES de ser resumido. O `[AGENTE]-produto.md` continua com a linha-resumo (formato v5) + o path do log completo. Sem o log persistido, auditoria pós-morte é impossível — a linha-resumo não diz POR QUE passou.
