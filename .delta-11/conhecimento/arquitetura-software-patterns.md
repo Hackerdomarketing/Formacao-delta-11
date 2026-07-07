@@ -1,5 +1,11 @@
 # Base de Conhecimento: Arquitetura de Software e Descoberta de Projeto — ATLAS
 
+> **LIMITES ESTRUTURAIS E IDIOMA (obrigatório — `.delta-11/protocolos/regras-codigo.md` seções 8 e 9):**
+> Função ≤ 50 linhas e ≤ 3 parâmetros · arquivo ≤ 400 linhas · aninhamento ≤ 3 · 1 classe por arquivo · complexidade ciclomática ≤ 10.
+> Código em INGLÊS (nomes de variáveis, funções, tabelas, campos JSON) · conteúdo em PORTUGUÊS (comentários, textos de UI, mensagens ao usuário, descrições de teste). Nomes descritivos, sem abreviação.
+> Contratos e esquemas nascem já na convenção: rotas, campos JSON e colunas de banco em inglês; descrições e regras de negócio em português.
+
+
 Referencia pratica para decisoes arquiteturais, descoberta de projeto, classificacao de complexidade e design de contratos.
 
 ## 1. Descoberta de Projeto — Perguntas Essenciais

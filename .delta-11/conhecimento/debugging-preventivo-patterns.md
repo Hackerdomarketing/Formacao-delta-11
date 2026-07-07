@@ -1,5 +1,11 @@
 # Base de Conhecimento: Debugging e Prevencao — SCOUT
 
+> **LIMITES ESTRUTURAIS E IDIOMA (obrigatório — `.delta-11/protocolos/regras-codigo.md` seções 8 e 9):**
+> Função ≤ 50 linhas e ≤ 3 parâmetros · arquivo ≤ 400 linhas · aninhamento ≤ 3 · 1 classe por arquivo · complexidade ciclomática ≤ 10.
+> Código em INGLÊS (nomes de variáveis, funções, tabelas, campos JSON) · conteúdo em PORTUGUÊS (comentários, textos de UI, mensagens ao usuário, descrições de teste). Nomes descritivos, sem abreviação.
+> Sua correção não pode violar os limites · se o arquivo já viola e sua correção o toca, refatore o trecho tocado.
+
+
 Referencia pratica para diagnostico sistematico de bugs e varredura preventiva.
 Foco: Next.js + Supabase. Do sintoma a causa raiz.
 

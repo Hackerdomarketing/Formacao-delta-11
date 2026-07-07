@@ -46,6 +46,11 @@ a tarefa é grande demais: quebre em mais ondas (princípio da granularização 
 viola os limites. Se violar, PARE e envie SendMessage ao CRONOS.
 **Regra para o SHIELD:** output que viola limites = REPROVAÇÃO IMEDIATA, independente de qualidade técnica.
 
+## 6. CONVENÇÕES (fixo — CRONOS copia esta seção em todo mini-plano de código)
+
+- **Limites estruturais:** função ≤ 50 linhas e ≤ 3 parâmetros · arquivo ≤ 400 linhas · aninhamento ≤ 3 · componente React ≤ 150 linhas e ≤ 5 props · rota ≤ 150 linhas (`regras-codigo.md` seção 8 — build-validator bloqueia).
+- **Idioma:** nomes de variáveis/funções/tabelas/campos JSON em INGLÊS, sem abreviação; comentários, textos de UI, mensagens ao usuário e descrições de teste em PORTUGUÊS (`regras-codigo.md` seção 9).
+
 ## Formato de output (ao concluir)
 
 1. Cadeia de sub-agentes obrigatória (build-validator → contract-tester),

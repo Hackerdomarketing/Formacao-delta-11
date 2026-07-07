@@ -1,5 +1,11 @@
 # React Form Patterns — Base de Conhecimento FORM
 
+> **LIMITES ESTRUTURAIS E IDIOMA (obrigatório — `.delta-11/protocolos/regras-codigo.md` seções 8 e 9):**
+> Função ≤ 50 linhas e ≤ 3 parâmetros · arquivo ≤ 400 linhas · aninhamento ≤ 3 · 1 classe por arquivo · complexidade ciclomática ≤ 10.
+> Código em INGLÊS (nomes de variáveis, funções, tabelas, campos JSON) · conteúdo em PORTUGUÊS (comentários, textos de UI, mensagens ao usuário, descrições de teste). Nomes descritivos, sem abreviação.
+> 1 schema Zod por formulário, compartilhado com o servidor · mensagens de validação em português, nomes de campos em inglês.
+
+
 Referencia pratica para o agente FORM da Formacao Delta-11.
 Foco: React Hook Form, Zod, validacao, multi-step, upload, acessibilidade.
 
@@ -34,7 +40,7 @@ function FormularioDeCadastro() {
     resolver: zodResolver(esquemaDeCadastro),
   })
 
-  async function aoEnviar(dados: DadosDeCadastro) {
+  async function onSubmit(dados: DadosDeCadastro) {
     await fetch("/api/cadastro", {
       method: "POST",
       body: JSON.stringify(dados),
@@ -42,7 +48,7 @@ function FormularioDeCadastro() {
   }
 
   return (
-    <form onSubmit={handleSubmit(aoEnviar)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <CampoDeTexto label="Nome" erro={errors.nome?.message} {...register("nome")} />
       <CampoDeTexto label="Email" tipo="email" erro={errors.email?.message} {...register("email")} />
       <CampoDeTexto label="Senha" tipo="password" erro={errors.senha?.message} {...register("senha")} />
@@ -314,7 +320,7 @@ function CampoDeUpload() {
 // TOAST — notificacao flutuante (melhor para erros de servidor)
 import { toast } from "sonner" // ou react-hot-toast
 
-async function aoEnviar(dados: DadosDeCadastro) {
+async function onSubmit(dados: DadosDeCadastro) {
   try {
     await fetch("/api/cadastro", { method: "POST", body: JSON.stringify(dados) })
     toast.success("Conta criada com sucesso!")
@@ -356,7 +362,7 @@ function ResumoDeErros({ errors }: { errors: Record<string, { message?: string }
 // Gerenciamento de foco em erros
 import { useEffect, useRef } from "react"
 
-function useFocoNoPrimeiroErro(errors: Record<string, unknown>) {
+function useFocusOnFirstError(errors: Record<string, unknown>) {
   const formRef = useRef<HTMLFormElement>(null)
 
   useEffect(() => {
@@ -400,7 +406,7 @@ function FormularioDeComentario({ publicacaoId }: { publicacaoId: string }) {
   const [comentarios, setComentarios] = useState<Comentario[]>([])
   const { register, handleSubmit, reset } = useForm()
 
-  async function aoEnviar(dados: { texto: string }) {
+  async function onSubmit(dados: { texto: string }) {
     // 1. Adiciona IMEDIATAMENTE na lista (otimista)
     const comentarioTemporario: Comentario = {
       id: `temp-${Date.now()}`,
@@ -445,7 +451,7 @@ function FormularioDeComentario({ publicacaoId }: { publicacaoId: string }) {
           </li>
         ))}
       </ul>
-      <form onSubmit={handleSubmit(aoEnviar)} className="flex gap-2">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex gap-2">
         <input {...register("texto")} placeholder="Escreva um comentario..."
           className="flex-1 px-4 py-2 border rounded-lg" />
         <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg">

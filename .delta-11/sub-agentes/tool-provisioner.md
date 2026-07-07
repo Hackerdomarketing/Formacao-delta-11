@@ -25,6 +25,7 @@ Ferramenta listada mas não configurada é promessa, não capacidade. Sua missã
 1. Leia `.delta-11/memoria/ferramentas-do-projeto.md` (se existir) e `.delta-11/memoria/pesquisa-tecnica.md`
 2. Leia a seção STACK TECNOLÓGICA do project-core.md (você é sub-agente — isento do bloqueio de leitura)
 3. Compile o inventário COMPLETO: MCPs, chaves de API, contas, variáveis de ambiente, CLIs, config files
+4. **Item padrão obrigatório — Sentry:** se o projeto tem deploy de produção planejado, inclua o Sentry (monitoramento de erros) no inventário mesmo que ninguém tenha listado — é exigência do sistema (decisão do ATLAS na Fase 2; o SHIELD bloqueia deploy sem ele). Plano gratuito atende projetos iniciais.
 
 ### Passo 2 — Classificação de cada item
 

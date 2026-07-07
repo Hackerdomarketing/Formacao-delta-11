@@ -1,5 +1,11 @@
 # Base de Conhecimento: Backend e Integracao — BACK
 
+> **LIMITES ESTRUTURAIS E IDIOMA (obrigatório — `.delta-11/protocolos/regras-codigo.md` seções 8 e 9):**
+> Função ≤ 50 linhas e ≤ 3 parâmetros · arquivo ≤ 400 linhas · aninhamento ≤ 3 · 1 classe por arquivo · complexidade ciclomática ≤ 10.
+> Código em INGLÊS (nomes de variáveis, funções, tabelas, campos JSON) · conteúdo em PORTUGUÊS (comentários, textos de UI, mensagens ao usuário, descrições de teste). Nomes descritivos, sem abreviação.
+> Rota ≤ 150 linhas · lógica de negócio extraída para src/lib/ · ao revisar ENGINE/VAULT, violação de limite = reprovação.
+
+
 Referencia pratica para lideranca tecnica de servidor em projetos web.
 Foco: Next.js API Routes + Supabase. Otimizacao, autenticacao, integracao.
 
@@ -247,7 +253,7 @@ export async function POST(request: Request) {
 ### Timeout + Retry
 
 ```typescript
-async function chamarServicoExterno(url: string, tentativas = 3) {
+async function callExternalService(url: string, tentativas = 3) {
   for (let i = 0; i < tentativas; i++) {
     try {
       const controller = new AbortController()

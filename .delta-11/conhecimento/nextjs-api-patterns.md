@@ -1,5 +1,11 @@
 # Next.js API Patterns — Referencia ENGINE
 
+> **LIMITES ESTRUTURAIS E IDIOMA (obrigatório — `.delta-11/protocolos/regras-codigo.md` seções 8 e 9):**
+> Função ≤ 50 linhas e ≤ 3 parâmetros · arquivo ≤ 400 linhas · aninhamento ≤ 3 · 1 classe por arquivo · complexidade ciclomática ≤ 10.
+> Código em INGLÊS (nomes de variáveis, funções, tabelas, campos JSON) · conteúdo em PORTUGUÊS (comentários, textos de UI, mensagens ao usuário, descrições de teste). Nomes descritivos, sem abreviação.
+> Rota ≤ 150 linhas · lógica de negócio em src/lib/ · nomes de campos JSON em inglês, mensagens ao usuário em português.
+
+
 Base de conhecimento pratica para implementacao de rotas API no App Router.
 
 ---
@@ -80,7 +86,7 @@ return NextResponse.json(
 Todas as rotas DEVEM retornar erros neste formato (definido no project-core.md):
 
 ```ts
-function erroResposta(status: number, mensagem: string, detalhes?: unknown) {
+function errorResponse(status: number, mensagem: string, detalhes?: unknown) {
   return NextResponse.json(
     { erro: true, mensagem, detalhes: detalhes ?? null },
     { status }
@@ -109,7 +115,7 @@ Codigos HTTP mais usados:
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-async function verificarAutenticacao(request: NextRequest) {
+async function verifyAuthentication(request: NextRequest) {
   const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -129,7 +135,7 @@ async function verificarAutenticacao(request: NextRequest) {
   const { data: { user }, error } = await supabase.auth.getUser();
 
   if (error || !user) {
-    return { usuario: null, supabase, erro: erroResposta(401, "Nao autenticado") };
+    return { usuario: null, supabase, erro: errorResponse(401, "Nao autenticado") };
   }
 
   return { usuario: user, supabase, erro: null };
@@ -137,7 +143,7 @@ async function verificarAutenticacao(request: NextRequest) {
 
 // Uso em qualquer rota:
 export async function GET(request: NextRequest) {
-  const { usuario, supabase, erro } = await verificarAutenticacao(request);
+  const { usuario, supabase, erro } = await verifyAuthentication(request);
   if (erro) return erro;
 
   // usuario.id disponivel, supabase com contexto do usuario (RLS ativo)
@@ -162,12 +168,12 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return erroResposta(400, "Body nao e JSON valido");
+    return errorResponse(400, "Body nao e JSON valido");
   }
 
   const resultado = esquemaCriarUsuario.safeParse(body);
   if (!resultado.success) {
-    return erroResposta(422, "Validacao falhou", resultado.error.flatten());
+    return errorResponse(422, "Validacao falhou", resultado.error.flatten());
   }
 
   const dados = resultado.data; // tipado automaticamente
@@ -184,7 +190,7 @@ Implementacao simples com Map em memoria (suficiente para projetos pequenos/medi
 ```ts
 const contadorPorIP = new Map<string, { contagem: number; expira: number }>();
 
-function verificarRateLimit(
+function checkRateLimit(
   request: NextRequest,
   limite: number = 60,
   janelaSegundos: number = 60
@@ -200,7 +206,7 @@ function verificarRateLimit(
 
   registro.contagem++;
   if (registro.contagem > limite) {
-    return erroResposta(429, "Muitas requisicoes. Tente novamente em breve.");
+    return errorResponse(429, "Muitas requisicoes. Tente novamente em breve.");
   }
 
   return null;
@@ -208,7 +214,7 @@ function verificarRateLimit(
 
 // Uso:
 export async function POST(request: NextRequest) {
-  const bloqueio = verificarRateLimit(request, 10, 60); // 10 req/min
+  const bloqueio = checkRateLimit(request, 10, 60); // 10 req/min
   if (bloqueio) return bloqueio;
   // ... continuar
 }
@@ -227,7 +233,7 @@ Usar `createServerClient` com cookies — respeita Row Level Security:
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-export async function criarClienteSupabase() {
+export async function createSupabaseClient() {
   const cookieStore = await cookies();
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -254,7 +260,7 @@ Usar APENAS para operacoes administrativas (criar usuario, limpar dados, migraco
 // src/lib/supabase/admin.ts
 import { createClient } from "@supabase/supabase-js";
 
-export function criarClienteAdmin() {
+export function createAdminClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -275,7 +281,7 @@ NUNCA expor service role no frontend. NUNCA usar service role para operacoes do 
 const stripe = new Stripe(process.env.STRIPE_KEY!);
 
 // CERTO — inicializa apenas quando a rota e chamada
-function obterStripe() {
+function getStripe() {
   return new Stripe(process.env.STRIPE_KEY!);
 }
 ```
@@ -283,7 +289,7 @@ function obterStripe() {
 ### Timeout padrao de 5 segundos
 
 ```ts
-async function buscarExterno(url: string, opcoes?: RequestInit) {
+async function fetchExternal(url: string, opcoes?: RequestInit) {
   const controlador = new AbortController();
   const timeout = setTimeout(() => controlador.abort(), 5000);
 
@@ -302,10 +308,10 @@ async function buscarExterno(url: string, opcoes?: RequestInit) {
 ### Retry com backoff (maximo 3 tentativas)
 
 ```ts
-async function buscarComRetry(url: string, opcoes?: RequestInit, maxTentativas = 3) {
+async function fetchWithRetry(url: string, opcoes?: RequestInit, maxTentativas = 3) {
   for (let tentativa = 0; tentativa < maxTentativas; tentativa++) {
     try {
-      const resposta = await buscarExterno(url, opcoes);
+      const resposta = await fetchExternal(url, opcoes);
       if (resposta.ok || resposta.status < 500) return resposta;
     } catch (erro) {
       if (tentativa === maxTentativas - 1) throw erro;

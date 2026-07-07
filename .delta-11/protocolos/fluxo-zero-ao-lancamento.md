@@ -193,6 +193,8 @@ O SHIELD configura o ambiente de produção, executa auditoria de segurança, e 
 1. `build-validator` — validação completa (typecheck, lint, build, testes, audit, secrets)
 2. `verify-app` — teste real no browser (navegação, fluxos críticos, console errors)
 
-Somente se AMBOS retornarem PASS, o deploy é apresentado ao comandante para aprovação.
+**E verifica o monitoramento de erros:** Sentry configurado + erro proposital de teste capturado no painel. Deploy de produção sem Sentry ativo = REPROVADO (ver checklist de deploy no SHIELD.md).
+
+Somente se AMBOS os sub-agentes retornarem PASS e o Sentry estiver ativo, o deploy é apresentado ao comandante para aprovação.
 
 **Resultado:** Sistema em produção.

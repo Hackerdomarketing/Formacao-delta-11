@@ -1,5 +1,11 @@
 # React Component Patterns — Base de Conhecimento FRONT
 
+> **LIMITES ESTRUTURAIS E IDIOMA (obrigatório — `.delta-11/protocolos/regras-codigo.md` seções 8 e 9):**
+> Função ≤ 50 linhas e ≤ 3 parâmetros · arquivo ≤ 400 linhas · aninhamento ≤ 3 · 1 classe por arquivo · complexidade ciclomática ≤ 10.
+> Código em INGLÊS (nomes de variáveis, funções, tabelas, campos JSON) · conteúdo em PORTUGUÊS (comentários, textos de UI, mensagens ao usuário, descrições de teste). Nomes descritivos, sem abreviação.
+> Componente ≤ 150 linhas e ≤ 5 props · 1 componente exportado por arquivo · ao revisar PIXEL/FORM, violação de limite = reprovação.
+
+
 Referencia pratica para o agente FRONT da Formacao Delta-11.
 Foco: Next.js App Router, composicao de componentes, estado, navegacao.
 
@@ -63,7 +69,7 @@ export function ProvedorDeUsuario({ children }: { children: ReactNode }) {
   )
 }
 
-export function useUsuario() {
+export function useUser() {
   return useContext(ContextoUsuario)
 }
 ```
@@ -101,14 +107,14 @@ function FiltrosDeBusca() {
 
   const filtroAtual = parametros.get("categoria") || "todos"
 
-  function aplicarFiltro(categoria: string) {
+  function applyFilter(categoria: string) {
     const novosParametros = new URLSearchParams(parametros)
     novosParametros.set("categoria", categoria)
     roteador.push(`${caminho}?${novosParametros.toString()}`)
   }
 
   return (
-    <select value={filtroAtual} onChange={(e) => aplicarFiltro(e.target.value)}>
+    <select value={filtroAtual} onChange={(e) => applyFilter(e.target.value)}>
       <option value="todos">Todos</option>
       <option value="eletronicos">Eletronicos</option>
       <option value="roupas">Roupas</option>

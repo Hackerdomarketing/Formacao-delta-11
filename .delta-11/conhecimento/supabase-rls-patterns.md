@@ -1,5 +1,11 @@
 # Supabase RLS Patterns — Referencia Pratica para VAULT
 
+> **LIMITES ESTRUTURAIS E IDIOMA (obrigatório — `.delta-11/protocolos/regras-codigo.md` seções 8 e 9):**
+> Função ≤ 50 linhas e ≤ 3 parâmetros · arquivo ≤ 400 linhas · aninhamento ≤ 3 · 1 classe por arquivo · complexidade ciclomática ≤ 10.
+> Código em INGLÊS (nomes de variáveis, funções, tabelas, campos JSON) · conteúdo em PORTUGUÊS (comentários, textos de UI, mensagens ao usuário, descrições de teste). Nomes descritivos, sem abreviação.
+> Tabelas e colunas em inglês · 1 assunto por migration · comentários SQL em português.
+
+
 Referencia de Row Level Security para o agente VAULT criar e revisar schemas no Supabase/PostgreSQL.
 
 ---

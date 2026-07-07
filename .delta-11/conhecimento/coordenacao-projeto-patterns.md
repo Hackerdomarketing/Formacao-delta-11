@@ -1,5 +1,11 @@
 # Base de Conhecimento: Coordenacao de Projetos Multi-Agente — CRONOS
 
+> **LIMITES ESTRUTURAIS E IDIOMA (obrigatório — `.delta-11/protocolos/regras-codigo.md` seções 8 e 9):**
+> Função ≤ 50 linhas e ≤ 3 parâmetros · arquivo ≤ 400 linhas · aninhamento ≤ 3 · 1 classe por arquivo · complexidade ciclomática ≤ 10.
+> Código em INGLÊS (nomes de variáveis, funções, tabelas, campos JSON) · conteúdo em PORTUGUÊS (comentários, textos de UI, mensagens ao usuário, descrições de teste). Nomes descritivos, sem abreviação.
+> Todo mini-plano que você gerar leva a seção CONVENÇÕES apontando para as seções 8-9 do regras-codigo.md.
+
+
 Referencia pratica para coordenar agentes paralelos em projetos de software.
 Foco: dependencias, caminho critico, resolucao de bloqueios, sequenciamento.
 

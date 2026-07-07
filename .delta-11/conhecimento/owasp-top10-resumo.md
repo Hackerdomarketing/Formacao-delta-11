@@ -1,5 +1,11 @@
 # Base de Conhecimento de Seguranca — SHIELD Agent
 
+> **LIMITES ESTRUTURAIS E IDIOMA (obrigatório — `.delta-11/protocolos/regras-codigo.md` seções 8 e 9):**
+> Função ≤ 50 linhas e ≤ 3 parâmetros · arquivo ≤ 400 linhas · aninhamento ≤ 3 · 1 classe por arquivo · complexidade ciclomática ≤ 10.
+> Código em INGLÊS (nomes de variáveis, funções, tabelas, campos JSON) · conteúdo em PORTUGUÊS (comentários, textos de UI, mensagens ao usuário, descrições de teste). Nomes descritivos, sem abreviação.
+> Você REPROVA código que viola estes limites — inclua a checagem em toda revisão.
+
+
 Referencia pratica para auditoria de seguranca em aplicacoes web.
 Foco: Next.js + Supabase. Verificacoes executaveis por leitura de codigo.
 

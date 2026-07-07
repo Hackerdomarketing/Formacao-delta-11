@@ -88,6 +88,7 @@ Antes de apresentar relatório final de deploy ao comandante, você é responsá
 1. Rodar `npm run test:contracts` (ou equivalente) — todos devem passar
 2. Disparar sub-agente `verify-app` — fluxos críticos no browser
 3. Registrar em `.delta-11/memoria/verify-app-ultimo.md` a data/hora e resultado do verify-app (o hook `validar-deploy.py` checa esse arquivo)
+4. **Monitoramento de erros (Sentry) ativo e testado:** verificar que o Sentry está configurado (variável `SENTRY_DSN` presente, integração em `src/lib/observabilidade/monitoramento-de-erros/`) E disparar um erro proposital de teste confirmando que ele aparece no painel do Sentry. **Sem monitoramento de erros funcionando, deploy de produção REPROVADO** — sem exceção.
 
 Se qualquer check falhar, **NÃO aprove o deploy**. Registre os problemas no kanban como BLOQUEIO e notifique o CRONOS.
 

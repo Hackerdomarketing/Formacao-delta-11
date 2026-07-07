@@ -1,5 +1,11 @@
 # Tailwind CSS e Animation Patterns — Base de Conhecimento PIXEL
 
+> **LIMITES ESTRUTURAIS E IDIOMA (obrigatório — `.delta-11/protocolos/regras-codigo.md` seções 8 e 9):**
+> Função ≤ 50 linhas e ≤ 3 parâmetros · arquivo ≤ 400 linhas · aninhamento ≤ 3 · 1 classe por arquivo · complexidade ciclomática ≤ 10.
+> Código em INGLÊS (nomes de variáveis, funções, tabelas, campos JSON) · conteúdo em PORTUGUÊS (comentários, textos de UI, mensagens ao usuário, descrições de teste). Nomes descritivos, sem abreviação.
+> Componente ≤ 150 linhas e ≤ 5 props · textos visíveis ao usuário sempre em português.
+
+
 Referencia pratica para o agente PIXEL da Formacao Delta-11.
 Foco: design responsivo, animacoes, micro-interacoes, tipografia, dark mode.
 

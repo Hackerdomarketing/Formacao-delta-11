@@ -536,6 +536,8 @@ ENTRADA:
    - "Next.js 15: cookies de rotas do servidor não são automaticamente repassados ao navegador."
    - "Stripe: `new Stripe()` no nível do módulo causa crash se a chave do ambiente não existir."
 
+   **Monitoramento de erros em produção (obrigatório):** Todo projeto que vai a produção usa **Sentry** [serviço que captura cada erro que acontece na mão do usuário real, com a linha exata do código e o caminho até o erro]. Registre como decisão técnica no `project-core.md`; a conta/chave é provisionada pelo `tool-provisioner` na Fase 2.4 (registrar primeiro em `ferramentas-do-projeto.md` — Regra 14); a documentação da integração vive em `src/lib/observabilidade/monitoramento-de-erros/README.md` (nome pela função, não pelo vendor — Regra 15). O SHIELD bloqueia deploy sem Sentry ativo.
+
 5. **ARQUITETURA POR PLATAFORMA:** Se o projeto NÃO for web (Next.js), leia `.delta-11/protocolos/arquitetura-plataformas.md` para obter a estrutura de pastas, nomenclaturas e padrão de arquitetura correto para a plataforma (Windows, macOS/iOS, Android, Flutter, React Native, Extensão de navegador). Copie a estrutura relevante para a seção "DECISÕES TÉCNICAS CRÍTICAS" do `project-core.md`, para que os agentes de código saibam exatamente como organizar os arquivos.
 
 6. **PADRÕES DE IMPLEMENTAÇÃO OBRIGATÓRIOS:** Defina regras que TODOS os agentes devem seguir ao escrever código. Salve no `project-core.md` na seção "PADRÕES DE IMPLEMENTAÇÃO". Estas regras são permanentes e não dependem do contrato de cada rota:

@@ -270,6 +270,20 @@ grep -rn "process\.env\." --include="*.ts" --include="*.tsx" src/ 2>/dev/null \
 
 Se `process.env.VARIAVEL` é usado em código de produção mas não há verificação de existência na inicialização do servidor (`src/lib/env.ts` ou similar), reportar como **WARNING**: "Variável de ambiente [NOME] usada sem validação na startup".
 
+#### Qualidade — Limites Estruturais de Código (regras-codigo.md seção 8)
+
+Caminho preferencial (projetos com ESLint): se o config do projeto contém as regras de limites (`max-params`, `max-lines`, `max-lines-per-function`, `max-depth`, `complexity`), o lint do check 1 já cobre — violação dessas regras é **BLOCKER**. Se o config NÃO contém as regras, reportar **WARNING**: "Limites estruturais não configurados no ESLint — aplicar template .delta-11/templates/eslint-limites-codigo.md".
+
+Caminho manual (fallback, qualquer linguagem):
+
+```bash
+# Arquivos de código acima do teto absoluto de 500 linhas (BLOCKER) e acima de 400 (WARNING)
+find src/ app/ -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.py" \) 2>/dev/null \
+  | grep -v node_modules | xargs wc -l 2>/dev/null | awk '$1 > 400 && $2 != "total" {print ($1 > 500 ? "BLOCKER" : "WARNING"), $1, $2}'
+```
+
+Nos arquivos MODIFICADOS na tarefa, verificar por leitura: função > 50 linhas, função com 4+ parâmetros, aninhamento > 3 níveis, componente React > 150 linhas ou > 5 props, rota de API > 150 linhas → cada violação em código NOVO é **BLOCKER** (código pré-existente não tocado pela tarefa: **WARNING**). Exceções da regra 8.3 (arquivo gerado, migration, seed) passam se houver justificativa no `[AGENTE]-produto.md`.
+
 ---
 
 ## CHECKS DE CONSISTENCIA CROSS-MODULE (quando disparado com lista de inconsistencias)

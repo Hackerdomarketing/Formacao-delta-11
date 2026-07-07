@@ -256,9 +256,54 @@ Para cada feature, criar ao menos:
 
 ---
 
+## 8. LIMITES ESTRUTURAIS DE CÓDIGO (obrigatório para todo código novo)
+
+Estes limites existem por dois motivos: (1) são o padrão de equipes sênior da indústria (defaults do ESLint e SonarQube, Clean Code, guias Google/Airbnb); (2) código dentro destes limites cabe inteiro na janela de atenção de uma IA — arquivo gigante é onde agente trunca, se perde e alucina.
+
+| Limite | Valor | Se estourar |
+|---|---|---|
+| Parâmetros por função | máx. 3 | 4+ → dividir em 2 funções OU receber 1 objeto de opções |
+| Linhas por função | máx. 50 | extrair função auxiliar com nome descritivo |
+| Linhas por arquivo | máx. 400 (teto absoluto 500) | dividir por responsabilidade |
+| Classes por arquivo | máx. 1 | nova classe = novo arquivo |
+| Aninhamento de blocos | máx. 3 níveis | early return / extrair função |
+| Complexidade ciclomática | máx. 10 | dividir a função |
+| Complexidade cognitiva | máx. 15 | simplificar o fluxo |
+| Componente React | máx. 150 linhas e 5 props | dividir componente / agrupar props em objeto |
+| Rota de API | máx. 150 linhas | extrair lógica de negócio para `src/lib/` |
+
+Regras de aplicação:
+
+1. **Valem para todo código NOVO.** Código existente que viola: refatorar quando uma tarefa já toca aquele arquivo — não abrir tarefa só para isso sem ordem do CRONOS.
+2. **Enforcement técnico:** os limites correspondem a regras prontas do ESLint — `max-params: 3`, `max-lines-per-function: 50`, `max-lines: 400`, `max-classes-per-file: 1`, `max-depth: 3`, `complexity: 10`, `sonarjs/cognitive-complexity: 15`. A configuração canônica está em `.delta-11/templates/eslint-limites-codigo.md`. ENGINE/FRONT ativam essas regras na Fase 3/4; o **build-validator trata violação como BLOCKER**.
+3. **Exceções legítimas** (arquivo gerado por ferramenta, migration SQL longa, arquivo de dados/seed): permitidas — registrar 1 linha de justificativa no `[AGENTE]-produto.md`.
+
+## 9. CONVENÇÃO DE IDIOMA (código em inglês, conteúdo em português)
+
+Regra única: **NOMES em inglês, CONTEÚDO em português.**
+
+Em INGLÊS (o esqueleto do código — padrão da indústria):
+- Nomes de variáveis, funções, classes, tipos e interfaces: `calculateCartTotal`, `getUserProfile`
+- Nomes de arquivos de código: `shipping-calculator.ts`
+- Tabelas e colunas do banco: `users.created_at`
+- Rotas de API e NOMES de campos JSON: `POST /api/orders`, `{ error: true, message: "..." }`
+- Branches do git: `delta-11/engine-onda-2`
+
+Em PORTUGUÊS (tudo que um humano lê):
+- Comentários dentro do código
+- Textos de interface e mensagens vistas pelo usuário final — os VALORES: `message: "Email já cadastrado"`
+- Descrições de testes: `it('deve rejeitar email inválido', ...)`
+- Mensagens de commit
+- Documentos `.md`: project-core, mini-planos, PRD, ADR, bug reports, kanban, README
+
+A regra de nomes descritivos CONTINUA VALENDO em inglês: **proibido abreviar**. `calculateShippingByRegion` (certo) · `calcShip` (errado).
+
+---
+
 ## Fonte
 
 Extraído e adaptado de:
 - `pesquisa-ia-programacao/fases/fase-03-interligacoes-camadas.md`
 - `pesquisa-ia-programacao/fases/fase-04-problemas-comuns.md`
 - Fonte: pesquisa interna sobre interligações de camadas e problemas comuns em projetos IA
+- Seções 8-9: pesquisa 2026 de padrões da indústria (defaults ESLint/SonarQube/Biome, Clean Code, guias Google/Airbnb, consenso da comunidade de codebases para agentes de IA)
