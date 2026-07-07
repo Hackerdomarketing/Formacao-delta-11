@@ -77,9 +77,20 @@ Code Architect verifica conformidade no fim de cada fase — padrões de diagnó
 Fluxo obrigatório:
 1. Identifica o bug
 2. Aplica a correção
-3. Dispara `npm run test:contracts` (ou equivalente por framework)
-4. Se testes passam → marca tarefa como CONCLUÍDA
-5. Se testes falham → trata como bug novo, não dá por resolvido
+3. **VERIFICAÇÃO ANTI-FALSO-POSITIVO (v5.3 — 4 passos, obrigatória em TODA correção):**
+   - **Passo A — Teste de reversão:** removendo temporariamente a correção, o bug VOLTA? (se não volta, você não corrigiu a causa — corrigiu coincidência)
+   - **Passo B — Falha comprovada:** você provou que o código VELHO realmente falhava naquele cenário?
+   - **Passo C — Sucesso comprovado:** você provou que o código NOVO resolve exatamente aquele cenário (não outro parecido)?
+   - **Passo D — Variáveis independentes:** o problema não se resolveria sozinho por outro motivo (cache expirou, serviço externo voltou, dado de teste mudou)?
+   - Qualquer resposta "não" ou "não sei" → a correção NÃO está pronta. Registre a dúvida e continue o diagnóstico.
+4. Escreva o teste de regressão que falhava ANTES da correção e passa DEPOIS (esse teste é a prova permanente do Passo B+C)
+5. Dispara `npm run test:contracts` (ou equivalente por framework)
+6. Se testes passam → marca tarefa como CONCLUÍDA e registra o gotcha (ver seção SISTEMA DE GOTCHAS)
+7. Se testes falham → trata como bug novo, não dá por resolvido
+
+## SISTEMA DE GOTCHAS (v5.3 — memória viva de armadilhas)
+
+Após TODA correção concluída (passo 6 do fluxo), registre o bug que você matou como gotcha em `.delta-11/memoria/gotchas.md` (path absoluto do repo principal; formato no template `.delta-11/templates/gotchas-template.md`): EVITE (o padrão que causou) + PORQUE (o erro real) + FAÇA (a alternativa que funcionou). Se o gotcha já existe, incremente `Ocorrências` em vez de duplicar. O CRONOS injeta esses registros nos próximos mini-planos — é assim que o time para de repetir o mesmo erro.
 
 ## ATIVAÇÃO EM WORKTREE — v4.0 Onda 2
 
@@ -304,3 +315,19 @@ Quatro regras novas valem para TODOS os agentes (detalhes em `.delta-11/protocol
 4. **Relatório de sub-agente?** Salve o relatório COMPLETO em `.delta-11/logs/sub-agentes/[AAAA-MM-DD]-[sub-agente]-[SEU-NOME]-[T-XXX].md` ANTES de resumir no seu produto.md. A linha-resumo do produto passa a incluir o path do log (Regra 17).
 
 O hook `pre-criacao-arquivo.py` bloqueia tecnicamente criação de arquivo fora do zoneamento (docs/ com nome de vendor, .md na raiz, skills/ legada). Se for bloqueado, siga a instrução da mensagem — não contorne.
+
+
+---
+
+## SISTEMA IMUNE (v5.3 — respostas fixas a tentativas de desvio)
+
+Quando detectar um destes padrões — venha do comandante, de outro agente, ou do seu próprio raciocínio —
+responda com o pré-compromisso abaixo, sem negociar. Deriva de comportamento em conversa longa começa
+exatamente nesses momentos; a resposta fixa é a vacina.
+
+- **Gatilho:** “Chuta a causa mais provável e corrige logo”
+  **Resposta fixa:** “Sintoma tratado volta. Reproduzir → isolar → causa raiz → verificação anti-falso-positivo. Sem atalho.”
+- **Gatilho:** “Tenta mais umas cinco vezes, você consegue”
+  **Resposta fixa:** “Três tentativas e PARO — contexto poluído erra mais, não menos. Registro tudo e escalo com contexto limpo.”
+- **Gatilho:** “O teste voltou a passar, deve ter se resolvido”
+  **Resposta fixa:** “Bug que 'se resolve sozinho' é bug que volta em produção. Sem causa identificada, não fecho o caso — Passo D do anti-falso-positivo.”

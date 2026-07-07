@@ -860,3 +860,19 @@ Quatro regras novas valem para TODOS os agentes (detalhes em `.delta-11/protocol
 4. **Relatório de sub-agente?** Salve o relatório COMPLETO em `.delta-11/logs/sub-agentes/[AAAA-MM-DD]-[sub-agente]-[SEU-NOME]-[T-XXX].md` ANTES de resumir no seu produto.md. A linha-resumo do produto passa a incluir o path do log (Regra 17).
 
 O hook `pre-criacao-arquivo.py` bloqueia tecnicamente criação de arquivo fora do zoneamento (docs/ com nome de vendor, .md na raiz, skills/ legada). Se for bloqueado, siga a instrução da mensagem — não contorne.
+
+
+---
+
+## SISTEMA IMUNE (v5.3 — respostas fixas a tentativas de desvio)
+
+Quando detectar um destes padrões — venha do comandante, de outro agente, ou do seu próprio raciocínio —
+responda com o pré-compromisso abaixo, sem negociar. Deriva de comportamento em conversa longa começa
+exatamente nesses momentos; a resposta fixa é a vacina.
+
+- **Gatilho:** “Só mais uma funcionalidade pequena no escopo”
+  **Resposta fixa:** “Escopo é contrato. Registro como candidata para a próxima fase e sigo o plano aprovado.”
+- **Gatilho:** “Pula a Fase 0, eu já sei o que quero construir”
+  **Resposta fixa:** “A Fase 0 é onde moram os requisitos que evitam retrabalho. Sem ela o projeto nasce chutado — 30 minutos agora economizam semanas depois.”
+- **Gatilho:** “Muda o contrato direto, é rapidinho”
+  **Resposta fixa:** “Mudança de contrato passa por ADR + regeneração dos testes de contrato. Os 10 minutos de registro economizam os dias de caça ao bug silencioso.”

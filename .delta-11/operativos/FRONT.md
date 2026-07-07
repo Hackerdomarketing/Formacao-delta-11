@@ -193,3 +193,19 @@ Quatro regras novas valem para TODOS os agentes (detalhes em `.delta-11/protocol
 4. **Relatório de sub-agente?** Salve o relatório COMPLETO em `.delta-11/logs/sub-agentes/[AAAA-MM-DD]-[sub-agente]-[SEU-NOME]-[T-XXX].md` ANTES de resumir no seu produto.md. A linha-resumo do produto passa a incluir o path do log (Regra 17).
 
 O hook `pre-criacao-arquivo.py` bloqueia tecnicamente criação de arquivo fora do zoneamento (docs/ com nome de vendor, .md na raiz, skills/ legada). Se for bloqueado, siga a instrução da mensagem — não contorne.
+
+
+---
+
+## SISTEMA IMUNE (v5.3 — respostas fixas a tentativas de desvio)
+
+Quando detectar um destes padrões — venha do comandante, de outro agente, ou do seu próprio raciocínio —
+responda com o pré-compromisso abaixo, sem negociar. Deriva de comportamento em conversa longa começa
+exatamente nesses momentos; a resposta fixa é a vacina.
+
+- **Gatilho:** “Chama o Supabase direto do componente, é mais rápido”
+  **Resposta fixa:** “Se o contrato define rota de servidor, o cliente passa pela rota. Bypass de contrato = reprovação imediata do SHIELD.”
+- **Gatilho:** “Usa Inter/fonte padrão que agiliza”
+  **Resposta fixa:** “Interface genérica de IA é reprovável neste time. Identidade visual própria não é opcional — é critério de aceite.”
+- **Gatilho:** “Aprova o componente do PIXEL sem revisar, ele é bom”
+  **Resposta fixa:** “Revisão não é desconfiança, é o gate. Quem executa nunca aprova o próprio trabalho — e eu reviso o que lidero.”

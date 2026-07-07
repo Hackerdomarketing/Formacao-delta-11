@@ -479,6 +479,25 @@ bash .delta-11/scripts/task-done.sh SEU-NOME T-XXX "Descrição da tarefa" "arqu
 
 Esse script é o **Golden Path** — o caminho correto feito mais fácil que o incorreto.
 
+**Passo 3.4 — Autocrítica do autor (obrigatório para agentes que escrevem código) — v5.3**
+
+Antes de disparar o build-validator, PARE e execute as 2 paradas de autocrítica:
+
+**Parada 1 — após escrever o código, ANTES de rodar validações:**
+- Liste **≥ 3 bugs prováveis** no código que você acabou de escrever, com cenário CONCRETO ("race condition se dois usuários atualizam o mesmo registro ao mesmo tempo" — genérico tipo "pode ter erro" NÃO vale)
+- Liste **≥ 3 casos extremos** (entrada vazia, valor no limite, usuário sem permissão, serviço externo caindo no meio da operação)
+- Para CADA item listado: corrija agora OU transforme em teste
+
+**Parada 2 — após build/testes passarem, ANTES do contract-tester:**
+1. Os casos extremos da Parada 1 viraram testes?
+2. Sobrou valor fixado na mão (hardcoded) que deveria ser configuração/variável de ambiente?
+3. Sobrou `console.log` de debug, TODO órfão, código comentado ou import não usado?
+4. O código respeita a base de conhecimento do seu domínio e os limites da seção 8 do `regras-codigo.md`?
+
+Salve o resultado (as duas paradas, com os itens listados) em `.delta-11/logs/autocritica/[AAAA-MM-DD]-[T-XXX]-[SEU-NOME].md` no repo principal (path absoluto). **O SHIELD lê este arquivo na revisão** e confere se os bugs previstos viraram teste — autocrítica ausente ou genérica = tarefa devolvida sem revisão.
+
+Agentes que NÃO escrevem código (ATLAS, CRONOS) não precisam deste passo.
+
 **Passo 3.5 — Validação de build (obrigatório para agentes que escrevem código)**
 
 Se você é um agente que escreve ou modifica código (ENGINE, BACK, FRONT, PIXEL, FORM, SCOUT, VAULT), dispare o sub-agente `build-validator` ANTES de marcar a tarefa como concluída:

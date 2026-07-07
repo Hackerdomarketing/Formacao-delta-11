@@ -1,4 +1,6 @@
 # Mini-plano — [AGENTE] | [Ciclo/Fase] | ONDA [N]
+Tipo de tarefa: funcionalidade | correção-de-bug | performance | segurança | refatoração
+(v5.3 — o SHIELD usa o tipo para exigir a evidência mínima correspondente)
 
 > **Template v5.2 — Mini-plano de agente executor.**
 > Gerado pelo CRONOS na Fase 2.5 (ou em replanejamento). Salvo em `.delta-11/planos/[AGENTE]-plan-[ciclo]-onda-[N].md`.
@@ -19,7 +21,14 @@ Liste arquivos a criar/modificar com paths exatos quando conhecidos.]
 ## 2. Recorte relevante da fase anterior
 
 [APENAS o que do produto da fase/onda anterior afeta diretamente este agente. NÃO o arquivo inteiro.
-Cite: contratos que consome (com linha do contratos-api.md), tabelas que usa, decisões que o limitam.]
+Cite: contratos que consome (com linha do contratos-api.md), tabelas que usa, decisões que o limitam.
+
+REGRA v5.3 — rastreabilidade: toda afirmação técnica carrega `[Fonte: arquivo#seção]`. Informação que
+não foi encontrada em documento nenhum → escrever "sem orientação na documentação — decisão em aberto".
+PROIBIDO inventar. O executor DEVOLVE mini-plano com afirmação técnica sem fonte.
+
+GOTCHAS v5.3: colar aqui os registros de `.delta-11/memoria/gotchas.md` relevantes à zona deste agente,
+no formato: EVITE: [padrão] — [motivo] — [alternativa].]
 
 ## 3. Critérios de sucesso desta tarefa
 

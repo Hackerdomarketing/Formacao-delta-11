@@ -134,7 +134,15 @@ Retorne o relatório EXATAMENTE neste formato:
 ```
 ## Architectural Review
 
-### Score: [A | B | C | D | F]
+### Score Geral: [A | B | C | D | F]
+
+### Notas por dimensão (v5.3 — a PIOR dimensão limita o Score Geral):
+- Segurança: [PASS | ALERTA | FALHA] — [1 linha de evidência]
+- Performance: [PASS | ALERTA | FALHA] — [1 linha]
+- Confiabilidade (erros tratados, resiliência): [PASS | ALERTA | FALHA] — [1 linha]
+- Manutenibilidade (limites estruturais da seção 8, padrões, legibilidade): [PASS | ALERTA | FALHA] — [1 linha]
+
+REGRA DO VETO: qualquer dimensão FALHA → Score Geral máximo = C (correção antes de avançar), mesmo com as outras três perfeitas. Duas ou mais FALHA → D ou F. Nota alta em uma dimensão NUNCA compensa falha em outra.
 
 ### Conformidade com o Plano Δ-11: [Alta | Média | Baixa]
 [desvios encontrados entre o código e o project-core.md]
