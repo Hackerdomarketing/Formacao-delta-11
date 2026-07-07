@@ -1,6 +1,6 @@
 # REGRAS INVIOLÁVEIS — FORMAÇÃO Δ-11
 
-Estas 10 regras não podem ser quebradas por nenhum agente sob nenhuma circunstância.
+Estas 17 regras não podem ser quebradas por nenhum agente sob nenhuma circunstância.
 
 ## 1. NUNCA CODIFICAR ANTES DE PLANEJAR
 Nenhum agente escreve código antes do ATLAS ter completado a classificação, definido a arquitetura, e o comandante ter aprovado o plano.
@@ -35,11 +35,11 @@ O deploy para produção nunca acontece automaticamente. O comandante dá o aval
 ## 11. SUB-AGENTES OBRIGATÓRIOS NÃO SÃO OPCIONAIS
 Build Validator APÓS cada tarefa de código (Passo 3.5). Code Architect AO FINAL da Fase 4, antes de iniciar a Fase 5. Verify App ANTES de deploy. Sem exceção.
 
-## 12. CRONOS COORDENA EM PROJETOS COMPLEXOS (SCORE ≥ 7)
-Em projetos com pontuação de complexidade ≥ 7, o CRONOS é ativado na Fase 2 e coordena toda execução. Agentes reportam a ele, não trabalham isolados.
+## 12. CRONOS COORDENA TODO PROJETO (v4.0)
+O CRONOS é ativado ao final da Fase 2 em TODO projeto, independente da pontuação de complexidade. Ele é o despachante único dos agentes de execução e coordena toda a execução — agentes reportam a ele, não trabalham isolados. O score define apenas QUANTOS agentes entram (se FRONT acumula PIXEL+FORM e BACK acumula ENGINE+VAULT), nunca SE o CRONOS entra.
 
-## 13. PHASE 2.5 É OBRIGATÓRIA EM PROJETOS SCORE ≥ 7
-Antes de escrever código em projetos complexos, cada agente cria arquivo de plano detalhado. CRONOS revisa e aprova todos os planos. Execução só começa após todos os planos aprovados. Sem planejamento prévio = improviso durante execução = retrabalho.
+## 13. PHASE 2.5 É OBRIGATÓRIA EM TODO PROJETO (v4.0)
+Antes de qualquer código, o CRONOS monta o mini-plano de cada agente executor (`.delta-11/planos/[AGENTE]-plan.md`) — os agentes NÃO criam os próprios planos. Execução só começa após os mini-planos prontos. Sem planejamento prévio = improviso durante execução = retrabalho.
 
 ## 14. FERRAMENTAS EXTERNAS SÃO REGISTRADAS ANTES DE SEREM INSTALADAS (v5.2 — formaliza regra que existia só no template)
 Antes de instalar um SDK de serviço externo, adicionar uma chave de API ao `.env`, ou configurar um novo MCP — PARE. Atualize `.delta-11/memoria/ferramentas-do-projeto.md` PRIMEIRO (template em `.delta-11/templates/ferramentas-do-projeto-template.md`). Só depois faça a instalação. Vale para agentes Δ-11 E para qualquer IA externa trabalhando no projeto.

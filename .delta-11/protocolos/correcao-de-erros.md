@@ -8,8 +8,8 @@ Erro detectado (SHIELD, comandante, ou qualquer agente)
 O agente que detectou classifica o erro (A, B ou C)
     ↓
 Categoria A (visual): o próprio agente tenta corrigir (max 3 tentativas)
-Categoria B (dados): auto-dispara SCOUT com contexto do erro
-Categoria C (estrutural): auto-dispara ATLAS com contexto do erro
+Categoria B (dados): escala SCOUT via SendMessage ao CRONOS
+Categoria C (estrutural): escala ATLAS via SendMessage ao CRONOS
     ↓
 SCOUT/ATLAS lê: project-core.md + estados dos agentes envolvidos
     ↓
@@ -27,16 +27,17 @@ Falhou? → Segunda tentativa (máximo 3)
 Mais 3 falhas (6 total)? → Escalar para ATLAS
 ```
 
-## AUTO-DISPATCH DE ERROS
+## ESCALAÇÃO DE ERROS (v4.0 — via CRONOS)
 
-Qualquer agente que encontrar um erro que NÃO consegue resolver sozinho pode auto-disparar o agente de diagnóstico. O procedimento completo está no CLAUDE.md, seção "AUTO-DISPATCH DE ERROS" dentro do PROTOCOLO DE AUTO-DISPATCH.
+Qualquer agente que encontrar um erro que NÃO consegue resolver sozinho escala para o CRONOS — nenhum agente dispara outro agente por conta própria. O procedimento completo está no CLAUDE.md, seção "DISPATCH DE ERROS" dentro do PROTOCOLO DE DISPATCH DE AGENTES.
 
 **Resumo rápido:**
 1. Tente resolver sozinho (máximo 3 tentativas)
 2. Classifique o erro (A/B/C)
-3. Crie arquivo em `.delta-11/ativacoes/erro-[DESTINO].txt` com contexto completo
-4. Auto-dispare usando o mecanismo AppleScript do VS Code
-5. Continue trabalhando em outras tarefas enquanto o agente de diagnóstico resolve
+3. Envie `SendMessage` ao CRONOS descrevendo o erro, a categoria e o contexto completo
+4. Salve o contexto em `.delta-11/ativacoes/erro-[DESTINO].txt` (registro histórico e retomada)
+5. O CRONOS decide quem disparar (SCOUT, ATLAS ou FRONT/PIXEL) via Agent tool nativo
+6. Continue trabalhando em outras tarefas enquanto o agente de diagnóstico resolve
 
 ## CATEGORIAS DE ALTERAÇÃO
 
