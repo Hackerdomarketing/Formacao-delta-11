@@ -130,6 +130,14 @@ for search_path in "${SEARCH_PATHS[@]}"; do
         if [ "$proj_dir" = "$SOURCE" ]; then
             continue
         fi
+        # Excluir worktrees de execução do Δ-11: cada agente com
+        # isolation:worktree cria um clone completo do repo dentro de
+        # .claude/worktrees/agent-*/ — a .delta-11 dentro é cópia
+        # descartável, não um projeto real. Escrever nela sobrescreve
+        # trabalho em andamento do agente.
+        case "$delta11_dir" in
+            */.claude/worktrees/*) continue ;;
+        esac
         PROJECTS+=("$proj_dir")
     done < <(find "$search_path" -maxdepth 3 -name ".delta-11" -type d 2>/dev/null | sort)
 done
