@@ -36,6 +36,10 @@ Se não houve desvios, escreva "Nenhum — segui o mini-plano exatamente."]
 - "build-validator: PASS / 119 testes / 0 warnings"
 - "contract-tester: PASS / 0 desvios"]
 
+## AUTOCRÍTICA (v5.3 — OBRIGATÓRIO para os 8 executores; ver Passo 3.4 do CLAUDE.md)
+[Uma linha com o path exato do log — o SHIELD lê este arquivo antes de revisar; ausência ou path errado = tarefa devolvida sem revisão. Formato:
+- "autocritica: .delta-11/logs/autocritica/AAAA-MM-DD-T-XXX-[SEU-NOME].md"]
+
 ## PRÓXIMA TAREFA
 [1 linha. Se não há, escreva "aguardando próxima fase".]
 

@@ -477,7 +477,7 @@ bash .delta-11/scripts/task-done.sh SEU-NOME T-XXX "Descrição da tarefa" "arqu
 ./task-done.sh SEU-NOME T-XXX "Descrição da tarefa" "arquivos/modificados.js"
 ```
 
-Esse script é o **Golden Path** — o caminho correto feito mais fácil que o incorreto.
+Esse script é o **Golden Path** — o caminho correto feito mais fácil que o incorreto. Ele já lista os Passos 3.4 (autocrítica), 3.5 (build-validator), 3.7 (contract-tester) e 3.8 (SHIELD) na ordem correta com os prompts a executar.
 
 **Passo 3.4 — Autocrítica do autor (obrigatório para agentes que escrevem código) — v5.3**
 

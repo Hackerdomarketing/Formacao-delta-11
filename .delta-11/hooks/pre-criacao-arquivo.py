@@ -149,6 +149,78 @@ def main() -> int:
             "  - Config de integracao        → src/lib/[dominio]/[etapa]/README.md\n"
             "  - Conhecimento para agentes   → .delta-11/conhecimento/\n"
             "  - Temporarios                 → .delta-11/scratch/\n"
+            "  - ADR / Bug / PRD             → ver CASOS D/E/F desta guarda\n"
+            f"Escape do comandante: criar {ARQUIVO_DE_ESCAPE} (e apagar depois)."
+        )
+
+    # ── CASO D (v5.3): ADR fora de .delta-11/memoria/decisoes/ ──
+    # Detecta pelo padrao "AAAA-MM-DD-*.md" OU nome comecando com "adr" OU contendo "decisao"/"decision"
+    # em qualquer path que NAO seja o canonico.
+    def parece_adr(n: str) -> bool:
+        low = n.lower()
+        if low.startswith("adr-") or low.startswith("adr_"):
+            return True
+        if "decisao-arquitetural" in low or "decision-record" in low or "-adr." in low:
+            return True
+        # padrao AAAA-MM-DD- no inicio (padrao do template ADR)
+        if len(n) >= 11 and n[:4].isdigit() and n[4] == "-" and n[5:7].isdigit() and n[7] == "-" and n[8:10].isdigit() and n[10] == "-":
+            return True
+        return False
+
+    path_canonico_adr = os.path.join(".delta-11", "memoria", "decisoes")
+    if parece_adr(nome) and not rel.startswith(path_canonico_adr + os.sep):
+        log_activity(f"BLOQUEADO caso D (ADR fora de decisoes/): {rel}")
+        bloquear(
+            "GUARDA-ZONEAMENTO (CASO D — v5.3): voce tentou criar um ADR (registro de decisao\n"
+            f"arquitetural) fora do endereco canonico.\n"
+            f"Arquivo tentado: {rel}\n"
+            "\n"
+            "Enderecos canonico (Regra Inviolavel 16):\n"
+            "  .delta-11/memoria/decisoes/AAAA-MM-DD-titulo-curto.md\n"
+            "\n"
+            "Use o template:\n"
+            "  .delta-11/templates/adr-registro-de-decisao-arquitetural-template.md\n"
+            "Quem escreve ADR: ATLAS (Fase 2 e mudancas de contrato) e CRONOS (Abertura de Fase).\n"
+            f"Escape do comandante: criar {ARQUIVO_DE_ESCAPE} (e apagar depois)."
+        )
+
+    # ── CASO E (v5.3): Bug report fora de .delta-11/bugs/ ──
+    def parece_bug_report(n: str) -> bool:
+        low = n.lower()
+        return low.startswith("bug-") or low.startswith("bug_") or "-bug-report" in low or "bug-report-" in low
+
+    path_canonico_bug = os.path.join(".delta-11", "bugs")
+    if parece_bug_report(nome) and not rel.startswith(path_canonico_bug + os.sep):
+        log_activity(f"BLOQUEADO caso E (bug report fora de bugs/): {rel}")
+        bloquear(
+            "GUARDA-ZONEAMENTO (CASO E — v5.3): voce tentou criar um bug report fora do\n"
+            "endereco canonico.\n"
+            f"Arquivo tentado: {rel}\n"
+            "\n"
+            "Endereco canonico (Regra Inviolavel 16):\n"
+            "  .delta-11/bugs/BUG-NNN-titulo-curto.md\n"
+            "\n"
+            "Use o template: .delta-11/templates/bug-report-template.md\n"
+            "Quem escreve: SHIELD (ao reprovar), CRONOS (relatos do comandante/fresh-reviewer)\n"
+            "  ou qualquer agente que encontrar erro fora do proprio escopo.\n"
+            f"Escape do comandante: criar {ARQUIVO_DE_ESCAPE} (e apagar depois)."
+        )
+
+    # ── CASO F (v5.3): PRD em endereco errado ──
+    # PRD canonico e docs/prd.md — bloqueia se detectar tentativa em outra pasta.
+    if nome.lower() in ("prd.md", "product-requirements.md") and rel != os.path.join("docs", nome.lower()):
+        # excecao: se ja esta em docs/comandante/, e opcional (nao bloqueia, so avisa via caso B)
+        log_activity(f"BLOQUEADO caso F (PRD fora de docs/prd.md): {rel}")
+        bloquear(
+            "GUARDA-ZONEAMENTO (CASO F — v5.3): voce tentou criar um PRD fora do endereco\n"
+            "canonico.\n"
+            f"Arquivo tentado: {rel}\n"
+            "\n"
+            "Endereco canonico (Regra Inviolavel 16):\n"
+            "  docs/prd.md\n"
+            "\n"
+            "Use o template: .delta-11/templates/prd-documento-de-requisitos-template.md\n"
+            "Quem escreve: ATLAS ao final da Fase 0 (Descoberta).\n"
             f"Escape do comandante: criar {ARQUIVO_DE_ESCAPE} (e apagar depois)."
         )
 

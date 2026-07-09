@@ -20,7 +20,14 @@ Contrato [Fonte: esta tarefa canônica]:
 - SAÍDA 201: { order_id: uuid, total_cents: inteiro, status: "pending" }
 - ERROS: 401 sem sessão · 404 produto inexistente · 409 sem estoque · 422 validação
 - Tabela products existe com: id, name, price_cents, stock [Fonte: esta tarefa canônica]
-- Pagamento é registrado via serviço externo de cobrança (use um cliente fictício "billing") [Fonte: esta tarefa canônica]
+- Pagamento é registrado via serviço externo de cobrança usando o cliente fictício `billing` com a interface fixa [Fonte: esta tarefa canônica]:
+  ```typescript
+  billing.createCharge({ amount_cents: number, order_id: string }): Promise<
+    | { ok: true; charge_id: string }
+    | { ok: false; reason: 'insufficient_funds' | 'not_configured' | 'network_error' }
+  >
+  ```
+  Sem `throw`; retorno tipado. Timeout externo cabe ao ENGINE (billing só responde ok/reason).
 
 ## 3. Critérios de sucesso
 - Rota implementada conforme contrato, com validação Zod completa

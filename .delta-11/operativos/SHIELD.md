@@ -299,7 +299,8 @@ Se o teste falha, o código está errado. Você NUNCA ajusta um teste para passa
 Além dos checks já existentes no seu operativo, ao revisar código de qualquer agente, verifique também:
 
 **Autocrítica do autor (v5.3 — PRIMEIRA verificação da revisão):**
-- [ ] Existe `.delta-11/logs/autocritica/[data]-[T-XXX]-[AGENTE].md` com as 2 paradas? Ausente ou genérico ("pode ter erro") → **devolva a tarefa SEM revisar**
+- [ ] O `[AGENTE]-produto.md` do autor tem a linha `autocritica: <path>`? Ausência dessa linha = devolva a tarefa
+- [ ] O arquivo apontado existe e traz as 2 paradas? Ausente ou genérico ("pode ter erro") → **devolva a tarefa SEM revisar**
 - [ ] Os ≥3 bugs prováveis e ≥3 casos extremos que o autor previu viraram TESTES? Previu e não testou → reprovar apontando o item
 
 **Evidência mínima POR TIPO de tarefa (v5.3 — o tipo vem do cabeçalho do mini-plano):**

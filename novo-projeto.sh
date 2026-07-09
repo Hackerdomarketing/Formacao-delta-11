@@ -109,6 +109,20 @@ echo -e "  ${GREEN}✓${NC} Scripts de operação em .delta-11/scripts/ (raiz do
 # ─── v5.2 (M-19): pasta canônica de docs do comandante ───
 mkdir -p "$TARGET_DIR/docs/comandante"
 
+# ─── v5.3: pastas canônicas de artefatos das Ondas 2 e 3 ───
+# Bugs, logs de autocrítica e decisões arquiteturais (ADR) precisam existir DESDE O DIA 1 —
+# sem isso, SHIELD grava BUG-001 num vazio, autocrítica cai fora do path esperado, ADR
+# some. Lição gravada no CLAUDE.md após Code Simplifier: pasta de sistema fora dos scripts
+# vira mudança fantasma. Fecha F3 da auditoria da v5.3.
+for pasta in ".delta-11/bugs" ".delta-11/logs/autocritica" ".delta-11/memoria/decisoes"; do
+    mkdir -p "$TARGET_DIR/$pasta"
+    cat > "$TARGET_DIR/$pasta/.gitkeep" << 'GITKEEP'
+Pasta canônica do sistema Δ-11 — não apagar.
+Vazia até a primeira gravação (ADR, bug report ou log de autocrítica).
+Detalhes: .delta-11/protocolos/regras-inviolaveis.md Regra 16.
+GITKEEP
+done
+
 # ─── v5.2: hooks ativos desde o primeiro dia (gap fechado) ───
 # Antes, projetos novos nasciam SEM .claude/settings.json — hooks só chegavam
 # no primeiro sincronizar.sh. Agora nascem com todos os hooks ligados.

@@ -336,6 +336,11 @@ sincronizar_destino() {
         mkdir -p "$destino/.delta-11/locks" 2>/dev/null
         touch "$destino/.delta-11/locks/.gitkeep" 2>/dev/null
         mkdir -p "$destino/.claude" 2>/dev/null
+        # v5.3 — F3 da auditoria: retroalimenta projetos criados antes das Ondas 2/3
+        for pasta_v53 in ".delta-11/bugs" ".delta-11/logs/autocritica" ".delta-11/memoria/decisoes"; do
+            mkdir -p "$destino/$pasta_v53" 2>/dev/null
+            [ ! -f "$destino/$pasta_v53/.gitkeep" ] && touch "$destino/$pasta_v53/.gitkeep" 2>/dev/null
+        done
     fi
 
     for rel_path in "${SYNC_FILES[@]}"; do
