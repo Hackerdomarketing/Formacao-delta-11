@@ -143,7 +143,42 @@ Isso entrega pronto: limites de código no linter, formato único de erro, valid
 
 O VAULT cria o banco de dados, autenticação, e políticas de segurança. O SHIELD prepara infraestrutura e estratégia de testes em paralelo. Em projetos de baixa complexidade, o SHIELD foca mais em checklists rápidos; em projetos maiores, já monta suíte de testes. A decisão de escopo do SHIELD fica com o mini-plano que o CRONOS entregou.
 
-**Resultado:** Banco pronto, autenticação funcionando, infraestrutura configurada. NENHUM agente de funcionalidade começa antes disso estar concluído.
+**Resultado:** Banco pronto, autenticação funcionando, infraestrutura configurado. NENHUM agente de funcionalidade começa antes disso estar concluído.
+
+---
+
+### FASE 3.5 — RITMO TEMPORAL (Dia 4 — Os Astros) — v6.0 NOVA
+
+**Quem:** CRONOS (orquestrando) + Engenheiro de DevOps/SRE + Líder Técnico da Fundação
+**Janelas:** 1
+
+**Por que esta fase existe (v6.0):** Antes do v6.0, o sistema ia DIRETO da Fundação (Fase 3) para o Desenvolvimento de Funcionalidade (Fase 4), pulando completamente o Dia 4 da Metodologia Gênesis (Astros = Ritmo Temporal). Isso é a **inversão herética** literal que a Metodologia adverte: "fazer os peixes antes de haver águas e antes de haver ritmo temporal para governar essa vida". A Fase 3.5 existe para **construir o ritmo do sistema ANTES dos habitantes** (Dia 5).
+
+**Cross-reference conceitual:** `.delta-11/conhecimento/metodologia-genesis-camadas.md` → Dia 4 (Os Astros — o Ritmo Temporal do Sistema). Texto hebraico chave: *yehi meorot bi-rekia ha-shamayim le-havdil bein ha-yom u-vein ha-laila* — "haja luminares no firmamento para separar entre dia e noite".
+
+**O que é construído nesta fase (10 artefatos do Dia 4):**
+
+1. **Sistema de eventos declarado** — quais eventos existem, quem produz, quem consome (catálogo de eventos, não implementação ainda)
+2. **Sistema de mensageria e filas configurado** — RabbitMQ, Kafka, SQS, Redis Streams, ou Inngest. Qual, por quê, contratos
+3. **Jobs agendados mapeados** — cron tasks, scheduled jobs, periodic workers. Listados com frequência e dono
+4. **Estratégia de cache com TTL por tipo de dado** — qual cache, quais TTLs, política de invalidação
+5. **Timeouts declarados por tipo de operação** — HTTP, RPC, DB, fila. Cada um com valor numérico
+6. **Retries com backoff exponencial configurados** — padrão: 3 tentativas, 1s/2s/4s. Retry policy documentada por dependência externa
+7. **Circuit breakers para dependências externas críticas** — 5 falhas/60s pause para cada dependência externa crítica
+8. **CI/CD funcionando de ponta a ponta em staging** — pipeline real executando testes, build, deploy em staging. **Não pode ser placeholder**
+9. **Observabilidade configurada** — logs estruturados, métricas (latência, erro, saturação), traces distribuídos, dashboards visíveis
+10. **Sub-contraposição declarada** — processos dominantes ativos (schedulers, dispatchers) contra processos testemunhas passivos (loggers, métricas, health checks)
+
+**Resultado:** os 10 artefatos acima existem como arquivos `.delta-11/memoria/decisoes/AAAA-MM-DD-ritmo-temporal-<N>.md` (um por artefato), cada um com pelo menos: descrição, escolha tecnológica, justificativa, referência à documentação. **Nenhum agente de funcionalidade começa antes dos 10 artefatos estarem presentes.**
+
+**Quem sella:** Líder técnico da Fundação + Comandante. Selo provisório permite iniciar Fase 4.
+
+**Templates relacionados:**
+- `.delta-11/templates/fase-ritmo-template.md` (Etapa 5 do v6.0) — template dos 10 artefatos
+- `.delta-11/protocolos/fase-ritmo.md` (Etapa 5 do v6.0) — protocolo detalhado
+- Hook bloqueante: `fase-ritmo-checker.py` (Etapa 5 do v6.0)
+
+**Sobre o roadmap dos 7 ciclos:** o "Ciclo 4 — Tempo" do roadmap (definido em `ATLAS.md:415`) pode **continuar** marcando entregas temporais. A Fase 3.5 é a camada de RITMO que sustenta todos os 7 ciclos, não substitui nenhum.
 
 ---
 
