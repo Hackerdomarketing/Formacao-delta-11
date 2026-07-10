@@ -55,6 +55,16 @@
         ]
       },
       {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/contraposicao-checker.py || python .delta-11/hooks/contraposicao-checker.py",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
         "matcher": "Write|Edit",
         "hooks": [
           {
