@@ -214,6 +214,46 @@ Se CRONOS percebe que um agente está demorando muito ou fazendo muitos commits,
 
 ---
 
+### FASE 4.5 — CONSCIÊNCIA DOMINANTE (Dia 6 — A Consciência Que Domina) — v6.0 NOVA
+
+**Quem:** CRONOS (orquestrando) + VAULT (auth + RLS) + SHIELD (auditoria + rate limiting) + Líder de Produto (regras de negócio) + Especialista de Compliance/LGPD
+**Janelas:** 1 a 2
+
+**Por que esta fase existe (v6.0):** Antes do v6.0, o VAULT na Fase 3 entregava apenas autenticação básica + RLS. O Dia 6 da Metodologia Gênesis (a Consciência Dominante — única camada declarada *muito bom* no texto bíblico) exige que **após o código de funcionalidade existir** (Dia 5), a camada de governança consciente seja construída em cima dele: autenticação + autorização conscientes, motor de regras de negócio, auditoria imutável, rate limiting, LGPD, fluxos de aprovação. Esta fase é o único dia com a expressão *tov meod* (muito bom) — o sistema não apenas funciona, funciona de forma responsável e auditável.
+
+**Cross-references:**
+- `.delta-11/conhecimento/metodologia-genesis-camadas.md` → Dia 6
+- Skills globais v5.4 instaladas em `~/.claude/skills/`:
+  - `owasp-top10` (7.374 linhas, 5 CVEs incluindo CVE-2024-34351 e CVE-2025-29927) — referência obrigatória do SHIELD
+  - `supabase-rls` (6.676 linhas, P6 multi-tenancy, P7 Custom Hook) — referência obrigatória do VAULT
+  - Bases curtas: `.delta-11/conhecimento/owasp-top10-overview.md`, `.delta-11/conhecimento/supabase-rls-patterns.md`
+- **Texto hebraico chave:** *naaseh adam be-tzalmenu ki-dmutenu* (façamos o homem em nossa imagem) · *zachar u-nekevá bara otam* (masculino e feminino criou-os) · *tov meod* (muito bom — único dia com esta expressão)
+
+**Os 5 entregáveis do Dia 6 (todos verificados):**
+
+1. **Auditoria imutável de ações** — sistema que registra *quem fez o quê e quando* com logs append-only (não editáveis). Diferente do Sentry (que captura erros) — aqui é auditoria de ações do usuário (CRUD em entidades críticas). Para cada tabela com dados sensíveis, existe trigger ou middleware que registra a operação.
+
+2. **Rate limiting obrigatório por endpoint crítico** — login, registro, recuperação de senha, APIs que consomem crédito/enviam email/SMS. Implementado como Chain of Responsibility após auth (padrão documentado em `conhecimento/design-patterns-praticos.md`).
+
+3. **Motor de regras de negócio central** — regras de negócio que estão espalhadas pelo código são extraídas para um módulo central (`src/lib/regra-negocio/` ou equivalente) OU há justificativa explícita de por que determinada regra é distribuída. Sem motor central, auditoria fica cara.
+
+4. **Sistema de consentimento LGPD/GDPR** — banner de cookies opt-in, registro de consentimento, fluxo de exportação de dados pessoais do usuário (direito de acesso), fluxo de exclusão de dados (direito ao esquecimento), DPO designado.
+
+5. **Fluxos de aprovação para operações críticas** — delete em massa, transações financeiras, mudança de role, alteração de dados de outro usuário. Cada operação crítica tem um workflow de aprovação explícito (single-step, multi-step, ou automated via regra).
+
+**Quem sella:** SHIELD (auditoria + rate limiting) + Comandante (LGPD + aprovações). Selo permite iniciar Fase 5.
+
+**Resultado:** os 5 entregáveis verificados com evidência (arquivos em `.delta-11/memoria/decisoes/AAAA-MM-DD-consciencia-<N>.md`). Auth + Authz testadas com casos positivos e negativos. Logs de auditoria verificados como imutáveis. Rate limiting ativo em todos endpoints críticos. Fluxo LGPD testado com pessoa real.
+
+**Templates e hooks relacionados (Etapa 6 do v6.0):**
+- `.delta-11/templates/fase-consciencia-template.md` — template dos 5 entregáveis
+- `.delta-11/protocolos/fase-consciencia.md` — protocolo detalhado
+- Hook bloqueante: `fase-consciencia-checker.py`
+
+**Sobre as skills globais:** o conteúdo das skills `owasp-top10` e `supabase-rls` NÃO é duplicado aqui — apenas garante-se que os agentes que executam esta fase **consultam** as skills via CLAUDE.md (description auto-ativa) ou via menção explícita no mini-plano.
+
+---
+
 ### FASE 5 — TESTES DE INTEGRAÇÃO
 
 **Quem:** SHIELD + SCOUT (se houver erros) + CRONOS (orquestrando — sempre)
