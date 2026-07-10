@@ -1,4 +1,15 @@
 {
+  "permissions": {
+    "allow": [
+      "Read(/Users/alfa/.claude/skills/**)",
+      "Read(/Users/alfa/.claude/skills/**/SKILL.md)",
+      "Read(/Users/alfa/.claude/skills/**/references/**)",
+      "Read(/Users/alfa/.claude/skills/**/scripts/**)",
+      "Read(/Users/alfa/.claude/skills/**/assets/**)"
+    ],
+    "ask": [],
+    "deny": []
+  },
   "hooks": {
     "PostToolUse": [
       {

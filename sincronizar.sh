@@ -205,6 +205,28 @@ for f in "$SOURCE/.delta-11/conhecimento/"*.md; do
     [ -f "$f" ] && SYNC_FILES+=(".delta-11/conhecimento/$(basename "$f")")
 done
 
+# Tests (suíte de regressão automatizada do sistema — v5.4 Estágio 0)
+# Cobre .test.py, .test.sh e arquivos de suporte da pasta tests/.
+# Sem isso, melhorias na suíte nunca chegariam aos projetos.
+for f in "$SOURCE/.delta-11/tests/"*.sh "$SOURCE/.delta-11/tests/"*.py; do
+    [ -f "$f" ] && SYNC_FILES+=(".delta-11/tests/$(basename "$f")")
+done
+if [ -d "$SOURCE/.delta-11/tests/hooks" ]; then
+    for f in "$SOURCE/.delta-11/tests/hooks/"*.py "$SOURCE/.delta-11/tests/hooks/"*.sh; do
+        [ -f "$f" ] && SYNC_FILES+=(".delta-11/tests/hooks/$(basename "$f")")
+    done
+fi
+if [ -d "$SOURCE/.delta-11/tests/templates" ]; then
+    for f in "$SOURCE/.delta-11/tests/templates/"*.py "$SOURCE/.delta-11/tests/templates/"*.sh; do
+        [ -f "$f" ] && SYNC_FILES+=(".delta-11/tests/templates/$(basename "$f")")
+    done
+fi
+if [ -d "$SOURCE/.delta-11/tests/scripts" ]; then
+    for f in "$SOURCE/.delta-11/tests/scripts/"*.py "$SOURCE/.delta-11/tests/scripts/"*.sh; do
+        [ -f "$f" ] && SYNC_FILES+=(".delta-11/tests/scripts/$(basename "$f")")
+    done
+fi
+
 # Painel + imagem de fundo + sprites dos agentes
 if [ -f "$SOURCE/.delta-11/painel.html" ]; then
     SYNC_FILES+=(".delta-11/painel.html")

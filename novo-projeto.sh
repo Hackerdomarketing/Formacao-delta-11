@@ -132,6 +132,15 @@ if [ ! -f "$TARGET_DIR/.claude/settings.json" ]; then
     echo -e "  ${GREEN}✓${NC} Hooks ativados (.claude/settings.json criado do template)"
 fi
 
+# ─── v5.4 (Estágio 0 — F5): bootstrap do gotchas.md ───
+# Quem corrige bug (SCOUT, SHIELD) precisa escrever aqui. Se não existe o arquivo
+# no dia 1, o primeiro gotcha é gravado num vazio e o agente não sabe o formato.
+# Fecha F5 da auditoria da v5.3 (gotchas.md nascia só após primeiro bug).
+if [ ! -f "$TARGET_DIR/.delta-11/memoria/gotchas.md" ]; then
+    cp "$SCRIPT_DIR/.delta-11/templates/gotchas-inicial.md" "$TARGET_DIR/.delta-11/memoria/gotchas.md"
+    echo -e "  ${GREEN}✓${NC} gotchas.md criado em .delta-11/memoria/ (bootstrap F5)"
+fi
+
 # Limpar os dados do kanban (começar do zero)
 cat > "$TARGET_DIR/.delta-11/kanban-data.js" << 'EOF'
 window.KANBAN_DATA = {

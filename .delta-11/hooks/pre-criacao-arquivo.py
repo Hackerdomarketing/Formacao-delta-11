@@ -135,23 +135,12 @@ def main() -> int:
             f"Escape do comandante: criar {ARQUIVO_DE_ESCAPE} (e apagar depois)."
         )
 
-    # ── CASO B: .md novo na raiz do projeto ──
-    if len(partes) == 1 and nome not in EXCECOES_RAIZ:
-        log_activity(f"BLOQUEADO caso B (.md na raiz): {rel}")
-        bloquear(
-            "GUARDA-ZONEAMENTO (CASO B — v5.2): voce tentou criar um .md na RAIZ do projeto.\n"
-            f"Arquivo tentado: {rel}\n"
-            "\n"
-            "A raiz e so para codigo/config de framework + CLAUDE.md + README.md.\n"
-            "Enderecos canonicos (CLAUDE.md secao 'PARA IA EXTERNA'):\n"
-            "  - Spec de produto            → docs/\n"
-            "  - Docs pessoais do comandante → docs/comandante/\n"
-            "  - Config de integracao        → src/lib/[dominio]/[etapa]/README.md\n"
-            "  - Conhecimento para agentes   → .delta-11/conhecimento/\n"
-            "  - Temporarios                 → .delta-11/scratch/\n"
-            "  - ADR / Bug / PRD             → ver CASOS D/E/F desta guarda\n"
-            f"Escape do comandante: criar {ARQUIVO_DE_ESCAPE} (e apagar depois)."
-        )
+# ── ORDEM DOS CASOS .md (v5.4 — E0): ESPECÍFICOS ANTES DE GENÉRICOS ──
+    # Antes: B (.md na raiz) era checado primeiro, então D/E/F (casos específicos
+    # para ADR/Bug/PRD com nomes bem característicos) nunca eram alcançados quando
+    # esses arquivos eram criados na raiz — o agente recebia a mensagem genérica
+    # do B e não entendia que devia ir para decisoes/, bugs/ ou docs/.
+    # Correção v5.4: D → E → F → B. Específicos têm prioridade sobre genéricos.
 
     # ── CASO D (v5.3): ADR fora de .delta-11/memoria/decisoes/ ──
     # Detecta pelo padrao "AAAA-MM-DD-*.md" OU nome comecando com "adr" OU contendo "decisao"/"decision"
@@ -194,14 +183,14 @@ def main() -> int:
         log_activity(f"BLOQUEADO caso E (bug report fora de bugs/): {rel}")
         bloquear(
             "GUARDA-ZONEAMENTO (CASO E — v5.3): voce tentou criar um bug report fora do\n"
-            "endereco canonico.\n"
+            f"endereco canonico.\n"
             f"Arquivo tentado: {rel}\n"
             "\n"
             "Endereco canonico (Regra Inviolavel 16):\n"
             "  .delta-11/bugs/BUG-NNN-titulo-curto.md\n"
             "\n"
             "Use o template: .delta-11/templates/bug-report-template.md\n"
-            "Quem escreve: SHIELD (ao reprovar), CRONOS (relatos do comandante/fresh-reviewer)\n"
+"Quem escreve: SHIELD (ao reprovar), CRONOS (relatos do comandante/fresh-reviewer)\n"
             "  ou qualquer agente que encontrar erro fora do proprio escopo.\n"
             f"Escape do comandante: criar {ARQUIVO_DE_ESCAPE} (e apagar depois)."
         )
@@ -209,7 +198,6 @@ def main() -> int:
     # ── CASO F (v5.3): PRD em endereco errado ──
     # PRD canonico e docs/prd.md — bloqueia se detectar tentativa em outra pasta.
     if nome.lower() in ("prd.md", "product-requirements.md") and rel != os.path.join("docs", nome.lower()):
-        # excecao: se ja esta em docs/comandante/, e opcional (nao bloqueia, so avisa via caso B)
         log_activity(f"BLOQUEADO caso F (PRD fora de docs/prd.md): {rel}")
         bloquear(
             "GUARDA-ZONEAMENTO (CASO F — v5.3): voce tentou criar um PRD fora do endereco\n"
@@ -221,6 +209,26 @@ def main() -> int:
             "\n"
             "Use o template: .delta-11/templates/prd-documento-de-requisitos-template.md\n"
             "Quem escreve: ATLAS ao final da Fase 0 (Descoberta).\n"
+            f"Escape do comandante: criar {ARQUIVO_DE_ESCAPE} (e apagar depois)."
+        )
+
+    # ── CASO B (v5.2): .md novo na raiz do projeto ──
+    # Checado por ÚLTIMO entre os casos .md: D/E/F já filtraram os nomes
+    # característicos. O que sobrar aqui é genuinamente ".md solto na raiz".
+    if len(partes) == 1 and nome not in EXCECOES_RAIZ:
+        log_activity(f"BLOQUEADO caso B (.md na raiz): {rel}")
+        bloquear(
+            "GUARDA-ZONEAMENTO (CASO B — v5.2): voce tentou criar um .md na RAIZ do projeto.\n"
+            f"Arquivo tentado: {rel}\n"
+            "\n"
+            "A raiz e so para codigo/config de framework + CLAUDE.md + README.md.\n"
+            "Enderecos canonicos (CLAUDE.md secao 'PARA IA EXTERNA'):\n"
+            "  - Spec de produto            → docs/\n"
+            "  - Docs pessoais do comandante → docs/comandante/\n"
+            "  - Config de integracao        → src/lib/[dominio]/[etapa]/README.md\n"
+            "  - Conhecimento para agentes   → .delta-11/conhecimento/\n"
+            "  - Temporarios                 → .delta-11/scratch/\n"
+            "  - ADR / Bug / PRD             → ver CASOS D/E/F desta guarda\n"
             f"Escape do comandante: criar {ARQUIVO_DE_ESCAPE} (e apagar depois)."
         )
 
