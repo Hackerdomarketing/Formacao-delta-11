@@ -39,6 +39,8 @@ import tempfile
 from pathlib import Path
 
 HOOK_PATH = Path(__file__).resolve().parent.parent.parent / "hooks" / "pre-criacao-arquivo.py"
+# Sempre absoluto — subprocess com cwd=/tmp não encontra path relativo.
+HOOK_PATH = HOOK_PATH.resolve()
 
 
 def fazer_evento(file_path: str, cwd: str) -> str:

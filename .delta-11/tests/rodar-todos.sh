@@ -64,7 +64,10 @@ rodar_teste() {
         *)         cmd=(bash "$script") ;;
     esac
 
-    if "${cmd[@]}" >/tmp/delta11-test-$$.out 2>&1; then
+    # IMPORTANTE: roda do RAIZ do repo, não da pasta tests/.
+    # Os testes calculam paths relativos à raiz; se rodarmos de tests/,
+    # os caminhos ficam errados e os testes falsificam o resultado.
+    if (cd "$PROJECTS_DIR" && "${cmd[@]}") >/tmp/delta11-test-$$.out 2>&1; then
         log_ok "$desc"
         PASSOU=$((PASSOU + 1))
     else
