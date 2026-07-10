@@ -217,6 +217,13 @@ for f in "$SOURCE/.delta-11/conhecimento/"*.md; do
     [ -f "$f" ] && SYNC_FILES+=(".delta-11/conhecimento/$(basename "$f")")
 done
 
+# CHANGELOG do sistema (v5.4 E3): narrativa por versão. Complementa git log.
+# Sem sync explicito, mudanças no CHANGELOG nao chegavam aos projetos — mesmo
+# problema da pasta conhecimento/ corrigido em 2026-07-05.
+for f in "$SOURCE/.delta-11/"CHANGELOG*.md; do
+    [ -f "$f" ] && SYNC_FILES+=(".delta-11/$(basename "$f")")
+done
+
 # Tests (suíte de regressão automatizada do sistema — v5.4 Estágio 0)
 # Cobre .test.py, .test.sh e arquivos de suporte da pasta tests/.
 # Sem isso, melhorias na suíte nunca chegariam aos projetos.
