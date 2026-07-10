@@ -1,6 +1,6 @@
 # OWASP Top 10 — Referência Curta para Code Review
 
-> **Esta é a base CURTA.** A versão COMPLETA (16 fontes, 53 claims, 51 armadilhas catalogadas, 36 princípios, 32 heurísticas, 47 testes, 25 padrões canônicos) vive em `~/.claude/skills/owasp-top10/` (skill global instalada em v5.4 Estágios 5.1-5.2).
+> **Esta é a base CURTA.** A versão COMPLETA (16 fontes, 53 claims, 51 armadilhas catalogadas, 36 princípios, 32 heurísticas, 47 testes, 25 padrões canônicos, 44 anti-padrões, 5 configs, 4 runbooks IR, 5 evals) vive em `~/.claude/skills/owasp-top10/` (skill global instalada em v5.4 Estágios 5.1-5.4).
 >
 > **Quando consultar esta base vs a skill:**
 > - Esta base: code review rápido de uma PR; checklist pré-deploy; lembrar uma categoria OWASP específica
