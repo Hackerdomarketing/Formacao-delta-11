@@ -1,6 +1,7 @@
 # Tarefa Canônica — VAULT — Esquema de assinaturas com RLS
 
 **Agente-alvo:** VAULT · **Duração esperada:** 1 janela · **Criada em:** 2026-07-07 (não alterar — ver README)
+**Última atualização:** 2026-07-07 (v5.3 baseline) — se a tarefa precisar mudar, versione (crie v2 em arquivo novo, mantendo a v1 para histórico)
 
 ## Bloco de ativação
 

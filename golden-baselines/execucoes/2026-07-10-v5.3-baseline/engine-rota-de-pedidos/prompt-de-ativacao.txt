@@ -1,0 +1,1 @@
+# Bloco de ativação não encontrado em engine-rota-de-pedidos.md (esperado heading '## Bloco de Ativação')

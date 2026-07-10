@@ -128,6 +128,19 @@ function canTransition(from: OrderStatus, to: OrderStatus): boolean {
 
 ### Adapter (vendor trocável — materializa a Regra 15)
 
+**Fluxo obrigatório (v5.4 E1 — F15):** ANTES de escrever o Adapter,
+cumprir a **Regra 14** (registrar a ferramenta externa em
+`.delta-11/memoria/ferramentas-do-projeto.md`). A sequência completa:
+
+1. **Regra 14** — registrar a ferramenta (vendor, plano, chaves, docs) em
+   `.delta-11/memoria/ferramentas-do-projeto.md` usando o template
+   `.delta-11/templates/ferramentas-do-projeto-template.md`.
+2. **Regra 15** — criar a pasta `src/lib/[dominio]/[etapa]/` nomeada pela
+   FUNÇÃO (não pelo vendor), com `README.md` ao lado do código documentando
+   a integração.
+3. **Adapter propriamente dito** — interface interna que o resto do código
+   consome; o vendor fica escondido atrás dela.
+
 ```typescript
 // src/lib/observabilidade/monitoramento-de-erros/index.ts
 // O resto do código chama ESTA interface; o vendor (Sentry) fica escondido atrás dela.
@@ -136,6 +149,11 @@ export function captureError(error: unknown, context: ErrorContext): void {
 }
 // Trocar de vendor = reescrever 1 arquivo, não caçar chamadas no projeto inteiro.
 ```
+
+**Erro comum (v5.4 — F15):** pular a Regra 14 e ir direto para a Regra 15
+(escrever o Adapter) "porque é mais rápido". Resultado: 3 meses depois,
+ninguém lembra qual é a chave de produção, quem tem acesso, ou como
+rotacionar — o Adapter virou dependência invisível.
 
 ## 6. Erros de nomenclatura que REPROVAM em revisão
 

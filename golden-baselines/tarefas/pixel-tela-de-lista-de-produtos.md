@@ -1,6 +1,7 @@
 # Tarefa Canônica — PIXEL — Tela de lista de produtos
 
 **Agente-alvo:** PIXEL · **Duração esperada:** 1 janela · **Criada em:** 2026-07-07 (não alterar — ver README)
+**Última atualização:** 2026-07-07 (v5.3 baseline) — se a tarefa precisar mudar, versione (crie v2 em arquivo novo, mantendo a v1 para histórico)
 
 ## Bloco de ativação
 
@@ -19,9 +20,9 @@ Página /products que lista produtos de uma loja de cafés especiais.
 - Identidade visual: marca premium de café, tom quente e artesanal, SEM cara de template [Fonte: esta tarefa canônica]
 
 ## 3. Critérios de sucesso
-- Página com os 3 estados visuais completos e bonitos (skeleton, erro com retry, sucesso)
-- Identidade própria: fonte com personalidade, paleta com intenção, micro-interações
+- Página com os 3 estados visuais completos: skeleton, erro com retry, sucesso
 - Responsiva (celular e desktop) e acessível (alt, foco, contraste)
+- Identidade visual conforme marca: café premium, tom quente e artesanal, SEM cara de template (criterios ESPECÍFICOS no gabarito abaixo — Corretude)
 
 ## 4. Dependências — nenhuma (pode mockar a rota com fixture local)
 

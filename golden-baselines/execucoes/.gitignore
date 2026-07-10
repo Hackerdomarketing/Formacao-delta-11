@@ -1,0 +1,11 @@
+# Ignore tudo dentro de execucoes/ EXCETO:
+# - .gitkeep (placeholder da pasta)
+# - .gitignore (este arquivo)
+# - diretorios de baseline oficial (com timestamp 2026-07-10-v5.3-baseline/)
+# O runner NAO cria baseline nova automaticamente — sao criadas sob comando do comandante.
+# Quando uma execucao tiver código gerado, NAO commitá-la — o valor da baseline
+# é o gabarito + MANIFESTO, não o output do agente.
+*
+!.gitignore
+!.gitkeep
+!2026-07-10-v5.3-baseline/

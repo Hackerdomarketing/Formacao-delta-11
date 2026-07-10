@@ -75,6 +75,29 @@ rodar_teste() {
         echo -e "      ${YELLOW}saida:${NC}"
         sed 's/^/        /' /tmp/delta11-test-$$.out | head -20
         FALHOU=$((FALHOU + 1))
+
+        # Fail-fast: se o teste do hook pre-criacao-arquivo falhar, PARAR.
+        # Razao: ele é guarda de SEGURANCA do sistema. Se regrediu (como
+        # aconteceu em 2026-07-10 — sincronizar.sh trouxe versao antiga de
+        # outro projeto), todos os outros testes podem dar falso OK ou
+        # falso FAIL dependendo do estado. Melhor parar e investigar.
+        if [[ "$desc" == *"pre-criacao-arquivo"* ]]; then
+            echo ""
+            echo -e "${RED}${BOLD}════════════════════════════════════════════════════════════${NC}"
+            echo -e "${RED}${BOLD}  FAIL-FAST: hook pre-criacao-arquivo regrediu.${NC}"
+            echo -e "${RED}${BOLD}  A suíte para aqui — investigar antes de continuar.${NC}"
+            echo -e "${RED}${BOLD}════════════════════════════════════════════════════════════${NC}"
+            echo ""
+            echo "Possíveis causas:"
+            echo "  1. sincronizar.sh trouxe versão antiga de outro projeto"
+            echo "  2. git pull trouxe versão antiga (raro — checar git log)"
+            echo "  3. Hook foi editado manualmente e regrediu"
+            echo ""
+            echo "Recuperação:"
+            echo "  git checkout HEAD -- .delta-11/hooks/pre-criacao-arquivo.py"
+            echo "  bash .delta-11/tests/rodar-todos.sh --hooks pre-criacao-arquivo"
+            exit 1
+        fi
     fi
     rm -f /tmp/delta11-test-$$.out
 }

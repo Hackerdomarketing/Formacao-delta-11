@@ -45,6 +45,65 @@ Se não houve desvios, escreva "Nenhum — segui o mini-plano exatamente."]
 
 ---
 
+## EXEMPLO COMPLETO PREENCHIDO (v5.4 — F4)
+
+> Para agentes novos: este é um exemplo realista de como o arquivo fica
+> depois de uma tarefa de ENGINE. Use como referência visual do que
+> "bem preenchido" significa — copy a estrutura, não os detalhes.
+
+```markdown
+# ENGINE — Produto
+
+**⚠️ LIMITE 500 TOKENS — este exemplo tem ~470. Dentro do orçamento.**
+
+## O QUE EXISTE AGORA
+Rota `POST /api/v1/orders` cria pedido aplicando cupom server-side e gravando
+em `orders` + `order_items` em transação única. Idempotency-Key no header evita
+duplicação em retry. Retorna 201 com Location header apontando para
+`GET /api/v1/orders/{id}`.
+
+## COMO ESTÁ ESTRUTURADO
+- src/app/api/v1/orders/route.ts: handler com zod validation + try/catch + Prisma tx
+- src/lib/orders/calcular-total.ts: função pura testada (cupom, frete, impostos)
+- prisma/migrations/2026-07-10_create_orders.sql: 3 tabelas (orders, order_items, coupons)
+- Contrato: ver .delta-11/memoria/project-core/contratos.md#POST-orders
+
+## O QUE FOI DECIDIDO NÃO FAZER
+- Sem webhook de pagamento (só síncrono) — futuro, fora desta fase
+- Sem multi-currency (só BRL) — pre-requisito de i18n pendente
+- Sem retry interno (idempotency-key no cliente é suficiente)
+
+## DESCOBERTAS QUE AFETAM FASES FUTURAS
+- `calcular-total()` precisa virar exportável para o BACK usar no carrinho — não mexer
+  em assinatura sem avisar
+
+## PORQUÊS-CHAVE
+- Try/catch em vez de leftHook do Prisma: erros tipados ficam no handler, tx só aborta
+- Idempotency-Key por header (não body): RFC padrão, clientes já conhecem
+- LIMIT 1000 itens por order: equilibra round-trips vs timeout de transação
+
+## DESVIOS DO PLANO
+- T-042: usei `Promise.allSettled` em vez de `Promise.all` para sub-queries —
+  estava no plano `Promise.all`, mas `allSettled` previne cascata se FTS falhar
+
+## RELATÓRIOS DE SUB-AGENTES
+- build-validator: PASS / 119 testes / 0 warnings
+- contract-tester: PASS / 0 desvios
+
+## AUTOCRÍTICA
+- autocritica: .delta-11/logs/autocritica/2026-07-10-T-042-ENGINE.md
+
+## PRÓXIMA TAREFA
+T-043: GET /api/v1/orders/{id} com paginação de order_items.
+```
+
+**Por que este exemplo importa (v5.4 E1 — F4):** sem exemplo preenchido, o
+agente novo preenche cada seção na dúvida — formato inconsistente entre
+agentes, SHIELD precisa reabrir tarefa para pedir reformatação. Com exemplo,
+o caminho "óbvio" é copiar a estrutura e preencher com conteúdo real.
+
+---
+
 **O QUE NÃO ENTRA AQUI** (vai para `[NOME-AGENTE]-historia.md`):
 - Como chegou aqui · Tentativas · Deliberações · Versões descartadas · Logs · Métricas detalhadas · Notas para eu-futuro
 

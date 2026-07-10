@@ -1,0 +1,1 @@
+# Bloco de ativação não encontrado em vault-esquema-de-assinaturas.md (esperado heading '## Bloco de Ativação')
