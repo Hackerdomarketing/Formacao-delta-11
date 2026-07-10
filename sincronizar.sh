@@ -130,6 +130,18 @@ for search_path in "${SEARCH_PATHS[@]}"; do
         if [ "$proj_dir" = "$SOURCE" ]; then
             continue
         fi
+        # v5.4 (E2) — SELF-SYNC GUARD: SE o projeto achado é o próprio
+        # repo onde este script ESTÁ rodando, NAO sincronizar nele. O
+        # registry pode estar desatualizado (apontando para um clone
+        # antigo em outro path) e a comparacao "$proj_dir = $SOURCE"
+        # nao pega. Self-sync sobrescreve a fonte da verdade com versão
+        # velha de outro clone. Licao aprendida em 2026-07-10: o
+        # sincronizar.sh trouxe versao antiga do hook do clone em
+        # ~/projetos/ e sobrescreveu o repo real em ~/Documents/VSCODE/.
+        if [ "$proj_dir" = "$SCRIPT_DIR" ]; then
+            echo -e "${YELLOW}  AVISO: SELF-SYNC detectado em $proj_dir — pulando (compare SOURCE do registry com o path real)${NC}"
+            continue
+        fi
         # Excluir worktrees de execução do Δ-11: cada agente com
         # isolation:worktree cria um clone completo do repo dentro de
         # .claude/worktrees/agent-*/ — a .delta-11 dentro é cópia

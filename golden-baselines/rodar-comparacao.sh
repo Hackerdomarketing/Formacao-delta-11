@@ -108,24 +108,44 @@ for tarefa_file in "$TAREFAS_DIR"/*.md; do
     subdir="$DESTINO/$tarefa_nome"
     mkdir -p "$subdir"
 
-    # Extrair bloco de "Ativação" da tarefa canônica
-    # Formato esperado no .md: linha "## Bloco de Ativação" seguida de bloco de código \`\`\`
-    if grep -q "^## Bloco de Ativação" "$tarefa_file" 2>/dev/null; then
-        sed -n '/^## Bloco de Ativação/,/^```$/p' "$tarefa_file" \
-            | sed '1d;$d' > "$subdir/prompt-de-ativacao.txt" || true
-    else
-        echo "# Bloco de ativação não encontrado em $tarefa_nome.md (esperado heading '## Bloco de Ativação')" \
-            > "$subdir/prompt-de-ativacao.txt"
-    fi
+    # Extrair bloco de "Ativação" da tarefa canônica via Python (case-insensitive,
+    # cross-platform — sed do macOS/BSD não suporta /I flag).
+    python3 - "$tarefa_file" "$subdir/prompt-de-ativacao.txt" "$subdir/gabarito.md" "$tarefa_nome" << 'PYEOF' || true
+import re, sys, pathlib
+tarefa = pathlib.Path(sys.argv[1])
+dest_prompt = pathlib.Path(sys.argv[2])
+dest_gabarito = pathlib.Path(sys.argv[3])
+nome = sys.argv[4]
+text = tarefa.read_text(encoding='utf-8')
 
-    # Extrair gabarito/checklist (heading "## Gabarito" ou "## Checklist")
-    if grep -q "^## Gabarito\|^## Checklist" "$tarefa_file" 2>/dev/null; then
-        sed -n '/^## \(Gabarito\|Checklist\)/,$p' "$tarefa_file" \
-            > "$subdir/gabarito.md" || true
-    else
-        echo "# Gabarito não encontrado em $tarefa_nome.md" \
-            > "$subdir/gabarito.md"
-    fi
+# Extrai bloco entre heading ## Bloco de Ativação e próximo ``` (case-insensitive,
+# tolerante a linhas em branco entre heading e o bloco de código).
+m = re.search(
+    r'^##\s+Bloco\s+de\s+Ativa[cç][aã]o[^\n]*\n+\`\`\`\n(.*?)\n\`\`\`',
+    text, re.IGNORECASE | re.DOTALL | re.MULTILINE,
+)
+if m:
+    dest_prompt.write_text(m.group(1), encoding='utf-8')
+else:
+    dest_prompt.write_text(
+        f"# Bloco de ativação não encontrado em {nome}.md "
+        f"(esperado heading '## Bloco de Ativação' seguido de bloco de código ```)",
+        encoding='utf-8',
+    )
+
+# Extrai gabarito/checklist (case-insensitive): do heading ate fim do arquivo
+m2 = re.search(
+    r'^##\s+(Gabarito|Checklist)[^\n]*\n(.*)',
+    text, re.IGNORECASE | re.DOTALL | re.MULTILINE,
+)
+if m2:
+    dest_gabarito.write_text(text[m2.start():].rstrip() + '\n', encoding='utf-8')
+else:
+    dest_gabarito.write_text(
+        f"# Gabarito não encontrado em {nome}.md",
+        encoding='utf-8',
+    )
+PYEOF
 
     # Adicionar linha no manifesto
     echo "| $agente | $tarefa_nome | ⏳ pendente | — |" >> "$DESTINO/MANIFESTO.md"

@@ -1,0 +1,35 @@
+Formação Δ-11 — Tarefa canônica de avaliação (golden baseline).
+Você é FORM. Leia seu operativo e as bases react-form-patterns.md + react-component-patterns.md normalmente.
+
+# Mini-plano — FORM | Golden | ONDA G-2
+Tipo de tarefa: formulário complexo
+
+## 1. O que esta tarefa precisa produzir
+Formulário multi-step (3 etapas) para um wizard de "Cadastrar
+minha empresa" no app B2B. Última etapa inclui UPLOAD de logo
+e documento CNPJ (PDF). Submissão POSTa para /api/onboarding
+(já existe — só consumir).
+
+## 2. As 3 etapas
+1. Dados básicos: nome fantasia, razão social, CNPJ (com máscara)
+2. Endereço: CEP (com busca ViaCEP), logradouro, número, complemento, cidade, UF
+3. Documentos: upload de LOGO (PNG/JPG até 2MB) e CARTÃO CNPJ (PDF até 5MB)
+
+## 3. Validações no cliente (Zod + react-hook-form)
+- CNPJ: 14 dígitos, com dígitos verificadores válidos
+- CEP: 8 dígitos, deve existir na busca ViaCEP antes de avançar
+- Logo: tipo MIME image/*, tamanho ≤ 2MB
+- PDF: tipo MIME application/pdf, tamanho ≤ 5MB
+
+## 4. Validações no servidor (re-check OBRIGATÓRIO)
+- Mesmas validações do cliente (cliente é descômodo, servidor é lei)
+- Rate limit: máx 5 submissões por usuário por hora
+- Storage: upload vai para Supabase Storage com path
+  `onboarding/{user_id}/{timestamp}-{filename}`
+
+## 5. Limites de escopo
+- NÃO implementar a API /api/onboarding (já existe)
+- NÃO mexer em auth/RLS (ENGINE)
+- NÃO instalar biblioteca de UI (FRONT decide; usar só o que tem)
+- Formato do arquivo: arquivos individuais por etapa, em
+  src/components/onboarding/step-1-dados-basicos.tsx etc.

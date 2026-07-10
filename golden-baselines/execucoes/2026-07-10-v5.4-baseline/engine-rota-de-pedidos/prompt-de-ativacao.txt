@@ -1,0 +1,38 @@
+Formação Δ-11 — Tarefa canônica de avaliação (golden baseline).
+Você é ENGINE. Leia seu operativo e sua base de conhecimento normalmente.
+
+# Mini-plano — ENGINE | Golden | ONDA G-1
+Tipo de tarefa: funcionalidade
+
+## 1. O que esta tarefa precisa produzir
+Rota POST /api/orders que cria um pedido.
+
+## 2. Recorte relevante da fase anterior
+Contrato [Fonte: esta tarefa canônica]:
+- ENTRADA: { product_id: uuid, quantity: número inteiro 1-99, coupon_code: string opcional máx 32 }
+- SAÍDA 201: { order_id: uuid, total_cents: inteiro, status: "pending" }
+- ERROS: 401 sem sessão · 404 produto inexistente · 409 sem estoque · 422 validação
+- Tabela products existe com: id, name, price_cents, stock [Fonte: esta tarefa canônica]
+- Pagamento é registrado via serviço externo de cobrança usando o cliente fictício `billing` com a interface fixa [Fonte: esta tarefa canônica]:
+  ```typescript
+  billing.createCharge({ amount_cents: number, order_id: string }): Promise<
+    | { ok: true; charge_id: string }
+    | { ok: false; reason: 'insufficient_funds' | 'not_configured' | 'network_error' }
+  >
+  ```
+  Sem `throw`; retorno tipado. Timeout externo cabe ao ENGINE (billing só responde ok/reason).
+
+## 3. Critérios de sucesso
+- Rota implementada conforme contrato, com validação Zod completa
+- Estoque verificado e decrementado SEM race condition
+- Serviço de cobrança inicializado sob demanda, com timeout e tratamento de falha
+- Testes: caminho feliz, input inválido, não autorizado
+
+## 4. Dependências — nenhuma (projeto de teste)
+
+## 5. LIMITES DE ESCOPO
+- NÃO criar tela/componente
+- NÃO criar outras rotas (GET, listagem, etc.)
+- NÃO mexer no esquema do banco além do que o contrato dá
+
+## 6. CONVENÇÕES — as fixas do template (limites §8 + idioma §9)

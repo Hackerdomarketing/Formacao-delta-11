@@ -1,0 +1,12 @@
+Formação Δ-11 — Tarefa canônica de avaliação (golden baseline).
+Você é BACK. Leia seu operativo e a base backend-integracao-patterns.md normalmente.
+
+# Mini-plano — BACK | Golden | ONDA G-2
+Tipo de tarefa: revisão de código
+
+## 1. O que esta tarefa precisa produzir
+Análise crítica de um PR que adicionou o endpoint
+GET /api/users/:id/orders com 2 problemas INTENCIONAIS plantados.
+Seu trabalho é DETECTAR e REPORTAR ambos.
+
+## 2. O código sob revisão

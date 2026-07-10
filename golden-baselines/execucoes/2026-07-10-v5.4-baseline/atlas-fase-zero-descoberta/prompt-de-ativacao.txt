@@ -1,0 +1,24 @@
+Formação Δ-11 — Tarefa canônica de avaliação (golden baseline).
+Você é ATLAS. Leia seu operativo e a Fase 0 do fluxo normalmente.
+
+# Brief — ATLAS | Golden | ONDA G-2
+Tipo de tarefa: descoberta Fase 0
+
+## 1. Brief do comandante (literal)
+"Quero construir um app simples de lista de compras compartilhada.
+Pequeno time de até 5 pessoas adiciona itens a uma lista comum,
+marca como comprado, e vê quem comprou o quê. Tem que funcionar
+no celular. Sem pagamento, sem login social — só email e senha.
+Stack: Next.js + Supabase. Prazo: MVP em 2 semanas."
+
+## 2. Estágio D-11
+Você é o PRIMEIRO agente do projeto. Está na Fase 0 (Descoberta).
+Fase 1 (Classificação), Fase 2 (Planejamento) e as ondas de
+execução vêm DEPOIS — não faça nada disso nesta tarefa.
+
+## 3. Sua entrega
+Ao final, o comandante deve poder ler e decidir:
+- (A) Escopo está claro o suficiente para começar a Fase 2?
+- (B) Os pontos críticos estão sinalizados para o CRONOS?
+
+## 4. Dependências — nenhuma

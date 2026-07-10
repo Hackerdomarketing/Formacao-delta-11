@@ -87,8 +87,29 @@ else
 fi
 
 echo ""
+# ─── Regressão do runner (v5.4 E2): 10 prompts extraídos com >5 linhas ──
+echo ""
+echo "[runner] extracao de prompts (regressao v5.4 E2):"
+runner_dir="$REPO_ROOT/golden-baselines/execucoes/2026-07-10-v5.4-baseline"
+if [ -d "$runner_dir" ]; then
+    prompts_vazios=0
+    for f in "$runner_dir"/*/prompt-de-ativacao.txt; do
+        [ -f "$f" ] || continue
+        linhas=$(wc -l < "$f" | xargs)
+        if [ "$linhas" -lt 5 ]; then
+            err "$(basename "$(dirname "$f")"): prompt-de-ativacao tem so $linhas linhas (esperado >=5)"
+            prompts_vazios=$((prompts_vazios + 1))
+        fi
+    done
+    if [ "$prompts_vazios" -eq 0 ]; then
+        ok "todos os 10 prompts foram extraidos com conteudo real"
+    fi
+else
+    err "runner nao gerou v5.4-baseline — rode 'bash golden-baselines/rodar-comparacao.sh v5.4-baseline'"
+fi
+
 if [ "$falhou" -eq 0 ]; then
-    echo -e "${GREEN}[OK]${NC} golden baselines: F9 + F10 + F14 verificados"
+    echo -e "${GREEN}[OK]${NC} golden baselines: F9 + F10 + F14 + runner verificados"
     exit 0
 else
     echo -e "${RED}[FAIL]${NC} $falhou verificacao(oes) falharam"

@@ -1,0 +1,47 @@
+Formação Δ-11 — Tarefa canônica de avaliação (golden baseline).
+Você é SHIELD. Leia seu operativo e o protocolo de validação de contratos normalmente.
+
+# Mini-plano — SHIELD | Golden | ONDA G-2
+Tipo de tarefa: revisão de contratos da Fase 2
+
+## 1. O que esta tarefa precisa produzir
+Análise do project-core.md abaixo, identificando TODOS os
+problemas de contrato ANTES que vire código. O objetivo é
+pegar o que testes automáticos (contract-tester) NÃO pegam:
+contratos INTERNAMENTE inconsistentes.
+
+## 2. O contrato sob revisão (recorte do project-core.md)
+
+## API — Fase 2 do projeto "lista de compras compartilhada"
+
+### POST /api/lists
+REQUEST: { name: string (1-100 chars), members?: string[] (emails) }
+RESPONSE 201: { id: uuid, name: string, owner_id: uuid, created_at: ISO }
+RESPONSE 422: { error: 'validation', details: [...] }
+RESPONSE 500: { error: 'internal' }
+
+### GET /api/lists/:id
+REQUEST: (path param :id = uuid)
+RESPONSE 200: { id, name, owner_id, members: [{ user_id, email, role }], items: [{ id, name, purchased_by, created_at }] }
+RESPONSE 404: { error: 'not_found' }
+
+### POST /api/lists/:id/items
+REQUEST: { name: string (1-80 chars), added_by: uuid }
+RESPONSE 201: { id, name, added_by, purchased_by: null, created_at }
+RESPONSE 422: validation
+RESPONSE 403: caller is not a member of list :id
+RESPONSE 404: list :id doesn't exist
+
+### PATCH /api/lists/:id/items/:itemId
+REQUEST: { purchased_by: uuid | null }
+RESPONSE 200: { id, name, purchased_by, created_at }
+RESPONSE 403: not a member
+RESPONSE 404: list OR item not found
+
+### GET /api/users/:id/orders   <-- rota herdada de outro projeto, não deveria estar aqui
+REQUEST: (path param :id)
+RESPONSE 200: { orders: [...] }
+
+## 3. Sua entrega
+Lista priorizada de problemas de contrato, com severidade
+(crítico / grave / menor) e patch textual sugerido para cada.

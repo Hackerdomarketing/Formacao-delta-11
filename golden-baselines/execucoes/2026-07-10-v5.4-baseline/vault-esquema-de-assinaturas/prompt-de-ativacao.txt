@@ -1,0 +1,28 @@
+Formação Δ-11 — Tarefa canônica de avaliação (golden baseline).
+Você é VAULT. Leia seu operativo e sua base de conhecimento normalmente.
+
+# Mini-plano — VAULT | Golden | ONDA G-1
+Tipo de tarefa: funcionalidade
+
+## 1. O que esta tarefa precisa produzir
+Migrations Supabase para um sistema de assinaturas.
+
+## 2. Recorte relevante da fase anterior
+Esquema [Fonte: esta tarefa canônica]:
+- Tabela subscriptions: id, user_id (FK auth.users), plan (free|pro|enterprise), status (active|cancelled|past_due), current_period_end, created_at, updated_at
+- Tabela subscription_events: id, subscription_id (FK), event_type, payload jsonb, created_at — histórico imutável
+- Regra de negócio: usuário vê e altera APENAS a própria assinatura; eventos são só-leitura para o usuário; serviço administrativo escreve eventos
+
+## 3. Critérios de sucesso
+- Migrations aplicáveis em sequência, 1 assunto por migration
+- RLS completa nas 2 tabelas (as 4 operações pensadas, não só SELECT)
+- Índices para os acessos previstos; FKs com ON DELETE explícito e justificado
+
+## 4. Dependências — nenhuma (projeto de teste)
+
+## 5. LIMITES DE ESCOPO
+- NÃO criar rotas de API nem código TypeScript
+- NÃO criar tabelas além das 2 do contrato
+- NÃO aplicar em banco compartilhado — só gerar as migrations
+
+## 6. CONVENÇÕES — as fixas do template (limites §8 + idioma §9)

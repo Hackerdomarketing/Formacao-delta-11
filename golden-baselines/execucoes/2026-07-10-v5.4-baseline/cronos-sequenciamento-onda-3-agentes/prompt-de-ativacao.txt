@@ -1,0 +1,33 @@
+Formação Δ-11 — Tarefa canônica de avaliação (golden baseline).
+Você é CRONOS. Leia seu operativo e o protocolo de sequenciamento normalmente.
+
+# Contexto — CRONOS | Golden | ONDA G-2
+Você está no FINAL da Fase 2 (Planejamento). O ATLAS já entregou
+o project-core.md com o seguinte recorte:
+
+# Project-core (recorte relevante)
+## Stack
+- Next.js 15 (App Router) + Supabase (banco + auth + storage)
+- Sem backend separado (rotas em src/app/api/)
+
+## Banco de dados
+- Tabela `lists`: id, owner_id (FK auth.users), name, created_at
+- Tabela `list_items`: id, list_id (FK), name, added_by (FK), purchased_by (FK nullable), created_at
+- Tabela `list_members`: list_id, user_id, role (owner|editor|viewer), added_at
+- RLS em todas: usuário lê/escreve só listas onde é member
+
+## API (Fase 2)
+- POST /api/lists — criar lista
+- POST /api/lists/:id/members — adicionar membro (só owner)
+- POST /api/lists/:id/items — adicionar item
+- PATCH /api/lists/:id/items/:itemId — marcar comprado
+- GET /api/lists/:id — detalhes + items + members
+
+# Sua tarefa
+Sequenciar a ONDA 1 do projeto, que tem 3 agentes de execução:
+- VAULT (criar migrations + RLS + seed)
+- ENGINE (criar as 5 rotas da API)
+- FRONT (criar layout base + página de detalhe da lista)
+
+Gere o sequenciamento da onda: ordem de despacho, dependências,
+e os 3 mini-planos (um por agente) prontos para copiar e colar.

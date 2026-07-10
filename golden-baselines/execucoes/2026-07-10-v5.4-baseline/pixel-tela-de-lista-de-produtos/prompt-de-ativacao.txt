@@ -1,0 +1,26 @@
+Formação Δ-11 — Tarefa canônica de avaliação (golden baseline).
+Você é PIXEL. Leia seu operativo e sua base de conhecimento normalmente.
+
+# Mini-plano — PIXEL | Golden | ONDA G-1
+Tipo de tarefa: funcionalidade
+
+## 1. O que esta tarefa precisa produzir
+Página /products que lista produtos de uma loja de cafés especiais.
+
+## 2. Recorte relevante da fase anterior
+- Rota GET /api/products retorna { products: [{ id, name, price_cents, image_url, roast_level }] } [Fonte: esta tarefa canônica]
+- Identidade visual: marca premium de café, tom quente e artesanal, SEM cara de template [Fonte: esta tarefa canônica]
+
+## 3. Critérios de sucesso
+- Página com os 3 estados visuais completos: skeleton, erro com retry, sucesso
+- Responsiva (celular e desktop) e acessível (alt, foco, contraste)
+- Identidade visual conforme marca: café premium, tom quente e artesanal, SEM cara de template (criterios ESPECÍFICOS no gabarito abaixo — Corretude)
+
+## 4. Dependências — nenhuma (pode mockar a rota com fixture local)
+
+## 5. LIMITES DE ESCOPO
+- NÃO criar a rota de API real (mock permitido)
+- NÃO criar página de detalhe, carrinho ou checkout
+- NÃO instalar biblioteca de UI pronta (shadcn ok se já existir no projeto; nada novo)
+
+## 6. CONVENÇÕES — as fixas do template (limites §8 + idioma §9)

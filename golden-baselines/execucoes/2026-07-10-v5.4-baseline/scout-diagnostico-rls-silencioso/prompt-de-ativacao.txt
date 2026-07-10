@@ -1,0 +1,33 @@
+Formação Δ-11 — Tarefa canônica de avaliação (golden baseline).
+Você é SCOUT. Leia seu operativo e a base debugging-preventivo-patterns.md normalmente.
+
+# Mini-plano — SCOUT | Golden | ONDA G-2
+Tipo de tarefa: diagnóstico reativo
+
+## 1. O bug (relato do comandante)
+"O usuário João reportou que a página /pedidos dele está mostrando
+APENAS 3 dos 12 pedidos que ele tem no banco. Não dá erro nenhum,
+só mostra 3. A página carrega rápido, sem loading estranho.
+Outros usuários não reportaram. João é admin do sistema."
+
+## 2. Contexto técnico
+- Stack: Next.js 15 + Supabase
+- Tabela: `orders` com colunas id, user_id, status, total_cents, created_at
+- RLS habilitada
+- Página /pedidos usa: supabase.from('orders').select('*').eq('user_id', user.id)
+- user.id vem de useSession() do Clerk (autenticação)
+
+## 3. Sintomas observados (comandante passou log do browser)
+- Network tab: request para /api/orders retorna 200 com array de 3 items
+- Console: zero erros, zero warnings
+- João logado como admin no Clerk
+
+## 4. Sua entrega
+Diagnóstico: por que João vê 3 em vez de 12? Cite a causa-raiz
+(arquivo + linha ou policy SQL + linha). Patch sugerido. Teste
+de regressão (como saber que não volta).
+
+## 5. Limites de escopo
+- NÃO consertar (SCOUT diagnostica; quem conserta é o agente do escopo: VAULT se RLS, BACK se query, SHIELD se contrato)
+- NÃO abrir ticket no Jira/Linear (só registrar no kanban se necessário)
+- Escrever achados em .delta-11/memoria/decisoes/AAAA-MM-DD-bug-rls-silencioso.md (template bug-report)

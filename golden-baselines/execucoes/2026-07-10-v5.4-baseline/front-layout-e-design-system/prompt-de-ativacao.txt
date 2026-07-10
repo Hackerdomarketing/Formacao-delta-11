@@ -1,0 +1,33 @@
+Formação Δ-11 — Tarefa canônica de avaliação (golden baseline).
+Você é FRONT. Leia seu operativo e as bases react-component-patterns.md + design-patterns-praticos.md normalmente.
+
+# Mini-plano — FRONT | Golden | ONDA G-2
+Tipo de tarefa: fundação de UI
+
+## 1. O que esta tarefa precisa produzir
+Layout raiz + design system mínimo para uma dashboard autenticada
+de app B2B (SaaS interno). Outros agentes (PIXEL, FORM) vão
+preencher páginas e formulários EM CIMA do que você criar aqui.
+
+## 2. Recorte relevante
+- App B2B desktop-first (tablet funciona, mobile é nice-to-have)
+- Identidade: tons neutros (cinza/azul), sem cara de startup flashy
+- Tipografia do sistema (system-ui) — fonte custom é decisão de PIXEL, não sua
+- Modo escuro OBRIGATÓRIO (cliente corporativo usa)
+- Acessibilidade alvo: WCAG AA
+
+## 3. Entregas específicas
+- src/app/layout.tsx: layout raiz com sidebar + header
+- src/app/(authed)/layout.tsx: grupo de rotas autenticadas com guard
+- src/components/layout/sidebar.tsx
+- src/components/layout/header.tsx
+- src/components/layout/user-menu.tsx (com logout)
+- src/lib/design-system/tokens.ts: cores, espaçamentos, raios
+- src/lib/design-system/theme-provider.tsx: alternância light/dark
+- src/app/globals.css: import das variáveis CSS do design system
+
+## 4. Limites de escopo
+- NÃO criar páginas de feature (PIXEL faz isso)
+- NÃO criar formulários complexos (FORM faz isso)
+- NÃO mexer em auth/RLS (isso é do ENGINE)
+- NÃO instalar biblioteca de UI pronta (shadcn/radix: só se JÁ existir no projeto)
