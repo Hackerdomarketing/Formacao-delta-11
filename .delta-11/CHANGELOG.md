@@ -229,6 +229,127 @@ Painel de Comando (`painel.html`) redesenhado para o **comandante humano** (não
 
 ---
 
+## v5.4 (2026-07-10) — Estágios 0-7 do plano de execução (3 skills globais)
+
+**Versão anterior:** v5.3 (2026-07-07) — Onda 4 fechou com golden baselines + boilerplate.
+**Autor:** Comandante Rafa + Claude Code (14 estágios sequenciais, 7 sessões de skills).
+**Status:** Em produção nos 18 projetos. 3 skills globais instaladas em `~/.claude/skills/`.
+
+### Por que essa versão existe
+
+O sistema estava funcional, mas faltava **medição** (regressões invisíveis), **cobertura de RLS** (vazamentos silenciosos), **segurança** (CVEs do stack sem defesa), e **conhecimento de debugging React/Next** (tela branca frequente). v5.4 inverteu a lógica: "medir antes de crescer" → "infra de teste + furos fechados" → "skills globais" → "consolidação".
+
+### O que mudou
+
+#### Estágio 0 — Infraestrutura de teste automatizada
+- **`.delta-11/tests/`** criado com `rodar-todos.sh` orquestrando 8 testes
+- Suite pega bug real: hook `pre-criacao-arquivo` tinha CASO D/E engolidos por CASO B
+- Fail-fast em `pre-criacao-arquivo.test.py` (se hook regredir, suite para)
+- `novo-projeto.sh` agora cria `.delta-11/memoria/gotchas.md` (F5 fechado)
+- Allowlist `Read(~/.claude/skills/**)` em `settings-hooks.json`
+
+#### Estágio 1 — Bloco A: 10 furos fechados
+- **F4:** exemplo preenchido em `estado-produto-template.md` (~470 tokens, dentro do orçamento)
+- **F6 + F11 + F12:** `env.example` cita Regra 15; `aplicar-boilerplate.sh` recusa projeto sem `src/`; backup datado
+- **F15:** seção Adapter cita Regra 14 → Regra 15 → Adapter (sequência completa)
+- **F9 + F10 + F14:** `Última atualização` em 3 tarefas; critério subjetivo removido; `execucoes/.gitignore`
+
+#### Estágio 2 — 10 tarefas canônicas (todos os agentes cobertos)
+- 7 novas tarefas: ATLAS, CRONOS, BACK, FRONT, FORM, SHIELD, SCOUT
+- 4 existentes atualizadas (ENGINE, PIXEL, VAULT)
+- **Baseline v5.3** + **v5.4** em `golden-baselines/execucoes/` (comparativos obrigatórios)
+
+#### Estágio 3 — CHANGELOG do sistema
+- Este arquivo. Narrativa por versão (v5.4 → v5.3 → v5.2 → v5.1 → v5.0 → v4.0.4 → v4.0)
+- Regra de imutabilidade: entradas publicadas viram ADR-like; correções vão em ADIÇÕES POSTERIORES
+
+#### Estágio 4 — Skill `supabase-rls` (Skill Forge v3 Deep Path)
+- **Pipeline:** Stage A (16 fontes, 35 claims, 32 armadilhas) → Stage B (14 princípios, 26 heurísticas, 32 testes) → Stage C (12 arquivos)
+- **6.676 linhas** em `~/.claude/skills/supabase-rls/`: SKILL.md (172) + 10 references (4.459) + evals.json (221)
+- **Empacotada** em `/tmp/supabase-rls.skill` (83.9 KB)
+- Cobre: 7 padrões canônicos (P1-P7), multi-tenancy (3 estratégias), 32 testes, 26 heurísticas, 4 analogias, 8 invariantes + 7 anti-invariantes
+- CVEs específicos: nenhum específico de RLS, mas cobre RLS bypass silencioso (G-001 canônico)
+- Base curta D-11: 149 linhas (gate para skill completa)
+
+#### Estágio 5 — Skill `owasp-top10` (Skill Forge v3 Deep Path)
+- **Pipeline:** Stage A (16 fontes, 53 claims, 51 armadilhas, 5 CVEs) → Stage B (36 princípios, 32 heurísticas, 47 testes, 10 diagnostic flows) → Stage C (12 arquivos)
+- **7.374 linhas** em `~/.claude/skills/owasp-top10/`: SKILL.md (192) + 10 references (6.961) + evals.json (221)
+- **Empacotada** em `/tmp/owasp-top10.skill` (90.2 KB)
+- Cobre: **10/10 categorias OWASP 2021** (A01-A10), 25 padrões canônicos (PAT-001 a PAT-025), 44 anti-padrões (ANTI-001 a ANTI-044) com CVEs
+- **CVEs principais:** CVE-2024-34351 (SSRF Server Actions) + CVE-2025-29927 (Middleware bypass CRITICAL) + 3 adicionais
+- 5 configs canônicas (headers, CORS, cookies, JWT, env vars)
+- 47 testes executáveis (20 CRITICAL + 21 HIGH + 6 MEDIUM)
+- Base curta D-11: 118 linhas (gate)
+
+#### Estágio 6 — Skill `react-next` (Skill Forge v3 Deep Path)
+- **Pipeline:** Stage A (16 fontes, 44 claims, 45 armadilhas) → Stage B (20 princípios, 31 heurísticas, 35 testes, 6 debugging flows) → Stage C (12 arquivos)
+- **5.466 linhas** em `~/.claude/skills/react-next/`: SKILL.md (167) + 10 references (5.113) + evals.json (186)
+- **Empacotada** em `/tmp/react-next.skill` (59.5 KB)
+- Cobre: Server vs Client Components, hooks React 19, Server Actions, performance, testing, debugging reativo (5 árvores: hydration/infinite loop/memory/race/RSC), stack-specific Next.js 15
+- **22 padrões canônicos** (PAT-01 a PAT-22) + **32 anti-padrões** (ANTI-001 a ANTI-032)
+- 10 perguntas antes de commitar componente
+- BUG #1 documentado: **Esquecer `revalidatePath` em Server Action = UI não atualiza**
+- Base curta D-11: 102 linhas (gate)
+
+#### Estágio 7 — Consolidação final
+- CHANGELOG atualizado (este arquivo)
+- 3 skills globais instaladas e testadas
+- Suite D-11: **8/8 OK** (nada regrediu)
+- 18 projetos sincronizados
+
+### Estatísticas v5.4
+
+| Métrica | Valor |
+|---|---|
+| **Estágios completados** | 14/14 (E0-E7) |
+| **Custo total** | ~17h45 |
+| **Skills globais criadas** | 3 (supabase-rls, owasp-top10, react-next) |
+| **Linhas de skill autorais** | 19.516 (6.676 + 7.374 + 5.466) |
+| **Arquivos em skills** | 36 (12 + 12 + 12) |
+| **CVEs cobertos** | 2 CRITICAL + 3 HIGH |
+| **Anti-padrões catalogados** | 145 (32 RLS + 44 OWASP + 32 React + 37 deduzidos) |
+| **Padrões canônicos** | 54 (7 RLS + 25 OWASP + 22 React) |
+| **Bases curtas do D-11** | 3 (uma por skill) |
+| **Testes automatizados** | 8 (D-11) + 111 (skills) |
+| **Projetos sincronizados** | 18 |
+
+### Como testar
+
+```bash
+# 1. Suite automatizada do D-11 (deve passar 8/8)
+bash .delta-11/tests/rodar-todos.sh
+
+# 2. Validar cada skill
+for skill in supabase-rls owasp-top10 react-next; do
+  cd ~/.claude/skills/skill-forge
+  /opt/homebrew/bin/python3.12 scripts/forge_validate.py /Users/alfa/.claude/skills/$skill
+done
+
+# 3. Sincronizar para os 18 projetos
+cd ~/Documents/VSCODE/Formacao-delta-11
+./sincronizar.sh --nota "Verificar v5.4 instalado: 3 skills globais"
+
+# 4. Empacotado em /tmp/
+ls -la /tmp/*.skill
+# /tmp/supabase-rls.skill (83.9 KB)
+# /tmp/owasp-top10.skill (90.2 KB)
+# /tmp/react-next.skill (59.5 KB)
+```
+
+### Commits desta versão (v5.4)
+
+(commits principais — a lista completa está em `git log --oneline`)
+
+- `512b35b` feat(v5.4 E0): infra de teste automatizada + allowlist skills + bootstrap gotchas
+- `fa5bcf0` feat(v5.4 E1): fechar 10 furos restantes do Bloco A (G1-G4) + 4 novos testes + baseline v5.3
+- `2b16664` feat(v5.4 E2): 7 tarefas canônicas novas + baseline v5.4 + self-sync guard
+- `c80bff3` feat(v5.4 E3): CHANGELOG.md do sistema + loop de sync + teste de regressão
+- `a323120` feat(v5.4 E5.1): skill owasp-top10 — 5 novos references adicionados
+- `eda8b21` feat(v5.4 E5.4): skill owasp-top10 — monitoring, IR, mental model, testes, heurísticas, evals
+- `d496865` feat(v5.4 E6.1): skill react-next (sessão 6.1) + base curta do D-11
+
+---
+
 ## v5.0 (2026-06-30) — Granularização + hooks Python
 
 ### Resumo

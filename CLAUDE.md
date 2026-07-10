@@ -46,6 +46,20 @@ Esta seção é para QUALQUER outra IA trabalhando neste projeto: sessão comum 
 | Bug report | `.delta-11/bugs/BUG-NNN-titulo.md` | perdido no chat, kanban sem arquivo |
 | PRD (requisitos do produto) | `docs/prd.md` | raiz, `.delta-11/` |
 
+### Skills Globais instaladas (v5.4)
+
+Três skills foram instaladas globalmente em `~/.claude/skills/` para auto-detecção em qualquer projeto. Cada skill cobre uma área específica e tem base curta correspondente em `.delta-11/conhecimento/`.
+
+| Skill | Quando ativar | Base curta D-11 |
+|---|---|---|
+| `supabase-rls` | RLS bypass, IDOR, multi-tenancy, debugging de "query retorna vazio" | `.delta-11/conhecimento/supabase-rls-patterns.md` |
+| `owasp-top10` | Security review, CVE-2024-34351, CVE-2025-29927, audit pré-deploy | `.delta-11/conhecimento/owasp-top10-overview.md` |
+| `react-next` | Hydration mismatch, infinite loop, Server Action sem revalidate, performance | `.delta-11/conhecimento/react-next-overview.md` |
+
+**Índice central:** `.delta-11/conhecimento/skills-globais-v5-4.md` (sintomas → skill).
+
+Quando o usuário mencionar RLS, OWASP, security audit, ou bug React/Next.js, a skill correspondente é ativada automaticamente. Cada skill tem navegação por sintoma (não leia linear) — use a tabela no SKILL.md da skill para encontrar o caminho.
+
 ### As 3 regras mínimas para IA externa
 
 1. **Antes de criar QUALQUER arquivo `.md` novo:** verifique se existe template canônico em `.delta-11/templates/`. Se existir, use-o. Se não existir e o arquivo for de um tipo recorrente, PARE e pergunte ao comandante onde deve viver.
