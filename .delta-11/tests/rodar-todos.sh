@@ -167,6 +167,12 @@ case "$MODO" in
             rodar_teste "$f" "$(basename "$f" | sed -E 's/\.(test\.(py|sh))$//')"
         done
         echo ""
+        echo -e "${BOLD}[conhecimento]${NC}"
+        for f in "$TESTS_DIR/conhecimento/"*.test.*; do
+            [ -f "$f" ] || continue
+            rodar_teste "$f" "$(basename "$f" | sed -E 's/\.(test\.(py|sh))$//')"
+        done
+        echo ""
         echo -e "${BOLD}[scripts]${NC}"
         for f in "$TESTS_DIR/scripts/"*.test.*; do
             [ -f "$f" ] || continue
