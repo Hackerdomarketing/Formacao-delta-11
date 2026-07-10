@@ -38,7 +38,7 @@ Para os 14 princípios completos (incluindo P5 search_path, P6 user_metadata vs 
 
 ---
 
-## 3. Os 5 padrões canônicos (regra de bolso)
+## 3. Os 7 padrões canônicos (regra de bolso)
 
 | Padrão | Quando usar | SQL canônico |
 |---|---|---|
@@ -47,10 +47,21 @@ Para os 14 princípios completos (incluindo P5 search_path, P6 user_metadata vs 
 | **P3 Admin-Override** | Admin vê tudo, user vê seus | função `is_admin()` lê `app_metadata->>'is_admin'` (NUNCA user_metadata) |
 | **P4 RBAC** | Permissões granulares por documento | tabela de permissões + função `doc_role(doc_id, user_id)` |
 | **P5 Team** | Workspace/equipe compartilhada | tabela `team_members` + função `is_team_member(team_id, user_id)` |
+| **P6 Multi-Tenant** | SaaS B2B com isolamento por tenant | `tenant_id` no JWT (via P7) + policy `using (tenant_id = (select auth.jwt()->>'tenant_id')::uuid)` |
+| **P7 Custom Hook** | Setup auxiliar: injeta claims no JWT no signin | `create function custom_access_token_hook(event jsonb) returns jsonb ...` |
 
-Para P6 (multi-tenant) e P7 (custom hooks), veja skill `references/03-padroes-avancados.md`.
+P1-P5 cobrem ~80% dos casos. P6 é obrigatório em SaaS B2B. P7 é infraestrutura do P6.
 
 **Árvore de decisão:**
+```
+Tabela tem dados por user com user_id?
+├── Sim, sem compartilhamento                  → P1
+├── Sim, com publicado/rascunho                → P2
+├── Sim, com admin que vê tudo                 → P3
+├── Não, permissões por documento              → P4
+├── Não, é por time/equipe                     → P5
+├── Não, é multi-tenant (SaaS B2B)             → P6 (requer P7)
+└── Misturei                                    → decomponha
 ```
 Tabela tem dados por user com user_id?
 ├── Sim, sem compartilhamento                  → P1
