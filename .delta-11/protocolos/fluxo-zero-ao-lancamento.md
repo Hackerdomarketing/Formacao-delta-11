@@ -278,6 +278,74 @@ O SHIELD configura o ambiente de produção, executa auditoria de segurança, e 
 
 **E verifica o monitoramento de erros:** Sentry configurado + erro proposital de teste capturado no painel. Deploy de produção sem Sentry ativo = REPROVADO (ver checklist de deploy no SHIELD.md).
 
-Somente se AMBOS os sub-agentes retornarem PASS e o Sentry estiver ativo, o deploy é apresentado ao comandante para aprovação.
+Somente se AMBOS os sub-agentes retornarem PASS e o Sentry estiverem ativo, o deploy é apresentado ao comandante para aprovação.
 
 **Resultado:** Sistema em produção.
+
+---
+
+### FASE 7 — DESCANSO CONSAGRADO (Dia 7 — vayechulu, vayishbot) — v6.0 NOVA
+
+**Quem:** CRONOS (orquestrando) + SHIELD (deploy, runbooks, monitoramento) + Comandante (teste supremo de operação autônoma) + líder técnico
+**Janelas:** 1 (mas com janela de observação de 2 semanas antes do selo final)
+
+**Por que esta fase existe (v6.0):** Antes do v6.0, o sistema TERMINAVA na Fase 6 com "Sistema em produção". Mas o Dia 7 da Metodologia Gênesis não é "terminar" — é **consagrar**. Os verbos hebraicos *vayechulu* (foram consumados) e *vayishbot* (cessou intencionalmente) descrevem o momento em que o sistema atinge operação autônoma. Sem a Fase 7, o criador vira refém: cada bug precisa dele, cada feature nova precisa dele, cada incidente 3h da manhã precisa dele. A Fase 7 existe para **selar** o sistema em estado de operação autônoma.
+
+**Cross-reference conceitual:** `.delta-11/conhecimento/metodologia-genesis-camadas.md` → Dia 7. Texto hebraico chave: *vayechulu ha-shamayim ve-ha-arets* (foram consumados os céus e a terra) · *vayishbot ba-yom ha-shvii* (cessou no sétimo dia) · *vayvarech* (abençoou) · *kadash* (santificou).
+
+**Os 10 entregáveis do Dia 7 (todos verificados com EVIDÊNCIA):**
+
+1. **Documentação técnica consumada** — arquitetura, decisões (ADRs), diagramas atualizados, guias de contribuição. Estado: `docs/arquitetura/`, `.delta-11/memoria/decisoes/`
+2. **Documentação de domínio consumada** — glossário do negócio, regras de negócio explicitadas, casos de uso descritos. Estado: `docs/dominio/` ou `docs/comandante/`
+3. **Testes de aceitação E2E** — fluxos críticos cobertos com testes automatizados que rodam em CI. Pelo menos os 5 fluxos mais importantes do produto
+4. **Pipeline de deploy automatizado** — de commit até produção, sem intervenção manual. Funciona em staging E produção
+5. **Runbooks operacionais específicos do projeto** — instanciados da skill global `owasp-top10` (`~/.claude/skills/owasp-top10/references/07-incident-response.md`) ou criados especificamente. Cobrem os 5 incidentes mais prováveis do produto. Em `.delta-11/memoria/runbooks/`
+6. **Monitoramento com dashboards + alertas ativos** — dashboards visíveis para SLOs do produto, alertas configurados COM dono (quem recebe notificação), níveis INFO/WARN/CRITICAL
+7. **Tag de release** — git tag marcado, changelog de release publicado, binário/artefato arquivado
+8. **Backup testado** — rotina de backup rodando, último restore executado evidenciado (não é teórico)
+9. **DR testado** — disaster recovery executado em ambiente isolado, tempo de recuperação (RTO) medido
+10. **Onboarding testado com pessoa nova** — pelo menos 1 pessoa nova leu a doc e conseguiu fazer deploy local + 1 alteração pequena em < 1 dia
+
+**O TESTE SUPREMO (critério de selo diferenciador do Dia 7):**
+
+> *"Se o criador tirar 2 semanas de férias sem tocar no sistema, ele continua funcionando?"*
+
+Se SIM → Dia 7 selado. Se NÃO → o sistema **não consagra**. Voltar e consertar o que falta (geralmente: runbook ausente, alerta sem dono, backup não testado).
+
+**Quem sella:** Comandante (teste supremo) + líder técnico (entregáveis). Selo **só é declarado** após pelo menos 2 semanas de operação estável em produção.
+
+**Resultado:** os 10 entregáveis verificados com evidência; 2 semanas de operação estável sem intervenção; teste supremo respondido SIM; tag de release consolidada.
+
+**Templates e hooks relacionados (Etapa 7 do v6.0):**
+- `.delta-11/templates/fase-descanso-template.md` — template dos 10 entregáveis
+- `.delta-11/protocolos/fase-descanso.md` — protocolo detalhado
+- Hook bloqueante: `fase-descanso-checker.py`
+- Atualização do `monitor-delta11.sh` para detectar "operação autônoma estável por X dias"
+
+**Sobre a Fase 6 anterior:** a Fase 6 (Preparação para Lançamento) é o **selo provisório** que permite colocar em produção. A Fase 7 (Descanso) é o **selo definitivo** que fecha o ciclo. Entre as duas, o sistema precisa operar de verdade em produção pelo tempo mínimo (2 semanas).
+
+---
+
+## RESUMO DAS 13 FASES DO FLUXO v6.0
+
+```
+0    Descoberta e Design              (Dia 1 — Luz)
+1    Recepção e Classificação         (Dia 1 — selagem auxiliar)
+2    Arquitetura e Contratos          (Dia 2 — Container)
+2.3  Pesquisa Técnica                 (subsidiária, sempre)
+2.4  Provisionamento de Ferramentas   (subsidiária, sempre)
+2.5  Sequenciamento e Mini-planos     (subsidiária, sempre)
+3    Fundação                         (Dia 3 — Superfícies)
+3.5  Ritmo Temporal                   (Dia 4 — Astros) ← NOVA v6.0
+4    Desenvolvimento                  (Dia 5 — Habitantes)
+4.5  Consciência Dominante            (Dia 6 — Consciência) ← NOVA v6.0
+5    Testes de Integração             (Dia 5 — selagem final)
+6    Preparação para Lançamento       (Dia 6 — selagem final)
+7    Descanso Consagrado              (Dia 7 — Descanso) ← NOVA v6.0
+```
+
+**Princípio 1 (Ordem Inegociável):** respeitado. Cada Dia só começa após o anterior selado.
+
+**Princípio 2 (Selagem por critérios):** cada Dia tem critério objetivo de selo. O Dia 2 tem selagem provisória com validação retroativa obrigatória pelo Dia 3.
+
+**Princípio 3 (Contraposição Lateral):** verificado pelo hook `contraposicao-checker.py` (Etapa 3 do v6.0).
