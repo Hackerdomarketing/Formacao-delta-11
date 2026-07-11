@@ -95,6 +95,16 @@
         ]
       },
       {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/validar-arquitetura-vs-modelos.py || python .delta-11/hooks/validar-arquitetura-vs-modelos.py",
+            "timeout": 10000
+          }
+        ]
+      },
+      {
         "matcher": "Read",
         "hooks": [
           {
