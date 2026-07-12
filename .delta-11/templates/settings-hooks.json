@@ -135,6 +135,16 @@
         ]
       },
       {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/dia1-badal-checker.py || python .delta-11/hooks/dia1-badal-checker.py",
+            "timeout": 10000
+          }
+        ]
+      },
+      {
         "matcher": "Read",
         "hooks": [
           {
