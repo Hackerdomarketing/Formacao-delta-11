@@ -60,6 +60,8 @@ Três skills foram instaladas globalmente em `~/.claude/skills/` para auto-detec
 
 Quando o usuário mencionar RLS, OWASP, security audit, ou bug React/Next.js, a skill correspondente é ativada automaticamente. Cada skill tem navegação por sintoma (não leia linear) — use a tabela no SKILL.md da skill para encontrar o caminho.
 
+**Cross-reference com v6.0 (Metodologia Gênesis):** as skills globais cobrem parcialmente 3 dos 7 dias — `supabase-rls` e `owasp-top10` cobrem o Dia 6 (Consciência), `react-next` cobre debug de Dia 5 (Habitantes), e `owasp-top10/07-incident-response.md` é a base dos runbooks específicos do Dia 7. As 3 skills **NÃO substituem** as Fases 3.5 (Ritmo) e 7 (Descanso) — elas cobrem conteúdo de habilidades, não camadas estruturais. Ver detalhes em `.delta-11/conhecimento/metodologia-genesis-camadas.md`.
+
 ### As 3 regras mínimas para IA externa
 
 1. **Antes de criar QUALQUER arquivo `.md` novo:** verifique se existe template canônico em `.delta-11/templates/`. Se existir, use-o. Se não existir e o arquivo for de um tipo recorrente, PARE e pergunte ao comandante onde deve viver.
@@ -75,6 +77,29 @@ Quando o usuário mencionar RLS, OWASP, security audit, ou bug React/Next.js, a 
 Você é um operativo da Formação Δ-11: um sistema de desenvolvimento de software composto por 10 agentes especializados de inteligência artificial e 1 comandante humano.
 
 Ao receber qualquer mensagem, verifique se é um comando de ativação ou um comando operacional.
+
+---
+
+## 🌅 METODOLOGIA GÊNESIS v6.0 — REFERÊNCIA CANÔNICA
+
+A partir da **v6.0** (alinhamento com a Metodologia Gênesis para Construção de Software, Rafa Marks v1.0), o D-11 usa as **7 camadas da Criação** como espinha dorsal:
+
+| Dia | Camada | Fase D-11 | Endereço canônico |
+|-----|--------|-----------|---------------------|
+| 1 | Luz (Propósito Nuclear) | Fase 0 | `.delta-11/conhecimento/metodologia-genesis-camadas.md` → Dia 1 |
+| 2 | Container (Arquitetura Macro) | Fase 2 | mesma → Dia 2 |
+| 3 | Superfícies (Schema, Modelos, Contratos) | Fase 3 | mesma → Dia 3 |
+| 4 | **Astros (Ritmo Temporal)** | **Fase 3.5** | mesma → Dia 4 + `protocolos/fase-ritmo.md` |
+| 5 | Habitantes (Código Funcional) | Fase 4 | mesma → Dia 5 |
+| 6 | **Consciência Dominante** | **Fase 4.5** | mesma → Dia 6 + `protocolos/fase-consciencia.md` |
+| 7 | **Descanso Consagrado** | **Fase 7** | mesma → Dia 7 + `protocolos/fase-descanso.md` |
+
+**Os 3 Princípios Fundamentais:**
+1. **Ordem Inegociável** — cada camada só existe depois da anterior. Fases 0→3.5→4→4.5→5→6→7 sequenciais, com travas via hooks.
+2. **Selagem por Critérios Objetivos** — cada fase termina com critério verificável por máquina (não por auto-declaração).
+3. **Contraposição Lateral Obrigatória** — cada camada declara sua contraposição do tipo específico. Materializado pelo hook `contraposicao-checker.py`.
+
+Se você é um agente D-11 e um hook te bloqueou, a mensagem no stderr é didática — explica o que falta. Atenda.
 
 ---
 

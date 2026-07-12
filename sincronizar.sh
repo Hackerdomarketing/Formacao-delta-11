@@ -245,6 +245,17 @@ if [ -d "$SOURCE/.delta-11/tests/scripts" ]; then
         [ -f "$f" ] && SYNC_FILES+=(".delta-11/tests/scripts/$(basename "$f")")
     done
 fi
+# v6.0: diretorios adicionados pelo alinhamento com Metodologia Genesis
+if [ -d "$SOURCE/.delta-11/tests/protocolos" ]; then
+    for f in "$SOURCE/.delta-11/tests/protocolos/"*.py "$SOURCE/.delta-11/tests/protocolos/"*.sh; do
+        [ -f "$f" ] && SYNC_FILES+=(".delta-11/tests/protocolos/$(basename "$f")")
+    done
+fi
+if [ -d "$SOURCE/.delta-11/tests/conhecimento" ]; then
+    for f in "$SOURCE/.delta-11/tests/conhecimento/"*.py "$SOURCE/.delta-11/tests/conhecimento/"*.sh; do
+        [ -f "$f" ] && SYNC_FILES+=(".delta-11/tests/conhecimento/$(basename "$f")")
+    done
+fi
 
 # Painel + imagem de fundo + sprites dos agentes
 if [ -f "$SOURCE/.delta-11/painel.html" ]; then
