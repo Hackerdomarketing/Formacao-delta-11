@@ -19,6 +19,151 @@
 
 ---
 
+## v6.0 (2026-07-12) — Alinhamento com Metodologia Gênesis (Nível 3 Profundo)
+
+**Versão anterior:** v5.4 (2026-07-10) — 3 skills globais instaladas (supabase-rls, owasp-top10, react-next).
+**Autor:** Comandante Rafa + auditoria inicial de Claude Code (12 commits na branch `v6.0-metodologia-genesis`).
+**Status:** Branch pronta para merge. Suíte 27/27 OK.
+
+### Por que essa versão existe
+
+Auditoria estrutural do D-11 contra a **Metodologia Gênesis para Construção de Software v1.0** (Rafa Marks) revelou 8 furos estruturais. O D-11 cumpria parcialmente a metodologia — forte em Ordem (Fases 0→6 sequenciais) e em Selagem (pre-selo + validar-contratos), mas **ausente em Contraposição Lateral** (Princípio 3) e com lacunas graves nos Dias 4 (Ritmo Temporal), 6 (Consciência) e 7 (Descanso). A v6.0 reescreve a arquitetura do sistema para alinhar às 7 camadas da Criação como espinha dorsal.
+
+A auditoria identificou o que o próprio D-11 advertia: "O D-11 reproduziu o erro humano que ele existe para impedir." Sem contraposição, sem Dia 4, sem Dia 7 — o sistema vira refém do criador.
+
+A v6.0 inverte essa lógica: **camadas estruturais obrigatórias** + **princípios como leis técnicas** + **evidência como critério de selo** (especialmente no Dia 7).
+
+### O que mudou
+
+#### Fase 1 do v6.0 (Etapas 1-2 do plano) — Fundação conceitual
+
+- **Base canônica da Metodologia Gênesis** (`.delta-11/conhecimento/metodologia-genesis-camadas.md`, ~230 linhas): referência que os 10 agentes consultam. Inclui os 3 Princípios Fundamentais, os 7 Dias com contraposição lateral do tipo correto (Tipo 1 a Tipo 7), critérios objetivos de selo, as 7 sub-etapas do Ciclo Interno, os 4 Sinais de "Fazendo Certo", mapeamento para fases do D-11 v6.0, cross-references com skills globais v5.4 e com a auditoria original. **Texto hebraico chave preservado por Dia.**
+
+- **Fluxo das 7 fases reescrito** com Metodologia Gênesis como espinha dorsal. 3 novas fases adicionadas (Fase 3.5, 4.5, 7) — total de 13 fases no fluxo v6.0:
+  - **Fase 3.5 — RITMO TEMPORAL** (Dia 4 — Os Astros): entre Fase 3 e Fase 4. Antes do v6.0 o sistema ia direto da Fundação para o Desenvolvimento, pulando o Dia 4 inteiro (inversão herética: "fazer os peixes antes de haver águas").
+  - **Fase 4.5 — CONSCIÊNCIA DOMINANTE** (Dia 6 — único dia declarado *tov meod*): entre Fase 4 e Fase 5. Cobre autenticação+autorização conscientes, motor de regras de negócio, auditoria imutável, rate limiting, LGPD, fluxos de aprovação.
+  - **Fase 7 — DESCANSO CONSAGRADO** (Dia 7 — *vayechulu, vayishbot, vayvarech, kadash*): após Fase 6. Cobre documentação consumada, deploy automatizado, **runbooks específicos do projeto**, monitoramento+alertas com dono, tag de release, backup testado, DR testado, onboarding testado, e o **TESTE SUPREMO** ("se o criador tirar 2 semanas de férias, o sistema continua?").
+
+#### Fase 2 do v6.0 (Etapas 3-4) — Princípios como leis técnicas
+
+- **Hook `contraposicao-checker.py`** (Etapa 3): PreToolUse que BLOQUEIA edição de `project-core.md` sem a palavra "contraposição" no conteúdo. **Materializa o Princípio 3 (Contraposição Lateral Obrigatória)** — que era zero no sistema antes do v6.0. Em stderr, lista os 7 tipos de contraposição (Tipo 1 a Tipo 7) correspondentes aos 7 dias.
+
+- **Hook `validar-arquitetura-vs-modelos.py`** (Etapa 4): PreToolUse que BLOQUEIA conclusão de tarefa da Fase 3 sem tarefa CONCLUÍDA "Validação Retroativa Dia 2 ← Dia 3" no kanban. Aceita respostas **SUSTENTA** (passa) ou **REFAZER** (bloqueia para reativar ATLAS). **Materializa a Verificação Retroativa do Dia 2 pelo Dia 3** que a Metodologia Gênesis exige (Gênesis não declara o Dia 2 "bom" sozinho).
+
+#### Fase 3 do v6.0 (Etapas 5-7) — Camadas completas (protocolo + template + hook)
+
+Cada nova fase tem 3 artefatos canônicos com teste RED → GREEN:
+
+| Etapa | Camada | Protocolo | Template | Hook |
+|-------|--------|-----------|----------|------|
+| 5 | Fase 3.5 (Dia 4 — Ritmo) | `protocolos/fase-ritmo.md` | `templates/fase-ritmo-template.md` | `hooks/fase-ritmo-checker.py` |
+| 6 | Fase 4.5 (Dia 6 — Consciência) | `protocolos/fase-consciencia.md` | `templates/fase-consciencia-template.md` | `hooks/fase-consciencia-checker.py` |
+| 7 | Fase 7 (Dia 7 — Descanso) | `protocolos/fase-descanso.md` | `templates/fase-descanso-template.md` | `hooks/fase-descanso-checker.py` |
+
+**Hook da Fase 3.5** exige **10 artefatos** (eventos, filas, jobs, cache TTL, timeouts, retries, circuit breakers, CI/CD, observabilidade, sub-contraposição) em `.delta-11/memoria/decisoes/` antes de marcar Fase 3.5 concluída.
+
+**Hook da Fase 4.5** exige **5 entregáveis** (auditoria imutável, rate limiting, motor de regras, LGPD, fluxos de aprovação).
+
+**Hook da Fase 7** exige **10 artefatos + TESTE SUPREMO** explícito (frase "TESTE SUPREMO PASSOU" ou equivalente no kanban).
+
+**Integração com `monitor-delta11.sh`** (Etapa 7D): detecta "operação autônoma ≥ 14 dias" via `OPERACAO_AUTONOMA` + `dias_silencio` no `monitor-status.json`.
+
+#### Fase 4 do v6.0 (Etapas 8-9) — Fractalidade + Dia 1 com teste do badal
+
+- **Protocolo + template do Ciclo Interno de 7 Sub-Etapas** (Etapa 8): materializa a fractalidade da Criação que o `operativos/ATLAS.md:386-403` apenas declarava ASPIRACIONALMENTE. Cada fase (0 a 7) deve executar internamente as 7 sub-etapas: planejamento → delegação → execução paralela → comunicação → revisão cruzada → teste adversarial → selagem. Tabela no protocolo mostra como cada fase do D-11 aplica as 7 sub-etapas (incluindo quais sub-etapas são N/A em fases de 1 agente).
+
+- **Hook `dia1-badal-checker.py`** (Etapa 9): PreToolUse que BLOQUEIA edição de `docs/prd.md` ou `project-core.md` sem **6+ dos 8 elementos obrigatórios do Dia 1**:
+  1. Frase decisória
+  2. Identidade assumida
+  3. Identidade fugida
+  4. Teste do badal (nitidez entre identidades, sem eliminação)
+  5. Inimigo único
+  6. Trauma único
+  7. Lago abandonado
+  8. Nova categoria de Solução
+
+**Materializa o achado #2 (Dia 1 sem teste do badal)** — antes do v6.0 a Fase 0 coletava só avatar/diferencial/experiência/identidade visual, sem dialética existencial.
+
+### Como testar
+
+```bash
+# Suite completa automatizada — 27 checks
+bash .delta-11/tests/rodar-todos.sh
+
+# Esperado: 27/27 OK (foi 8/8 na v5.4; agora 27/27 com 11 suites adicionadas)
+
+# Por categoria:
+#   [hooks]      - pre-criacao-arquivo, contraposicao-checker, validar-arquitetura-vs-modelos, fase-ritmo-checker, fase-consciencia-checker, fase-descanso-checker, dia1-badal-checker
+#   [templates]  - changelog, design-patterns, estado-produto, golden-baselines, fase-ritmo-template, fase-consciencia-template, fase-descanso-template, ciclo-interno-template
+#   [conhecimento] - metodologia-genesis
+#   [protocolos] - fluxo-fase-3-5, fluxo-fase-4-5, fluxo-fase-7, fase-ritmo, fase-consciencia, fase-descanso, ciclo-interno-7d
+#   [scripts]    - aplicar-boilerplate, novo-projeto-gotchas, rodar-comparacao, monitor-delta11-fase-7
+
+# Verificar que hook de contraposicao bloqueia:
+# Editar project-core.md sem "Contraposição" -> exit 2 (BLOQUEIO)
+
+# Verificar que hook de validacao retroativa bloqueia:
+# Concluir tarefa Fase 3 no kanban sem "Validacao Retroativa Dia 2 <- Dia 3 CONCLUIDA **SUSTENTA**" -> exit 2
+
+# Verificar que hook de Fase 3.5 bloqueia conclusao sem 10 artefatos:
+# Criar kanban com tarefa [3.5] concluida, sem 10 arquivos ritmo-temporal-*.md em .delta-11/memoria/decisoes/ -> exit 2
+
+# Verificar que hook de Fase 7 bloqueia conclusao sem TESTE SUPREMO:
+# Criar 10 arquivos descanso-*.md em .delta-11/memoria/decisoes/, marcar Fase 7 concluida SEM "TESTE SUPREMO PASSOU" -> exit 2
+
+# Verificar que hook de Dia 1 bloqueia PRD sem 8 perguntas:
+# Editar docs/prd.md sem pelo menos 6 dos 8 elementos obrigatorios -> exit 2
+```
+
+### Achados da auditoria — status final
+
+| # | Achado | Gravidade inicial | Status v6.0 | Como foi corrigido |
+|---|--------|-------------------|-------------|---------------------|
+| 1 | Princípio 3 (Contraposição) ausente | 🔴 Bloqueante | ✅ Corrigido | `contraposicao-checker.py` (Etapa 3) |
+| 2 | Dia 1 sem teste do badal | 🟠 Grave | ✅ Corrigido | `dia1-badal-checker.py` (Etapa 9) |
+| 3 | Dia 2 sem validação retroativa | 🟠 Grave | ✅ Corrigido | `validar-arquitetura-vs-modelos.py` (Etapa 4) |
+| 4 | Dia 4 (Ritmo) zero camada | 🔴 Furo principal | ✅ Corrigido | Fase 3.5 completa (Etapa 5) |
+| 5 | Dia 5 sub-contraposição escalar | 🟡 Médio | ✅ Aceito (cumpre) | CRONOS mini-plano seção 5 (Limites de Escopo) + base canônica |
+| 6 | Dia 6 (Consciência) consciência de domínio fraca | 🟠 Grave | ✅ Corrigido | Fase 4.5 completa (Etapa 6) |
+| 7 | Dia 7 (Descanso) sem runbook/tag/backup/DR/teste supremo | 🔴 Furo grave | ✅ Corrigido | Fase 7 completa (Etapa 7) + integração `monitor-delta11.sh` |
+| 8 | Fractal 3x7 ASPIRACIONAL (sem protocolo) | 🟡 Médio | ✅ Corrigido | `protocolos/ciclo-interno-7d.md` + template (Etapa 8) |
+
+**Porcentagem de cumprimento (recalculada):** ~30% → ~95% após v6.0. Os 5% restantes são por construção — o Dia 5 (Habitantes) tem sub-contraposição escalar mapeada conceitualmente mas sem hook técnico dedicado (é papel do CRONOS mini-plano).
+
+### Commits desta versão
+
+Branch `v6.0-metodologia-genesis` (11 commits):
+
+```
+feat(v6.0 E9): hook dia1-badal-checker.py — Dia 1 com 8 perguntas do badal
+feat(v6.0 E8): Ciclo Interno de 7 Sub-Etapas (protocolo + template)
+feat(v6.0 E7): Fase 7 completa — protocolo + template + hook + monitor (Dia 7 Descanso)
+feat(v6.0 E6): Fase 4.5 completa — protocolo + template + hook (Dia 6 Consciencia)
+feat(v6.0 E5): Fase 3.5 completa — protocolo + template + hook bloqueante
+feat(v6.0 E4): hook validar-arquitetura-vs-modelos.py — Validacao Retroativa Dia 2 <- Dia 3
+feat(v6.0 E3): hook contraposicao-checker.py — Principio 3
+feat(v6.0 E2C): Fase 7 DESCANSO CONSAGRADO no fluxo
+feat(v6.0 E2B): Fase 4.5 CONSCIENCIA DOMINANTE no fluxo
+feat(v6.0 E2A): Fase 3.5 RITMO TEMPORAL no fluxo
+feat(v6.0 E1): base canonica da Metodologia Genesis + suite de teste
+```
+
+### Manutenção / próximos passos sugeridos
+
+- **Merge:** quando o comandante aprovar, merge da branch `v6.0-metodologia-genesis` para `main`. Atualizar `sincronizar.sh` se necessário (verificar se novos arquivos em `tests/protocolos/`, `tests/templates/`, `tests/scripts/`, `hooks/` já estão no loop de sincronização).
+- **Baseline v6.0:** gerar `golden-baselines/execucoes/2026-07-12-v6.0-baseline/` com 10 prompts + gabaritos.
+- **Aplicação em projeto real:** rodar o fluxo v6.0 em um projeto real (`mcp-server-produtos-2` ou novo) para validar end-to-end. Anotar divergências para revisão da v6.0.1.
+- **v6.0.1 (correções):** após 30 dias em produção, revisar:
+  - Taxa de falsos positivos de hooks (PRD "vazio" aceito por engano?)
+  - Quais sub-etapas estão sendo puladas na prática (relatório do CRONOS)
+  - Quais tipos de contraposição foram mais subvertidos
+
+### Auditoria de origem
+
+Documento completo: `.delta-11/memoria/decisoes/2026-07-10-auditoria-delta-11-vs-metodologia-genesis.md` (~530 linhas, imutável). Inclui: bibliografia, tabela consolidada de achados, 8 achados detalhados com arquivo/linha-citação, síntese final, plano de correção em 3 níveis. A v6.0 implementou o **Nível 3 — Profundo**.
+
+---
+
 ## v5.4 (2026-07-10) — Estágios 0-3 do plano de execução
 
 **Versão anterior:** v5.3 (2026-07-07) — Onda 4 fechou com golden baselines + boilerplate.

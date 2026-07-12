@@ -111,11 +111,43 @@ for projeto in "${PROJETOS[@]}"; do
         done
     fi
 
+    # ─────────────────────────────────────────────────────────────────
+    # 4. v6.0 (Etapa 7D) — Detectar OPERACAO AUTONOMA (Dia 7)
+    # ─────────────────────────────────────────────────────────────────
+    # Se o projeto nao tem NENHUM arquivo de ativacao modificado nos
+    # ultimos X dias (padrao 14 = 2 semanas do Teste Supremo), e nao ha
+    # tarefas em FAZENDO, entao o sistema pode estar em operacao autonoma.
+    OPERACAO_AUTONOMA="false"
+    DIAS_OPERACAO_AUTONOMA=0
+    THRESHOLD_DIAS=14  # 2 semanas
+
+    if [ -d "$ATIVACOES" ]; then
+        # Encontra o arquivo de ativacao mais recente
+        MAIS_RECENTE=$(find "$ATIVACOES" -type f -name "*.txt" -o -name "*.json" 2>/dev/null | \
+            xargs -I {} stat -f "%m {}" 2>/dev/null | \
+            sort -rn | head -1 | cut -d' ' -f2-)
+        if [ -n "$MAIS_RECENTE" ]; then
+            EPOCH_MAIS_RECENTE=$(stat -f "%m" "$MAIS_RECENTE" 2>/dev/null || echo 0)
+            if [ "$EPOCH_MAIS_RECENTE" -gt 0 ]; then
+                SILENCIO_SEG=$((AGORA - EPOCH_MAIS_RECENTE))
+                DIAS_OPERACAO_AUTONOMA=$((SILENCIO_SEG / 86400))
+                if [ "$DIAS_OPERACAO_AUTONOMA" -ge "$THRESHOLD_DIAS" ]; then
+                    # So considera operacao autonoma se NAO ha tarefas em FAZENDO
+                    if [ "$em_fazendo" -eq 0 ] || [ -z "$em_fazendo" ]; then
+                        OPERACAO_AUTONOMA="true"
+                    fi
+                fi
+            fi
+        fi
+    fi
+
     # Montar status do projeto
     if [ -n "$projeto_alertas" ]; then
         # Remover vírgula final
         projeto_alertas="${projeto_alertas%,}"
-        STATUS_PROJETOS="${STATUS_PROJETOS}{\"projeto\":\"${NOME_PROJETO}\",\"path\":\"${projeto}\",\"alertas\":[${projeto_alertas}]},"
+        STATUS_PROJETOS="${STATUS_PROJETOS}{\"projeto\":\"${NOME_PROJETO}\",\"path\":\"${projeto}\",\"alertas\":[${projeto_alertas}],\"operacao_autonoma\":${OPERACAO_AUTONOMA},\"dias_silencio\":${DIAS_OPERACAO_AUTONOMA}},"
+    else
+        STATUS_PROJETOS="${STATUS_PROJETOS}{\"projeto\":\"${NOME_PROJETO}\",\"path\":\"${projeto}\",\"alertas\":[],\"operacao_autonoma\":${OPERACAO_AUTONOMA},\"dias_silencio\":${DIAS_OPERACAO_AUTONOMA}},"
     fi
 done
 

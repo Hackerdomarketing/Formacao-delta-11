@@ -55,6 +55,16 @@
         ]
       },
       {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/contraposicao-checker.py || python .delta-11/hooks/contraposicao-checker.py",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
         "matcher": "Write|Edit",
         "hooks": [
           {
@@ -81,6 +91,56 @@
             "type": "command",
             "command": "python3 .delta-11/hooks/validar-contratos-fim-fase.py || python .delta-11/hooks/validar-contratos-fim-fase.py",
             "timeout": 300000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/validar-arquitetura-vs-modelos.py || python .delta-11/hooks/validar-arquitetura-vs-modelos.py",
+            "timeout": 10000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/fase-ritmo-checker.py || python .delta-11/hooks/fase-ritmo-checker.py",
+            "timeout": 10000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/fase-consciencia-checker.py || python .delta-11/hooks/fase-consciencia-checker.py",
+            "timeout": 10000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/fase-descanso-checker.py || python .delta-11/hooks/fase-descanso-checker.py",
+            "timeout": 10000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/dia1-badal-checker.py || python .delta-11/hooks/dia1-badal-checker.py",
+            "timeout": 10000
           }
         ]
       },

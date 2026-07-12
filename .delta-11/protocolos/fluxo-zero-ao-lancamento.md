@@ -143,7 +143,42 @@ Isso entrega pronto: limites de código no linter, formato único de erro, valid
 
 O VAULT cria o banco de dados, autenticação, e políticas de segurança. O SHIELD prepara infraestrutura e estratégia de testes em paralelo. Em projetos de baixa complexidade, o SHIELD foca mais em checklists rápidos; em projetos maiores, já monta suíte de testes. A decisão de escopo do SHIELD fica com o mini-plano que o CRONOS entregou.
 
-**Resultado:** Banco pronto, autenticação funcionando, infraestrutura configurada. NENHUM agente de funcionalidade começa antes disso estar concluído.
+**Resultado:** Banco pronto, autenticação funcionando, infraestrutura configurado. NENHUM agente de funcionalidade começa antes disso estar concluído.
+
+---
+
+### FASE 3.5 — RITMO TEMPORAL (Dia 4 — Os Astros) — v6.0 NOVA
+
+**Quem:** CRONOS (orquestrando) + Engenheiro de DevOps/SRE + Líder Técnico da Fundação
+**Janelas:** 1
+
+**Por que esta fase existe (v6.0):** Antes do v6.0, o sistema ia DIRETO da Fundação (Fase 3) para o Desenvolvimento de Funcionalidade (Fase 4), pulando completamente o Dia 4 da Metodologia Gênesis (Astros = Ritmo Temporal). Isso é a **inversão herética** literal que a Metodologia adverte: "fazer os peixes antes de haver águas e antes de haver ritmo temporal para governar essa vida". A Fase 3.5 existe para **construir o ritmo do sistema ANTES dos habitantes** (Dia 5).
+
+**Cross-reference conceitual:** `.delta-11/conhecimento/metodologia-genesis-camadas.md` → Dia 4 (Os Astros — o Ritmo Temporal do Sistema). Texto hebraico chave: *yehi meorot bi-rekia ha-shamayim le-havdil bein ha-yom u-vein ha-laila* — "haja luminares no firmamento para separar entre dia e noite".
+
+**O que é construído nesta fase (10 artefatos do Dia 4):**
+
+1. **Sistema de eventos declarado** — quais eventos existem, quem produz, quem consome (catálogo de eventos, não implementação ainda)
+2. **Sistema de mensageria e filas configurado** — RabbitMQ, Kafka, SQS, Redis Streams, ou Inngest. Qual, por quê, contratos
+3. **Jobs agendados mapeados** — cron tasks, scheduled jobs, periodic workers. Listados com frequência e dono
+4. **Estratégia de cache com TTL por tipo de dado** — qual cache, quais TTLs, política de invalidação
+5. **Timeouts declarados por tipo de operação** — HTTP, RPC, DB, fila. Cada um com valor numérico
+6. **Retries com backoff exponencial configurados** — padrão: 3 tentativas, 1s/2s/4s. Retry policy documentada por dependência externa
+7. **Circuit breakers para dependências externas críticas** — 5 falhas/60s pause para cada dependência externa crítica
+8. **CI/CD funcionando de ponta a ponta em staging** — pipeline real executando testes, build, deploy em staging. **Não pode ser placeholder**
+9. **Observabilidade configurada** — logs estruturados, métricas (latência, erro, saturação), traces distribuídos, dashboards visíveis
+10. **Sub-contraposição declarada** — processos dominantes ativos (schedulers, dispatchers) contra processos testemunhas passivos (loggers, métricas, health checks)
+
+**Resultado:** os 10 artefatos acima existem como arquivos `.delta-11/memoria/decisoes/AAAA-MM-DD-ritmo-temporal-<N>.md` (um por artefato), cada um com pelo menos: descrição, escolha tecnológica, justificativa, referência à documentação. **Nenhum agente de funcionalidade começa antes dos 10 artefatos estarem presentes.**
+
+**Quem sella:** Líder técnico da Fundação + Comandante. Selo provisório permite iniciar Fase 4.
+
+**Templates relacionados:**
+- `.delta-11/templates/fase-ritmo-template.md` (Etapa 5 do v6.0) — template dos 10 artefatos
+- `.delta-11/protocolos/fase-ritmo.md` (Etapa 5 do v6.0) — protocolo detalhado
+- Hook bloqueante: `fase-ritmo-checker.py` (Etapa 5 do v6.0)
+
+**Sobre o roadmap dos 7 ciclos:** o "Ciclo 4 — Tempo" do roadmap (definido em `ATLAS.md:415`) pode **continuar** marcando entregas temporais. A Fase 3.5 é a camada de RITMO que sustenta todos os 7 ciclos, não substitui nenhum.
 
 ---
 
@@ -179,6 +214,46 @@ Se CRONOS percebe que um agente está demorando muito ou fazendo muitos commits,
 
 ---
 
+### FASE 4.5 — CONSCIÊNCIA DOMINANTE (Dia 6 — A Consciência Que Domina) — v6.0 NOVA
+
+**Quem:** CRONOS (orquestrando) + VAULT (auth + RLS) + SHIELD (auditoria + rate limiting) + Líder de Produto (regras de negócio) + Especialista de Compliance/LGPD
+**Janelas:** 1 a 2
+
+**Por que esta fase existe (v6.0):** Antes do v6.0, o VAULT na Fase 3 entregava apenas autenticação básica + RLS. O Dia 6 da Metodologia Gênesis (a Consciência Dominante — única camada declarada *muito bom* no texto bíblico) exige que **após o código de funcionalidade existir** (Dia 5), a camada de governança consciente seja construída em cima dele: autenticação + autorização conscientes, motor de regras de negócio, auditoria imutável, rate limiting, LGPD, fluxos de aprovação. Esta fase é o único dia com a expressão *tov meod* (muito bom) — o sistema não apenas funciona, funciona de forma responsável e auditável.
+
+**Cross-references:**
+- `.delta-11/conhecimento/metodologia-genesis-camadas.md` → Dia 6
+- Skills globais v5.4 instaladas em `~/.claude/skills/`:
+  - `owasp-top10` (7.374 linhas, 5 CVEs incluindo CVE-2024-34351 e CVE-2025-29927) — referência obrigatória do SHIELD
+  - `supabase-rls` (6.676 linhas, P6 multi-tenancy, P7 Custom Hook) — referência obrigatória do VAULT
+  - Bases curtas: `.delta-11/conhecimento/owasp-top10-overview.md`, `.delta-11/conhecimento/supabase-rls-patterns.md`
+- **Texto hebraico chave:** *naaseh adam be-tzalmenu ki-dmutenu* (façamos o homem em nossa imagem) · *zachar u-nekevá bara otam* (masculino e feminino criou-os) · *tov meod* (muito bom — único dia com esta expressão)
+
+**Os 5 entregáveis do Dia 6 (todos verificados):**
+
+1. **Auditoria imutável de ações** — sistema que registra *quem fez o quê e quando* com logs append-only (não editáveis). Diferente do Sentry (que captura erros) — aqui é auditoria de ações do usuário (CRUD em entidades críticas). Para cada tabela com dados sensíveis, existe trigger ou middleware que registra a operação.
+
+2. **Rate limiting obrigatório por endpoint crítico** — login, registro, recuperação de senha, APIs que consomem crédito/enviam email/SMS. Implementado como Chain of Responsibility após auth (padrão documentado em `conhecimento/design-patterns-praticos.md`).
+
+3. **Motor de regras de negócio central** — regras de negócio que estão espalhadas pelo código são extraídas para um módulo central (`src/lib/regra-negocio/` ou equivalente) OU há justificativa explícita de por que determinada regra é distribuída. Sem motor central, auditoria fica cara.
+
+4. **Sistema de consentimento LGPD/GDPR** — banner de cookies opt-in, registro de consentimento, fluxo de exportação de dados pessoais do usuário (direito de acesso), fluxo de exclusão de dados (direito ao esquecimento), DPO designado.
+
+5. **Fluxos de aprovação para operações críticas** — delete em massa, transações financeiras, mudança de role, alteração de dados de outro usuário. Cada operação crítica tem um workflow de aprovação explícito (single-step, multi-step, ou automated via regra).
+
+**Quem sella:** SHIELD (auditoria + rate limiting) + Comandante (LGPD + aprovações). Selo permite iniciar Fase 5.
+
+**Resultado:** os 5 entregáveis verificados com evidência (arquivos em `.delta-11/memoria/decisoes/AAAA-MM-DD-consciencia-<N>.md`). Auth + Authz testadas com casos positivos e negativos. Logs de auditoria verificados como imutáveis. Rate limiting ativo em todos endpoints críticos. Fluxo LGPD testado com pessoa real.
+
+**Templates e hooks relacionados (Etapa 6 do v6.0):**
+- `.delta-11/templates/fase-consciencia-template.md` — template dos 5 entregáveis
+- `.delta-11/protocolos/fase-consciencia.md` — protocolo detalhado
+- Hook bloqueante: `fase-consciencia-checker.py`
+
+**Sobre as skills globais:** o conteúdo das skills `owasp-top10` e `supabase-rls` NÃO é duplicado aqui — apenas garante-se que os agentes que executam esta fase **consultam** as skills via CLAUDE.md (description auto-ativa) ou via menção explícita no mini-plano.
+
+---
+
 ### FASE 5 — TESTES DE INTEGRAÇÃO
 
 **Quem:** SHIELD + SCOUT (se houver erros) + CRONOS (orquestrando — sempre)
@@ -203,6 +278,74 @@ O SHIELD configura o ambiente de produção, executa auditoria de segurança, e 
 
 **E verifica o monitoramento de erros:** Sentry configurado + erro proposital de teste capturado no painel. Deploy de produção sem Sentry ativo = REPROVADO (ver checklist de deploy no SHIELD.md).
 
-Somente se AMBOS os sub-agentes retornarem PASS e o Sentry estiver ativo, o deploy é apresentado ao comandante para aprovação.
+Somente se AMBOS os sub-agentes retornarem PASS e o Sentry estiverem ativo, o deploy é apresentado ao comandante para aprovação.
 
 **Resultado:** Sistema em produção.
+
+---
+
+### FASE 7 — DESCANSO CONSAGRADO (Dia 7 — vayechulu, vayishbot) — v6.0 NOVA
+
+**Quem:** CRONOS (orquestrando) + SHIELD (deploy, runbooks, monitoramento) + Comandante (teste supremo de operação autônoma) + líder técnico
+**Janelas:** 1 (mas com janela de observação de 2 semanas antes do selo final)
+
+**Por que esta fase existe (v6.0):** Antes do v6.0, o sistema TERMINAVA na Fase 6 com "Sistema em produção". Mas o Dia 7 da Metodologia Gênesis não é "terminar" — é **consagrar**. Os verbos hebraicos *vayechulu* (foram consumados) e *vayishbot* (cessou intencionalmente) descrevem o momento em que o sistema atinge operação autônoma. Sem a Fase 7, o criador vira refém: cada bug precisa dele, cada feature nova precisa dele, cada incidente 3h da manhã precisa dele. A Fase 7 existe para **selar** o sistema em estado de operação autônoma.
+
+**Cross-reference conceitual:** `.delta-11/conhecimento/metodologia-genesis-camadas.md` → Dia 7. Texto hebraico chave: *vayechulu ha-shamayim ve-ha-arets* (foram consumados os céus e a terra) · *vayishbot ba-yom ha-shvii* (cessou no sétimo dia) · *vayvarech* (abençoou) · *kadash* (santificou).
+
+**Os 10 entregáveis do Dia 7 (todos verificados com EVIDÊNCIA):**
+
+1. **Documentação técnica consumada** — arquitetura, decisões (ADRs), diagramas atualizados, guias de contribuição. Estado: `docs/arquitetura/`, `.delta-11/memoria/decisoes/`
+2. **Documentação de domínio consumada** — glossário do negócio, regras de negócio explicitadas, casos de uso descritos. Estado: `docs/dominio/` ou `docs/comandante/`
+3. **Testes de aceitação E2E** — fluxos críticos cobertos com testes automatizados que rodam em CI. Pelo menos os 5 fluxos mais importantes do produto
+4. **Pipeline de deploy automatizado** — de commit até produção, sem intervenção manual. Funciona em staging E produção
+5. **Runbooks operacionais específicos do projeto** — instanciados da skill global `owasp-top10` (`~/.claude/skills/owasp-top10/references/07-incident-response.md`) ou criados especificamente. Cobrem os 5 incidentes mais prováveis do produto. Em `.delta-11/memoria/runbooks/`
+6. **Monitoramento com dashboards + alertas ativos** — dashboards visíveis para SLOs do produto, alertas configurados COM dono (quem recebe notificação), níveis INFO/WARN/CRITICAL
+7. **Tag de release** — git tag marcado, changelog de release publicado, binário/artefato arquivado
+8. **Backup testado** — rotina de backup rodando, último restore executado evidenciado (não é teórico)
+9. **DR testado** — disaster recovery executado em ambiente isolado, tempo de recuperação (RTO) medido
+10. **Onboarding testado com pessoa nova** — pelo menos 1 pessoa nova leu a doc e conseguiu fazer deploy local + 1 alteração pequena em < 1 dia
+
+**O TESTE SUPREMO (critério de selo diferenciador do Dia 7):**
+
+> *"Se o criador tirar 2 semanas de férias sem tocar no sistema, ele continua funcionando?"*
+
+Se SIM → Dia 7 selado. Se NÃO → o sistema **não consagra**. Voltar e consertar o que falta (geralmente: runbook ausente, alerta sem dono, backup não testado).
+
+**Quem sella:** Comandante (teste supremo) + líder técnico (entregáveis). Selo **só é declarado** após pelo menos 2 semanas de operação estável em produção.
+
+**Resultado:** os 10 entregáveis verificados com evidência; 2 semanas de operação estável sem intervenção; teste supremo respondido SIM; tag de release consolidada.
+
+**Templates e hooks relacionados (Etapa 7 do v6.0):**
+- `.delta-11/templates/fase-descanso-template.md` — template dos 10 entregáveis
+- `.delta-11/protocolos/fase-descanso.md` — protocolo detalhado
+- Hook bloqueante: `fase-descanso-checker.py`
+- Atualização do `monitor-delta11.sh` para detectar "operação autônoma estável por X dias"
+
+**Sobre a Fase 6 anterior:** a Fase 6 (Preparação para Lançamento) é o **selo provisório** que permite colocar em produção. A Fase 7 (Descanso) é o **selo definitivo** que fecha o ciclo. Entre as duas, o sistema precisa operar de verdade em produção pelo tempo mínimo (2 semanas).
+
+---
+
+## RESUMO DAS 13 FASES DO FLUXO v6.0
+
+```
+0    Descoberta e Design              (Dia 1 — Luz)
+1    Recepção e Classificação         (Dia 1 — selagem auxiliar)
+2    Arquitetura e Contratos          (Dia 2 — Container)
+2.3  Pesquisa Técnica                 (subsidiária, sempre)
+2.4  Provisionamento de Ferramentas   (subsidiária, sempre)
+2.5  Sequenciamento e Mini-planos     (subsidiária, sempre)
+3    Fundação                         (Dia 3 — Superfícies)
+3.5  Ritmo Temporal                   (Dia 4 — Astros) ← NOVA v6.0
+4    Desenvolvimento                  (Dia 5 — Habitantes)
+4.5  Consciência Dominante            (Dia 6 — Consciência) ← NOVA v6.0
+5    Testes de Integração             (Dia 5 — selagem final)
+6    Preparação para Lançamento       (Dia 6 — selagem final)
+7    Descanso Consagrado              (Dia 7 — Descanso) ← NOVA v6.0
+```
+
+**Princípio 1 (Ordem Inegociável):** respeitado. Cada Dia só começa após o anterior selado.
+
+**Princípio 2 (Selagem por critérios):** cada Dia tem critério objetivo de selo. O Dia 2 tem selagem provisória com validação retroativa obrigatória pelo Dia 3.
+
+**Princípio 3 (Contraposição Lateral):** verificado pelo hook `contraposicao-checker.py` (Etapa 3 do v6.0).
