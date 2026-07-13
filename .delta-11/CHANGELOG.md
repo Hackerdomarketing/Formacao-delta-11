@@ -19,6 +19,84 @@
 
 ---
 
+## v6.1 (2026-07-12) — Dispatch Autônomo: D-11 vira Lovable (Nível 3)
+
+**Versão anterior:** v6.0 (2026-07-12) — Alinhamento com Metodologia Gênesis.
+**Autor:** Comandante Rafa + sub-agente de auditoria (D-scan completo).
+**Status:** Branch `v6.1-dispatch-nativo` com 9 commits granulares. Suíte 32/32 OK.
+
+### Por que essa versão existe
+
+Pós-deploy da v6.0, o comandante reportou problema crítico: o D-11 estava agindo como **supervisor**, pedindo ao humano para copiar prompt, abrir nova janela, rodar bash — em vez de ser **Lovable** (autônomo, dispara e mostra resultado). Auditoria completa via sub-agente identificou **14 anti-padrões** em 6 categorias, distribuídos em 15+ arquivos.
+
+A v6.1 corrige os 14. O sistema agora:
+- Auto-dispatcha via `Agent tool` sem pausar para perguntas bloqueantes
+- CRONOS se auto-retoma (não depende de humano abrir nova sessão)
+- Sub-agente QA executa Selo Experiencial via Tandem Browser MCP (humano só vê relatório PASS/FAIL)
+- Modo padrão é `automatico` (era `manual`)
+- Fallbacks manuais só após 3 retries do Agent tool (eram caminho primário)
+
+### Commits desta versão (branch `v6.1-dispatch-nativo`)
+
+1. `fix(v6.1 AP5)`: remove "Gere prompt do SHIELD em arquivo" de 7 operativos
+2. `fix(v6.1 AP3)`: ATLAS — remove "comandante só precisa copiar e colar"
+3. `fix(v6.1 AP1+AP6)`: CRONOS auto-retomada — não pede mais humano
+4. `fix(v6.1 AP4)`: remove CHECKPOINTS DE APROVAÇÃO COM O COMANDANTE
+5. `fix(v6.1 AP2)`: fallback SDK agora tenta 3x antes de escalar humano
+6. `fix(v6.1 AP7)`: SCOUT usa SendMessage ao CRONOS (não humano-colar)
+7. `fix(v6.1 AP8)`: deleta disparar.sh (AppleScript legacy)
+8. `fix(v6.1 AP11+13+14)`: vigilante + selo + linguagem "rode manualmente"
+9. `fix(v6.1 AP9+10+12)`: defaults invertidos + auto-abertura plataforma-cross
+
+### Anti-padrões corrigidos
+
+| AP | Arquivo | Severidade | Resumo |
+|----|---------|-------------|--------|
+| AP#5 | 7 operativos | 🔴 | Removido "Gere prompt do SHIELD em arquivo" |
+| AP#3 | ATLAS.md | 🔴 | Removido "comandante só precisa copiar e colar" |
+| AP#1 | CLAUDE.md | 🔴 | CRONOS pode auto-dispensar |
+| AP#6 | CRONOS.md | 🔴 | CRONOS auto-retoma via Agent tool |
+| AP#4 | CRONOS.md | 🟠 | Removidos 3 CHECKPOINTS bloqueantes |
+| AP#2 | CLAUDE.md | 🟠 | Cadeia de retry antes de escalar humano |
+| AP#7 | SCOUT.md | 🟠 | SendMessage ao CRONOS em vez de humano-colar |
+| AP#8 | disparar.sh | 🟠 | Script AppleScript deletado |
+| AP#11 | vigilante.sh | 🟠 | Não instrui humano a rodar disparar.sh |
+| AP#13 | selo-experiencial | 🟠 | Automatizado via sub-agente QA + Tandem Browser |
+| AP#14 | SHIELD/ATLAS | 🟠 | "Rode via Bash tool" em vez de "Rode manualmente" |
+| AP#9 | CRONOS.md | 🟡 | Default `automatico` (era `manual`) |
+| AP#10 | CLAUDE.md | 🟡 | Painel.html auto-aberto |
+| AP#12 | instalar.sh | 🟡 | Cascata open/xdg-open/start antes de pedir humano |
+
+### Como testar
+
+```bash
+# Suite completa automatizada
+bash .delta-11/tests/rodar-todos.sh
+# Esperado: 32/32 OK
+
+# Testes especificos de dispatch autonomo (v6.1)
+bash .delta-11/tests/operativos/dispatch-ap5.test.sh   # 7 operativos sem janela-SHIELD
+bash .delta-11/tests/operativos/dispatch-ap3.test.sh   # ATLAS sem copia-cola
+bash .delta-11/tests/operativos/dispatch-ap4.test.sh   # CRONOS sem CHECKPOINTS
+bash .delta-11/tests/protocolos/dispatch-ap1-ap6.test.sh   # CRONOS auto-retoma
+bash .delta-11/tests/protocolos/dispatch-ap2.test.sh   # retry antes de humano
+bash .delta-11/tests/protocolos/dispatch-ap7.test.sh   # SCOUT SendMessage
+bash .delta-11/tests/protocolos/dispatch-ap8.test.sh   # disparar.sh removido
+bash .delta-11/tests/protocolos/dispatch-ap11-ap13-ap14.test.sh   # vigilante+selo+linguagem
+bash .delta-11/tests/protocolos/dispatch-ap9-ap10-ap12.test.sh   # defaults+painel+plataforma
+```
+
+### Métricas de mudança
+
+- **14 anti-padrões** corrigidos em 9 commits
+- **9 arquivos** modificados: CLAUDE.md, CRONOS.md, ATLAS.md, SCOUT.md, SHIELD.md, selo-experiencial-template.md, vigilante.sh, instalar.sh, disparar.sh (deletado)
+- **+ 7 operativos** corrigidos no AP#5 (BACK, ENGINE, FORM, FRONT, PIXEL, SCOUT, VAULT)
+- **9 testes novos** adicionados em `tests/operativos/` e `tests/protocolos/`
+- **Suíte:** 27/27 → **32/32 OK**
+- **Comando humano em fluxo normal:** ~5-7 interações/fase → **0-1 interações/fase** (só quando algo falha)
+
+---
+
 ## v6.0 (2026-07-12) — Alinhamento com Metodologia Gênesis (Nível 3 Profundo)
 
 **Versão anterior:** v5.4 (2026-07-10) — 3 skills globais instaladas (supabase-rls, owasp-top10, react-next).

@@ -103,6 +103,25 @@ Se você é um agente D-11 e um hook te bloqueou, a mensagem no stderr é didát
 
 ---
 
+## 🤖 DISPATCH AUTÔNOMO v6.1 — D-11 como Lovable
+
+A partir da **v6.1**, o D-11 funciona como **Lovable** (autônomo), não como supervisor:
+
+**Princípios de dispatch v6.1+:**
+
+- **Disparar é a regra.** Use `Agent tool` nativo (Claude Code SDK) com `run_in_background: true`, `isolation: worktree`, `SendMessage` para comunicação. Não peça ao humano para abrir nova janela, copiar prompt ou rodar bash manual.
+- **CRONOS auto-retoma.** Contexto esgotado do CRONOS dispara nova sessão via `Agent tool` — não pede para o humano abrir manualmente.
+- **Sub-agente QA executa Selo.** O Selo Experiencial é rodado por sub-agente `qa-ui-tandem` (Tandem Browser MCP). Humano só vê relatório PASS/FAIL.
+- **Modo padrão é `automatico`.** Comandos `modo manual` viraram opt-in (não default). CRONOS auto-avança fases se cadeia verde.
+- **Pergunta bloqueante só em 3 casos excepcionais:** (a) Agent tool falhou 3x, (b) violação de regra inviolável, (c) decisão de produto não capturada no PLAN. Nesses casos, notificação assíncrona (não-bloqueante).
+- **Cadeia de retry antes de escalar humano.** Falha de SDK → 3 tentativas automáticas (`subagent_type` alternativo / sem worktree / omitido) → só depois humano.
+
+**Cross-reference:** `.delta-11/CHANGELOG.md` entrada `v6.1 (2026-07-12)` lista os 14 anti-padrões corrigidos (AP#1 a AP#14). Auditoria completa: `D-scan de anti-padrões de dispatch humano, 2026-07-12`.
+
+**Se você é um agente D-11 e a sua diretriz atual diz "peça ao comandante" ou "rode manualmente":** está desatualizado. v6.1+ diz "use Agent tool" ou "rode via Bash tool (você é um agente com ferramentas)".
+
+---
+
 ## PROTOCOLO DE ATIVAÇÃO
 
 Existem duas formas de você ser ativado:
