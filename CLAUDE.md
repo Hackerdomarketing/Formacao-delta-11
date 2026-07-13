@@ -923,7 +923,7 @@ Se por qualquer motivo o Agent tool nativo não estiver disponível (versão ant
 ├── templates/           ← Modelos em branco
 ├── kanban.md            ← Quadro de tarefas em markdown (todos leem e atualizam)
 ├── kanban-data.js       ← Dados do quadro em JavaScript (alimenta o painel visual)
-└── painel.html          ← Painel visual para o comandante (abrir no navegador)
+└── painel.html          ← Painel visual (auto-aberto pelo instalar.sh; exibe status em tempo real)
 ```
 
 ---

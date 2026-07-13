@@ -218,10 +218,13 @@ if [ "$VSCODE_AVAILABLE" = true ]; then
     echo -e "  ${GREEN}✓${NC} VS Code aberto com o projeto"
 fi
 
-# Abrir o painel no navegador
+# Abrir o painel no navegador (v6.1+: tenta multiplas plataformas antes de pedir ao humano)
 echo "  Abrindo painel visual no navegador..."
-open .delta-11/painel.html 2>/dev/null || \
-    echo -e "  ${YELLOW}⚠${NC} Não foi possível abrir automaticamente. Abra manualmente: .delta-11/painel.html"
+( open .delta-11/painel.html 2>/dev/null || \
+  xdg-open .delta-11/painel.html 2>/dev/null || \
+  start .delta-11/painel.html 2>/dev/null || \
+  (which sensible-browser >/dev/null 2>&1 && sensible-browser .delta-11/painel.html) || \
+  echo -e "  ${YELLOW}⚠${NC} Não foi possível abrir automaticamente. Abra manualmente: .delta-11/painel.html" )
 
 echo ""
 echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"

@@ -842,7 +842,7 @@ echo "Modo de selo atual: ${MODO_SELO:-manual}"
 
 Existem 2 modos:
 
-- **`manual`** (PADRÃO, mais seguro) — Você executa toda a cadeia automatizada (SHIELD → Fresh Reviewer → Cold Start Tester) e DEPOIS gera o roteiro de verificação experiencial pro comandante. ESPERA o comandante digitar `aprovar` antes de iniciar o Protocolo de Abertura da próxima fase.
+- **`automatico`** (PADRÃO v6.1+ — Lovable) — Você executa toda a cadeia automatizada (SHIELD → Fresh Reviewer → Cold Start Tester → qa-ui-tandem via Tandem Browser). Próxima fase abre sozinha se cadeia verde. O comandante SÓ é avisado se algo falhar.
 
 - **`automatico`** — Você executa a mesma cadeia automatizada. Se TUDO passa verde (SHIELD + Fresh + todos os Cold Start Testers), você AVANÇA SOZINHO pra próxima fase sem esperar `aprovar`. Se QUALQUER coisa falhar (Fresh reporta problemas críticos, Cold Start reprova, SHIELD detecta regressão), o modo dessa fase **automaticamente reverte pra `manual`** — você gera o roteiro e espera o comandante.
 
