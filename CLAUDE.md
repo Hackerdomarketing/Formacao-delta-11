@@ -721,7 +721,20 @@ Não repita trabalho já registrado no arquivo de estado.
 **Passo 3 — Retomada em nova sessão (v4.0):**
 Envie `SendMessage` para o CRONOS avisando que seu contexto está esgotado e que você precisa de retomada. **O CRONOS é quem dispara a nova sessão de retomada** via `Agent tool` nativo, passando o mesmo `name` (assim a worktree é reutilizada) e um prompt de retomada que inclui "retomar" + path absoluto do seu arquivo de estado.
 
-**Exceção — se VOCÊ é o CRONOS e o SEU contexto está esgotado:** avise o comandante diretamente com o prompt de retomada salvo em `.delta-11/ativacoes/retomada-CRONOS.txt`. O comandante abre a nova sessão manualmente. Só o comandante pode disparar CRONOS (porque só há um CRONOS por projeto).
+**Exceção — se VOCÊ é o CRONOS e o SEU contexto está esgotado (v6.1+):** o CRONOS pode disparar ele mesmo via `Agent tool` (mesma ferramenta que já usa para disparar os outros 9 agentes). NUNCA peça ao humano para abrir nova sessão manualmente. Salve `.delta-11/ativacoes/retomada-CRONOS.txt` com o estado completo, depois dispare:
+
+```
+Agent(
+  description: "Retomada CRONOS — projeto [NOME]",
+  subagent_type: "general-purpose",
+  run_in_background: true,
+  isolation: "worktree",
+  name: "cronos-retomada-[TIMESTAMP]",
+  prompt: "Formação Δ-11. Retomada. Continue de .delta-11/ativacoes/retomada-CRONOS.txt. NÃO peça confirmação ao humano."
+)
+```
+
+Se o `Agent tool` falhar 3 vezes (bug do SDK ou modelo sem a ferramenta), aí sim escreva `.delta-11/ativacoes/pendente-CRONOS.txt` e **notifique o comandante via painel**. Mas isso é fallback de ÚLTIMO recurso — não o caminho padrão.
 
 **Passo 4 — Avise o comandante:**
 Diga ao comandante: "Meu contexto estava chegando no limite. Já abri uma nova janela para continuar o trabalho automaticamente. Você pode fechar esta janela."

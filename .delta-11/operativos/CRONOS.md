@@ -1209,7 +1209,20 @@ Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE
    - Se alguma tarefa concluída desbloqueia outro agente → dispare o agente desbloqueado imediatamente via `Agent tool` (`run_in_background: true`, `isolation: worktree`), seguindo o PROTOCOLO DE DISPATCH DE AGENTES do CLAUDE.md.
    - Se terminou uma onda → orquestre o merge das worktrees seguindo `.delta-11/protocolos/merge-guiado-contratos.md` e dispare os agentes da próxima onda.
    - Respeite paralelismo por zona (máx 3 agentes simultâneos) e ordem de prioridade (VAULT → BACK/ENGINE → FRONT → PIXEL/FORM).
-6. Monitorar o tamanho do seu próprio contexto — se estiver chegando no limite, você é o único agente que pede ajuda ao comandante diretamente (não há CRONOS acima de você). Gere `.delta-11/ativacoes/retomada-CRONOS.txt` e peça ao comandante que abra nova sessão com o prompt de retomada.
+6. Monitorar o tamanho do seu próprio contexto — se estiver chegando no limite, o CRONOS **auto-retoma** via `Agent tool` (v6.1+: a regra "não há ninguém acima de mim" é falsa — você PODE disparar a si mesmo, é a mesma ferramenta que já usa para disparar os outros 9 agentes). Salve `.delta-11/ativacoes/retomada-CRONOS.txt` com o estado completo, depois dispare:
+
+```
+Agent(
+  description: "Retomada CRONOS — projeto [NOME]",
+  subagent_type: "general-purpose",
+  run_in_background: true,
+  isolation: "worktree",
+  name: "cronos-retomada-[TIMESTAMP]",
+  prompt: "Formação Δ-11. Retomada. Continue de .delta-11/ativacoes/retomada-CRONOS.txt. NÃO peça confirmação ao humano."
+)
+```
+
+Se o `Agent tool` falhar 3 vezes consecutivas (bug do SDK ou modelo sem a ferramenta), aí sim escreva `.delta-11/ativacoes/pendente-CRONOS.txt` e notifique o comandante via painel — mas isso é fallback de ÚLTIMO recurso, não o caminho padrão. Em hipótese alguma peça ao humano para abrir nova sessão manualmente.
 7. Se receber `SendMessage` de um agente reportando erro irrecuperável: classifique (A/B/C) e dispare SCOUT ou ATLAS conforme o caso.
 
 ---
