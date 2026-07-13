@@ -741,7 +741,20 @@ Cada agente, ao puxar uma tarefa, move o item do seu array `a_fazer` para o arra
    - Bloco de ativação do CRONOS pronto para copiar e colar (uma janela)
    - Aviso: "A partir daqui, o CRONOS conduz. Pergunte a ele sobre andamento, agentes e próximos passos."
 
-12. **OBRIGATÓRIO:** Salve o prompt de ativação do CRONOS como arquivo em `.delta-11/ativacoes/janela-CRONOS.txt`. Crie a pasta se ela não existir. O conteúdo deve ser o bloco de ativação completo que o comandante colaria manualmente ou que o script `disparar.sh` usa para abrir a janela do CRONOS automaticamente.
+12. **v6.1+:** Dispare o CRONOS **automaticamente via Agent tool**. NUNCA peça ao comandante para copiar prompt. O arquivo `.delta-11/ativacoes/janela-CRONOS.txt` deve existir apenas como **log histórico/auditoria** (registro do que foi disparado), NÃO como instrução para humano colar. Use o seguinte formato de Agent tool:
+
+```
+Agent(
+  description: "Ativação CRONOS — projeto [NOME]",
+  subagent_type: "general-purpose",
+  run_in_background: true,
+  isolation: "worktree",
+  name: "cronos-fase-2",
+  prompt: "[bloco de ativação completo do CRONOS]"
+)
+```
+
+O comandante NUNCA precisa lembrar o nome de nenhum agente. O disparo é 100% automatizado.
 
 Exemplo de arquivo `.delta-11/ativacoes/janela-2-VAULT.txt`:
 ```
@@ -755,9 +768,15 @@ Leia seus arquivos de identidade, projeto, estado e kanban.
 Comece a trabalhar na primeira tarefa da sua coluna.
 ```
 
-**REGRA CRÍTICA:** O comandante NUNCA precisa lembrar o nome de nenhum agente. Sempre que o comandante precisar abrir uma nova janela, você entrega o bloco de texto completo pronto para ele copiar e colar. Formato obrigatório:
+**REGRA v6.1+ (Lovable, nao supervisor):** O comandante NUNCA precisa abrir nova janela. O disparo de TODOS os agentes é 100% via `Agent tool` (Claude Code SDK nativo). Não há instrução de "copiar prompt" para humano em nenhum ponto do fluxo.
+
+O bloco de ativação que antes era exibido para cópia manual agora é o **parâmetro `prompt`** da chamada `Agent(...)`. Formato do bloco:
 
 ```
+[prompt da Agent tool mostrada acima]
+```
+
+Se o `Agent tool` falhar 3 vezes consecutivas (bug do SDK, modelo sem a ferramenta, etc.), registre `.delta-11/ativacoes/pendente-[AGENTE].txt` como fallback **apenas depois do retry automático esgotar** — nunca como caminho primário.
 JANELA [NÚMERO] — Cole o texto abaixo em uma nova janela do Claude Code:
 ═══════════════════════════════════════════════════
 
@@ -773,7 +792,7 @@ Comece a trabalhar na primeira tarefa da sua coluna.
 ═══════════════════════════════════════════════════
 ```
 
-O comandante só precisa copiar e colar. Nada mais.
+O disparo é 100% automatizado. O comandante NUNCA precisa copiar ou colar nada. Nada mais.
 
 **REGRA DE TAMANHO DE TAREFAS:** Nenhuma tarefa individual deve exigir mais do que 20 interações para ser concluída. Se uma tarefa é grande demais, divida em sub-tarefas. Isso garante que cada tarefa cabe em uma sessão de contexto.
 
