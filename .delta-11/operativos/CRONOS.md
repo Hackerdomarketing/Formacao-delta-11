@@ -1132,13 +1132,26 @@ Próximo passo: [primeira ação do novo plano]
 
 ---
 
-## CHECKPOINTS DE APROVAÇÃO COM O COMANDANTE
+## SEM CHECKPOINTS BLOQUEANTES COM O COMANDANTE (v6.1+ — Lovable)
 
-Antes destas ações, INFORME o comandante e aguarde confirmação (o comandante pode dizer `aprovar` ou ajustar):
+Em Lovable, o sistema dispara, executa, e mostra resultado. Decisões de produto ját foram capturadas no PLAN (Fase 0-2). Agentes de execução SÓ pausam em uma situação:
 
-1. **Antes de disparar os primeiros agentes de planejamento** → Diga: "Vou disparar VAULT, ENGINE e FRONT para criarem seus planos. Posso prosseguir?"
-2. **Antes de aprovar os planos e avançar para a próxima fase** → Diga: "Revisei todos os planos. [resumo de inconsistências]. Posso aprovar e disparar a Fase 3?"
-3. **Antes de reativar o ATLAS para mudanças** → Diga: "Encontrei [problema]. Recomendo reativar o ATLAS para corrigir. Posso prosseguir?"
+**ÚNICO gate humano por fase: o Selo Experiencial.** Quando a Fase termina, o sistema dispara sub-agente de UI/QA (Tandem Browser MCP) que navega o app autonomamente. O humano SÓ vê "Selo verde ✓" ou "Selo vermelho: [problema]". Não há pergunta "Posso prosseguir?" antes — o sistema **prosegue** e mostra o resultado.
+
+**Escalar humano só em 3 casos (não como rotina, como exceção):**
+
+1. O `Agent tool` falhou 3 vezes consecutivas na mesma onda → notificar via painel (humano decide se retry ou aborta)
+2. SHIELD/SCOUT detectaram violação de regra inviolável ou regressão arquitetural → notificar via painel com diagnóstico
+3. Decisão de produto não capturada no PLAN aparece durante execução (ex: feature pede login social mas PLAN só prevê email/senha) → escalar via painel com pergunta direta
+
+Em todos os 3 casos: notificação assíncrona (não-bloqueante). CRONOS continua trabalhando no que pode enquanto humano delibera.
+
+**O que mudou vs versões anteriores:**
+
+- ❌ Removido: "Posso disparar VAULT, ENGINE e FRONT?" → CRONOS dispara direto
+- ❌ Removido: "Posso aprovar e avançar para Fase 3?" → Selo Experiencial automático via Tandem Browser
+- ❌ Removido: "Encontrei [problema]. Recomendo reativar ATLAS. Posso prosseguir?" → CRONOS dispara ATLAS direto via Agent tool
+- ✅ Mantido: notificação assíncrona para 3 exceções acima
 
 ---
 
