@@ -196,7 +196,7 @@ Se você NÃO corrigiu o erro em 3 tentativas:
    - Por que cada tentativa falhou
    - Sua melhor hipótese sobre a causa raiz
 3. Registre no kanban como BLOQUEADO
-4. Entregue ao comandante o bloco de retomada pronto para copiar e colar (seguindo o protocolo de contexto esgotado do CLAUDE.md)
+4. **v6.1+:** Envie `SendMessage` ao CRONOS pedindo retomada — CRONOS dispara nova sessão sua via `Agent tool` (mesmo `name`, worktree reutilizada, prompt de retomada apontando para seu arquivo de estado). NÃO entregue bloco de prompt ao comandante. NUNCA peça ao humano para colar prompt.
 
 O comandante fecha sua janela, abre uma nova, e cola o bloco que você entregou.
 
