@@ -369,7 +369,7 @@ ciclo_verificacao() {
             echo ""
             echo -e "  ${YELLOW}Tarefas órfãs detectadas (agente morreu no meio do trabalho):${NC}"
             echo -e "  ${YELLOW}Agentes afetados:${lista_orfas}${NC}"
-            echo -e "  ${DIM}Para retomar: rode ./disparar.sh [AGENTE] ou abra o Claude Code e cole o prompt de retomada${NC}"
+            echo -e "  ${DIM}v6.1+: CRONOS auto-retoma via Agent tool — nenhuma acao manual necessaria. Tarefas orfas serao retomadas automaticamente.${NC}"
         fi
     fi
 }

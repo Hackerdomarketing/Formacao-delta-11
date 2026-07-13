@@ -103,6 +103,25 @@ Se você é um agente D-11 e um hook te bloqueou, a mensagem no stderr é didát
 
 ---
 
+## 🤖 DISPATCH AUTÔNOMO v6.1 — D-11 como Lovable
+
+A partir da **v6.1**, o D-11 funciona como **Lovable** (autônomo), não como supervisor:
+
+**Princípios de dispatch v6.1+:**
+
+- **Disparar é a regra.** Use `Agent tool` nativo (Claude Code SDK) com `run_in_background: true`, `isolation: worktree`, `SendMessage` para comunicação. Não peça ao humano para abrir nova janela, copiar prompt ou rodar bash manual.
+- **CRONOS auto-retoma.** Contexto esgotado do CRONOS dispara nova sessão via `Agent tool` — não pede para o humano abrir manualmente.
+- **Sub-agente QA executa Selo.** O Selo Experiencial é rodado por sub-agente `qa-ui-tandem` (Tandem Browser MCP). Humano só vê relatório PASS/FAIL.
+- **Modo padrão é `automatico`.** Comandos `modo manual` viraram opt-in (não default). CRONOS auto-avança fases se cadeia verde.
+- **Pergunta bloqueante só em 3 casos excepcionais:** (a) Agent tool falhou 3x, (b) violação de regra inviolável, (c) decisão de produto não capturada no PLAN. Nesses casos, notificação assíncrona (não-bloqueante).
+- **Cadeia de retry antes de escalar humano.** Falha de SDK → 3 tentativas automáticas (`subagent_type` alternativo / sem worktree / omitido) → só depois humano.
+
+**Cross-reference:** `.delta-11/CHANGELOG.md` entrada `v6.1 (2026-07-12)` lista os 14 anti-padrões corrigidos (AP#1 a AP#14). Auditoria completa: `D-scan de anti-padrões de dispatch humano, 2026-07-12`.
+
+**Se você é um agente D-11 e a sua diretriz atual diz "peça ao comandante" ou "rode manualmente":** está desatualizado. v6.1+ diz "use Agent tool" ou "rode via Bash tool (você é um agente com ferramentas)".
+
+---
+
 ## PROTOCOLO DE ATIVAÇÃO
 
 Existem duas formas de você ser ativado:
@@ -721,7 +740,20 @@ Não repita trabalho já registrado no arquivo de estado.
 **Passo 3 — Retomada em nova sessão (v4.0):**
 Envie `SendMessage` para o CRONOS avisando que seu contexto está esgotado e que você precisa de retomada. **O CRONOS é quem dispara a nova sessão de retomada** via `Agent tool` nativo, passando o mesmo `name` (assim a worktree é reutilizada) e um prompt de retomada que inclui "retomar" + path absoluto do seu arquivo de estado.
 
-**Exceção — se VOCÊ é o CRONOS e o SEU contexto está esgotado:** avise o comandante diretamente com o prompt de retomada salvo em `.delta-11/ativacoes/retomada-CRONOS.txt`. O comandante abre a nova sessão manualmente. Só o comandante pode disparar CRONOS (porque só há um CRONOS por projeto).
+**Exceção — se VOCÊ é o CRONOS e o SEU contexto está esgotado (v6.1+):** o CRONOS pode disparar ele mesmo via `Agent tool` (mesma ferramenta que já usa para disparar os outros 9 agentes). NUNCA peça ao humano para abrir nova sessão manualmente. Salve `.delta-11/ativacoes/retomada-CRONOS.txt` com o estado completo, depois dispare:
+
+```
+Agent(
+  description: "Retomada CRONOS — projeto [NOME]",
+  subagent_type: "general-purpose",
+  run_in_background: true,
+  isolation: "worktree",
+  name: "cronos-retomada-[TIMESTAMP]",
+  prompt: "Formação Δ-11. Retomada. Continue de .delta-11/ativacoes/retomada-CRONOS.txt. NÃO peça confirmação ao humano."
+)
+```
+
+Se o `Agent tool` falhar 3 vezes (bug do SDK ou modelo sem a ferramenta), aí sim escreva `.delta-11/ativacoes/pendente-CRONOS.txt` e **notifique o comandante via painel**. Mas isso é fallback de ÚLTIMO recurso — não o caminho padrão.
 
 **Passo 4 — Avise o comandante:**
 Diga ao comandante: "Meu contexto estava chegando no limite. Já abri uma nova janela para continuar o trabalho automaticamente. Você pode fechar esta janela."
@@ -876,14 +908,19 @@ Quando um agente encontra erro que não consegue resolver após 3 tentativas:
 
 Em todos os casos, o agente NÃO dispara o agente de resgate por conta própria — envia SendMessage ao CRONOS descrevendo o erro. CRONOS decide quem disparar e com qual prompt.
 
-### FALLBACK PARA AMBIENTE SEM SDK NATIVO
+### FALLBACK PARA AMBIENTE SEM SDK NATIVO (v6.1+ — retry antes de escalar humano)
 
-Se por qualquer motivo o Agent tool nativo não estiver disponível (versão antiga de Claude Code, erro de permissão, bug do SDK), o CRONOS tem dois fallbacks em ordem:
+Se por qualquer motivo o Agent tool nativo não estiver disponível (versão antiga de Claude Code, erro de permissão, bug do SDK), o CRONOS segue a cadeia de retry abaixo ANTES de escalar humano:
 
-1. **Fallback 1 — Mensagem ao comandante:** gera prompt de ativação completo em `.delta-11/ativacoes/janela-[AGENTE].txt` e pede ao comandante que abra nova janela manualmente e cole. Fluxo manual mas sempre funciona.
-2. **Fallback 2 — Script `./disparar.sh` legado:** se o projeto ainda tem o `disparar.sh` do modelo antigo (AppleScript), pode ser usado como último recurso em macOS. Não recomendado em produção; apenas para compatibilidade temporária.
+**Retry 1 — Subagent type alternativo:** tente `Agent(subagent_type: general-purpose)` em vez de `subagent_type: <agente-específico>`. O fallback para general-purpose contorna bugs de routing em modelos que têm a ferramenta mas com tipos restritos.
 
-**Nunca use AppleScript direto via `osascript` nos operativos — essa era a abordagem da v3.x, removida na v4.0 Onda 2.**
+**Retry 2 — Sem worktree:** remova `isolation: worktree` e tente novamente. Worktree às vezes falha em projetos com .git corrompido ou permissões especiais. Sem worktree, o agente roda no main com cuidado.
+
+**Retry 3 — Subagent type omitido:** tente `Agent(description: ..., prompt: ...)` sem `subagent_type` definido. Versões antigas de Claude Code ignoram o campo se não suportado.
+
+**Escalar humano apenas se TODAS as 3 tentativas falharem.** Aí sim escreva `.delta-11/ativacoes/pendente-[AGENTE].txt` com diagnóstico (qual erro, qual retry, qual agente) e notifique via painel. Humano decide se aborta ou se muda de modelo.
+
+**NUNCA** tratar fluxo manual como caminho primário. Manual é fallback de ÚLTIMO recurso, não padrão.
 
 ### CUIDADOS OBRIGATÓRIOS
 
@@ -905,7 +942,7 @@ Se por qualquer motivo o Agent tool nativo não estiver disponível (versão ant
 ├── templates/           ← Modelos em branco
 ├── kanban.md            ← Quadro de tarefas em markdown (todos leem e atualizam)
 ├── kanban-data.js       ← Dados do quadro em JavaScript (alimenta o painel visual)
-└── painel.html          ← Painel visual para o comandante (abrir no navegador)
+└── painel.html          ← Painel visual (auto-aberto pelo instalar.sh; exibe status em tempo real)
 ```
 
 ---

@@ -74,7 +74,7 @@ if [ "$EXPECTED" != "$ACTUAL" ]; then
 fi
 ```
 
-Se o hash atual de `project-core.md` não bate com o salvo em `.delta-11/.contract-hash`, o hook PostToolUse falhou silenciosamente. **Bloqueie a transição de fase e notifique o comandante.** Rode manualmente:
+Se o hash atual de `project-core.md` não bate com o salvo em `.delta-11/.contract-hash`, o hook PostToolUse falhou silenciosamente. **Rode via Bash tool** (você é um agente com ferramentas, tem Bash à disposição):
 
 ```bash
 python3 .delta-11/hooks/regenerar-contratos.py || python .delta-11/hooks/regenerar-contratos.py

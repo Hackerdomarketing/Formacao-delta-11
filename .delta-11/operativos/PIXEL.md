@@ -194,7 +194,7 @@ Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE
 3.8. **REVISÃO DO SHIELD — OBRIGATÓRIO na Fase 4 para agentes que escrevem código:**
    - Mova a tarefa para "REVISÃO" no kanban.md (NÃO para CONCLUÍDO diretamente)
    - Adicione no array `revisao` do kanban-data.js: `{ id: "T-XXX", desc: "Descrição", por: "PIXEL", revisor: "SHIELD" }`
-   - Gere prompt do SHIELD em `.delta-11/ativacoes/janela-SHIELD-revisao-[ID-DA-TAREFA]-PIXEL.txt` (exemplo: `janela-SHIELD-revisao-T-020-PIXEL.txt`) listando arquivos modificados e o que foi feito — inclua o ID da tarefa no nome para evitar sobrescrita quando múltiplos agentes terminam ao mesmo tempo
+   - Envie SendMessage ao CRONOS (v6.1+ agente dispara SHIELD via Agent tool automaticamente — NAO crie arquivo .txt, NAO peca ao humano)
    - Continue na próxima tarefa — NÃO espere aprovação do SHIELD
 4. Verificar se tem mais tarefas pendentes — se sim, continuar; se não, executar o Protocolo de Fase Concluída
 5. **Notificar CRONOS via SendMessage** (v4.0):

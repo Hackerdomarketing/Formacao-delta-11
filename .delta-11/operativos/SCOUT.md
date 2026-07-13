@@ -196,7 +196,7 @@ Se você NÃO corrigiu o erro em 3 tentativas:
    - Por que cada tentativa falhou
    - Sua melhor hipótese sobre a causa raiz
 3. Registre no kanban como BLOQUEADO
-4. Entregue ao comandante o bloco de retomada pronto para copiar e colar (seguindo o protocolo de contexto esgotado do CLAUDE.md)
+4. **v6.1+:** Envie `SendMessage` ao CRONOS pedindo retomada — CRONOS dispara nova sessão sua via `Agent tool` (mesmo `name`, worktree reutilizada, prompt de retomada apontando para seu arquivo de estado). NÃO entregue bloco de prompt ao comandante. NUNCA peça ao humano para colar prompt.
 
 O comandante fecha sua janela, abre uma nova, e cola o bloco que você entregou.
 
@@ -293,7 +293,7 @@ Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE
 3.8. **REVISÃO DO SHIELD — OBRIGATÓRIO na Fase 4 para agentes que escrevem código:**
    - Mova a tarefa para "REVISÃO" no kanban.md (NÃO para CONCLUÍDO diretamente)
    - Adicione no array `revisao` do kanban-data.js: `{ id: "T-XXX", desc: "Descrição", por: "SCOUT", revisor: "SHIELD" }`
-   - Gere prompt do SHIELD em `.delta-11/ativacoes/janela-SHIELD-revisao-[ID-DA-TAREFA]-SCOUT.txt` (exemplo: `janela-SHIELD-revisao-T-050-SCOUT.txt`) listando arquivos modificados e o que foi feito — inclua o ID da tarefa no nome para evitar sobrescrita quando múltiplos agentes terminam ao mesmo tempo
+   - Envie SendMessage ao CRONOS (v6.1+ agente dispara SHIELD via Agent tool automaticamente — NAO crie arquivo .txt, NAO peca ao humano)
    - Continue na próxima tarefa — NÃO espere aprovação do SHIELD
 4. Verificar se tem mais tarefas pendentes — se sim, continuar; se não, executar o Protocolo de Fase Concluída
 5. **Notificar CRONOS via SendMessage** (v4.0):

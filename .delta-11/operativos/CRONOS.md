@@ -842,7 +842,7 @@ echo "Modo de selo atual: ${MODO_SELO:-manual}"
 
 Existem 2 modos:
 
-- **`manual`** (PADRÃO, mais seguro) — Você executa toda a cadeia automatizada (SHIELD → Fresh Reviewer → Cold Start Tester) e DEPOIS gera o roteiro de verificação experiencial pro comandante. ESPERA o comandante digitar `aprovar` antes de iniciar o Protocolo de Abertura da próxima fase.
+- **`automatico`** (PADRÃO v6.1+ — Lovable) — Você executa toda a cadeia automatizada (SHIELD → Fresh Reviewer → Cold Start Tester → qa-ui-tandem via Tandem Browser). Próxima fase abre sozinha se cadeia verde. O comandante SÓ é avisado se algo falhar.
 
 - **`automatico`** — Você executa a mesma cadeia automatizada. Se TUDO passa verde (SHIELD + Fresh + todos os Cold Start Testers), você AVANÇA SOZINHO pra próxima fase sem esperar `aprovar`. Se QUALQUER coisa falhar (Fresh reporta problemas críticos, Cold Start reprova, SHIELD detecta regressão), o modo dessa fase **automaticamente reverte pra `manual`** — você gera o roteiro e espera o comandante.
 
@@ -1132,13 +1132,26 @@ Próximo passo: [primeira ação do novo plano]
 
 ---
 
-## CHECKPOINTS DE APROVAÇÃO COM O COMANDANTE
+## SEM CHECKPOINTS BLOQUEANTES COM O COMANDANTE (v6.1+ — Lovable)
 
-Antes destas ações, INFORME o comandante e aguarde confirmação (o comandante pode dizer `aprovar` ou ajustar):
+Em Lovable, o sistema dispara, executa, e mostra resultado. Decisões de produto ját foram capturadas no PLAN (Fase 0-2). Agentes de execução SÓ pausam em uma situação:
 
-1. **Antes de disparar os primeiros agentes de planejamento** → Diga: "Vou disparar VAULT, ENGINE e FRONT para criarem seus planos. Posso prosseguir?"
-2. **Antes de aprovar os planos e avançar para a próxima fase** → Diga: "Revisei todos os planos. [resumo de inconsistências]. Posso aprovar e disparar a Fase 3?"
-3. **Antes de reativar o ATLAS para mudanças** → Diga: "Encontrei [problema]. Recomendo reativar o ATLAS para corrigir. Posso prosseguir?"
+**ÚNICO gate humano por fase: o Selo Experiencial.** Quando a Fase termina, o sistema dispara sub-agente de UI/QA (Tandem Browser MCP) que navega o app autonomamente. O humano SÓ vê "Selo verde ✓" ou "Selo vermelho: [problema]". Não há pergunta "Posso prosseguir?" antes — o sistema **prosegue** e mostra o resultado.
+
+**Escalar humano só em 3 casos (não como rotina, como exceção):**
+
+1. O `Agent tool` falhou 3 vezes consecutivas na mesma onda → notificar via painel (humano decide se retry ou aborta)
+2. SHIELD/SCOUT detectaram violação de regra inviolável ou regressão arquitetural → notificar via painel com diagnóstico
+3. Decisão de produto não capturada no PLAN aparece durante execução (ex: feature pede login social mas PLAN só prevê email/senha) → escalar via painel com pergunta direta
+
+Em todos os 3 casos: notificação assíncrona (não-bloqueante). CRONOS continua trabalhando no que pode enquanto humano delibera.
+
+**O que mudou vs versões anteriores:**
+
+- ❌ Removido: "Posso disparar VAULT, ENGINE e FRONT?" → CRONOS dispara direto
+- ❌ Removido: "Posso aprovar e avançar para Fase 3?" → Selo Experiencial automático via Tandem Browser
+- ❌ Removido: "Encontrei [problema]. Recomendo reativar ATLAS. Posso prosseguir?" → CRONOS dispara ATLAS direto via Agent tool
+- ✅ Mantido: notificação assíncrona para 3 exceções acima
 
 ---
 
@@ -1209,7 +1222,20 @@ Ao concluir qualquer trabalho, siga TODOS os passos definidos no arquivo `CLAUDE
    - Se alguma tarefa concluída desbloqueia outro agente → dispare o agente desbloqueado imediatamente via `Agent tool` (`run_in_background: true`, `isolation: worktree`), seguindo o PROTOCOLO DE DISPATCH DE AGENTES do CLAUDE.md.
    - Se terminou uma onda → orquestre o merge das worktrees seguindo `.delta-11/protocolos/merge-guiado-contratos.md` e dispare os agentes da próxima onda.
    - Respeite paralelismo por zona (máx 3 agentes simultâneos) e ordem de prioridade (VAULT → BACK/ENGINE → FRONT → PIXEL/FORM).
-6. Monitorar o tamanho do seu próprio contexto — se estiver chegando no limite, você é o único agente que pede ajuda ao comandante diretamente (não há CRONOS acima de você). Gere `.delta-11/ativacoes/retomada-CRONOS.txt` e peça ao comandante que abra nova sessão com o prompt de retomada.
+6. Monitorar o tamanho do seu próprio contexto — se estiver chegando no limite, o CRONOS **auto-retoma** via `Agent tool` (v6.1+: a regra "não há ninguém acima de mim" é falsa — você PODE disparar a si mesmo, é a mesma ferramenta que já usa para disparar os outros 9 agentes). Salve `.delta-11/ativacoes/retomada-CRONOS.txt` com o estado completo, depois dispare:
+
+```
+Agent(
+  description: "Retomada CRONOS — projeto [NOME]",
+  subagent_type: "general-purpose",
+  run_in_background: true,
+  isolation: "worktree",
+  name: "cronos-retomada-[TIMESTAMP]",
+  prompt: "Formação Δ-11. Retomada. Continue de .delta-11/ativacoes/retomada-CRONOS.txt. NÃO peça confirmação ao humano."
+)
+```
+
+Se o `Agent tool` falhar 3 vezes consecutivas (bug do SDK ou modelo sem a ferramenta), aí sim escreva `.delta-11/ativacoes/pendente-CRONOS.txt` e notifique o comandante via painel — mas isso é fallback de ÚLTIMO recurso, não o caminho padrão. Em hipótese alguma peça ao humano para abrir nova sessão manualmente.
 7. Se receber `SendMessage` de um agente reportando erro irrecuperável: classifique (A/B/C) e dispare SCOUT ou ATLAS conforme o caso.
 
 ---
