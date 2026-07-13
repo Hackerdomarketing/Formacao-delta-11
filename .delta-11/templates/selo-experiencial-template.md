@@ -1,73 +1,77 @@
-# 🔍 SELO EXPERIENCIAL — [Ciclo/Fase]
+# 🔍 SELO EXPERIENCIAL — [Ciclo/Fase] (v6.1+ — Automatizado via Tandem Browser)
 
-> **Template v5.2 — Roteiro do "Viu que Era Bom" (P4 etapa 7 da Criação).**
-> Gerado pelo CRONOS ao final da cadeia automatizada (SHIELD → Fresh Reviewer → Cold Start Tester),
-> ANTES do comandante aprovar. Salvo em `.delta-11/planos/SELO-EXPERIENCIAL-[ciclo].md`.
+> **Template v6.1 — Sub-agente de QA/UI autônomo.**
+> Em vez de roteiro para humano operar, o selo é EXECUTADO por sub-agente
+> usando Tandem Browser MCP (navegador Electron programável). Humano só vê o relatório.
 >
-> REGRAS DE ESCRITA: português leigo, zero jargão, cada passo tem URL/comando + o que esperar +
-> sinal de sucesso + "se falhar, me diga X". O comandante OPERA o produto, não lê relatório.
->
-> Modo `.delta-11/.modo-selo`: [manual / automatico]. Em manual, CRONOS aguarda `aprovar`.
+> Modo `.delta-11/.modo-selo`: `automatico` (default v6.1+). Em automatico, sub-agente QA
+> roda o roteiro e retorna PASS/FAIL. Em `manual`, humano recebe roteiro (legado).
 
 ---
 
-## O que mudou neste ciclo (resumo para o comandante)
+## Quem executa este selo
 
-- **[N] problemas críticos resolvidos** ([lista curta em linguagem leiga])
-- **[N] melhorias aplicadas** ([idem])
-- **Estado dos testes:** [ex: 277/277 verificações verdes]
+**Sub-agente `qa-ui-tandem`** — disparado pelo CRONOS via `Agent tool` ao final da cadeia automatizada (SHIELD → Fresh Reviewer → Cold Start Tester), ANTES do comandante aprovar.
 
----
-
-## Como executar o selo — [tempo estimado]
-
-### Passo 1 — [ação única e simples]
-
-```bash
-[comando exato, com export PATH se necessário]
+```
+Agent(
+  description: "Selo UI — projeto [NOME]",
+  subagent_type: "general-purpose",
+  run_in_background: false,
+  prompt: "Formação Δ-11. Selo Experiencial. Use Tandem Browser MCP para
+navegar autonomamente os fluxos críticos do projeto. Retorne PASS ou
+FAIL com diagnostico. NAO pergunte ao humano — execute."
+)
 ```
 
-[Onde clicar / o que abrir, com descrição visual]
+---
 
-**Sinal de que deu certo:** [o que o comandante VÊ quando funciona]
-**Se falhar:** [causa provável + "me diga que eu [ação de contorno]"]
+## Fluxos a serem testados pelo sub-agente
 
-### Passo 2 — [próxima ação]
+Para cada fluxo crítico do produto, o sub-agente QA:
 
-[Se este passo verifica correção de bug de selo anterior, diga qual — cria continuidade de confiança.]
+1. **Acessa a URL** via `browser_navigate(url)` do Tandem Browser MCP
+2. **Executa ações** via `browser_click`, `browser_type`, `browser_snapshot`
+3. **Verifica resultados** via `browser_snapshot` para confirmar estado esperado
+4. **Reporta** PASS ou FAIL com evidência (snapshot do estado)
 
-1. [sub-passo com URL exata]
-2. [sub-passo]
+### Fluxos críticos (gerados pelo CRONOS baseado no project-core.md)
 
-**Sinal de sucesso:** [...]
-**Se falhar:** [...]
-
-[... repetir o padrão para cada passo — SEMPRE incluir navegação manual pelos fluxos críticos
-quando a fase tem UI: o comandante precisa USAR o produto, não só ver testes verdes ...]
-
-### Passo final — testes menores (opcional)
-
-- [verificações rápidas de menor risco]
+- **[Fluxo 1]**: [URL inicial] → [ação esperada] → [resultado esperado]
+- **[Fluxo 2]**: ...
+- **[Fluxo N]**: ...
 
 ---
 
-## O que faz sentido REJEITAR
+## O que muda em relação ao template v5.2
 
-Se encontrar QUALQUER um destes, me diga antes de aprovar:
-
-- [sintoma concreto e visível 1 — ex: 'texto X aparecendo na tela (violaria regra Y)']
-- [sintoma 2 — ex: 'barra de progresso travada em 0%']
-- [sintoma 3 — ex: 'página branca ou erro genérico']
+- ❌ Removido: roteiro de "Passo 1 — abra URL tal" (humano fazia)
+- ✅ Adicionado: sub-agente `qa-ui-tandem` que faz via Tandem Browser MCP
+- ❌ Removido: "o comandante OPERA o produto, não lê relatório"
+- ✅ Adicionado: "sub-agente QA opera autonomamente e retorna relatório estruturado"
+- ❌ Removido: modo manual como padrão
+- ✅ Adicionado: modo automatico como padrão v6.1+; manual só sob comando explícito
 
 ---
 
-## Ordem final
+## Se o sub-agente QA reportar FAIL
 
-Se tudo funcionou E pareceu sólido: digite **`aprovar`**.
-Se algo estranhar: descreva o que viu — abro tarefa de correção ANTES do selo. Não fecho ciclo com bug pendente.
+CRONOS recebe o diagnóstico e:
+1. Decide se é fix trivial (1 tentativa de auto-correção via dispatch ao agente executor responsável)
+2. Se fix não-trivial: cria tarefa no kanban com tag `[SELO-FAIL]` e bloqueia avanço de fase
+3. Notifica o comandante via painel: "Sub-agente QA encontrou [problema]. Tarefa criada no kanban."
+4. Continua trabalhando em paralelo nas fases que não dependem da bloqueada
 
-## Depois do `aprovar`
+Humano é notificado, mas **não é** o executor da correção — quem corrige é o agente de execução correspondente, via auto-dispatch.
 
-1. [limpeza — ex: remover worktrees mergeadas]
-2. [registro — ex: encerramento no project-core.md]
-3. [próximos ciclos propostos — lista com 1 frase cada]
+---
+
+## Compatibilidade com modo manual legado
+
+Em projeto que ainda exige `.delta-11/.modo-selo = manual`, o template v5.2 original (com roteiro para humano) é restaurado. O comando do comandante é:
+
+```
+echo "manual" > .delta-11/.modo-selo
+```
+
+E o sub-agente QA é substituído pelo roteiro humano tradicional. Mas isso é **opt-in** — v6.1+ default é automatico.

@@ -112,7 +112,7 @@ Toda vez que você editar `.delta-11/memoria/project-core.md` (para adicionar ou
 **Mas você é responsável por garantir que o hook rodou:**
 
 1. Depois de salvar o `project-core.md`, verifique em `.delta-11/activity-log.md` se entrou uma linha recente com `[regenerar-contratos]`
-2. Se NÃO entrou (hook falhou silenciosamente), rode manualmente:
+2. Se NÃO entrou (hook falhou silenciosamente), **rode via Bash tool** (você tem Bash à disposição):
    ```bash
    python3 .delta-11/hooks/regenerar-contratos.py || python .delta-11/hooks/regenerar-contratos.py
    ```
