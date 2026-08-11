@@ -145,6 +145,16 @@
         ]
       },
       {
+        "matcher": "Edit|Write|Task|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/anti-autocompact.py || python .delta-11/hooks/anti-autocompact.py",
+            "timeout": 10000
+          }
+        ]
+      },
+      {
         "matcher": "Read",
         "hooks": [
           {

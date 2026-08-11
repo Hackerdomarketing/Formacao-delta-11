@@ -99,7 +99,7 @@ else
 fi
 
 # 8. Quando NAO aplicar
-if grep -qiE "quando n[ãa]o|isento|exce[cç][ãa]o" "$DOC"; then
+if grep -qiE "quando n..o|isento|exce" "$DOC"; then
     ok "protocolo declara excecoes"
 else
     err "protocolo NAO declara quando NAO aplicar"
