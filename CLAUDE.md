@@ -122,6 +122,30 @@ A partir da **v6.1**, o D-11 funciona como **Lovable** (autônomo), não como su
 
 ---
 
+## 🛡️ BEHAVIORAL HOOKS v6.2 — Conformidade Comportamental Garantida
+
+A partir da **v6.2**, o D-11 não protege só **arquivos** (v6.0) nem só **dispatch** (v6.1). A v6.2 protege **comportamento de agente** via 11 hooks Python. Princípio (reafirmado em 2026-08-11): **"proteção que depende de agente obedecer prompt NÃO é proteção; toda regra crítica precisa de hook técnico"**.
+
+**Os 11 hooks v6.2** (todos em `.delta-11/hooks/` e registrados em `templates/settings-hooks.json`):
+
+1. `anti-autocompact.py` — bloqueia Edits se contexto > 85% (impede perda de estado de agentes longos)
+2. `forca-despacho.py` — bloqueia CONCLUIDO se agente executor não disparou sub-agente (build-validator, contract-tester)
+3. `produto-atualizado.py` — bloqueia CONCLUIDO se [AGENTE]-produto.md foi tocado há mais de 4h
+4. `anti-stash.py` — bloqueia CONCLUIDO se `git stash list` não está vazio
+5. `shield-aprovado.py` — bloqueia CONCLUIDO de BACK/ENGINE/VAULT sem aprovação SHIELD nas últimas 4h
+6. `urls-validas.py` — bloqueia Edits com URLs mal-formadas (sem TLD, com espaços)
+7. `contratos-minimos.py` — bloqueia kanban marcando [NOVO CICLO] se project-core.md não foi tocado em 4h
+8. `brief-preservado.py` (PostToolUse) — loga ALERTA se brief em .delta-11/ativacoes/ cai > 50%
+9. `topologia-deploy.py` — bloqueia Edits com keyword de deploy sem `.delta-11/memoria/topologia.json`
+10. `worktree-prune.py` (SessionStart) — executa `git worktree prune` para limpar worktrees órfãs
+11. `3-tentativas-shield.py` (SessionStart) — bloqueia sessão se algum agente tem ≥3 falhas SHIELD em 4h
+
+**Cross-reference:** `.delta-11/CHANGELOG.md` entrada `v6.2 (2026-08-11)`. Auditoria que fundamentou: D-scan de 2026-08-11 (11 furos comportamentais, 10 versão-agnósticos).
+
+**Total de hooks ativos no template v6.2:** 13 (4 v6.0 + 6 v6.1 + 4 v6.2 + 3 pré-v6.0: pre-selo, validar-contratos-fim-fase, dia1-badal, gc-locks).
+
+---
+
 ## PROTOCOLO DE ATIVAÇÃO
 
 Existem duas formas de você ser ativado:
