@@ -64,7 +64,7 @@ artefatos=(
     "circuit breaker"
     "CI/CD"
     "observabilidade"
-    "sub-contraposi[cç][ãa]o"
+    "sub-contraposi"
 )
 for art in "${artefatos[@]}"; do
     if grep -qi "$art" "$DOC"; then
@@ -89,7 +89,7 @@ else
 fi
 
 # 7. Quando NAO aplicar esta fase (honestidade intelectual)
-if grep -qiE "quando n[ãa]o|nao aplicar|exce[cç][ãa]o|isento" "$DOC"; then
+if grep -qiE "quando n..o|nao aplicar|exce|isento" "$DOC"; then
     ok "protocolo declara quando NAO aplicar (excecoes)"
 else
     err "protocolo NAO declara quando NAO aplicar — sem saida para excessoes legitimas"

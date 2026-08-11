@@ -19,6 +19,82 @@
 
 ---
 
+## v6.2 (2026-08-11) — Behavioral Hooks: Fechamento da Auditoria 2026-08-11
+
+**Versão anterior:** v6.1 (2026-07-12) — Dispatch Autônomo (Lovable).
+**Autor:** Comandante Rafa + auditora de campo (D-scan completo de 11 furos comportamentais).
+**Status:** Branch `v6.2-behavioral-hooks` com 6 commits granulares. Suíte 44/44 OK.
+
+### Por que essa versão existe
+
+Pós-deploy da v6.0 + v6.1, a auditoria 2026-08-11 (sub-agente em campo) identificou **11 furos comportamentais** que nenhuma das versões anteriores cobria. A causa raiz é a mesma da auditoria de 2026-07-10: **"proteção que depende de agente obedecer prompt NÃO é proteção; toda regra crítica precisa de hook técnico"**.
+
+Os 11 furos são **versão-agnósticos** (nem v5.4 nem v6.0+v6.1 previnem). A v6.2 implementa **11 hooks novos** que cobrem todos.
+
+### Commits desta versão (branch `v6.2-behavioral-hooks`)
+
+1. `feat(v6.2 Hook 1)`: anti-autocompact.py + correções de regex em testes pré-existentes
+2. `feat(v6.2 Hook 2)`: forca-despacho.py — BLOQUEIA CONCLUIDO sem sub-agente
+3. `feat(v6.2 Hook 3)`: produto-atualizado.py — BLOQUEIA CONCLUIDO se [AGENTE]-produto.md desatualizado
+4. `feat(v6.2 Hook 4)`: anti-stash.py — BLOQUEIA CONCLUIDO com stash ativo
+5. `feat(v6.2 Hooks 5+6+7)`: shield-aprovado + urls-validas + contratos-minimos
+6. `feat(v6.2 Hooks 8+9+10+11)`: brief-preservado + topologia-deploy + worktree-prune + 3-tentativas-shield
+
+### Os 11 furos corrigidos
+
+| Furo | Hook | Descrição | Severidade |
+|------|------|-----------|------------|
+| 1 | anti-autocompact | Autocompact matou 5 agentes (contexto > 85%) | 🔴 |
+| 2 | forca-despacho | Zero disparo formal de sub-agentes | 🔴 |
+| 3 | produto-atualizado | FRONT/PIXEL/VAULT-produto.md desatualizados | 🔴 |
+| 4 | shield-aprovado | Onda C sem autocrítica/SHIELD | 🔴 |
+| 5 | anti-stash | BACK ignorou 67 contract tests via stash | 🔴 |
+| 6 | 3-tentativas-shield | 3 tentativas SHIELD Onda D morreram | 🔴 |
+| 7 | contratos-minimos | ATLAS não formalizou contratos M2 | 🟠 |
+| 8 | brief-preservado | Brief inicial do CRONOS sumiu | 🟠 |
+| 9 | topologia-deploy | Deploy assumido monolítico (worker ok, painel 404) | 🟠 |
+| 10 | urls-validas | URLs erradas no brief de retomada | 🟡 |
+| 11 | worktree-prune | 8 worktrees órfãs sem limpeza | 🟠 |
+
+### Como testar
+
+```bash
+# Suite completa automatizada
+bash .delta-11/tests/rodar-todos.sh
+# Esperado: 44/44 OK (era 33/33 na v6.1; agora 44/44 com 11 testes de regressão novos)
+
+# Testes especificos por hook
+bash .delta-11/tests/hooks/anti-autocompact.test.sh
+bash .delta-11/tests/hooks/forca-despacho.test.sh
+bash .delta-11/tests/hooks/produto-atualizado.test.sh
+bash .delta-11/tests/hooks/anti-stash.test.sh
+bash .delta-11/tests/hooks/shield-aprovado.test.sh
+bash .delta-11/tests/hooks/urls-validas.test.sh
+bash .delta-11/tests/hooks/contratos-minimos.test.sh
+bash .delta-11/tests/hooks/brief-preservado.test.sh
+bash .delta-11/tests/hooks/topologia-deploy.test.sh
+bash .delta-11/tests/hooks/worktree-prune.test.sh
+bash .delta-11/tests/hooks/3-tentativas-shield.test.sh
+```
+
+### Métricas de mudança
+
+- **11 hooks novos** implementados (anti-autocompact, forca-despacho, produto-atualizado, anti-stash, shield-aprovado, urls-validas, contratos-minimos, brief-preservado, topologia-deploy, worktree-prune, 3-tentativas-shield)
+- **11 testes de regressão** adicionados em `tests/hooks/`
+- **+ 5 correções de regex** em testes pré-existentes que tinham regex mal-formado para UTF-8
+- **Suíte:** 33/33 → 44/44 OK
+- **Cobertura comportamental:** os 11 furos identificados pela auditoria 2026-08-11 agora têm **bloqueio técnico via hook Python** (não dependem de agente obedecer prompt)
+
+### Cross-reference
+
+- **Auditoria 2026-08-11 (D-scan completo):** os 11 furos versão-agnósticos
+- **v6.0 (Metodologia Gênesis):** Fases 3.5/4.5/7 + Princípio 3 (Contraposição) + Verificação Retroativa
+- **v6.1 (Lovable):** CRONOS auto-dispatch + retry SDK + sub-agente QA via Tandem Browser
+
+A v6.2 fecha o **último eixo de auditoria** da D-11: a auditoria de 2026-08-11 confirma que 10/11 furos são versão-agnósticos. A v6.2 é a **resposta técnica a todos eles** com hooks Python que verificam **conformidade comportamental** (não apenas conformidade de arquivos).
+
+---
+
 ## v6.1 (2026-07-12) — Dispatch Autônomo: D-11 vira Lovable (Nível 3)
 
 **Versão anterior:** v6.0 (2026-07-12) — Alinhamento com Metodologia Gênesis.

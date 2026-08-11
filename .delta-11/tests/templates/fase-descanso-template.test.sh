@@ -41,8 +41,8 @@ else
 fi
 
 # Estrutura canonica
-if grep -qE "##\s+.*[Dd]escri[cç][ãa]o" "$TEMPLATE" && \
-   grep -qE "##\s+.*[Ee]vid[eê]ncia" "$TEMPLATE"; then
+if grep -qE "##\s+.*[Dd]escri" "$TEMPLATE" && \
+   grep -qE "##\s+.*[Ee]vid" "$TEMPLATE"; then
     ok "template tem Descricao + Evidencia (essencial para Dia 7)"
 else
     err "template NAO tem Evidencia"

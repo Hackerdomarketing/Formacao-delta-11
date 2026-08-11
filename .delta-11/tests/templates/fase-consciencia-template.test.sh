@@ -46,7 +46,7 @@ else
 fi
 
 # 3. Estrutura canonica por entregavel
-if grep -qE "##\s+.*[Dd]escri[cç][ãa]o" "$TEMPLATE" && \
+if grep -qE "##\s+.*[Dd]escri" "$TEMPLATE" && \
    grep -qE "##\s+.*[Ee]scolha" "$TEMPLATE" && \
    grep -qE "##\s+.*[Jj]ustificativa" "$TEMPLATE"; then
     ok "template tem secoes Descricao / Escolha / Justificativa"
@@ -76,7 +76,7 @@ else
 fi
 
 # 7. Aviso NAO avancar Fase 5
-if grep -qiE "n[ãa]o (avan[cç]ar|come[cç]ar).*Fase 5|antes da Fase 5" "$TEMPLATE"; then
+if grep -qE "N..o avan..ar.*Fase 5|antes da Fase 5" "$TEMPLATE"; then
     ok "template avisa sobre dependencia com Fase 5"
 else
     err "template NAO avisa sobre dependencia"

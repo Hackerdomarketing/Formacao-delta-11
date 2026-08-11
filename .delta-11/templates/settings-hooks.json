@@ -145,6 +145,111 @@
         ]
       },
       {
+        "matcher": "Edit|Write|Task|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/anti-autocompact.py || python .delta-11/hooks/anti-autocompact.py",
+            "timeout": 10000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/anti-stash.py || python .delta-11/hooks/anti-stash.py",
+            "timeout": 10000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/shield-aprovado.py || python .delta-11/hooks/shield-aprovado.py",
+            "timeout": 10000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/urls-validas.py || python .delta-11/hooks/urls-validas.py",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/contratos-minimos.py || python .delta-11/hooks/contratos-minimos.py",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/brief-preservado.py || python .delta-11/hooks/brief-preservado.py",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/topologia-deploy.py || python .delta-11/hooks/topologia-deploy.py",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "SessionStart",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/worktree-prune.py || python .delta-11/hooks/worktree-prune.py",
+            "timeout": 30000
+          },
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/3-tentativas-shield.py || python .delta-11/hooks/3-tentativas-shield.py",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/produto-atualizado.py || python .delta-11/hooks/produto-atualizado.py",
+            "timeout": 10000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/forca-despacho.py || python .delta-11/hooks/forca-despacho.py",
+            "timeout": 10000
+          }
+        ]
+      },
+      {
         "matcher": "Read",
         "hooks": [
           {

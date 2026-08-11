@@ -76,7 +76,7 @@ done
 
 # 5. Estrutura por artefato: Descricao / Escolha / Justificativa / Link
 # Verifica que pelo menos 1 artefato tem essas 4 secoes
-if grep -qE "##\s+.*[Dd]escri[cç][ãa]o" "$TEMPLATE" && \
+if grep -qE "##\s+.*[Dd]escri" "$TEMPLATE" && \
    grep -qE "##\s+.*[Ee]scolha" "$TEMPLATE" && \
    grep -qE "##\s+.*[Jj]ustificativa" "$TEMPLATE" && \
    grep -qE "##\s+.*[Ll]ink" "$TEMPLATE"; then
@@ -108,8 +108,8 @@ fi
 
 # 9. Aviso sobre NAO avancar Fase 4 sem preencher
 # Aceita com ou sem acento
-if grep -qiE "n[ãa]o (come[cç]ar|avan[cç]ar).*Fase 4|antes da Fase 4" "$TEMPLATE"; then
-    ok "template avisa que NAO se deve avancar Fase 4 sem preencher"
+if grep -qE "N..o avan..ar.*Fase 4|antes da Fase 4" "$TEMPLATE"; then
+    ok "template avisa sobre dependencia com Fase 4"
 else
     err "template NAO avisa sobre dependencia — agente pode pular"
 fi
