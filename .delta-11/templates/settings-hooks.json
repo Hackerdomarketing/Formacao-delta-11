@@ -199,6 +199,41 @@
         "hooks": [
           {
             "type": "command",
+            "command": "python3 .delta-11/hooks/brief-preservado.py || python .delta-11/hooks/brief-preservado.py",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/topologia-deploy.py || python .delta-11/hooks/topologia-deploy.py",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "SessionStart",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/worktree-prune.py || python .delta-11/hooks/worktree-prune.py",
+            "timeout": 30000
+          },
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/3-tentativas-shield.py || python .delta-11/hooks/3-tentativas-shield.py",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
             "command": "python3 .delta-11/hooks/produto-atualizado.py || python .delta-11/hooks/produto-atualizado.py",
             "timeout": 10000
           }
