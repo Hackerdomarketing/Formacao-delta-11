@@ -155,6 +155,16 @@
         ]
       },
       {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .delta-11/hooks/forca-despacho.py || python .delta-11/hooks/forca-despacho.py",
+            "timeout": 10000
+          }
+        ]
+      },
+      {
         "matcher": "Read",
         "hooks": [
           {
