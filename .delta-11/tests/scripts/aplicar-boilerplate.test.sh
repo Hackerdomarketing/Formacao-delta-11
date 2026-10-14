@@ -3,7 +3,7 @@
 # Teste do aplicar-boilerplate.sh (G2 — F6, F11, F12 do Bloco A)
 # ════════════════════════════════════════════════════════════════
 #
-# Estratégia (v5.4 E1): cria 3 probes em /tmp:
+# Estratégia (v5.4 E1; v6.3): cria 3 probes numa pasta temporária do sistema:
 #   1. projeto SEM src/          → script DEVE recusar (F11)
 #   2. projeto válido COM src/   → script DEVE aplicar overlay
 #   3. projeto COM arquivos pré-existentes → script DEVE fazer backup (F12)
@@ -22,6 +22,13 @@ REPO_ROOT="$SCRIPT_DIR/../../.."
 APPLICADOR="$REPO_ROOT/boilerplate-delta-11-nextjs/aplicar-boilerplate.sh"
 ENV_EXAMPLE="$REPO_ROOT/boilerplate-delta-11-nextjs/overlay/env.example"
 
+# O boilerplate vive SÓ na distribuição (não é sincronizado para os projetos).
+# Dentro de um projeto, este teste não se aplica.
+if [ ! -d "$REPO_ROOT/boilerplate-delta-11-nextjs" ] && [ ! -f "$REPO_ROOT/sincronizar.sh" ]; then
+    echo -e "${GREEN}[SKIP]${NC} boilerplate só existe na distribuição oficial (isto é um projeto)"
+    exit 0
+fi
+
 if [ ! -f "$APPLICADOR" ]; then
     echo -e "${RED}[FAIL]${NC} aplicador nao encontrado: $APPLICADOR"
     exit 1
@@ -31,10 +38,10 @@ if [ ! -f "$ENV_EXAMPLE" ]; then
     exit 1
 fi
 
-SANDBOX="$(mktemp -d /tmp/delta11-boilerplate-test-XXXXXX)"
+SANDBOX="$(mktemp -d "${TMPDIR:-/tmp}/delta11-boilerplate-test-XXXXXX")"
 falhou=0
 
-cleanup() { rm -rf "$SANDBOX"; }
+cleanup() { [ -n "$SANDBOX" ] && [ -d "$SANDBOX" ] && rm -rf "$SANDBOX"; }
 trap cleanup EXIT
 
 ok() { echo -e "  ${GREEN}[OK]${NC} $1"; }
