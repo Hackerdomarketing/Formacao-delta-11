@@ -4,7 +4,7 @@
 >
 > **Quem escreve:** SHIELD (auditoria + rate limiting) + Líder de produto (regras) + Compliance/LGPD + Comandante (aprovação final).
 >
-> **Quem sella:** SHIELD + Comandante.
+> **Quem sela:** SHIELD (+ Comandante no `modo manual`; regra de negócio que só ele pode decidir sobe para ele em qualquer modo — D4).
 >
 > **Quando NÃO aplicar:** projetos genuinamente sem PII/multi-usuário (ver protocolo `fase-consciencia.md`).
 >
@@ -39,7 +39,7 @@ A tecnologia / padrão / formato escolhido. Em uma frase.
 Exemplos:
 - "PostgreSQL triggers + tabela audit_log append-only" (auditoria)
 - "Upstash Ratelimit com sliding window" (rate limiting)
-- "Máquina de estados em src/lib/fluxos-aprovacao/" (aprovação)
+- "Máquina de estados em src/lib/approval-flows/" (aprovação)
 - "Banner opt-in com persistência em cookie + DB" (LGPD)
 
 ## Justificativa
@@ -126,7 +126,7 @@ Para referência:
 ## Descrição
 
 O cofre-de-keys armazena chaves de API pessoais dos usuários (dados altamente sensíveis). Cada operação em `api_keys` (criar, ler, atualizar, deletar) precisa de trilha de auditoria imutável para:
-- Compliance (LGPD Art. 37 — relatório de impacto)
+- Compliance (LGPD Art. 37 — registro das operações de tratamento; Art. 38 — relatório de impacto à proteção de dados pessoais, o RIPD)
 - Resposta a incidentes (saber quais chaves foram acessadas em dado ataque)
 - Responsabilização (saber quem fez o quê)
 
@@ -141,7 +141,7 @@ PostgreSQL triggers AFTER INSERT/UPDATE/DELETE escrevendo em tabela `audit_log` 
 - Hash chain = integridade criptográfica (provável adulteração detecta)
 
 Alternativas descartadas:
-- Audit no nível de ORM (Prisma middleware) — fácil esquecer em SQL nativo
+- Audit num wrapper do cliente Supabase no código — fácil esquecer em SQL direto, em funções do banco ou no painel do Supabase
 - Audit no nível de aplicação (rotas Next.js) — duplica lógica em cada rota
 
 ## Link
@@ -163,10 +163,10 @@ Alternativas descartadas:
 
 ## Implementação (referência — não preencher nesta fase)
 
-- Migrations: `supabase/migrations/2026-08-15-audit-log.sql`
-- Triggers: `supabase/migrations/2026-08-15-audit-triggers.sql`
+- Migrations: `supabase/migrations/20260815120000_create_audit_log.sql`
+- Triggers: `supabase/migrations/20260815120100_create_audit_triggers.sql`
 - Variáveis: nenhuma
-- Documentação: `src/lib/auditoria/README.md`
+- Documentação: `src/lib/audit/README.md`
 ```
 
 ---
@@ -181,6 +181,6 @@ Alternativas descartadas:
 
 ---
 
-**Versão do template:** v6.0.0 (2026-07-12)
+**Versão do template:** v6.3 (2026-10-14) — LGPD Art. 38 para o RIPD, exemplo sem Prisma, nomes em inglês. Antes: v6.0.0 (2026-07-12)
 **Local canônico:** `.delta-11/templates/fase-consciencia-template.md`
 **Proveniência:** criado na Etapa 6B do plano Nível 3 Profundo (auditoria 2026-07-10)

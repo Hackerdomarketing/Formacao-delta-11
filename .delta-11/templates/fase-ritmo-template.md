@@ -6,7 +6,7 @@
 >
 > **Quem escreve:** Engenheiro de DevOps/SRE + Líder Técnico da Fundação (Etapa 3.5 do fluxo v6.0).
 >
-> **Quem sella:** Líder técnico + Comandante.
+> **Quem sela:** Líder técnico (+ Comandante no `modo manual`).
 >
 > **Quando NÃO preencher:** projetos descartáveis (ver protocolo `fase-ritmo.md` para lista completa).
 >
@@ -88,11 +88,13 @@ Para cada um dos 10 artefatos do Dia 4, copie o cabeçalho acima e preencha as s
 
 Substitua `{{DATA}}` pela data real (`date +%Y-%m-%d`) e `{{PROVEDOR}}` pelo provedor escolhido (inngest/bullmq/etc).
 
+**Artefatos 5, 6 e 7 — partem dos valores padrão do sistema (D19, tabela única em `protocolos/regras-codigo.md`):** banco 5 s · API externa 10 s · chamada interna 3 s · 3 novas tentativas com espera crescente · circuit breaker abre após 5 falhas e fecha após 60 s. Se o projeto precisar de outro valor, o artefato diz qual e por quê.
+
 ---
 
 ## ⚠️ IMPORTANTE — Não avançar para Fase 4 sem preencher
 
-A Fase 4 (Desenvolvimento de Funcionalidade) **não pode começar** antes que os 10 artefatos estejam preenchidos E selados pelo Líder técnico e Comandante. Razão: a Metodologia Gênesis é explícita: "Astros para governar o tempo não foram feitos antes de existir dia e noite". Construir código de funcionalidade sem ritmo temporal é "fazer os peixes antes das águas" — o sistema nasce sem governança de tempo.
+A Fase 4 (Desenvolvimento de Funcionalidade) **não pode começar** antes que os 10 artefatos estejam preenchidos E selados pelo Líder técnico (e pelo Comandante, no `modo manual`). Razão: a Metodologia Gênesis é explícita: "Astros para governar o tempo não foram feitos antes de existir dia e noite". Construir código de funcionalidade sem ritmo temporal é "fazer os peixes antes das águas" — o sistema nasce sem governança de tempo.
 
 O hook `fase-ritmo-checker.py` (Etapa 5C do v6.0) bloqueia automaticamente tentativas de avançar sem os 10 artefatos. Não é burocracia — é o método funcionando.
 
@@ -137,14 +139,14 @@ Alternativas descartadas:
 
 ## Implementação (referência — não preencher nesta fase)
 
-- Arquivo de código: `src/lib/eventos/catalogo.ts` (gerado de eventos.md via ts-codegen)
-- Hooks: cada evento tem handler em `src/lib/eventos/handlers/`
+- Arquivo de código: `src/lib/events/catalog.ts` (gerado de eventos.md via ts-codegen)
+- Hooks: cada evento tem handler em `src/lib/events/handlers/`
 - Variáveis: nenhuma
 - Como testar: cada handler tem teste que valida schema de input
 ```
 
 ---
 
-**Versão do template:** v6.0.0 (2026-07-11)
+**Versão do template:** v6.3 (2026-10-14) — tempos-limite padrão (D19), nomes de código em inglês. Antes: v6.0.0 (2026-07-11)
 **Local canônico:** `.delta-11/templates/fase-ritmo-template.md`
 **Proveniência:** criado na Etapa 5B do plano Nível 3 Profundo (auditoria 2026-07-10)

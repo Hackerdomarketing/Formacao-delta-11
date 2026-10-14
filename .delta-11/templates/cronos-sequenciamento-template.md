@@ -1,6 +1,9 @@
 # Plano de Sequenciamento — [Ciclo/Fase] ([data ISO])
 
-> **Template v5.2 — Sequenciamento do CRONOS (Fase 2.5, Passo 4).**
+> **Template v6.3 (2026-10-14) — Sequenciamento do CRONOS (Fase 2.5, Passo 4).**
+> Cada agente da onda recebe UM mini-plano em `.delta-11/planos/[AGENTE]-plan.md` (sobrescrito a cada onda; o
+> anterior vai para `planos/arquivo/` — D17). Executores são despachados pelo CRONOS com `isolation: "worktree"`
+> e `model` do `perfis/[AGENTE].json` (D2, D26).
 > Salvo em `.delta-11/planos/CRONOS-sequenciamento[-ciclo].md`. Se REVISADO após replanejamento,
 > declare no título e preserve os valores fundamentais que não mudaram (nota ao final).
 
@@ -45,13 +48,14 @@ Merge — quando também [AGENTE-3] verde e [AGENTE-4] pronto
 
 1. Ordem de consolidação: [VAULT → ENGINE → SHIELD → PIXEL — adaptar]
 2. Validação final: `tsc --noEmit` + `npm run test:contracts` + `npm run build` (adaptar ao stack)
-3. Roteiro do Viu que Era Bom (usar `.delta-11/templates/selo-experiencial-template.md`)
-4. Selo do comandante → ciclo fechado
+3. Cadeia de fim de fase: SHIELD → Fresh Reviewer → Cold Start Tester → `qa-ui-tandem` (Selo Experiencial;
+   roteiro em `planos/selo-experiencial-fase-[N].md`, a partir de `.delta-11/templates/selo-experiencial-template.md`)
+4. Selo: modo `automatico` = cadeia verde fecha o ciclo sozinha; `modo manual` = comandante digita `aprovar`
 
 ## Notas de contorno
 
 [Bugs de plataforma conhecidos que afetam este ciclo (ex: worktree de origin/main velho),
-mitigações aplicadas, pendências que aguardam decisão do comandante.]
+mitigações aplicadas, pendências que aguardam decisão do comandante (só as 3 situações da D4).]
 
 ## Nota sobre planejamento anterior
 

@@ -30,7 +30,7 @@ Este arquivo é uma lista de TODAS as ferramentas externas que este projeto usa 
 [Função específica que essa ferramenta tem no contexto deste projeto. Ex: "Guarda os cadastros dos clientes do salão, controla o login deles, e garante que cada dono de salão só veja os agendamentos do próprio negócio."]
 
 **Requisitos que precisamos para a ferramenta funcionar:**
-[Variáveis de ambiente que precisam estar configuradas, configurações mínimas no painel da ferramenta, tabelas/recursos que precisam existir. Ex: "Precisamos das variáveis SUPABASE_URL e SUPABASE_ANON_KEY no arquivo .env do projeto. A tabela 'usuarios' precisa estar criada e com a regra de segurança ativa antes da primeira tela de cadastro funcionar."]
+[Variáveis de ambiente que precisam estar configuradas, configurações mínimas no painel da ferramenta, tabelas/recursos que precisam existir. Ex: "Precisamos das variáveis SUPABASE_URL e SUPABASE_ANON_KEY no arquivo .env do projeto. A tabela 'profiles' precisa estar criada e com a regra de segurança ativa antes da primeira tela de cadastro funcionar."]
 
 **Plano contratado:**
 [Nome do plano. Ex: "Free", "Pro", "Business", "Pay-as-you-go"]

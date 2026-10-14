@@ -18,7 +18,7 @@ Fonte preferencial: [MCP Context7 / WebSearch + docs oficiais]
 ## [Tecnologia 1] — versão [X.Y.Z]
 
 ### Status
-[atualizada / atrasada em N versões / DEPRECATED / CVE ativo — se crítico, PARAR e reportar ao comandante]
+[atualizada / atrasada em N versões / DEPRECATED / CVE ativo — se crítico, PARAR e disparar o ATLAS (decisão de stack); o comandante só entra se a troca for decisão de negócio — D4]
 
 ### Breaking changes recentes (últimas 3 versões)
 - [mudança + o que afeta neste projeto]
