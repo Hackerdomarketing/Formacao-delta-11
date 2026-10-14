@@ -1,233 +1,118 @@
 #!/usr/bin/env python3
 """
-Hook PreToolUse do Delta-11 v6.2: BLOQUEIA Edits no kanban.md marcando
-CONCLUIDO para BACK/ENGINE/VAULT se SHIELD nao aprovou (Furo 4).
+Vigia "SHIELD aprovou" — Delta-11 v6.3 (2026-10-14). Itens C-039, C-036, D11, D33.
 
-Materializa o Furo 4 da auditoria 2026-08-11 (D-scan completo):
-'Onda C (commit 858bf66) sem autocrítica/SHIELD/build-validator'.
-Contract tests sao executados por validar-contratos-fim-fase.py,
-mas o agente pode pula-los se soft-rule.
+Nenhuma tarefa de executor fica concluida sem a APROVACAO do SHIELD.
 
-Este hook foca no **SHIELD review** especificamente (outros
-sub-agentes sao verificados por forca-despacho.py e anti-stash.py).
+Quem precisa (D11): VAULT, BACK, ENGINE, FRONT, PIXEL, FORM e SCOUT.
+Isentos: SHIELD (nao revisa a si mesmo), ATLAS e CRONOS.
 
-ALVO: Edits no kanban.md com transicao CONCLUIDO para BACK/ENGINE/VAULT.
+Prova aceita (D33): no `.delta-11/activity-log.md` da pasta principal, uma linha
+com horario gravada pelo SHIELD:
+    - [AAAA-MM-DDTHH:MM:SSZ] [SHIELD] APROVADO T-XXX [AGENTE]
+    - [AAAA-MM-DDTHH:MM:SSZ] [SHIELD] REPROVADO T-XXX [AGENTE] motivo
+  - So "APROVADO" libera; "REPROVADO" nunca conta como aprovacao (C-039).
+  - Vale a ULTIMA decisao do SHIELD para aquela tarefa e agente: se depois da
+    aprovacao veio uma reprovacao, bloqueia.
+  - A decisao precisa estar dentro da janela (`janela_horas`, padrao 4 h) pelo
+    HORARIO DA LINHA (nao pela data do arquivo, que todo vigia renova).
+  - Se a linha concluida nao tem ID de tarefa, basta uma APROVACAO recente
+    do SHIELD para aquele agente (sem reprovacao depois).
 
-LOGICA:
-  1. Detecta edit em .delta-11/kanban.md
-  2. Detecta transicao CONCLUIDO
-  3. Identifica agente (BACK/ENGINE/VAULT)
-  4. Verifica activity-log.md: ha linha com [SHIELD] ... [AGENTE]
-     nas ultimas 4 horas?
-  5. Se nao: BLOQUEIA (exit 2)
-  6. Se sim: PASSA (exit 0)
-  7. Agentes fora da lista: PASSA sempre (isentos)
+Quando age (PreToolUse em Edit|Write do `.delta-11/kanban.md`): so para tarefas
+que PASSAM a ficar concluidas nesta edicao (compara antes e depois — C-036).
 
-EXIT CODES:
-  0 = pode prosseguir
-  2 = BLOQUEAR (sem SHIELD approval)
-  1 = erro interno
+Erro interno: libera a acao, registra ERRO-INTERNO no activity-log e avisa no
+stderr (exit 1) — ver _comum.run.
 """
 
 from __future__ import annotations
 
-import json
+import os
 import re
 import sys
-import time
-from datetime import datetime
-from pathlib import Path
 
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _comum as comum  # noqa: E402
 
-ACTIVITY_LOG = Path(".delta-11/activity-log.md")
-
-# Agentes que EXIGEM SHIELD approval antes de CONCLUIDO
-AGENTES_QUE_EXIGEM_SHIELD = {"BACK", "ENGINE", "VAULT"}
-
-# Janela: 4 horas
-JANELA_SEGUNDOS = 4 * 60 * 60
-
-CONCLUSAO_RE = re.compile(
-    r"\[x\]|CONCLU[IÍ]DO|CONCLUIDA|✅", re.IGNORECASE
+HOOK = "shield-aprovado"
+EXIGEM_SHIELD = set(comum.EXECUTORES)  # D11 — sem o proprio SHIELD
+DECISAO_RE = re.compile(
+    r"\[SHIELD\]\s+(APROVADO|REPROVADO)\s+([A-Za-z][\w.]*-[\w.-]+)\s+\[([A-Z]+)\]",
+    re.IGNORECASE,
 )
-AGENTE_TAG_RE = re.compile(r"\[([A-Z_-]+)\]")
 
 
-def timestamp_utc() -> str:
-    return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+def shield_decisions() -> list[tuple]:
+    """[(quando, decisao, tarefa, agente)] dentro da janela, em ordem do arquivo."""
+    texto = comum.read_text(comum.delta_dir() / "activity-log.md")
+    agora = comum.now_utc()
+    janela = comum.window_seconds()
+    decisoes = []
+    for linha in texto.splitlines():
+        achado = DECISAO_RE.search(linha)
+        if not achado:
+            continue
+        quando = comum.line_timestamp(linha)
+        if quando is None or (agora - quando).total_seconds() > janela:
+            continue
+        decisoes.append((quando, achado.group(1).upper(), achado.group(2).upper(), achado.group(3).upper()))
+    decisoes.sort(key=lambda d: d[0])
+    return decisoes
 
 
-def log_activity(mensagem: str) -> None:
-    try:
-        ACTIVITY_LOG.parent.mkdir(parents=True, exist_ok=True)
-        with ACTIVITY_LOG.open("a", encoding="utf-8") as f:
-            f.write(f"- [{timestamp_utc()}] [shield-aprovado] {mensagem}\n")
-    except OSError:
-        pass
+def latest_decision(decisoes: list[tuple], agente: str, tarefa: str | None) -> str | None:
+    escolhidas = [d for d in decisoes if d[3] == agente and (tarefa is None or d[2] == tarefa)]
+    return escolhidas[-1][1] if escolhidas else None
 
 
-def read_hook_event() -> dict:
-    raw = sys.stdin.read().strip()
-    if not raw:
-        return {}
-    try:
-        return json.loads(raw)
-    except json.JSONDecodeError:
-        return {}
-
-
-def is_kanban_edit(event: dict) -> bool:
-    tool_input = event.get("tool_input") or {}
-    file_path = tool_input.get("file_path") or tool_input.get("path") or ""
+def message(agente: str, linha: str, tarefa: str | None, decisao: str | None) -> str:
+    horas = comum.limits()["janela_horas"]
+    id_texto = tarefa or "T-XXX"
+    motivo = (
+        f"o SHIELD REPROVOU {id_texto} de {agente} (ultima decisao)"
+        if decisao == "REPROVADO"
+        else f"nenhuma aprovacao do SHIELD para {id_texto} de {agente} nas ultimas {horas} h"
+    )
     return (
-        file_path.endswith("/.delta-11/kanban.md")
-        or file_path.endswith("\\.delta-11\\kanban.md")
-        or file_path == ".delta-11/kanban.md"
-        or file_path.endswith("kanban.md")
+        f"[{HOOK}] BLOQUEIO {comum.VERSAO} — falta a aprovacao do SHIELD\n"
+        f"\n"
+        f"Tarefa: {linha[:160]}\n"
+        f"Motivo: {motivo}\n"
+        f"\n"
+        f"O que fazer:\n"
+        f"  1. O executor avisa o CRONOS por SendMessage pedindo a revisao do SHIELD (D9, 3.8).\n"
+        f"  2. O CRONOS dispara o SHIELD; o SHIELD grava no activity-log:\n"
+        f"       - [AAAA-MM-DDTHH:MM:SSZ] [SHIELD] APROVADO {id_texto} [{agente}]\n"
+        f"     ou  - [AAAA-MM-DDTHH:MM:SSZ] [SHIELD] REPROVADO {id_texto} [{agente}] motivo\n"
+        f"  3. Com APROVADO gravado, a conclusao pode ser marcada de novo.\n"
+        f"  4. Se REPROVADO: nao conclua; corrija ou mova para BLOQUEADO.\n"
     )
-
-
-def get_combined_content(event: dict) -> str:
-    tool_input = event.get("tool_input") or {}
-    return (
-        tool_input.get("new_string", "")
-        + "\n"
-        + tool_input.get("content", "")
-    )
-
-
-def touches_conclusion(content: str) -> bool:
-    return bool(CONCLUSAO_RE.search(content))
-
-
-def extract_agente_from_content(content: str) -> str | None:
-    lines = content.split("\n")
-    for line in lines:
-        if CONCLUSAO_RE.search(line):
-            match = AGENTE_TAG_RE.search(line)
-            if match:
-                return match.group(1)
-    return None
-
-
-def has_recent_shield_approval(agente: str) -> bool:
-    """Verifica activity-log.md para linha [SHIELD] ... [AGENTE] nas ultimas 4h."""
-    if not ACTIVITY_LOG.exists():
-        return False
-
-    try:
-        mtime = ACTIVITY_LOG.stat().st_mtime
-        if time.time() - mtime > JANELA_SEGUNDOS:
-            # activity-log.md nao foi tocado em 4h = improvavel ter SHIELD recente
-            return False
-    except OSError:
-        return False
-
-    try:
-        conteudo = ACTIVITY_LOG.read_text(encoding="utf-8")
-    except OSError:
-        return False
-
-    # Procura linha com [SHIELD] e [AGENTE] nas ultimas 4h
-    # Formato: "- [TIMESTAMP] [shield-aprovado] [BACK] X"
-    # Ou: "- [TIMESTAMP] [SHIELD] ... [BACK] X" (formato de SHIELD review)
-    for line in conteudo.splitlines()[-200:]:  # ultimas 200 linhas
-        if "[SHIELD]" in line and f"[{agente}]" in line:
-            return True
-
-    return False
-
-
-def block_no_shield(agente: str, file_path: str) -> int:
-    msg = (
-        f"[shield-aprovado] BLOQUEIO v6.2.0 — SHIELD nao aprovou {agente}\n"
-        f"\n"
-        f"Arquivo: {file_path}\n"
-        f"Agente: {agente}\n"
-        f"\n"
-        f"Por que isso e' importante:\n"
-        f"A auditoria de 2026-08-11 (D-scan) documentou que BACK/ENGINE/\n"
-        f"VAULT em algumas ondas marcaram CONCLUIDO sem review do SHIELD.\n"
-        f"Validar-contratos-fim-fase.py roda tests, mas SHIELD review\n"
-        f"e' camada adicional: analiza code quality, vulnerabilidades,\n"
-        f"compliance com contratos M2, e consistencia arquitetural.\n"
-        f"\n"
-        f"Acao requerida (v6.2+):\n"
-        f"  1. ANTES de marcar CONCLUIDO, dispare SHIELD review via\n"
-        f"     Agent tool (subagent_type: general-purpose) com brief:\n"
-        f"\n"
-        f"     Agent(\n"
-        f"       description: \"SHIELD review para {agente}\",\n"
-        f"       subagent_type: \"general-purpose\",\n"
-        f"       run_in_background: false,\n"
-        f"       prompt: \"Projeto em: [caminho]. Agente: {agente}.\n"
-        f"         Revise qualidade, seguranca e compliance.\"\n"
-        f"     )\n"
-        f"\n"
-        f"  2. O SHIELD loga no activity-log.md com tag [SHIELD] e\n"
-        f"     o agente correspondente. Hook passara nas proximas 4h.\n"
-        f"\n"
-        f"  3. Se SHIELD reportar problemas: NAO marque CONCLUIDO.\n"
-        f"     Crie tarefas adicionais no kanban com tag [BLOQUEADO].\n"
-        f"\n"
-        f"Referencia: Furo 4 da auditoria 2026-08-11 (D-scan completo).\n"
-    )
-    print(msg, file=sys.stderr)
-    return 2
 
 
 def main() -> int:
-    try:
-        event = read_hook_event()
-
-        if not is_kanban_edit(event):
-            return 0
-
-        file_path = (
-            (event.get("tool_input") or {}).get("file_path", "")
-            or "<desconhecido>"
-        )
-        combined = get_combined_content(event)
-
-        if not touches_conclusion(combined):
-            return 0
-
-        agente = extract_agente_from_content(combined)
-        if not agente:
-            return 0
-
-        # Agentes fora da lista nao exigem SHIELD
-        if agente not in AGENTES_QUE_EXIGEM_SHIELD:
-            log_activity(
-                f"OK: {agente} nao exige SHIELD approval (isento)"
-            )
-            return 0
-
-        if has_recent_shield_approval(agente):
-            log_activity(
-                f"OK: {agente} tem SHIELD approval recente — CONCLUIDO liberado"
-            )
-            return 0
-
-        log_activity(
-            f"BLOQUEIO: {agente} tentou CONCLUIDO sem SHIELD approval"
-        )
-        sys.exit(block_no_shield(agente, file_path))
-
-    except Exception as exc:  # noqa: BLE001
-        print(f"[shield-aprovado] erro não-fatal: {exc}", file=sys.stderr)
-        try:
-            log_activity(f"ERRO nao-fatal: {exc}")
-        except Exception:  # noqa: BLE001
-            pass
+    evento = comum.read_event()
+    if not comum.is_kanban_event(evento):
         return 0
+    _antes, _depois, novas = comum.kanban_change(evento)
+    decisoes = None
+    for linha in novas:
+        agente = comum.line_agent(linha)
+        if agente not in EXIGEM_SHIELD:
+            continue
+        if decisoes is None:
+            decisoes = shield_decisions()
+        tarefa = comum.task_id(linha)
+        decisao = latest_decision(decisoes, agente, tarefa)
+        if decisao != "APROVADO":
+            return comum.block(
+                HOOK, message(agente, linha, tarefa, decisao),
+                f"{agente} concluiu {tarefa or 'tarefa'} sem APROVADO do SHIELD",
+            )
+        comum.log(HOOK, f"OK: {tarefa or 'tarefa'} de {agente} aprovada pelo SHIELD")
+    return 0
 
 
 if __name__ == "__main__":
-    try:
-        sys.exit(main())
-    except SystemExit:
-        raise
-    except Exception as exc:  # noqa: BLE001
-        print(f"[shield-aprovado] erro fatal: {exc}", file=sys.stderr)
-        sys.exit(0)
+    comum.run(main, HOOK)
