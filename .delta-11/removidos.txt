@@ -1,0 +1,41 @@
+# ═══════════════════════════════════════════════════════════════
+# FORMAÇÃO Δ-11 — Arquivos que SAÍRAM do sistema (v6.3 — C-054)
+# ═══════════════════════════════════════════════════════════════
+#
+# O sincronizar.sh lê esta lista e APAGA cada arquivo dela nos projetos
+# (e no backup), para que nenhum projeto continue guardando um script
+# velho ou perigoso depois que ele foi tirado da fonte oficial.
+#
+# Regras:
+#   - um caminho por linha, relativo à raiz do projeto;
+#   - só arquivos (nunca pastas);
+#   - sem "..", sem caminho absoluto;
+#   - um arquivo desta lista só é apagado no destino se ele NÃO existir
+#     mais na fonte oficial (proteção contra apagar algo que voltou).
+#
+# Ao remover um arquivo de sistema da fonte, acrescente o caminho aqui.
+# ═══════════════════════════════════════════════════════════════
+
+# v6.1 — disparo por AppleScript foi abolido (D3: o CRONOS dispara pelo Agent tool)
+disparar.sh
+.delta-11/scripts/disparar.sh
+
+# v6.3 — o LaunchAgent do monitor é gerado pelo instalar.sh com o caminho real (C-062);
+# uma cópia fixa dentro de cada projeto não serve para nada
+.delta-11/scripts/com.delta11.monitor.plist
+
+# v6.3 — cópia antiga do painel (só é apagada nos projetos quando sair da fonte)
+.delta-11/painel-v4.html.backup
+
+# v6.3 — imagem de fundo e sprites saíram da distribuição; o painel não usa (C-056)
+.delta-11/bg-delta11.png
+.delta-11/sprites/ATLAS.png
+.delta-11/sprites/BACK.png
+.delta-11/sprites/CRONOS.png
+.delta-11/sprites/ENGINE.png
+.delta-11/sprites/FORM.png
+.delta-11/sprites/FRONT.png
+.delta-11/sprites/PIXEL.png
+.delta-11/sprites/SCOUT.png
+.delta-11/sprites/SHIELD.png
+.delta-11/sprites/VAULT.png

@@ -27,8 +27,6 @@ __pycache__/
 # ─── Estado de execução do Δ-11 (muda a cada minuto, não é parte do sistema) ───
 .delta-11/activity-log.md
 .delta-11/monitor-status.json
-.delta-11/monitor-data.js
-.delta-11/pulsos-data.js
 .delta-11/ativacoes/
 .delta-11/locks/*
 !.delta-11/locks/.gitkeep
