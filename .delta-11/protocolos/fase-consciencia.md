@@ -8,6 +8,7 @@
 > - Base conceitual: `.delta-11/conhecimento/metodologia-genesis-camadas.md` → Dia 6
 > - Template dos 5 entregáveis: `.delta-11/templates/fase-consciencia-template.md`
 > - Hook bloqueante: `.delta-11/hooks/fase-consciencia-checker.py`
+> - Quem faz cada entregável: `fluxo-zero-ao-lancamento.md` → tabela "PAPEL DE CADA AGENTE NAS FASES 3.5, 4.5 E 7"
 > - Skills globais v5.4 que cobrem parte do conteúdo: `~/.claude/skills/supabase-rls/` (Dia 6 — multi-tenancy) e `~/.claude/skills/owasp-top10/` (Dia 6 — segurança, CVEs)
 
 ## O que é o Dia 6 — em linguagem da Metodologia Gênesis
@@ -33,7 +34,7 @@ A Fase 4.5 é mais permissiva do que a Fase 3.5 em exceções — porque consci�
 
 ## Os 5 entregáveis do Dia 6 — declaração completa
 
-Cada entregável vira um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-consciencia-<N>-<slug>.md` (template em `fase-consciencia-template.md`). Cada arquivo tem: descrição, escolha, justificativa, link.
+Cada entregável vira um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-consciencia-<NN>-<slug>.md` (`<NN>` de 01 a 05; modelo em `fase-consciencia-template.md`). Cada arquivo tem: descrição, escolha, justificativa, link.
 
 ### Entregável 1 — Auditoria imutável de ações
 
@@ -71,7 +72,7 @@ Cada entregável vira um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-conscien
 - É declarada de forma legível (não enterrada em if/else)
 
 **Implementação comum:**
-- Para regras simples: pasta `src/lib/regras-de-negocio/` com uma função pura por regra
+- Para regras simples: pasta `src/lib/business-rules/` com uma função pura por regra (nomes de pasta e de função em inglês, como manda `regras-codigo.md` §9; ex.: `src/lib/business-rules/can-approve-order.ts`)
 - Para regras complexas: motor tipo `json-rules-engine` ou DSL interna
 - Para regras que mudam: admin UI que edita regras em runtime (com auditoria dupla!)
 
@@ -91,6 +92,8 @@ Cada entregável vira um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-conscien
 - **DPO (Data Protection Officer) designado** — pelo menos um email de contato
 
 **Mínimo aceitável para um MVP B2C:** banner + registro de consentimento + export de dados + DPO.
+
+**Decisões do comandante (situação 1 — negócio):** quem é o DPO (encarregado de dados) e o texto da política de privacidade. O CRONOS junta essas perguntas numa só mensagem, em linguagem simples, logo no início da fase.
 
 **Skill global:** nenhuma cobre isso integralmente. Contratar DPO + auditoria humana para compliance total é a recomendação formal (ver `skills-globais-v5-4.md:127`).
 
@@ -120,7 +123,7 @@ Cada entregável vira um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-conscien
 
 ## Endereço canônico dos entregáveis
 
-Cada um dos 5 entregáveis vira um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-consciencia-<N>-<slug>.md`.
+Cada um dos 5 entregáveis vira um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-consciencia-<NN>-<slug>.md` (`<NN>` com dois dígitos). O hook `fase-consciencia-checker.py` conta os arquivos por esse nome.
 
 **Exemplo para o projeto hipotético "cofre-de-keys" iniciado em 2026-08-15:**
 - `2026-08-15-consciencia-01-auditoria-imutavel.md`
@@ -131,19 +134,21 @@ Cada um dos 5 entregáveis vira um arquivo `.delta-11/memoria/decisoes/AAAA-MM-D
 
 Use o template `.delta-11/templates/fase-consciencia-template.md` para preencher cada um.
 
-## Quem sella
+## Quem faz e quem sela
 
-A Fase 4.5 consagra com a presença de:
-- **SHIELD** (auditoria + rate limiting)
-- **Comandante** (LGPD + aprovações)
-- **Líder de produto** (regras de negócio)
-- **Compliance / DPO** (se aplicável)
+- **VAULT** — entregável 1 (auditoria imutável) e a parte de banco do 4 (exportar e apagar dados)
+- **ENGINE** — entregáveis 2 (limite de requisições), 3 (motor de regras) e 5 (fluxos de aprovação no servidor), e as rotas do 4
+- **FORM e PIXEL** — telas de consentimento, de pedido de exportação/exclusão e de aprovação (4 e 5)
+- **BACK e FRONT** — líderes: revisam o trabalho dos seus executores (em BAIXA complexidade, fazem eles mesmos)
+- **SHIELD** — revisa tudo e **sela** a fase (auditoria + limite de requisições + teste cruzado)
+- **ATLAS** — só entra, disparado pelo CRONOS, se faltar regra de negócio no project-core
+- **Comandante** — só as decisões de negócio (DPO, política de privacidade, quais operações exigem aprovação e quem aprova); e, em `modo manual`, o `aprovar` da fronteira da fase
 
-Sem SHIELD + Comandante, a Fase 5 NÃO pode começar. O hook `fase-consciencia-checker.py` bloqueia a transição automaticamente.
+Sem o selo do SHIELD, a Fase 5 NÃO pode começar. O hook `fase-consciencia-checker.py` bloqueia a transição automaticamente.
 
 ## Critério objetivo de selo
 
-Os 5 arquivos `.delta-11/memoria/decisoes/...` existem. SHIELD declara "Fase 4.5 selada" no kanban. Comandante digita `aprovar`.
+Os 5 arquivos `.delta-11/memoria/decisoes/...` existem. O SHIELD declara "Fase 4.5 selada" (avisa o CRONOS, que registra no kanban). Em modo `automatico`, o CRONOS abre a Fase 5 quando a cadeia de selo está verde; em `modo manual`, o comandante digita `aprovar`.
 
 Cross-test: o `audit_log` realmente captura uma ação simulada (fazer login + 1 update + ver se foi registrado). O rate limiter rejeita a 6ª tentativa de login.
 
@@ -174,8 +179,8 @@ Este protocolo evolui conforme o sistema amadurece. Mudanças aqui passam por:
 3. Decisão via ADR (especialmente se a LGPD/GDPR mudar)
 4. Atualização deste arquivo + template + hook + testes
 
-**Versão do protocolo:** v6.0.0 (2026-07-12)
+**Versão do protocolo:** v6.3 (2026-10-14) — Correção Geral. Criado na v6.0.0 (2026-07-12).
 **Manutenção:** manter sincronizado com `metodologia-genesis-camadas.md` (Dia 6), `fase-consciencia-template.md`, e as skills globais v5.4.
 
 ---
-*Este documento é IMUTÁVEL após publicação. Correções em ADIÇÕES POSTERIORES no CHANGELOG.*
+*Mudanças neste protocolo são registradas no CHANGELOG (última: v6.3).*
