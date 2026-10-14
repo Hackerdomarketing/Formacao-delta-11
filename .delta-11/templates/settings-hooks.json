@@ -224,13 +224,18 @@
         ]
       },
       {
-        "matcher": "Edit|Write|Bash",
+        "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/regenerar-contratos.py\"",
             "timeout": 5
-          },
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|Bash",
+        "hooks": [
           {
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/brief-preservado.py\"",

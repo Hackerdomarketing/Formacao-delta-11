@@ -67,7 +67,7 @@ ESPERADO = {
     "pre-leitura": ("PreToolUse", "Read", 5), "pre-despacho": ("PreToolUse", "Agent|Task", 5),
     "anti-autocompact": ("PreToolUse", "Edit|Write|Agent|Task|Bash", 5),
     "topologia-deploy": ("PreToolUse", "Edit|Write|Bash", 5),
-    "regenerar-contratos": ("PostToolUse", "Edit|Write", 5), "brief-preservado": ("PostToolUse", "Edit|Write", 5),
+    "regenerar-contratos": ("PostToolUse", "Edit|Write", 5), "brief-preservado": ("PostToolUse", "Edit|Write|Bash", 5),
 }
 EXTRA = {"3-tentativas-shield": [("SessionStart", ""), ("PreToolUse", "Agent|Task")]}
 VERDE, VERMELHO, SEM = "\033[0;32m", "\033[0;31m", "\033[0m"

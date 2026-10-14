@@ -32,7 +32,7 @@ for evento, grupos in t["hooks"].items():
             m = re.search(r"/\.delta-11/hooks/([^\"/]+)\"$", h["command"])
             registros.append((evento, g.get("matcher", ""), m.group(1) if m else None, h["command"], h.get("timeout")))
 
-no_disco = sorted(x for x in os.listdir(pasta) if x.rsplit(".", 1)[-1] in ("py", "js", "sh"))
+no_disco = sorted(x for x in os.listdir(pasta) if x.rsplit(".", 1)[-1] in ("py", "js", "sh") and not x.startswith("_"))  # _comum.py etc. são apoio, não vigias
 registrados = sorted({r[2] for r in registros if r[2]})
 checar(set(no_disco) == set(registrados),
        "todo vigia de .delta-11/hooks/ esta registrado e vice-versa (%d arquivos)" % len(no_disco))
