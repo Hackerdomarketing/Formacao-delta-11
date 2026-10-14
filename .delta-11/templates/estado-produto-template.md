@@ -40,12 +40,17 @@ Se não houve desvios, escreva "Nenhum — segui o mini-plano exatamente."]
 
 ## AUTOCRÍTICA (v5.3 — OBRIGATÓRIO para os 8 executores; ver Passo 3.4 do CLAUDE.md)
 [Uma linha com o path exato do log — o SHIELD lê este arquivo antes de revisar; ausência ou path errado = tarefa devolvida sem revisão. Formato:
-- "autocritica: .delta-11/logs/autocritica/AAAA-MM-DD-T-XXX-[SEU-NOME].md"]
+- "autocritica: .delta-11/logs/autocritica/[AAAA-MM-DD]-[T-XXX]-[NOME].md"
+A linha começa exatamente com `autocritica: ` — é obrigatória e é conferida pelo SHIELD e pelos vigias.]
+
+autocritica: .delta-11/logs/autocritica/[AAAA-MM-DD]-[T-XXX]-[NOME].md
 
 ## PROPOSTAS PARA O PROJECT-CORE (v6.3 — D7)
 [Só o ATLAS escreve no project-core e nas fatias. Se você descobriu algo que deveria entrar lá (contrato
 ambíguo, coluna com nome diferente, decisão técnica nova), escreva aqui em 1 linha por item; o CRONOS encaminha
-ao ATLAS. Se não há, escreva "Nenhuma".]
+ao ATLAS. Padrão quando não há nada: "Nenhuma".]
+
+Nenhuma
 
 ## PRÓXIMA TAREFA
 [1 linha. Se não há, escreva "aguardando próxima fase".]
