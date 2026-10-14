@@ -10,7 +10,10 @@
 # Todo disparo é feito pelo CRONOS via Agent tool (o ATLAS dispara só o CRONOS).
 #
 # Frases de proibição ("NUNCA peça para copiar e colar", "sem você colar
-# nada") são permitidas — o teste ignora linhas com negação.
+# nada", "Ninguém pede ao comandante para abrir janela") são permitidas — o
+# teste ignora linhas com negação. Também ignora o REGISTRO HISTÓRICO do
+# problema, no passado ("textos ainda pediam ao comandante para abrir
+# janela"): descreve o que foi corrigido, não manda fazer.
 # Arquivos: CLAUDE.md, operativos, protocolos, templates, sub-agentes e, na
 # fonte oficial, GUIA-DO-COMANDANTE.md e README.md.
 # ════════════════════════════════════════════════════════════════
@@ -36,12 +39,33 @@ NOVA_JANELA='(abr(a|e|ir|am)|abre)[[:space:]]+(uma[[:space:]]+|um[[:space:]]+)?n
 ATIVAR_MANUAL='ativ(e|ar|a|em)[[:space:]]+manualmente'
 PEDIR_AO_COMANDANTE='pe(ç|c)a[[:space:]]+(ao|para o)[[:space:]]+comandante[^.]{0,40}(abr|col|ativ|rod|dispar)'
 
-expect_no_instruction "nenhum texto pede para copiar e colar" "$COPIAR_COLAR" "${ARQUIVOS[@]}"
-expect_no_instruction "nenhum texto pede para colar um bloco ou prompt" "$COLAR_BLOCO" "${ARQUIVOS[@]}"
-expect_no_instruction "nenhum texto pede para abrir nova janela, sessão ou aba" "$NOVA_JANELA" "${ARQUIVOS[@]}"
-expect_no_instruction "nenhum texto pede para ativar um agente manualmente" "$ATIVAR_MANUAL" "${ARQUIVOS[@]}"
-expect_no_instruction "nenhum texto manda pedir ao comandante que abra, cole, ative, rode ou dispare algo" \
-    "$PEDIR_AO_COMANDANTE" "${ARQUIVOS[@]}"
+# Registro histórico (verbo no passado): descreve o problema já corrigido.
+HISTORY_PATTERN='(pediam|mandavam|antes (pedia|mandava))[^.]{0,40}comandante'
+
+for arquivo in "${ARQUIVOS[@]}"; do
+    require_file "$arquivo" "${arquivo#"$REPO_ROOT"/}" || true
+done
+
+# expect_no_active_instruction <rótulo> <regex> — como expect_no_instruction,
+# mas também descarta as linhas de registro histórico.
+expect_no_active_instruction() {
+    local label="$1" pattern="$2" found
+    found=$(instruction_lines "$pattern" "${ARQUIVOS[@]}" \
+        | { grep -viE -- "$HISTORY_PATTERN" || true; } | head -8)
+    if [ -z "$found" ]; then
+        pass "$label"
+    else
+        fail "$label — ainda aparece como instrução:"
+        echo "$found" | cut -c1-220 | sed 's/^/            /'
+    fi
+}
+
+expect_no_active_instruction "nenhum texto pede para copiar e colar" "$COPIAR_COLAR"
+expect_no_active_instruction "nenhum texto pede para colar um bloco ou prompt" "$COLAR_BLOCO"
+expect_no_active_instruction "nenhum texto pede para abrir nova janela, sessão ou aba" "$NOVA_JANELA"
+expect_no_active_instruction "nenhum texto pede para ativar um agente manualmente" "$ATIVAR_MANUAL"
+expect_no_active_instruction "nenhum texto manda pedir ao comandante que abra, cole, ative, rode ou dispare algo" \
+    "$PEDIR_AO_COMANDANTE"
 
 # Lado positivo: o CLAUDE.md diz que o disparo é feito pelo Agent tool.
 expect_match "$REPO_ROOT/CLAUDE.md" "Agent tool" "CLAUDE.md documenta o disparo via Agent tool"

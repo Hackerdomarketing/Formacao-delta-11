@@ -15,8 +15,8 @@
 #      mudava de resultado de uma máquina para outra.
 #   3. Teste confere o CONCEITO exigido pelas decisões da v6.3, não uma
 #      frase exata que pode ser reescrita.
-#   4. Uma linha com negação ("nunca", "não", "sem", "proibido"...) não
-#      conta como instrução. Assim "NUNCA peça para copiar e colar" não é
+#   4. Uma linha com negação ("nunca", "não", "sem", "ninguém pede",
+#      "proibido"...) não conta como instrução. Assim "NUNCA peça para copiar e colar" não é
 #      confundido com "copie e cole este bloco".
 #
 # Uso dentro de um teste (em tests/<pasta>/):
@@ -58,7 +58,7 @@ TEST_FAILURES=0
 # (ex.: "o agente não executou e peça que ele ative manualmente" continua
 # sendo instrução); vale só "não peça", "não precisa", "não deve",
 # "não leia", "não escreva", "não atualize"...
-NEGATION_PATTERN='(nunca|jamais|hip(ó|o)tese alguma|proib|❌|removid|legad|deixou de|em vez de|ao invés|ao inves|desatualizad|antes da v6|opt-in|nada mais|zero |(não|nao|NÃO|NAO) (peça|peca|PEÇA|precisa|deve|pode|use|usar|é mais|existe mais|pedir|pede|instrua|mande|há|leia|lê|ler|escreva|escreve|escrever|crie|criar|edite|editar|atualize|atualizar|grave|gravar|mexa|toque|mova|mover)|sem (você|voce|precisar|o humano|humano|intervenção|intervencao))'
+NEGATION_PATTERN='(nunca|jamais|hip(ó|o)tese alguma|proib|❌|removid|legad|deixou de|em vez de|ao invés|ao inves|desatualizad|antes da v6|opt-in|nada mais|zero |(não|nao|NÃO|NAO) (peça|peca|PEÇA|precisa|deve|pode|use|usar|é mais|existe mais|pedir|pede|instrua|mande|há|leia|lê|ler|escreva|escreve|escrever|crie|criar|edite|editar|atualize|atualizar|grave|gravar|mexa|toque|mova|mover)|sem (você|voce|precisar|o humano|humano|intervenção|intervencao)|ningu(é|e)m (pede|pedir|precisa|deve|abre|cola|copia|ativa))'
 
 pass() { echo -e "  ${GREEN}[OK]${NC}    $1"; }
 fail() { echo -e "  ${RED}[FALTA]${NC} $1"; TEST_FAILURES=$((TEST_FAILURES + 1)); }
@@ -150,7 +150,8 @@ expect_no_instruction() {
 # markdown_section <arquivo> <regex ERE do título>
 # Imprime a seção que começa no primeiro título que casa com a regex e
 # termina no próximo título de nível igual ou maior (ex.: de "### FASE 3.5"
-# até o próximo "### " ou "## ").
+# até o próximo "### " ou "## "). Sem diferenciar maiúsculas de minúsculas,
+# como o expect_match ("recorte" acha "## 2. Recorte").
 markdown_section() {
     local path="$1" pattern="$2"
     [ -f "$path" ] || return 0
@@ -160,7 +161,7 @@ markdown_section() {
             while (substr(text, count + 1, 1) == "#") count++
             return count
         }
-        started == 0 && /^#+ / && $0 ~ pattern { started = 1; level = header_level($0); print; next }
+        started == 0 && /^#+ / && tolower($0) ~ tolower(pattern) { started = 1; level = header_level($0); print; next }
         started == 1 && /^#+ / && header_level($0) <= level { exit }
         started == 1 { print }
     ' "$path"

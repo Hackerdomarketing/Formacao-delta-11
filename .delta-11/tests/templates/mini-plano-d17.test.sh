@@ -48,7 +48,9 @@ for item in "${SECOES[@]}"; do
 done
 
 RECORTE=$(markdown_section "$TEMPLATE" "^#+ +2\.? .*recorte")
-if grep -qE -- "-produto\.md" <<< "$RECORTE"; then
+if [ -z "$RECORTE" ]; then
+    fail "D17: não deu para ler a seção 2 (recorte da fase anterior)"
+elif grep -qE -- "(\[AGENTE-ANTERIOR\]|[A-Z]+)-produto\.md" <<< "$RECORTE"; then
     pass "D17: o recorte da fase anterior cita o -produto.md anterior"
 else
     fail "D17: o recorte da fase anterior não cita o -produto.md anterior"
