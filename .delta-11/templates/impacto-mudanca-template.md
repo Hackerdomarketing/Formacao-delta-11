@@ -16,7 +16,7 @@
 - **Mudanças detectadas:** [N]
 - **Arquivos afetados:** [N]
 - **Tarefas do kanban invalidadas:** [N]
-- **Agentes notificados:** [lista ou "nenhum ativo"]
+- **Agentes a avisar (o CRONOS grava os avisos):** [lista ou "nenhum ativo"]
 
 ## Mudanças classificadas
 
@@ -45,10 +45,15 @@ pelo CRONOS quando ele aprovar e criar a tarefa:]
 
 - [IMPACTO-MUDANCA] [AGENTE]: [descrição] — resumo_humano: [1 frase leiga]
 
+## Avisos aos agentes ativos (o CRONOS grava cada um em `ativacoes/contrato-alterado-[AGENTE].txt`)
+
+### [AGENTE]
+[o que mudou · tarefas propostas · arquivos a revisar · "releia a fatia `project-core/[contratos|banco|visual|decisoes-tecnicas].md`"]
+
 ## Próximos passos do CRONOS
 
 1. Revisar este relatório e aprovar/ajustar as tarefas propostas
 2. Criar no kanban as tarefas aprovadas (só o CRONOS escreve `kanban.md` e `kanban-data.js`)
 3. Decidir se alguma exige disparar o ATLAS (mudança estrutural grande)
 4. Disparar agentes com as novas tarefas seguindo o sequenciamento
-5. Confirmar que agentes ativos leram `ativacoes/contrato-alterado-[AGENTE].txt`
+5. Gravar `ativacoes/contrato-alterado-[AGENTE].txt` com o texto da seção acima e confirmar que os agentes ativos leram

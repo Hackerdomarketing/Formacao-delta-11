@@ -245,9 +245,9 @@ TABELA: [table_name]
 
 [O ATLAS registra aqui uma linha por entregável quando a fase for selada — o conteúdo completo fica nos arquivos.]
 
-- **Fase 3.5 — Ritmo (Dia 4):** 10 artefatos em `memoria/decisoes/AAAA-MM-DD-ritmo-temporal-<N>-<slug>.md` — [selada em AAAA-MM-DD / pendente]
-- **Fase 4.5 — Consciência (Dia 6):** 5 entregáveis em `memoria/decisoes/AAAA-MM-DD-consciencia-<N>-<slug>.md` — [selada em AAAA-MM-DD / pendente]
-- **Fase 7 — Descanso (Dia 7):** 10 entregáveis em `memoria/decisoes/AAAA-MM-DD-descanso-<N>-<slug>.md` + runbooks em `memoria/runbooks/` + teste supremo de 2 semanas — [selada em AAAA-MM-DD / pendente]
+- **Fase 3.5 — Ritmo (Dia 4):** 10 artefatos em `memoria/decisoes/AAAA-MM-DD-ritmo-temporal-<NN>-<slug>.md` — [selada em AAAA-MM-DD / pendente]
+- **Fase 4.5 — Consciência (Dia 6):** 5 entregáveis em `memoria/decisoes/AAAA-MM-DD-consciencia-<NN>-<slug>.md` — [selada em AAAA-MM-DD / pendente]
+- **Fase 7 — Descanso (Dia 7):** 10 entregáveis em `memoria/decisoes/AAAA-MM-DD-descanso-<NN>-<slug>.md` + runbooks em `memoria/runbooks/` + teste supremo de 2 semanas — [selada em AAAA-MM-DD / pendente]
 
 ## DECISÕES ARQUITETURAIS
 

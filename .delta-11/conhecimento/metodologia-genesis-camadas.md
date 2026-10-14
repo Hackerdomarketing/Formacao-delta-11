@@ -145,7 +145,7 @@ Cada camada tem uma contraposição lateral **do tipo específico** daquela cama
 
 **Texto hebraico chave:** *vayechulu* (foram consumados) · *vayishbot* (cessou intencionalmente) · *vayvarech* (abençoou) · *kadash* (santificou)
 
-**Camada no software:** documentação técnica + de domínio consumada, testes de aceitação E2E, pipeline de deploy automatizado, **runbooks operacionais específicos do projeto** (instanciados da base global), monitoramento com dashboards + alertas ativos, versionamento com tag de release, backups configurados e testados, plano de DR testado, onboarding de novos devs testado, **teste supremo** ("se o criador ficar 2 semanas fora, o sistema continua?").
+**Camada no software:** documentação técnica + de domínio consumada, testes de aceitação E2E, pipeline de deploy automatizado, **runbooks operacionais específicos do projeto** (instanciados da base global), monitoramento com dashboards + alertas ativos, versionamento com tag de release, backups configurados e testados, plano de DR testado, onboarding de novos devs testado, **teste supremo** ("se o criador tirar 2 semanas de férias, o sistema continua?").
 
 **Contraposição lateral — Tipo 7 (de estado):** sistema no estado de obra consumada (selada, versionada, documentada, testada, em operação estável) contra sistema no estado de trabalho em curso (em desenvolvimento ativo, sem consagração final). Ambos coexistiram dentro da história do software — houve um momento em que estava em curso, houve um momento em que ficou consumado.
 
@@ -169,7 +169,7 @@ Toda fase (não importa qual) executa internamente o mesmo ciclo de 7 sub-etapas
 6. **Teste adversarial** — alguém encarregado de tentar quebrar o resultado.
 7. **Selagem por critérios objetivos** — só então avançar. Ver Seção abaixo.
 
-**Aplicação no D-11:** `protocolos/ciclo-interno-7d.md` + `templates/ciclo-interno-template.md` + seção "Checklist do ciclo interno" do `templates/mini-plano-agente-template.md`. **Não há hook técnico** para o ciclo interno: quem confere é o CRONOS (ao gerar o mini-plano, sub-etapas 1-4) e o SHIELD (nas revisões, sub-etapas 5-7).
+**Aplicação no D-11:** `protocolos/ciclo-interno-7d.md` + `templates/ciclo-interno-template.md` + seção "Checklist do ciclo interno" do `templates/mini-plano-agente-template.md`. A verificação do ciclo interno é feita pelo CRONOS (sub-etapas 1 e 2) e pelo SHIELD (5 a 7) pelo checklist do mini-plano; não há hook específico.
 
 ---
 

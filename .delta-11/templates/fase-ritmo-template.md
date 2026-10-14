@@ -1,7 +1,7 @@
 # TEMPLATE — Fase 3.5: Artefato de Ritmo Temporal (Dia 4 da Metodologia Gênesis)
 
 > **O que é:** este template é usado para preencher CADA UM dos 10 artefatos do Dia 4 (Ritmo Temporal).
-> Um artefato = um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-ritmo-temporal-<N>-<slug>.md`.
+> Um artefato = um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-ritmo-temporal-<NN>-<slug>.md`.
 > Copie o bloco, substitua os placeholders `{{VARIAVEL}}`, e salve no endereço correto.
 >
 > **Quem escreve:** Engenheiro de DevOps/SRE + Líder Técnico da Fundação (Etapa 3.5 do fluxo v6.0).

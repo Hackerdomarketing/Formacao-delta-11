@@ -1,6 +1,6 @@
 # TEMPLATE — Fase 4.5: Artefato de Consciência (Dia 6 da Metodologia Gênesis)
 
-> **O que é:** este template preenche CADA UM dos 5 entregáveis do Dia 6 (Consciência Dominante). Um entregável = um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-consciencia-<N>-<slug>.md`. Copie o bloco, substitua os placeholders, salve.
+> **O que é:** este template preenche CADA UM dos 5 entregáveis do Dia 6 (Consciência Dominante). Um entregável = um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-consciencia-<NN>-<slug>.md`. Copie o bloco, substitua os placeholders, salve.
 >
 > **Quem escreve:** SHIELD (auditoria + rate limiting) + Líder de produto (regras) + Compliance/LGPD + Comandante (aprovação final).
 >
@@ -39,6 +39,7 @@ A tecnologia / padrão / formato escolhido. Em uma frase.
 Exemplos:
 - "PostgreSQL triggers + tabela audit_log append-only" (auditoria)
 - "Upstash Ratelimit com sliding window" (rate limiting)
+- "Uma função pura por regra em src/lib/business-rules/ (ex.: src/lib/business-rules/can-approve-order.ts)" (motor de regras)
 - "Máquina de estados em src/lib/approval-flows/" (aprovação)
 - "Banner opt-in com persistência em cookie + DB" (LGPD)
 

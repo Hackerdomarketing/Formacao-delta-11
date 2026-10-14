@@ -1,6 +1,6 @@
 # TEMPLATE — Fase 7: Artefato de Descanso (Dia 7 da Metodologia Gênesis)
 
-> **O que é:** este template preenche CADA UM dos 10 entregáveis do Dia 7 (Descanso Consagrado). Um entregável = um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-descanso-<N>-<slug>.md`.
+> **O que é:** este template preenche CADA UM dos 10 entregáveis do Dia 7 (Descanso Consagrado). Um entregável = um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-descanso-<NN>-<slug>.md`.
 >
 > **Diferença dos entregáveis do Dia 4 e Dia 6:** o Dia 7 exige **EVIDÊNCIA** — não basta declarar. O entregável só conta quando há prova de execução (link para log, screenshot, hash, ou teste executado).
 >

@@ -223,6 +223,8 @@ travaria esperando) e clicar com `el.click()` via JavaScript (falha em component
 - **FAIL** — pelo menos um passo `FALHOU` (ou servidor não sobe, ou roteiro ausente).
 - **BLOQUEADO** — nenhum passo `FALHOU`, mas pelo menos um ficou `BLOQUEADO`.
 
+**Você roda nos dois modos do selo.** No `automatico`, o CRONOS usa o seu veredito para selar (PASS) ou abrir correção. No `modo manual`, o CRONOS leva o seu relatório (com os screenshots) ao comandante junto com o pedido de `aprovar`. O seu trabalho é idêntico nos dois casos.
+
 O CRONOS decide o que fazer com FAIL/BLOQUEADO (ver `templates/selo-experiencial-template.md`). Você não cria
 tarefas, não mexe no kanban e não chama outro agente.
 
