@@ -8,6 +8,10 @@
 #       (itens vagos como "fonte com personalidade" devem virar itens
 #       ESPECÍFICOS no gabarito, não ficar na seção de sucesso)
 # F14 — Pasta execucoes/ existe com .gitkeep
+# Runner — a execução mais recente tem prompts com conteúdo real
+#          (não mais uma pasta datada fixa — C-128)
+# Os golden baselines só existem na FONTE OFICIAL: dentro de um projeto
+# o teste é pulado de forma visível.
 # ════════════════════════════════════════════════════════════════
 
 set -euo pipefail
@@ -22,6 +26,10 @@ TAREFAS_DIR="$REPO_ROOT/golden-baselines/tarefas"
 EXECUCOES_DIR="$REPO_ROOT/golden-baselines/execucoes"
 
 falhou=0
+if [ ! -d "$REPO_ROOT/golden-baselines" ] && [ ! -f "$REPO_ROOT/sincronizar.sh" ]; then
+    echo -e "  \033[1;33m[PULADO]\033[0m golden-baselines/ so existe na fonte oficial (rodando dentro de um projeto)"
+    exit 0
+fi
 ok() { echo -e "  ${GREEN}[OK]${NC} $1"; }
 err() { echo -e "  ${RED}[FAIL]${NC} $1"; falhou=$((falhou + 1)); }
 
@@ -31,14 +39,19 @@ if [ ! -d "$TAREFAS_DIR" ]; then
     err "pasta de tarefas nao encontrada: $TAREFAS_DIR"
 else
     sem_updated=0
+    total_tarefas=0
     for f in "$TAREFAS_DIR"/*.md; do
+        [ -f "$f" ] || continue
+        total_tarefas=$((total_tarefas + 1))
         if ! grep -q "Última atualização\|Ultima atualizacao" "$f"; then
             err "$(basename "$f"): sem campo 'Última atualização'"
             sem_updated=$((sem_updated + 1))
         fi
     done
-    if [ "$sem_updated" -eq 0 ]; then
-        ok "todas as tarefas tem campo de atualizacao"
+    if [ "$total_tarefas" -eq 0 ]; then
+        err "nenhuma tarefa canonica em $TAREFAS_DIR (o teste nao conferiu nada)"
+    elif [ "$sem_updated" -eq 0 ]; then
+        ok "todas as $total_tarefas tarefas tem campo de atualizacao"
     fi
 fi
 
@@ -59,6 +72,7 @@ padroes=(
 )
 achou_subj=0
 for f in "$TAREFAS_DIR"/*.md; do
+    [ -f "$f" ] || continue
     # Extrair secao "Criterios de sucesso" ate a proxima secao
     secao=$(awk '/^## 3\. Crit/{flag=1; next} /^## /{flag=0} flag' "$f")
     for padrao in "${padroes[@]}"; do
@@ -87,25 +101,36 @@ else
 fi
 
 echo ""
-# ─── Regressão do runner (v5.4 E2): 10 prompts extraídos com >5 linhas ──
-echo ""
-echo "[runner] extracao de prompts (regressao v5.4 E2):"
-runner_dir="$REPO_ROOT/golden-baselines/execucoes/2026-07-10-v5.4-baseline"
-if [ -d "$runner_dir" ]; then
+# ─── Regressão do runner (v5.4 E2, revisto na v6.3) ─────────────
+# Antes o teste olhava só a pasta fixa "2026-07-10-v5.4-baseline" (C-128):
+# uma execução nova nunca era conferida. Agora confere a execução MAIS
+# RECENTE de execucoes/ (as pastas começam com a data AAAA-MM-DD, então a
+# última em ordem alfabética é a mais nova). Execuções antigas são
+# histórico: a v5.3 foi gerada pelo runner com defeito que a v5.4 corrigiu.
+echo "[runner] extracao de prompts (execucao mais recente):"
+execucao_recente=""
+for pasta_execucao in "$EXECUCOES_DIR"/*/; do
+    [ -d "$pasta_execucao" ] && execucao_recente="$pasta_execucao"
+done
+if [ -z "$execucao_recente" ]; then
+    err "nenhuma execucao em $EXECUCOES_DIR — rode 'bash golden-baselines/rodar-comparacao.sh <rotulo>'"
+else
+    prompts_conferidos=0
     prompts_vazios=0
-    for f in "$runner_dir"/*/prompt-de-ativacao.txt; do
+    for f in "$execucao_recente"*/prompt-de-ativacao.txt; do
         [ -f "$f" ] || continue
+        prompts_conferidos=$((prompts_conferidos + 1))
         linhas=$(wc -l < "$f" | xargs)
         if [ "$linhas" -lt 5 ]; then
             err "$(basename "$(dirname "$f")"): prompt-de-ativacao tem so $linhas linhas (esperado >=5)"
             prompts_vazios=$((prompts_vazios + 1))
         fi
     done
-    if [ "$prompts_vazios" -eq 0 ]; then
-        ok "todos os 10 prompts foram extraidos com conteudo real"
+    if [ "$prompts_conferidos" -eq 0 ]; then
+        err "$(basename "$execucao_recente"): nenhum prompt-de-ativacao.txt (runner nao extraiu nada)"
+    elif [ "$prompts_vazios" -eq 0 ]; then
+        ok "$(basename "$execucao_recente"): $prompts_conferidos prompts com conteudo real"
     fi
-else
-    err "runner nao gerou v5.4-baseline — rode 'bash golden-baselines/rodar-comparacao.sh v5.4-baseline'"
 fi
 
 if [ "$falhou" -eq 0 ]; then

@@ -1,6 +1,6 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-# BACK REVIEW — Auditoria Automatizada de Codigo Backend
+# BACK REVIEW — Auditoria Automatizada de Codigo Backend (v6.3 — 2026-10-14)
 # ═══════════════════════════════════════════════════════════════
 #
 # Verifica padroes obrigatorios em rotas de API:
@@ -8,15 +8,17 @@
 # - Filtragem por user_id em queries
 # - Validacao .max() em strings
 # - Paginacao em listagens
-# - Status HTTP corretos
+# - Status HTTP corretos (inclui D13: validacao falhou = 400, nunca 422)
 # - Padroes N+1
 # - Inicializacao segura de servicos externos
 #
 # Uso:
 #   bash .delta-11/ferramentas/back-review.sh [diretorio]
 #   bash .delta-11/ferramentas/back-review.sh src/app/api
-#   bash .delta-11/ferramentas/back-review.sh --resumo
+#   bash .delta-11/ferramentas/back-review.sh --resumo   # so o resumo final
 #
+# Saida (convencao das ferramentas v6.3): 0 = OK ou ALERTA (so avisos);
+# 1 = FALHA (problema critico) ou uso errado.
 # Nao precisa instalar nada — usa apenas ferramentas do sistema.
 # ═══════════════════════════════════════════════════════════════
 
@@ -34,6 +36,10 @@ for arg in "$@"; do
         MODO_RESUMO=true
     elif [[ -d "$arg" ]]; then
         DIRETORIO="$arg"
+    else
+        echo "ERRO: '$arg' nao e uma pasta nem a opcao --resumo."
+        echo "Uso: back-review.sh [diretorio] [--resumo]"
+        exit 1
     fi
 done
 
@@ -54,11 +60,34 @@ if [ -z "$DIRETORIO" ]; then
     fi
 fi
 
+# Lista os arquivos de codigo da pasta (todos ou so as rotas route.*).
+list_code_files() {
+    find "$DIRETORIO" -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) \
+        -not -path "*/node_modules/*" 2>/dev/null || true
+}
+list_route_files() {
+    list_code_files | grep -E "route\.(ts|js|tsx|jsx)$" || true
+}
+
+# Conta ocorrencias (nao linhas) do padrao no arquivo. Sem "grep -c ... ||
+# echo 0": quando nao acha, o grep -c imprime "0" E falha, e a variavel
+# virava "0\n0" — com set -e o script abortava (C-134).
+count_occurrences() {
+    local count
+    count=$( { grep -oE -- "$1" "$2" 2>/dev/null || true; } | wc -l | tr -d ' ')
+    echo "${count:-0}"
+}
+
 ALERTAS=0
 CRITICOS=0
 AVISOS=0
 ARQUIVOS_VERIFICADOS=0
 RESULTADO_FINAL="OK"
+
+# No modo --resumo, os detalhes vao para o lixo e so o resumo final aparece.
+if [ "$MODO_RESUMO" = true ]; then
+    exec 3>&1 1>/dev/null
+fi
 
 echo "═══════════════════════════════════════════════════"
 echo "  BACK REVIEW — Auditoria de Codigo Backend"
@@ -104,11 +133,11 @@ ROTAS_SEM_AUTH=0
 
 while IFS= read -r arquivo; do
     [ -f "$arquivo" ] || continue
-    ARQUIVOS_VERIFICADOS=$((ARQUIVOS_VERIFICADOS + 1))
 
     # Pular arquivos de teste
     [[ "$arquivo" == *".test."* ]] && continue
     [[ "$arquivo" == *"__tests__"* ]] && continue
+    ARQUIVOS_VERIFICADOS=$((ARQUIVOS_VERIFICADOS + 1))
 
     # Verificar se tem alguma forma de auth check
     if ! grep -qE "getSession|getServerSession|getUser|auth\(\)|createClient|supabase\.auth|verifyToken|authenticate|requireAuth|withAuth|getToken|cookies\(\)" "$arquivo" 2>/dev/null; then
@@ -118,9 +147,9 @@ while IFS= read -r arquivo; do
             ROTAS_SEM_AUTH=$((ROTAS_SEM_AUTH + 1))
         fi
     fi
-done < <(find "$DIRETORIO" -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" 2>/dev/null | grep -E "route\.(ts|js|tsx|jsx)$" || true)
+done < <(list_route_files)
 
-if [ $ROTAS_SEM_AUTH -eq 0 ]; then
+if [ "$ROTAS_SEM_AUTH" -eq 0 ]; then
     echo "  OK  Todas as rotas verificam autenticacao"
 fi
 echo ""
@@ -148,7 +177,7 @@ while IFS= read -r arquivo; do
             fi
         fi
     fi
-done < <(find "$DIRETORIO" -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" 2>/dev/null || true)
+done < <(list_code_files)
 
 if [ $QUERIES_SEM_FILTRO -eq 0 ]; then
     echo "  OK  Queries parecem filtrar por usuario"
@@ -170,19 +199,20 @@ while IFS= read -r arquivo; do
 
     # Se usa z.string() (Zod), verificar se tem .max()
     if grep -qE "z\.string\(\)" "$arquivo" 2>/dev/null; then
-        # Contar strings sem .max()
-        sem_max=$(grep -cE "z\.string\(\)(?!.*\.max\()" "$arquivo" 2>/dev/null || echo "0")
-        # Metodo alternativo: contar z.string() total e z.string()...max() separado
-        total_strings=$(grep -c "z\.string()" "$arquivo" 2>/dev/null || echo "0")
-        com_max=$(grep -c "z\.string().*\.max(" "$arquivo" 2>/dev/null || echo "0")
+        # Ocorrencias de z.string() menos as que encadeiam .max( (ex.:
+        # z.string().trim().max(100)). Conta ocorrencias, nao linhas: dois
+        # campos na mesma linha contam 2. (grep -E nao tem "(?!" — o
+        # lookahead antigo nunca funcionou.)
+        total_strings=$(count_occurrences 'z\.string\(\)' "$arquivo")
+        com_max=$(count_occurrences 'z\.string\(\)(\.[A-Za-z]+\([^()]*\))*\.max\(' "$arquivo")
         diferenca=$((total_strings - com_max))
 
-        if [ "$diferenca" -gt 0 ] 2>/dev/null; then
+        if [ "$diferenca" -gt 0 ]; then
             registrar_aviso "$arquivo" "$diferenca campo(s) z.string() sem .max() definido"
             STRINGS_SEM_MAX=$((STRINGS_SEM_MAX + diferenca))
         fi
     fi
-done < <(find "$DIRETORIO" -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" 2>/dev/null || true)
+done < <(list_code_files)
 
 if [ $STRINGS_SEM_MAX -eq 0 ]; then
     echo "  OK  Todos os campos string parecem ter .max()"
@@ -209,7 +239,7 @@ while IFS= read -r arquivo; do
             LISTAGENS_SEM_PAGINACAO=$((LISTAGENS_SEM_PAGINACAO + 1))
         fi
     fi
-done < <(find "$DIRETORIO" -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" 2>/dev/null | grep -E "route\.(ts|js|tsx|jsx)$" || true)
+done < <(list_route_files)
 
 if [ $LISTAGENS_SEM_PAGINACAO -eq 0 ]; then
     echo "  OK  Listagens parecem ter paginacao"
@@ -239,6 +269,12 @@ while IFS= read -r arquivo; do
         fi
     fi
 
+    # D13: validacao que falhou responde 400 com { error: { code: "VALIDATION_ERROR", ... } }
+    if grep -qE "status:[[:space:]]*422|\(422[,)]|[^0-9]422[^0-9].*(valid|zod|schema)" "$arquivo" 2>/dev/null; then
+        registrar_aviso "$arquivo" "Status 422 encontrado — D13: validacao falhou responde 400 com code VALIDATION_ERROR"
+        STATUS_PROBLEMAS=$((STATUS_PROBLEMAS + 1))
+    fi
+
     # DELETE deveria retornar 200 ou 204
     if grep -qE "export.*DELETE|method.*DELETE" "$arquivo" 2>/dev/null; then
         if grep -qE "status.*201|NextResponse.*201" "$arquivo" 2>/dev/null; then
@@ -246,7 +282,7 @@ while IFS= read -r arquivo; do
             STATUS_PROBLEMAS=$((STATUS_PROBLEMAS + 1))
         fi
     fi
-done < <(find "$DIRETORIO" -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" 2>/dev/null | grep -E "route\.(ts|js|tsx|jsx)$" || true)
+done < <(list_route_files)
 
 if [ $STATUS_PROBLEMAS -eq 0 ]; then
     echo "  OK  Status HTTP parecem corretos"
@@ -275,7 +311,7 @@ while IFS= read -r arquivo; do
             N_PLUS_1=$((N_PLUS_1 + 1))
         fi
     fi
-done < <(find "$DIRETORIO" -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" 2>/dev/null || true)
+done < <(list_code_files)
 
 if [ $N_PLUS_1 -eq 0 ]; then
     echo "  OK  Nenhum padrao N+1 obvio detectado"
@@ -301,7 +337,7 @@ while IFS= read -r arquivo; do
         registrar_critico "$arquivo" "Servico externo instanciado no topo do modulo (crash se env ausente)"
         INIT_PROBLEMAS=$((INIT_PROBLEMAS + 1))
     fi
-done < <(find "$DIRETORIO" -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" 2>/dev/null || true)
+done < <(list_code_files)
 
 if [ $INIT_PROBLEMAS -eq 0 ]; then
     echo "  OK  Servicos externos parecem inicializados de forma segura"
@@ -311,6 +347,10 @@ echo ""
 # ───────────────────────────────────────────────────────
 # RELATORIO FINAL
 # ───────────────────────────────────────────────────────
+
+if [ "$MODO_RESUMO" = true ]; then
+    exec 1>&3
+fi
 
 echo "═══════════════════════════════════════════════════"
 echo "  RESUMO"
@@ -331,4 +371,8 @@ fi
 echo "═══════════════════════════════════════════════════"
 echo ""
 
-exit $([ "$RESULTADO_FINAL" = "OK" ] && echo 0 || echo 1)
+# ALERTA (so avisos) nao bloqueia; FALHA (critico) sai com 1.
+if [ "$RESULTADO_FINAL" = "FALHA" ]; then
+    exit 1
+fi
+exit 0

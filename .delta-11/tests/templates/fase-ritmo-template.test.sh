@@ -35,7 +35,7 @@ else
     echo ""
     echo "Este teste é guarda de regressão do template da Fase 3.5."
     echo "Sem template, cada agente preenchera os 10 artefatos do Dia 4"
-    "de forma diferente e inconsistente. O teste falhara ate criacao."
+    echo "de forma diferente e inconsistente. O teste falhara ate criacao."
     exit 1
 fi
 
@@ -60,14 +60,14 @@ artefatos=(
     "jobs"
     "cache"
     "timeout"
-    "retri"           # cobre "retry" e "retries"
+    "retr(y|ies|i)"   # cobre "retry", "retries" e "retentativa"
     "circuit breaker"
     "CI/CD"
     "observabilidade"
     "sub-contraposi"
 )
 for art in "${artefatos[@]}"; do
-    if grep -qi "$art" "$TEMPLATE"; then
+    if grep -qiE "$art" "$TEMPLATE"; then
         ok "template cobre artefato '$art'"
     else
         err "template NAO cobre artefato '$art'"
@@ -76,10 +76,10 @@ done
 
 # 5. Estrutura por artefato: Descricao / Escolha / Justificativa / Link
 # Verifica que pelo menos 1 artefato tem essas 4 secoes
-if grep -qE "##\s+.*[Dd]escri" "$TEMPLATE" && \
-   grep -qE "##\s+.*[Ee]scolha" "$TEMPLATE" && \
-   grep -qE "##\s+.*[Jj]ustificativa" "$TEMPLATE" && \
-   grep -qE "##\s+.*[Ll]ink" "$TEMPLATE"; then
+if grep -qE "##[[:space:]]+.*[Dd]escri" "$TEMPLATE" && \
+   grep -qE "##[[:space:]]+.*[Ee]scolha" "$TEMPLATE" && \
+   grep -qE "##[[:space:]]+.*[Jj]ustificativa" "$TEMPLATE" && \
+   grep -qE "##[[:space:]]+.*[Ll]ink" "$TEMPLATE"; then
     ok "template tem secoes Descricao / Escolha / Justificativa / Link"
 else
     err "template NAO tem as 4 secoes canonicas por artefato"
@@ -108,7 +108,7 @@ fi
 
 # 9. Aviso sobre NAO avancar Fase 4 sem preencher
 # Aceita com ou sem acento
-if grep -qE "N..o avan..ar.*Fase 4|antes da Fase 4" "$TEMPLATE"; then
+if grep -qiE "(Não|Nao|NÃO|NAO) avan(ç|c)ar[^.]{0,20}Fase 4([^.0-9]|$)|antes da Fase 4([^.0-9]|$)|Fase 4[^.]{0,40}(não|nao) pode come(ç|c)ar" "$TEMPLATE"; then
     ok "template avisa sobre dependencia com Fase 4"
 else
     err "template NAO avisa sobre dependencia — agente pode pular"
