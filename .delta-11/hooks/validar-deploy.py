@@ -1,220 +1,119 @@
 #!/usr/bin/env python3
 """
-Hook UserPromptSubmit do Delta-11: bloqueia deploy sem validação completa.
+Vigia UserPromptSubmit "validar deploy" — Delta-11 v6.3 (2026-10-14). Item C-044.
 
-Cross-platform: macOS, Linux, Windows. Requer Python 3.8+.
+Quando o comandante PEDE um deploy [publicar o sistema na internet], este vigia
+roda os testes de contrato antes de a mensagem chegar ao agente. Se falharem, a
+mensagem e barrada (exit 2) e o comandante ve o motivo.
 
-Quando disparado:
-  Toda mensagem que o comandante envia ao Claude Code. Este hook examina a
-  mensagem e, se contiver palavras-chave de deploy ("deploy", "subir para
-  producao", "publicar em producao", etc.), executa validação completa:
-    1. Roda testes de contrato (contract-tester via npm/pytest)
-    2. Dispara verify-app se SHIELD não tiver rodado recentemente
-  Se qualquer uma falhar, bloqueia a mensagem e instrui correção.
+So dispara em PEDIDO CLARO (C-044), por exemplo:
+  "faça o deploy", "pode fazer o deploy?", "publique em produção", "sobe pra
+  produção", "coloca no ar", "deploy" (sozinho), "/deploy", "ship it", "go live"
+NAO dispara em:
+  - negacao: "não faça deploy", "nao suba", "sem deploy", "don't deploy";
+  - pergunta: "como funciona o deploy?", "quando vamos fazer o deploy?";
+  - mencao solta: "o deploy de ontem falhou", relatorios de agentes
+    (mensagens com <task-notification>, <teammate-message> ou que comecam com
+    a etiqueta de um agente, ex.: "[CRONOS] ...").
 
-Se a mensagem NÃO contém palavras-chave de deploy, o hook sai silencioso
-com exit 0.
+Testes: os mesmos do validar-contratos-fim-fase (Node `npm run test:contracts` ou
+Python `pytest tests/contracts/`), na pasta principal, ate 110 s (registro: 120 s —
+D30). Sem framework de testes: libera e registra AVISO.
 
-Exit codes:
-  0 = passou (prosseguir normal)
-  2 = bloqueado (convenção UserPromptSubmit do Claude Code: stderr vira
-      mensagem ao usuário e prompt não é processado pelo modelo)
+Erro interno: libera a mensagem, registra ERRO-INTERNO no activity-log e avisa no
+stderr (exit 1) — ver _comum.run.
 """
 
 from __future__ import annotations
 
-import json
 import os
 import re
-import shutil
-import subprocess
 import sys
-from datetime import datetime
-from pathlib import Path
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _comum as comum  # noqa: E402
+
+HOOK = "validar-deploy"
+TEMPO_MAXIMO = 110
+
+_ALVO = (
+    r"(?:o\s+|um\s+|the\s+)?deploy\b"
+    r"|(?:p[ae]ra|pra|em|no|na|to)\s+(?:a\s+)?produ[cç][ãa]o\b"
+    r"|no\s+ar\b"
+    r"|(?:to\s+)?prod(?:uction)?\b"
+)
+_VERBO = (
+    r"fa[cç]a|faz(?:er)?|fazemos|rod[ae]r?|execut[ae]r?|dispar[ae]r?|mand[ae]r?|bora|vamos"
+    r"|pode(?:mos)?(?:\s+fazer)?|quero|preciso|subir|sub[ae]|sobe|publi(?:que|ca|car)|coloc(?:a|ar|que)"
+    r"|lan[cç](?:a|ar|e)|joga|jogar|push|ship|release|do|run|go"
+)
+PEDIDO_RE = re.compile(rf"\b(?:{_VERBO})\b\s+(?:\w+\s+){{0,2}}?(?:{_ALVO})", re.IGNORECASE)
+SOZINHO_RE = re.compile(r"^\s*/?(?:deploy|ship\s+it|go\s+live)\s*[!.]*\s*$", re.IGNORECASE)
+INGLES_RE = re.compile(r"\b(?:deploy\s+(?:it|now|to\s+prod\w*)|ship\s+it|go\s+live)\b", re.IGNORECASE)
+NEGACAO_RE = re.compile(
+    r"\b(?:n[ãa]o|nunca|jamais|sem|nem|evite|evitar|don'?t|do\s+not|never|no)\b[^.!?\n]{0,25}$",
+    re.IGNORECASE,
+)
+PERGUNTA_INICIO_RE = re.compile(
+    r"^\s*(?:como|quando|qual|quais|o\s+que|por\s*que|porque|onde|quem|j[áa]\s+|how|when|what|why|where|who|did|was|is)\b",
+    re.IGNORECASE,
+)
+RELATORIO_RE = re.compile(
+    r"<task-notification|<teammate-message|^\s*\[(?:" + "|".join(sorted(comum.TODOS_OS_AGENTES)) + r")\]",
+    re.IGNORECASE,
+)
 
 
-ACTIVITY_LOG = Path(".delta-11/activity-log.md")
-PACKAGE_JSON = Path("package.json")
-PYTEST_INI = Path("pytest.ini")
-PYPROJECT = Path("pyproject.toml")
+def sentences(texto: str) -> list[str]:
+    return [s for s in re.split(r"(?<=[.!?\n])\s+", texto) if s.strip()]
 
 
-DEPLOY_KEYWORDS = [
-    # Português
-    r"\bdeploy\b",
-    r"\bsubir\s+(p[ae]ra|em)\s+produ[cç][aã]o\b",
-    r"\bpublicar\s+em\s+produ[cç][aã]o\b",
-    r"\blan[cç]ar\s+em\s+produ[cç][aã]o\b",
-    r"\bcolocar\s+no\s+ar\b",
-    r"\bvai\s+pro\s+ar\b",
-    # Inglês
-    r"\bship\s+to\s+prod\b",
-    r"\brelease\s+to\s+production\b",
-    r"\bgo\s+live\b",
-    r"\bpush\s+to\s+prod\b",
-]
-
-
-def timestamp_utc() -> str:
-    return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-def log_activity(message: str) -> None:
-    ACTIVITY_LOG.parent.mkdir(parents=True, exist_ok=True)
-    with ACTIVITY_LOG.open("a", encoding="utf-8") as f:
-        f.write(f"- [{timestamp_utc()}] [validar-deploy] {message}\n")
-
-
-def read_hook_event() -> dict:
-    raw = sys.stdin.read().strip()
-    if not raw:
-        return {}
-    try:
-        return json.loads(raw)
-    except json.JSONDecodeError:
-        return {}
-
-
-def extract_prompt_text(event: dict) -> str:
-    """
-    Extrai o texto da mensagem do usuário do evento UserPromptSubmit.
-    Formato esperado do Claude Code:
-      {"prompt": "texto..."}
-    """
-    return event.get("prompt") or event.get("user_prompt") or ""
-
-
-def looks_like_deploy_intent(prompt: str) -> bool:
-    """Detecta se a mensagem do usuário sugere intenção de deploy."""
-    if not prompt:
+def asks_for_deploy(texto: str) -> bool:
+    if not texto or RELATORIO_RE.search(texto):
         return False
-    lowered = prompt.lower()
-    for pattern in DEPLOY_KEYWORDS:
-        if re.search(pattern, lowered, re.IGNORECASE):
-            return True
+    if SOZINHO_RE.match(texto):
+        return True
+    for frase in sentences(texto):
+        achado = PEDIDO_RE.search(frase) or INGLES_RE.search(frase)
+        if not achado:
+            continue
+        if NEGACAO_RE.search(frase[:achado.start()]):
+            continue
+        if frase.rstrip().endswith("?") and PERGUNTA_INICIO_RE.match(frase):
+            continue
+        return True
     return False
 
 
-def detect_contract_test_command() -> list[str] | None:
-    """Mesma lógica de validar-contratos-fim-fase.py."""
-    if PACKAGE_JSON.exists():
-        try:
-            pkg = json.loads(PACKAGE_JSON.read_text(encoding="utf-8"))
-            scripts = pkg.get("scripts") or {}
-            if "test:contracts" in scripts:
-                npm = shutil.which("npm")
-                if npm:
-                    return [npm, "run", "test:contracts"]
-        except (json.JSONDecodeError, OSError):
-            pass
-
-    if PYTEST_INI.exists() or PYPROJECT.exists():
-        pytest_bin = shutil.which("pytest")
-        if pytest_bin:
-            return [pytest_bin, "tests/contracts/"]
-        py = shutil.which("python3") or shutil.which("python")
-        if py:
-            return [py, "-m", "pytest", "tests/contracts/"]
-
-    return None
-
-
-def run_command(cmd: list[str], timeout: int = 300) -> tuple[bool, str]:
-    try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
-        passed = result.returncode == 0
-        output = ((result.stdout or "") + "\n" + (result.stderr or "")).strip()[-2000:]
-        return (passed, output)
-    except subprocess.TimeoutExpired:
-        return (False, f"timeout após {timeout}s")
-    except OSError as e:
-        return (False, f"falha ao executar: {e}")
-
-
-def block_deploy(reasons: list[str]) -> int:
-    """
-    UserPromptSubmit: exit 2 bloqueia o envio da mensagem para o modelo.
-    O conteúdo do stderr vira feedback visível ao usuário.
-    """
-    lines = [
-        "[validar-deploy] BLOQUEIO: validação de deploy falhou.",
-        "",
-        "Os seguintes checks devem passar antes de um deploy ser iniciado:",
-    ]
-    for reason in reasons:
-        lines.append(f"  - {reason}")
-    lines.extend(
-        [
-            "",
-            "Corrija os problemas listados, rode os testes manualmente, e reenvie a mensagem.",
-            "Se quiser pular esta validação (uso excepcional, por sua conta e risco),",
-            "reescreva a mensagem sem as palavras 'deploy'/'produção'.",
-        ]
-    )
-    print("\n".join(lines), file=sys.stderr)
-    return 2
-
-
 def main() -> int:
-    event = read_hook_event()
-    prompt = extract_prompt_text(event)
-
-    if not looks_like_deploy_intent(prompt):
+    evento = comum.read_event()
+    texto = evento.get("prompt") or evento.get("user_prompt") or ""
+    if not asks_for_deploy(texto):
         return 0
-
-    log_activity(f"intenção de deploy detectada: '{prompt[:120]}...'")
-
-    failures: list[str] = []
-
-    # 1) Contract tests
-    cmd = detect_contract_test_command()
-    if cmd is None:
-        log_activity(
-            "aviso: nenhum framework de contract tests detectado — deploy permitido "
-            "sem validação automática (cuidado)"
-        )
-    else:
-        log_activity(f"rodando contract tests: {' '.join(cmd)}")
-        passed, output = run_command(cmd, timeout=300)
-        if not passed:
-            failures.append(
-                f"Contract tests FALHOU ({' '.join(cmd)}): "
-                f"{output.splitlines()[-1] if output.strip() else 'ver activity-log.md'}"
-            )
-        else:
-            log_activity("contract tests PASSOU")
-
-    # 2) Verify-app (se SHIELD registrou execução recente, pula; caso contrário, avisa)
-    # Implementação simplificada: verifica se existe relatório recente em .delta-11/memoria/
-    # Para não bloquear deploy legítimo por falta de relatório, apenas registra aviso
-    verify_app_marker = Path(".delta-11/memoria/verify-app-ultimo.md")
-    if not verify_app_marker.exists():
-        log_activity(
-            "aviso: verify-app não foi executado recentemente (sem "
-            ".delta-11/memoria/verify-app-ultimo.md). Recomende ao comandante "
-            "disparar SHIELD antes do deploy."
-        )
-        # Não adiciona a failures — é só aviso, contract-tester é o bloqueador forte
-
-    if failures:
-        return block_deploy(failures)
-
-    log_activity("validação de deploy PASSOU — mensagem permitida")
-    return 0
+    comum.log(HOOK, f"pedido de deploy detectado: {texto[:100]}")
+    raiz = comum.main_project_dir()
+    comando = comum.contract_test_command(raiz)
+    if comando is None:
+        comum.log(HOOK, "AVISO: nenhum framework de testes de contrato — deploy liberado sem conferencia")
+        return 0
+    passou, saida = comum.run_contract_tests(comando, raiz, TEMPO_MAXIMO)
+    if passou:
+        comum.log(HOOK, "OK: testes de contrato passaram — pedido de deploy liberado")
+        return 0
+    ultimas = "\n".join(saida.splitlines()[-10:]) or "(sem saida)"
+    return comum.block(
+        HOOK,
+        f"[{HOOK}] BLOQUEIO {comum.VERSAO} — os testes de contrato falharam; o deploy nao foi pedido ao agente.\n"
+        f"\n"
+        f"Comando: {' '.join(comando)}\n"
+        f"Final da saida:\n{ultimas}\n"
+        f"\n"
+        f"Peca a correcao primeiro (ex.: \"corrija os testes de contrato\"). Quando os\n"
+        f"testes passarem, peca o deploy de novo.\n",
+        "pedido de deploy com testes de contrato falhando",
+    )
 
 
 if __name__ == "__main__":
-    try:
-        sys.exit(main())
-    except Exception as exc:  # noqa: BLE001
-        print(f"[validar-deploy] erro não-fatal: {exc}", file=sys.stderr)
-        try:
-            log_activity(f"ERRO não-fatal: {exc}")
-        except Exception:
-            pass
-        sys.exit(0)
+    comum.run(main, HOOK)

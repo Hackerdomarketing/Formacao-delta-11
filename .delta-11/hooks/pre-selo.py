@@ -1,85 +1,43 @@
 #!/usr/bin/env python3
 """
-Hook PreToolUse do Delta-11 v4.0.4: bloqueia selo de fase se arquivo
-[AGENTE]-produto.md ultrapassar o limite do agente.
+Vigia PreToolUse "pre-selo" — Delta-11 v6.3 (2026-10-14). M4, C-160, C-184.
 
-Materializa o Mecanismo 6 da Geometria da Criação: compactação dura obrigatória
-no Arquivo de Estado. Se o produto não couber no limite, a compactação foi
-mal feita — o agente precisa revisar e reduzir.
+Materializa o M4 dos Mecanismos da Criacao (produto × historia, D22): o arquivo
+`.delta-11/memoria/[AGENTE]-produto.md` guarda SO o que existe agora e precisa
+caber no limite `produto_max_tokens` (padrao 500 tokens, em
+.delta-11/.config-limites.json — D36). O diario completo vai para
+`[AGENTE]-historia.md` (sem limite).
 
-EXCEÇÃO v4.0.4 (decisão do comandante, 2026-05-22):
-  ATLAS (arquiteto) e CRONOS (orquestrador) ficam SEM LIMITE — carregam
-  visão arquitetural multi-fase e estado de orquestração multi-onda que
-  legitimamente não cabem em 500 tokens. Os 8 agentes executores (BACK,
-  FRONT, PIXEL, FORM, ENGINE, VAULT, SHIELD, SCOUT) MANTÊM 500 tokens —
-  produto deles é foco-por-tarefa, limite força disciplina saudável.
+Isentos (D8): ATLAS e CRONOS — carregam visao e estado de varias fases.
+Os executores (VAULT, BACK, ENGINE, FRONT, PIXEL, FORM, SHIELD, SCOUT) mantem o
+limite.
 
-Cross-platform: macOS, Linux, Windows. Requer Python 3.8+.
+Logica:
+  1. So age em Edit/Write de `.delta-11/memoria/[AGENTE]-produto.md` (caminho
+     relativo ou absoluto).
+  2. Calcula o arquivo FINAL (simula o Edit) e conta tokens (4 caracteres = 1).
+  3. Acima do limite: bloqueia (exit 2) com instrucao de compactar.
 
-Invocação:
-  Configurado em .claude/settings.json em hooks.PreToolUse com matcher "Edit|Write"
-  apontando para este script. Recebe evento JSON via stdin.
-
-Lógica:
-  1. Verifica se o Edit/Write atinge .delta-11/memoria/[AGENTE]-produto.md
-  2. Resolve o limite do agente (None = ISENTO, int = limite específico)
-  3. Se ISENTO, exit 0 imediato
-  4. Conta tokens do novo conteúdo (aproximação: len(content)/4 chars por token)
-  5. Se passou do limite, exit 2 (bloqueia + injeta mensagem)
-  6. Caso contrário, exit 0
-
-Exit codes:
-  0 = pode prosseguir
-  2 = bloquear (PreToolUse hook convention do Claude Code)
-  1 = erro interno (não bloqueia por default — loga e deixa passar)
-
-Política de calibração:
-  LIMITE_TOKENS_DEFAULT = 500 (decisão do comandante, 2026-04-18)
-  LIMITES_POR_AGENTE = exceções por papel arquitetural
-  APROXIMACAO_TOKEN = 4 chars/token (regra prática GPT/Claude — não exato, mas
-                                     suficiente para detectar overflow grosseiro)
+Erro interno: libera a acao, registra ERRO-INTERNO no activity-log e avisa no
+stderr (exit 1) — ver _comum.run.
 """
 
 from __future__ import annotations
 
-import json
+import os
 import re
 import sys
-from datetime import datetime
-from pathlib import Path
 
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _comum as comum  # noqa: E402
 
-LIMITE_TOKENS_DEFAULT = 500
-LIMITES_POR_AGENTE: dict[str, int | None] = {
-    "ATLAS": None,   # ISENTO — arquiteto carrega visão arquitetural multi-fase
-    "CRONOS": None,  # ISENTO — orquestrador carrega estado de despachança multi-onda
-}
-APROXIMACAO_CHARS_POR_TOKEN = 4
-
-ACTIVITY_LOG = Path(".delta-11/activity-log.md")
-
-
-def timestamp_utc() -> str:
-    return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+HOOK = "pre-selo"
+ISENTOS = {"ATLAS", "CRONOS"}
 
 
 def log_activity(message: str) -> None:
-    try:
-        ACTIVITY_LOG.parent.mkdir(parents=True, exist_ok=True)
-        with ACTIVITY_LOG.open("a", encoding="utf-8") as f:
-            f.write(f"- [{timestamp_utc()}] [pre-selo] {message}\n")
-    except OSError:
-        pass
-
-
-def read_hook_event() -> dict:
-    raw = sys.stdin.read().strip()
-    if not raw:
-        return {}
-    try:
-        return json.loads(raw)
-    except json.JSONDecodeError:
-        return {}
+    comum.log(HOOK, message)
 
 
 def eh_arquivo_produto(event: dict) -> str | None:
@@ -92,7 +50,7 @@ def eh_arquivo_produto(event: dict) -> str | None:
 
     # Match: .delta-11/memoria/[AGENTE]-produto.md
     match = re.search(
-        r"[\\/]\.delta-11[\\/]memoria[\\/]([A-Z_-]+)-produto\.md$",
+        r"(?:^|[\\/])\.delta-11[\\/]memoria[\\/]([A-Z_-]+)-produto\.md$",
         file_path,
     )
     if match:
@@ -100,59 +58,24 @@ def eh_arquivo_produto(event: dict) -> str | None:
     return None
 
 
-def contar_tokens_aproximado(texto: str) -> int:
-    """Aproximação: 1 token ~ 4 caracteres. Suficiente para detectar overflow."""
-    if not texto:
-        return 0
-    return len(texto) // APROXIMACAO_CHARS_POR_TOKEN
-
-
 def obter_novo_conteudo(event: dict) -> str:
-    """
-    Extrai o novo conteúdo que o Edit/Write vai gravar.
-    - Write: usa tool_input.content (conteúdo completo)
-    - Edit: precisa aplicar new_string + estado atual (simplificado: usa new_string)
-    """
-    tool_input = event.get("tool_input") or {}
-    tool_name = event.get("tool_name", "")
-
-    if tool_name == "Write":
-        return tool_input.get("content", "")
-    if tool_name == "Edit":
-        # Para Edit, o conteúdo NOVO total é difícil de prever sem reaplicar o diff.
-        # Aproximação segura: verificar o tamanho do arquivo ATUAL + delta do new_string
-        file_path = tool_input.get("file_path", "")
-        novo_fragmento = tool_input.get("new_string", "")
-        antigo_fragmento = tool_input.get("old_string", "")
-        if file_path and Path(file_path).exists():
-            try:
-                conteudo_atual = Path(file_path).read_text(encoding="utf-8")
-                # Substitui para simular o resultado
-                if antigo_fragmento in conteudo_atual:
-                    return conteudo_atual.replace(antigo_fragmento, novo_fragmento, 1)
-                return conteudo_atual + novo_fragmento
-            except OSError:
-                return novo_fragmento
-        return novo_fragmento
-    return ""
+    """Conteudo final do arquivo depois do Edit/Write (simulado)."""
+    _antes, depois = comum.before_and_after(event)
+    return depois
 
 
 def resolver_limite(agente: str) -> int | None:
-    """
-    Retorna o limite efetivo do agente.
-    None = ISENTO (sem limite). int = limite específico.
-    Default = LIMITE_TOKENS_DEFAULT (500).
-    """
-    if agente in LIMITES_POR_AGENTE:
-        return LIMITES_POR_AGENTE[agente]
-    return LIMITE_TOKENS_DEFAULT
+    """None = ISENTO (ATLAS/CRONOS). Demais: produto_max_tokens (D36)."""
+    if agente in ISENTOS:
+        return None
+    return int(comum.limits()["produto_max_tokens"])
 
 
 def block_edit(agente: str, tokens: int, limite: int) -> int:
     """Exit 2 bloqueia a ferramenta (PreToolUse hook convention)."""
     excesso = tokens - limite
     print(
-        f"[pre-selo] BLOQUEIO v4.0.4 — Mecanismo 6 da Geometria da Criação\n"
+        f"[pre-selo] BLOQUEIO {comum.VERSAO} — M4 dos Mecanismos da Criação (produto × história)\n"
         f"\n"
         f"Arquivo {agente}-produto.md excede o limite de {limite} tokens.\n"
         f"Tamanho estimado: {tokens} tokens ({excesso} tokens acima do limite).\n"
@@ -173,16 +96,18 @@ def block_edit(agente: str, tokens: int, limite: int) -> int:
         f"Princípio: Gênesis 1:2 compacta o estado inicial em UMA frase.\n"
         f"Se seu produto não cabe em {limite} tokens, não está selado.\n"
         f"\n"
-        f"Obs (v4.0.4): ATLAS e CRONOS são ISENTOS deste limite — papéis\n"
+        f"Obs: ATLAS e CRONOS são ISENTOS deste limite — papéis\n"
         f"arquitetural/orquestrador legitimamente carregam visão multi-fase.\n"
-        f"Os 8 executores mantêm 500 tokens.",
+        f"Os executores mantêm {limite} tokens (produto_max_tokens em .config-limites.json).",
         file=sys.stderr,
     )
     return 2
 
 
 def main() -> int:
-    event = read_hook_event()
+    event = comum.read_event()
+    if event.get("tool_name") not in {"Edit", "Write", "MultiEdit"}:
+        return 0
 
     agente = eh_arquivo_produto(event)
     if not agente:
@@ -196,26 +121,15 @@ def main() -> int:
         return 0
 
     conteudo_novo = obter_novo_conteudo(event)
-    tokens = contar_tokens_aproximado(conteudo_novo)
+    tokens = comum.estimate_tokens(conteudo_novo)
 
     if tokens <= limite:
         log_activity(f"{agente}-produto.md OK ({tokens} tokens ≤ {limite})")
         return 0
 
-    log_activity(
-        f"{agente}-produto.md BLOQUEADO ({tokens} tokens > {limite})"
-    )
+    log_activity(f"BLOQUEIO: {agente}-produto.md com {tokens} tokens > {limite}")
     return block_edit(agente, tokens, limite)
 
 
 if __name__ == "__main__":
-    try:
-        sys.exit(main())
-    except Exception as exc:  # noqa: BLE001
-        # Erro interno não deve bloquear — loga e deixa passar
-        print(f"[pre-selo] erro não-fatal: {exc}", file=sys.stderr)
-        try:
-            log_activity(f"ERRO não-fatal: {exc}")
-        except Exception:  # noqa: BLE001
-            pass
-        sys.exit(0)
+    comum.run(main, HOOK)

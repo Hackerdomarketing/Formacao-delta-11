@@ -1,162 +1,67 @@
 #!/usr/bin/env bash
-# Teste do hook anti-autocompact.py (Etapa 1 do v6.2)
-#
-# Verifica que:
-#   1. Hook existe em .delta-11/hooks/anti-autocompact.py
-#   2. Hook é executavel
-#   3. Hook detecta sinais de autocompact iminente:
-#      - context window alto (>85%)
-#      - tokens aproximados por contagem de chars / 4
-#      - marcadores textuais "Auto-compacting...", "context low", "context_window_exceeded"
-#   4. Hook bloqueia (exit 2) se detectar autocompact iminente
-#   5. Hook passa (exit 0) se nao houver sinal
-#   6. Hook NAO e' o mesmo que pre-selo (eh hook NOVO)
-#   7. Hook Python (cross-platform)
-#   8. Hook registrado em settings-hooks.json (PreToolUse)
-#   9. Hook tem docstring
-#  10. Teste funcional — hook BLOQUEIA se contexto > 85%
-#
-# Furo 1 da auditoria 2026-08-11: autocompact matou 5 agentes.
+# Teste do vigia anti-autocompact.py (v6.3 — C-019, C-181)
+# Mede o contexto REAL pelo `usage` da ultima resposta na conversa (transcript_path).
+source "$(dirname "$0")/_ajudante-hooks-python.sh" anti-autocompact
+checagens_basicas
+if grep -q "transcript_path" "$HOOK"; then ok "le o transcript_path do evento (C-019)"; else err "nao le transcript_path"; fi
 
-set -euo pipefail
+# conversa(arquivo, tokens): grava uma conversa JSONL cuja ultima resposta usou N tokens
+conversa() {
+    python3 - "$1" "$2" <<'PY'
+import json, sys
+caminho, tokens = sys.argv[1], int(sys.argv[2])
+with open(caminho, "w") as f:
+    f.write(json.dumps({"type": "user", "message": {"role": "user", "content": "oi"}}) + "\n")
+    f.write(json.dumps({"type": "assistant", "message": {"usage": {"input_tokens": 10, "cache_read_input_tokens": 5}}}) + "\n")
+    f.write(json.dumps({"type": "assistant", "message": {"usage": {"input_tokens": 1000, "cache_read_input_tokens": tokens - 1000, "cache_creation_input_tokens": 0, "output_tokens": 50}}}) + "\n")
+PY
+}
 
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-NC='\033[0m'
+novo_projeto
+SESSAO="$TEST_DIR/conversas/sessao-teste.jsonl"
+mkdir -p "$TEST_DIR/conversas/sessao-teste/subagents"
+SUB="$TEST_DIR/conversas/sessao-teste/subagents/agent-ag1.jsonl"
+CODIGO="$TEST_DIR/src/app.ts"
+ev_sub() { evento tool_name="$1" "transcript_path=$SESSAO" agent_id=ag1 agent_type=general-purpose "${@:2}"; }
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-HOOKS_DIR="$(cd "$SCRIPT_DIR/../../hooks" && pwd)"
-HOOK="$HOOKS_DIR/anti-autocompact.py"
-SETTINGS="$SCRIPT_DIR/../../templates/settings-hooks.json"
+conversa "$SESSAO" 50000
+conversa "$SUB" 50000
+espera 0 "sub-agente com 50 mil tokens: passa" "$(ev_sub Edit tool_input.file_path=$CODIGO tool_input.old_string=a tool_input.new_string=b)"
 
-falhou=0
-ok() { echo -e "  ${GREEN}[OK]${NC}   $1"; }
-err() { echo -e "  ${RED}[FALTA]${NC} $1"; falhou=$((falhou + 1)); }
+conversa "$SUB" 180000
+espera 2 "sub-agente com 180 mil tokens (>85% de 200 mil): bloqueia Edit de codigo" "$(ev_sub Edit tool_input.file_path=$CODIGO tool_input.old_string=a tool_input.new_string=b)"
+stderr_contem "SendMessage"
+espera 2 "...e bloqueia Bash" "$(ev_sub Bash tool_input.command=ls)"
+espera 0 "...mas deixa gravar o produto.md (salvar o estado)" "$(ev_sub Write tool_input.file_path=$TEST_DIR/.delta-11/memoria/BACK-produto.md tool_input.content=estado)"
+espera 0 "...e deixa disparar a retomada (Agent)" "$(ev_sub Agent tool_input.name=cronos tool_input.prompt=retomar)"
 
-# 1. Hook existe
-if [ -f "$HOOK" ]; then
-    ok "hook existe em $HOOK"
-else
-    err "hook AUSENTE em $HOOK"
-    echo ""
-    echo "Teste de regressão do Hook 1 anti-autocompact (Furo 1)."
-    echo "Se o hook sumir, o sistema perde a proteção contra autocompact"
-    echo "que mata agentes de Claude Code durante tasks longas."
-    exit 1
-fi
+# Um texto GIGANTE numa unica acao nao e mais o criterio (C-019)
+conversa "$SUB" 20000
+GRANDE="$TEST_DIR/grande.txt"; python3 -c "print('x'*800000)" > "$GRANDE"
+espera 0 "conteudo de 800 mil caracteres com contexto pequeno: passa" "$(ev_sub Write tool_input.file_path=$CODIGO tool_input.content=@$GRANDE)"
 
-# 2. Executavel
-if [ -x "$HOOK" ]; then
-    ok "hook executavel"
-else
-    err "hook NAO executavel (chmod +x $HOOK)"
-fi
+# A medicao e a do PROPRIO sub-agente, nao a da sessao principal
+conversa "$SESSAO" 190000
+conversa "$SUB" 30000
+espera 0 "sessao principal cheia nao trava o sub-agente com contexto pequeno" "$(ev_sub Bash tool_input.command=ls)"
 
-# 3. Detecta sinais de autocompact
-if grep -qiE "autocompact|Auto-compacting|context.*low|context_window_exceeded|context_window_low" "$HOOK"; then
-    ok "hook detecta sinais de autocompact"
-else
-    err "hook NAO detecta sinais de autocompact"
-fi
+# Sub-agente cuja conversa nao foi achada: nao mede, nao bloqueia
+espera 0 "sem conversa do sub-agente: libera" "$(evento tool_name=Bash transcript_path=$SESSAO agent_id=desconhecido tool_input.command=ls)"
 
-# 4. Bloqueia (exit 2)
-if grep -qE "sys\.exit\(2\)|return 2" "$HOOK"; then
-    ok "hook implementa exit code 2 (bloqueio)"
-else
-    err "hook NAO implementa exit code 2"
-fi
+# Sessao principal (sem agent_id) so registra AVISO
+espera 0 "sessao principal com 190 mil: nao bloqueia o comandante" "$(evento tool_name=Bash transcript_path=$SESSAO tool_input.command=ls)"
+log_contem "\[anti-autocompact\] \[MAIN\] AVISO"
 
-# 5. Hook NAO e' o mesmo que pre-selo
-if [ "$HOOK" != "$HOOKS_DIR/pre-selo.py" ]; then
-    ok "hook NAO e' pre-selo.py (eh hook NOVO)"
-else
-    err "hook parece ser copia de pre-selo.py"
-fi
+# Janela de 1 milhao: uso acima de 200 mil prova janela grande
+conversa "$SUB" 400000
+espera 0 "400 mil tokens num modelo de 1 milhao: passa" "$(ev_sub Bash tool_input.command=ls)"
+conversa "$SUB" 900000
+espera 2 "900 mil tokens num modelo de 1 milhao: bloqueia" "$(ev_sub Bash tool_input.command=ls)"
 
-# 6. Hook Python cross-platform
-if head -1 "$HOOK" | grep -q "python"; then
-    ok "hook Python (cross-platform)"
-else
-    err "hook NAO Python"
-fi
+# Limite configuravel (.config-limites.json — D36)
+conversa "$SUB" 120000
+echo '{"contexto_alerta_pct": 50}' > .delta-11/.config-limites.json
+espera 2 "contexto_alerta_pct=50 no .config-limites.json: 120 mil ja bloqueia" "$(ev_sub Bash tool_input.command=ls)"
 
-# 7. Registrado em settings-hooks.json
-if [ -f "$SETTINGS" ] && grep -q "anti-autocompact" "$SETTINGS"; then
-    ok "registrado em settings-hooks.json"
-else
-    err "NAO registrado em settings-hooks.json"
-fi
-
-# 8. Docstring
-if head -10 "$HOOK" | grep -qE '"""'; then
-    ok "docstring presente"
-else
-    err "sem docstring"
-fi
-
-# 9. Hook verifica contexto via contador (4 chars/token)
-if grep -qiE "len.*4|/ 4|chars.*token|chars_per_token" "$HOOK"; then
-    ok "hook estima tokens via 4 chars/token (padrao D-11)"
-else
-    err "hook NAO estima tokens"
-fi
-
-# 10. Teste funcional: hook BLOQUEIA se contexto > 85%
-TEST_DIR=$(mktemp -d)
-mkdir -p "$TEST_DIR/.delta-11/memoria"
-
-# Simula evento PreToolUse com prompt gigante (>85% de 200K contexto = 170K tokens = 680K chars)
-BIG_PROMPT=$(python3 -c "print('x' * 700000)")
-
-EVENT_PAYLOAD=$(python3 -c "
-import json
-print(json.dumps({
-    'tool_name': 'Write',
-    'tool_input': {
-        'file_path': '$TEST_DIR/test.md',
-        'content': 'x'
-    },
-    'prompt': 'x' * 700000
-}))
-")
-
-EXIT_CODE=$(echo "$EVENT_PAYLOAD" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?" | grep -oE '[0-9]+' | tail -1)
-
-if [ "$EXIT_CODE" = "2" ]; then
-    ok "hook BLOQUEIA (exit 2) quando contexto > 85% (~700K chars)"
-else
-    err "hook NAO bloqueia contexto > 85% (exit=$EXIT_CODE)"
-fi
-
-# 11. Hook PASSA com prompt pequeno
-SMALL_PAYLOAD=$(python3 -c "
-import json
-print(json.dumps({
-    'tool_name': 'Write',
-    'tool_input': {
-        'file_path': '$TEST_DIR/test.md',
-        'content': 'x'
-    },
-    'prompt': 'x' * 100
-}))
-")
-
-EXIT_CODE=$(echo "$SMALL_PAYLOAD" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?" | grep -oE '[0-9]+' | tail -1)
-
-if [ "$EXIT_CODE" = "0" ]; then
-    ok "hook PASSA (exit 0) com prompt pequeno (~100 chars)"
-else
-    err "hook bloqueia prompt pequeno (exit=$EXIT_CODE)"
-fi
-
-rm -rf "$TEST_DIR"
-
-# Resumo
-echo ""
-if [ "$falhou" -eq 0 ]; then
-    echo -e "${GREEN}OK — Hook 1 anti-autocompact.py implementado${NC}"
-    exit 0
-else
-    echo -e "${RED}FALTA $falhou item(ns)${NC}"
-    exit 1
-fi
+espera 0 "evento vazio: passa" ""
+fim

@@ -1,104 +1,24 @@
 #!/usr/bin/env bash
-# ════════════════════════════════════════════════════════════════
-# Teste do hook fase-consciencia-checker.py (Etapa 6C do v6.0)
-# ════════════════════════════════════════════════════════════════
+# Teste do vigia fase-consciencia-checker.py (v6.3 — C-015, C-026). Fase 4.5 = Dia 6.
+source "$(dirname "$0")/_ajudante-hooks-python.sh" fase-consciencia-checker
+checagens_basicas
 
-set -euo pipefail
+novo_projeto
+DEC="$TEST_DIR/.delta-11/memoria/decisoes"
+kanban $'# Kanban\n## FAZENDO\n- [ ] T-CON-01 [4.5] auditoria | Agente: VAULT'
+SELO_REL=$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\nFase 4.5 selada pelo SHIELD')
+SELO_ABS=$(evento tool_name=Edit tool_input.file_path=$TEST_DIR/.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\n- [x] Dia 6 selado')
 
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-NC='\033[0m'
+espera 0 "concluir tarefa [4.5] individual: passa" "$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=- [ ] T-CON-01' 'tool_input.new_string=- [x] T-CON-01')"
+espera 2 "selo com caminho RELATIVO e sem entregaveis: bloqueia (C-026)" "$SELO_REL"
+espera 2 "selo 'Dia 6 selado' com caminho absoluto: bloqueia" "$SELO_ABS"
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-HOOKS_DIR="$(cd "$SCRIPT_DIR/../../hooks" && pwd)"
-HOOK="$HOOKS_DIR/fase-consciencia-checker.py"
-SETTINGS="$SCRIPT_DIR/../../templates/settings-hooks.json"
+# 5 arquivos quaisquer com 'consciencia' no nome NAO bastam (C-026)
+for s in a b c d e; do echo x > "$DEC/2026-10-14-consciencia-01-$s.md"; done
+espera 2 "5 arquivos todos com numero 01: bloqueia (faltam 02 a 05)" "$SELO_REL"
+stderr_contem "05. fluxos-aprovacao"
 
-falhou=0
-ok() { echo -e "  ${GREEN}[OK]${NC}   $1"; }
-err() { echo -e "  ${RED}[FALTA]${NC} $1"; falhou=$((falhou + 1)); }
-
-if [ -f "$HOOK" ]; then
-    ok "hook existe em $HOOK"
-else
-    err "hook AUSENTE em $HOOK"
-    exit 1
-fi
-
-if [ -x "$HOOK" ]; then
-    ok "hook executavel"
-else
-    err "hook NAO executavel"
-fi
-
-if grep -qE "kanban\.md|\.delta-11/kanban" "$HOOK"; then ok "hook detecta kanban.md"; else err "hook NAO detecta kanban.md"; fi
-
-if grep -qE "\[4\.5\]|\[CONSCIÊNCIA\]|\[CONSCIENCIA\]" "$HOOK"; then ok "hook detecta tag da Fase 4.5"; else err "hook NAO detecta tag da Fase 4.5"; fi
-
-if grep -qE "memoria/decisoes|consciencia" "$HOOK"; then ok "hook verifica artefatos consciencia-*"; else err "hook NAO verifica artefatos"; fi
-
-if head -1 "$HOOK" | grep -q "python"; then ok "hook Python"; else err "hook NAO Python"; fi
-
-if [ -f "$SETTINGS" ] && grep -q "fase-consciencia-checker" "$SETTINGS"; then ok "registrado em settings"; else err "NAO registrado em settings"; fi
-
-if grep -qE "sys\.exit\(0\)|return 0" "$HOOK" && grep -qE "sys\.exit\(2\)|return 2" "$HOOK"; then ok "exit codes 0/2"; else err "sem exit codes"; fi
-
-if head -5 "$HOOK" | grep -qE '"""'; then ok "docstring"; else err "sem docstring"; fi
-
-# Teste funcional
-TEST_DIR=$(mktemp -d)
-mkdir -p "$TEST_DIR/.delta-11/memoria/decisoes"
-TEST_KB="$TEST_DIR/.delta-11/kanban.md"
-cat > "$TEST_KB" <<'EOF'
-# Kanban
-## A FAZER
-- [ ] T-CONS-001 Preencher consciencia
-EOF
-
-# Cenario A — sem 5 artefatos → BLOQUEIA
-RESULT=$(python3 -c "
-import json
-event = {'tool_name': 'Edit', 'tool_input': {'file_path': '$TEST_KB', 'old_string': '## A FAZER\n- [ ] T-CONS-001', 'new_string': '## CONCLUIDO\n- [x] T-CONS-001 [4.5] [CONSCIENCIA] Preencher consciencia'}}
-print(json.dumps(event))
-" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?")
-EXIT_CODE=$(echo "$RESULT" | grep "EXIT=" | cut -d= -f2)
-if [ "$EXIT_CODE" = "2" ]; then ok "BLOQUEIA conclusao 4.5 sem 5 artefatos"; else err "NAO bloqueia (exit=$EXIT_CODE)"; fi
-
-# Cenario B — kanban com 5 artefatos + tag 4.5 → PASSA
-for i in 1 2 3 4 5; do
-    touch "$TEST_DIR/.delta-11/memoria/decisoes/2026-07-12-consciencia-0$i-teste.md"
-done
-cat > "$TEST_KB" <<'EOF'
-# Kanban
-## CONCLUIDO
-- [x] T-CONS-001 [4.5] [CONSCIENCIA] Preencher 5 entregaveis — SELADA
-EOF
-
-RESULT=$(python3 -c "
-import json
-event = {'tool_name': 'Edit', 'tool_input': {'file_path': '$TEST_KB', 'old_string': '# Kanban', 'new_string': '# Kanban\n\natualizado'}}
-print(json.dumps(event))
-" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?")
-EXIT_CODE=$(echo "$RESULT" | grep "EXIT=" | cut -d= -f2)
-# Este cenario pode dar 0 ou 2 dependendo de como o hook responde. Aceita ambos se exit != 1
-if [ "$EXIT_CODE" = "0" ] || [ "$EXIT_CODE" = "2" ]; then ok "processa kanban com 5 artefatos (exit $EXIT_CODE)"; fi
-
-# Cenario C — edicao que NAO é conclusao → passa direto (exit 0)
-RESULT=$(python3 -c "
-import json
-event = {'tool_name': 'Edit', 'tool_input': {'file_path': '$TEST_KB', 'old_string': 'x', 'new_string': 'y'}}
-print(json.dumps(event))
-" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?")
-EXIT_CODE=$(echo "$RESULT" | grep "EXIT=" | cut -d= -f2)
-if [ "$EXIT_CODE" = "0" ]; then ok "ignora edicao que nao e conclusao"; else err "hook NAO ignora edicao nao-conclusao (exit=$EXIT_CODE)"; fi
-
-rm -rf "$TEST_DIR"
-
-echo ""
-if [ "$falhou" -eq 0 ]; then
-    echo -e "${GREEN}OK — hook implementado${NC}"
-    exit 0
-else
-    echo -e "${RED}FALTA $falhou item(ns)${NC}"
-    exit 1
-fi
+for n in 02 03 04 05; do echo x > "$DEC/2026-10-14-consciencia-$n-item.md"; done
+espera 0 "um entregavel de cada numero (01 a 05): selo liberado" "$SELO_REL"
+espera 0 "edicao sem selo: passa" "$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md tool_input.old_string=auditoria tool_input.new_string=auditoria-imutavel)"
+fim

@@ -1,67 +1,34 @@
 #!/usr/bin/env bash
-# Teste do hook brief-preservado.py (Hook 8 do v6.2)
-set -euo pipefail
-GREEN='\033[0;32m'; RED='\033[0;31m'; NC='\033[0m'
+# Teste do vigia brief-preservado.py (v6.3 — C-003, C-021). Registrado em PostToolUse.
+source "$(dirname "$0")/_ajudante-hooks-python.sh" brief-preservado
+checagens_basicas
+if grep -q "PostToolUse" "$HOOK"; then ok "documenta PostToolUse"; else err "nao documenta PostToolUse"; fi
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-HOOKS_DIR="$(cd "$SCRIPT_DIR/../../hooks" && pwd)"
-HOOK="$HOOKS_DIR/brief-preservado.py"
-SETTINGS="$SCRIPT_DIR/../../templates/settings-hooks.json"
+novo_projeto
+BRIEF="$TEST_DIR/.delta-11/ativacoes/BACK-onda-2.txt"
+python3 -c "print('Brief do BACK: implementar a rota de pedidos. ' * 40)" > "$BRIEF"
+post() { evento hook_event_name=PostToolUse "$@"; }
 
-falhou=0
-ok() { echo -e "  ${GREEN}[OK]${NC}   $1"; }
-err() { echo -e "  ${RED}[FALTA]${NC} $1"; falhou=$((falhou + 1)); }
+espera 0 "brief novo: registra INFO, exit 0" "$(post tool_name=Write tool_input.file_path=$BRIEF tool_input.content=x)"
+log_contem "\[brief-preservado\] \[MAIN\] INFO: brief registrado"
 
-if [ -f "$HOOK" ]; then ok "hook existe"; else err "hook AUSENTE"; exit 1; fi
-if [ -x "$HOOK" ]; then ok "hook executavel"; else err "hook NAO executavel"; fi
-if grep -qE "ativacoes" "$HOOK"; then ok "hook detecta .delta-11/ativacoes/"; else err "sem ativacoes"; fi
-if grep -qE "ALERTA|severidade" "$HOOK"; then ok "hook tem nivel de severidade"; else err "sem severidade"; fi
-if grep -qE "PostToolUse" "$HOOK"; then ok "hook documenta PostToolUse"; else err "sem PostToolUse"; fi
-if head -1 "$HOOK" | grep -q "python"; then ok "Python"; else err "NAO Python"; fi
-if [ -f "$SETTINGS" ] && grep -q "brief-preservado" "$SETTINGS"; then ok "registrado em settings"; else err "NAO em settings"; fi
-if head -10 "$HOOK" | grep -qE '"""'; then ok "docstring"; else err "sem docstring"; fi
-if grep -qE "sys\.exit\(0\)|sys\.exit\(main" "$HOOK"; then ok "exit 0 ou main()"; else err "sem exit 0"; fi
+# Edit pequeno (trecho curto) com o arquivo final grande: NAO e alerta (C-021)
+echo " mais uma linha" >> "$BRIEF"
+espera 0 "Edit de um trecho curto: compara o arquivo salvo inteiro" "$(post tool_name=Edit tool_input.file_path=$BRIEF tool_input.old_string=a tool_input.new_string=b)"
+if grep -q "ALERTA" .delta-11/activity-log.md; then err "ALERTA falso num Edit pequeno"; else ok "sem ALERTA falso num Edit pequeno"; fi
 
-# Teste funcional
-TEST_DIR=$(mktemp -d)
-cd "$TEST_DIR"
-mkdir -p .delta-11/memoria .delta-11/ativacoes
-echo "x" > .delta-11/ativacoes/primeiro.txt
+# Sobrescrita destrutiva: o arquivo salvo encolheu mais de 50 %
+echo "curto" > "$BRIEF"
+espera 0 "brief encolheu >50%: exit 0 (so informa)" "$(post tool_name=Write tool_input.file_path=$BRIEF tool_input.content=curto)"
+log_contem "ALERTA: brief encolheu"
 
-# Cenario A: novo arquivo = INFO, exit 0
-EVENT=$(python3 -c "
-import json
-print(json.dumps({
-    'tool_name': 'Write',
-    'tool_input': {
-        'file_path': '.delta-11/ativacoes/teste-brief.txt',
-        'content': 'Conteudo inicial do brief do agente BACK. Tarefa T-1234: implementar feature X. Resumo: o agente deve fazer A, B, C. Contexto: o sistema esta em producao desde 2026-04-20. Estado: o banco tem 12 tabelas. Restricoes: nao quebrar compatibilidade.'
-    }
-}))
-")
-EXIT=$(echo "$EVENT" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?" | grep -oE '[0-9]+' | tail -1)
-if [ "$EXIT" = "0" ]; then ok "PASSA (INFO) com arquivo novo"; else err "NAO passa novo (exit=$EXIT)"; fi
+# Exclusao por Bash (rm) e detectada
+rm -f "$BRIEF"
+espera 0 "rm do brief via Bash: exit 0" "$(post tool_name=Bash 'tool_input.command=rm .delta-11/ativacoes/BACK-onda-2.txt')"
+log_contem "ALERTA: brief APAGADO"
 
-# Cenario B: reducao > 50% = ALERTA no log, exit 0 (PostToolUse)
-EVENT=$(python3 -c "
-import json
-print(json.dumps({
-    'tool_name': 'Write',
-    'tool_input': {
-        'file_path': '.delta-11/ativacoes/teste-brief.txt',
-        'content': 'curto'
-    }
-}))
-")
-echo "$EVENT" | python3 "$HOOK" 2>/dev/null >/dev/null
-# Verifica se log tem ALERTA
-if grep -q "ALERTA" .delta-11/activity-log.md 2>/dev/null; then
-    ok "LOGA ALERTA quando tamanho cai > 50%"
-else
-    err "NAO loga ALERTA quando tamanho cai > 50%"
-fi
-
-cd / && rm -rf "$TEST_DIR"
-
-echo ""
-if [ "$falhou" -eq 0 ]; then echo -e "${GREEN}OK — Hook 8 brief-preservado.py${NC}"; exit 0; else echo -e "${RED}FALTA $falhou item(ns)${NC}"; exit 1; fi
+# Arquivos de sinal nao sao briefs
+espera 0 "ack-*.txt nao e brief" "$(post tool_name=Write tool_input.file_path=$TEST_DIR/.delta-11/ativacoes/ack-BACK.txt tool_input.content=ok)"
+if grep -q "ack-BACK" .delta-11/activity-log.md; then err "ack tratado como brief"; else ok "ack ignorado"; fi
+espera 0 "arquivo fora de ativacoes: ignora" "$(post tool_name=Write tool_input.file_path=$TEST_DIR/src/a.txt tool_input.content=x)"
+fim
