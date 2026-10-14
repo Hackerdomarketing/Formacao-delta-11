@@ -17,7 +17,7 @@
 #      - Exit code = 0
 #
 # IMPORTANTE: NÃO tocamos em execucoes/ real nem em golden-baselines/
-# real. Tudo dentro de /tmp.
+# real. Tudo dentro de uma pasta temporária do sistema.
 # ════════════════════════════════════════════════════════════════
 
 set -euo pipefail
@@ -26,13 +26,20 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+# golden-baselines/ vive SÓ na distribuição (não vai para os projetos).
+RAIZ_TESTE="$(cd "$(dirname "$0")/../../.." && pwd)"
+if [ ! -d "$RAIZ_TESTE/golden-baselines" ] && [ ! -f "$RAIZ_TESTE/sincronizar.sh" ]; then
+    echo -e "${GREEN}[SKIP]${NC} golden-baselines só existe na distribuição oficial (isto é um projeto)"
+    exit 0
+fi
+
 # Setup sandbox
-SANDBOX="$(mktemp -d /tmp/delta11-golden-test-XXXXXX)"
+SANDBOX="$(mktemp -d "${TMPDIR:-/tmp}/delta11-golden-test-XXXXXX")"
 FAKE_TAREFAS="$SANDBOX/tarefas"
 FAKE_RUBRICA="$SANDBOX/rubrica-de-avaliacao.md"
 mkdir -p "$FAKE_TAREFAS"
 
-cleanup() { rm -rf "$SANDBOX"; }
+cleanup() { [ -n "$SANDBOX" ] && [ -d "$SANDBOX" ] && rm -rf "$SANDBOX"; }
 trap cleanup EXIT
 
 # Criar 2 tarefas-fake no padrão do runner

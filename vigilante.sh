@@ -1,24 +1,29 @@
 #!/bin/bash
 
 # ═══════════════════════════════════════════════════════════════
-# FORMAÇÃO Δ-11 — Vigilante (Monitor de Atividade)
+# FORMAÇÃO Δ-11 — Vigilante (Monitor de Atividade de UM projeto) — v6.3
 # ═══════════════════════════════════════════════════════════════
 #
-# Funciona em: macOS (Terminal e VS Code) + Windows (Git Bash e VS Code)
+# Funciona em: macOS, Linux, Windows (Git Bash) e WSL.
 #
 # O que este script faz:
-# Fica rodando no fundo verificando se os agentes Delta-11
-# estão trabalhando. Se ninguém se mexe por 15 minutos,
-# manda uma notificação no sistema e tenta redespachar
-# agentes que ficaram pendentes.
+# Fica rodando no fundo e verifica se os agentes Δ-11 do projeto estão
+# trabalhando. Se algo parar (15 min sem movimento, tarefa em FAZENDO sem
+# agente, bloqueio no quadro), ele:
+#   1. mostra uma notificação no sistema;
+#   2. REGISTRA o problema no activity-log (linha do vigilante);
+#   3. deixa o aviso para o CRONOS em .delta-11/ativacoes/aviso-vigilante.txt.
+# Quem retoma agentes é SEMPRE o CRONOS, pelo Agent tool (D3/D5). O vigilante
+# não dispara nada e não pede para ninguém abrir janela (C-066).
 #
-# Como usar:
-#   ./vigilante.sh              # Inicia o vigilante (roda até você fechar)
-#   ./vigilante.sh --once       # Verifica uma vez e sai
-#   ./vigilante.sh --stop       # Para o vigilante rodando em background
+# Diferença para o monitor-delta11.sh: o monitor roda sozinho (LaunchAgent)
+# e olha TODOS os projetos; o vigilante é para acompanhar UM projeto num
+# terminal aberto (útil fora do macOS, onde não há LaunchAgent).
 #
-# O vigilante verifica a cada 5 minutos.
-# Para parar: Ctrl+C ou feche a janela do terminal.
+# Como usar (de qualquer pasta do projeto ou de uma worktree):
+#   .delta-11/scripts/vigilante.sh           # roda até você fechar
+#   .delta-11/scripts/vigilante.sh --once    # verifica uma vez e sai
+#   .delta-11/scripts/vigilante.sh --stop    # para o vigilante em segundo plano
 #
 # ═══════════════════════════════════════════════════════════════
 
@@ -31,13 +36,48 @@ BOLD='\033[1m'
 DIM='\033[2m'
 NC='\033[0m'
 
-# Configuração
-INTERVALO=300          # Verificar a cada 5 minutos (em segundos)
-LIMITE_SILENCIO=900    # Alertar após 15 minutos sem atividade (em segundos)
-PID_FILE="/tmp/delta11-vigilante-$$.pid"
-PROJECT_PATH="$(pwd)"
+INTERVALO=300          # verificar a cada 5 minutos (segundos)
+LIMITE_SILENCIO=900    # alertar após 15 minutos sem atividade (segundos)
+AGENTES="ATLAS CRONOS FRONT PIXEL FORM BACK ENGINE VAULT SHIELD SCOUT"
 
-# ─── Detecção de sistema operacional ────────────────────────
+# ─── Descobrir a pasta PRINCIPAL do projeto (D25) ─────────────
+# Funciona chamado da raiz, de .delta-11/scripts/ ou de dentro de uma worktree.
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+
+descobrir_pasta_principal() {
+    local base="$1" comum prefixo principal
+    comum=$(git -C "$base" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || \
+        comum=$(cd "$base" 2>/dev/null && cd "$(git rev-parse --git-common-dir 2>/dev/null)" 2>/dev/null && pwd -P) || comum=""
+    if [ -n "$comum" ]; then
+        prefixo=$(git -C "$base" rev-parse --show-prefix 2>/dev/null)
+        principal="$(dirname "$comum")"
+        [ -n "$prefixo" ] && principal="$principal/${prefixo%/}"
+        if [ -d "$principal/.delta-11" ]; then
+            echo "$principal"; return
+        fi
+    fi
+    if [ -n "${CLAUDE_PROJECT_DIR:-}" ] && [ -d "$CLAUDE_PROJECT_DIR/.delta-11" ]; then
+        echo "$CLAUDE_PROJECT_DIR"; return
+    fi
+    echo "$base"
+}
+
+if [ -d "$(pwd)/.delta-11" ]; then
+    BASE="$(pwd -P)"
+else
+    case "$SCRIPT_DIR" in
+        */.delta-11/scripts) BASE="${SCRIPT_DIR%/.delta-11/scripts}" ;;
+        *) BASE="$(pwd -P)" ;;
+    esac
+fi
+PROJECT_PATH="$(descobrir_pasta_principal "$BASE")"
+DELTA_DIR="$PROJECT_PATH/.delta-11"
+ATIVACOES="$DELTA_DIR/ativacoes"
+AVISO="$ATIVACOES/aviso-vigilante.txt"
+PID_DIR="$DELTA_DIR/scratch"          # D21: nada em /tmp
+PID_FILE="$PID_DIR/vigilante-$$.pid"
+
+# ─── Sistema operacional ──────────────────────────────────────
 
 OS_TYPE="desconhecido"
 case "$(uname -s)" in
@@ -52,52 +92,37 @@ case "$(uname -s)" in
         ;;
 esac
 
-# ─── Funções adaptadas por sistema operacional ──────────────
-
 obter_mtime() {
-    # Retorna a data de modificação de um arquivo em epoch (segundos desde 1970)
-    local arquivo="$1"
-    case "$OS_TYPE" in
-        macos)
-            stat -f "%m" "$arquivo" 2>/dev/null || echo "0"
-            ;;
-        windows|wsl|linux)
-            stat -c "%Y" "$arquivo" 2>/dev/null || echo "0"
-            ;;
-        *)
-            stat -f "%m" "$arquivo" 2>/dev/null || stat -c "%Y" "$arquivo" 2>/dev/null || echo "0"
-            ;;
-    esac
+    # data de modificação em segundos desde 1970 (funciona em macOS e Linux)
+    stat -f "%m" "$1" 2>/dev/null || stat -c "%Y" "$1" 2>/dev/null || echo "0"
 }
 
 notificar() {
-    local titulo="$1"
-    local mensagem="$2"
-
+    local titulo="$1" mensagem="$2"
     case "$OS_TYPE" in
         macos)
-            osascript -e "display notification \"$mensagem\" with title \"$titulo\" sound name \"Sosumi\"" 2>/dev/null
+            # Texto passado como argumento: aspas na mensagem não quebram o comando
+            osascript -e 'on run argv' \
+                      -e 'display notification (item 1 of argv) with title (item 2 of argv) sound name "Sosumi"' \
+                      -e 'end run' "$mensagem" "$titulo" > /dev/null 2>&1
             ;;
         windows|wsl)
-            # Notificação via PowerShell (funciona no Git Bash e WSL)
-            powershell.exe -Command "
+            local t="${titulo//\'/\'\'}" m="${mensagem//\'/\'\'}"
+            powershell.exe -NoProfile -Command "
                 Add-Type -AssemblyName System.Windows.Forms
                 \$balloon = New-Object System.Windows.Forms.NotifyIcon
                 \$balloon.Icon = [System.Drawing.SystemIcons]::Warning
-                \$balloon.BalloonTipTitle = '$titulo'
-                \$balloon.BalloonTipText = '$mensagem'
+                \$balloon.BalloonTipTitle = '$t'
+                \$balloon.BalloonTipText = '$m'
                 \$balloon.Visible = \$true
                 \$balloon.ShowBalloonTip(10000)
                 Start-Sleep -Seconds 3
                 \$balloon.Dispose()
-            " 2>/dev/null
-            if [ $? -ne 0 ]; then
-                echo -e "\a"
-            fi
+            " > /dev/null 2>&1 || echo -e "\a"
             ;;
         linux)
-            if command -v notify-send &>/dev/null; then
-                notify-send "$titulo" "$mensagem" 2>/dev/null
+            if command -v notify-send > /dev/null 2>&1; then
+                notify-send -- "$titulo" "$mensagem" 2>/dev/null
             else
                 echo -e "\a"
             fi
@@ -106,182 +131,122 @@ notificar() {
 }
 
 processo_rodando() {
-    # Verifica se um processo com determinado PID existe
-    local pid="$1"
     case "$OS_TYPE" in
-        windows)
-            # pgrep não existe no Git Bash — usar ps
-            ps -p "$pid" > /dev/null 2>&1
-            ;;
-        wsl|macos|linux)
-            kill -0 "$pid" 2>/dev/null
-            ;;
-        *)
-            kill -0 "$pid" 2>/dev/null
-            ;;
+        windows) ps -p "$1" > /dev/null 2>&1 ;;
+        *) kill -0 "$1" 2>/dev/null ;;
     esac
 }
 
-# ─── Funções do Heartbeat (checklist inteligente) ───────────
-
 verificar_delta11() {
-    if [ ! -d ".delta-11" ]; then
-        echo -e "${RED}Erro: pasta .delta-11 não encontrada.${NC}"
-        echo "Execute este script na pasta raiz de um projeto com Delta-11 instalado."
+    if [ ! -d "$DELTA_DIR" ]; then
+        echo -e "${RED}Erro: pasta .delta-11 não encontrada em $PROJECT_PATH.${NC}"
+        echo "Rode este script dentro de um projeto com o Δ-11 instalado."
         exit 1
     fi
 }
 
-ultimo_toque() {
-    # Encontra o arquivo mais recentemente modificado no .delta-11/
-    local mais_recente=0
+# ─── Leituras ─────────────────────────────────────────────────
 
+ultimo_toque() {
+    local mais_recente=0 arquivo mtime
     for arquivo in \
-        .delta-11/kanban-data.js \
-        .delta-11/kanban.md \
-        .delta-11/activity-log.md \
-        .delta-11/memoria/*-estado.md \
-        .delta-11/ativacoes/ack-*.txt
+        "$DELTA_DIR/kanban-data.js" \
+        "$DELTA_DIR/kanban.md" \
+        "$DELTA_DIR/activity-log.md" \
+        "$DELTA_DIR"/memoria/*-produto.md \
+        "$DELTA_DIR"/memoria/*-historia.md \
+        "$ATIVACOES"/ack-*.txt \
+        "$ATIVACOES"/pulso-*.json
     do
-        if [ -f "$arquivo" ]; then
-            local mtime
-            mtime=$(obter_mtime "$arquivo")
-            if [ "$mtime" -gt "$mais_recente" ] 2>/dev/null; then
-                mais_recente=$mtime
-            fi
+        [ -f "$arquivo" ] || continue
+        mtime=$(obter_mtime "$arquivo")
+        if [ "$mtime" -gt "$mais_recente" ] 2>/dev/null; then
+            mais_recente=$mtime
         fi
     done
-
     echo "$mais_recente"
 }
 
 agentes_ativos() {
-    # Conta quantos agentes têm ACK (estão ativos)
-    local count=0
-    for ack in .delta-11/ativacoes/ack-*.txt; do
+    local count=0 ack
+    for ack in "$ATIVACOES"/ack-*.txt; do
         [ -f "$ack" ] && count=$((count + 1))
     done
     echo "$count"
 }
 
-prompts_pendentes() {
-    # Conta prompts de ativação que existem MAS não têm ACK correspondente
-    local pendentes=0
-    local lista=""
-
-    for prompt in .delta-11/ativacoes/janela-*.txt .delta-11/ativacoes/retomada-*.txt; do
-        [ -f "$prompt" ] || continue
-
-        # Extrair nome do agente do arquivo
-        local agente=""
-        agente=$(grep -m1 "^Agente:" "$prompt" 2>/dev/null | sed 's/Agente: *//' | tr -d '[:space:]')
-
-        if [ -n "$agente" ]; then
-            local ack=".delta-11/ativacoes/ack-${agente}.txt"
-            if [ ! -f "$ack" ]; then
-                pendentes=$((pendentes + 1))
-                lista="$lista $agente"
-            fi
-        fi
-    done
-
-    echo "$pendentes|$lista"
+linhas_da_secao() {
+    # Linhas de conteúdo da seção "## ... NOME ..." do kanban (sem comentários)
+    local nome="$1"
+    [ -f "$DELTA_DIR/kanban.md" ] || return 0
+    awk -v nome="$nome" '
+        /^## / { dentro = (index(toupper($0), nome) > 0); next }
+        dentro && $0 !~ /^[[:space:]]*$/ && $0 !~ /<!--/ && $0 !~ /^---/ { print }
+    ' "$DELTA_DIR/kanban.md"
 }
-
-# ─── Checklist Heartbeat (inspirado no OpenClaw) ────────────
 
 tarefas_orfas() {
-    # Verifica se há tarefas em FAZENDO no kanban sem agente ativo correspondente
-    local orfas=0
-    local lista=""
-
-    if [ ! -f ".delta-11/kanban.md" ]; then
-        echo "0|"
-        return
-    fi
-
-    # Procura linhas com "FAZENDO" e extrai o agente
-    while IFS= read -r linha; do
-        for agente_nome in ATLAS CRONOS FRONT PIXEL FORM BACK ENGINE VAULT SHIELD SCOUT; do
-            if echo "$linha" | grep -qi "$agente_nome" 2>/dev/null; then
-                local ack=".delta-11/ativacoes/ack-${agente_nome}.txt"
-                if [ ! -f "$ack" ]; then
-                    orfas=$((orfas + 1))
-                    # Evitar duplicados na lista
-                    if ! echo "$lista" | grep -q "$agente_nome"; then
-                        lista="$lista $agente_nome"
-                    fi
-                fi
-            fi
-        done
-    done < <(grep -A5 "FAZENDO\|fazendo\|Em andamento" .delta-11/kanban.md 2>/dev/null | grep -i "agente\|ATLAS\|CRONOS\|FRONT\|PIXEL\|FORM\|BACK\|ENGINE\|VAULT\|SHIELD\|SCOUT")
-
-    echo "$orfas|$lista"
+    # Agentes com tarefa em FAZENDO e sem ACK
+    local lista="" agente fazendo
+    fazendo=$(linhas_da_secao "FAZENDO")
+    for agente in $AGENTES; do
+        if printf '%s\n' "$fazendo" | grep -qw "$agente"; then
+            [ -f "$ATIVACOES/ack-${agente}.txt" ] || lista="$lista $agente"
+        fi
+    done
+    echo "$lista"
 }
 
-bloqueios_antigos() {
-    # Verifica se há bloqueios registrados há mais de 30 minutos
-    local agora
+contar_bloqueios() {
+    # Tarefas na seção BLOQUEADO (C-134: nada de "0\n0")
+    local n
+    n=$(linhas_da_secao "BLOQUEADO" | grep -c "T-\|\*\*" || true)
+    echo "${n:-0}"
+}
+
+# ─── Registro do aviso para o CRONOS ──────────────────────────
+
+registrar_aviso() {
+    local resumo="$1" agora_iso
+    agora_iso=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+    mkdir -p "$ATIVACOES"
+    local corpo
+    corpo="Aviso do vigilante para o CRONOS (não é ativação; nenhum agente foi disparado).
+Projeto: $PROJECT_PATH
+Problema: $resumo
+O que fazer (CRONOS): conferir o kanban e retomar pelo Agent tool quem estiver parado."
+    # Só registra quando o problema muda (sem encher o log a cada 5 min)
+    if [ -f "$AVISO" ] && [ "$(sed -n '2,99p' "$AVISO")" = "$corpo" ]; then
+        return 0
+    fi
+    printf '%s\n%s\n' "$agora_iso" "$corpo" > "$AVISO"
+    echo "- [$agora_iso] [vigilante] [CRONOS] $resumo" >> "$DELTA_DIR/activity-log.md"
+    echo -e "  ${DIM}Registrado no activity-log e em ativacoes/aviso-vigilante.txt${NC}"
+}
+
+limpar_aviso() {
+    [ -n "$AVISO" ] || return 0
+    if [ -f "$AVISO" ]; then
+        echo -e "  ${DIM}Situação normalizada — retirando o aviso antigo:${NC}"
+        ls -l "$AVISO" | sed 's/^/    /'
+        rm -f "$AVISO"
+        echo "- [$(date -u +%Y-%m-%dT%H:%M:%SZ)] [vigilante] [CRONOS] situação normalizada" >> "$DELTA_DIR/activity-log.md"
+    fi
+}
+
+# ─── Verificação ──────────────────────────────────────────────
+
+ciclo_verificacao() {
+    local agora ultimo silencio=0 ativos orfas num_orfas bloqueios min seg travado=0 resumo=""
     agora=$(date +%s)
-    local count=0
-
-    if [ -f ".delta-11/kanban.md" ]; then
-        # Se existem linhas com BLOQUEIO no kanban, conta
-        count=$(grep -c "BLOQUEIO\|bloqueado\|BLOQUEADO" .delta-11/kanban.md 2>/dev/null || echo "0")
-    fi
-
-    echo "$count"
-}
-
-tentar_redespacho() {
-    local agente="$1"
-
-    if [ -x "./disparar.sh" ]; then
-        echo -e "  ${YELLOW}→ Tentando redespachar ${agente}...${NC}"
-        ./disparar.sh "$agente" 2>/dev/null
-        return $?
-    else
-        echo -e "  ${RED}→ disparar.sh não encontrado ou não executável${NC}"
-        return 1
-    fi
-}
-
-# ─── Exibição de status ────────────────────────────────────
-
-exibir_status() {
-    local agora
-    agora=$(date +%s)
-    local ultimo
     ultimo=$(ultimo_toque)
-    local silencio=0
-
-    if [ "$ultimo" -gt 0 ] 2>/dev/null; then
-        silencio=$((agora - ultimo))
-    fi
-
-    local ativos
+    [ "$ultimo" -gt 0 ] 2>/dev/null && silencio=$((agora - ultimo))
     ativos=$(agentes_ativos)
-
-    local resultado_pendentes
-    resultado_pendentes=$(prompts_pendentes)
-    local num_pendentes
-    num_pendentes=$(echo "$resultado_pendentes" | cut -d'|' -f1)
-    local lista_pendentes
-    lista_pendentes=$(echo "$resultado_pendentes" | cut -d'|' -f2)
-
-    local resultado_orfas
-    resultado_orfas=$(tarefas_orfas)
-    local num_orfas
-    num_orfas=$(echo "$resultado_orfas" | cut -d'|' -f1)
-    local lista_orfas
-    lista_orfas=$(echo "$resultado_orfas" | cut -d'|' -f2)
-
-    local num_bloqueios
-    num_bloqueios=$(bloqueios_antigos)
-
-    # Formatar tempo de silêncio
-    local min=$((silencio / 60))
-    local seg=$((silencio % 60))
+    orfas=$(tarefas_orfas)
+    num_orfas=$(echo $orfas | wc -w | xargs)
+    bloqueios=$(contar_bloqueios)
+    min=$((silencio / 60))
+    seg=$((silencio % 60))
 
     echo ""
     echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
@@ -290,91 +255,39 @@ exibir_status() {
     echo -e "  Projeto:             ${DIM}$(basename "$PROJECT_PATH")${NC}"
     echo -e "  Agentes ativos:      ${GREEN}${ativos}${NC}"
     echo -e "  Último movimento:    ${min}m${seg}s atrás"
-    echo ""
-    echo -e "  ${BOLD}HEARTBEAT:${NC}"
-    echo -e "  Prompts sem ACK:     ${num_pendentes}"
     echo -e "  Tarefas sem agente:  ${num_orfas}"
-    echo -e "  Bloqueios no kanban: ${num_bloqueios}"
+    echo -e "  Bloqueios no quadro: ${bloqueios}"
 
-    # Determinar se o sistema está travado
-    local travado=0
-
-    if [ "$silencio" -gt "$LIMITE_SILENCIO" ]; then
+    # Silêncio só é problema se há alguém trabalhando ou tarefa aberta
+    if [ "$silencio" -gt "$LIMITE_SILENCIO" ] && { [ "$ativos" -gt 0 ] || [ "$num_orfas" -gt 0 ]; }; then
         travado=1
-        echo ""
+        resumo="${resumo}sistema parado há ${min} min. "
         echo -e "  ${RED}${BOLD}⚠ SISTEMA PARADO HÁ ${min} MINUTOS${NC}"
     fi
-
-    if [ "$num_pendentes" -gt 0 ]; then
-        travado=1
-        echo -e "  ${YELLOW}⚠ Agentes não despachados:${lista_pendentes}${NC}"
-    fi
-
     if [ "$num_orfas" -gt 0 ]; then
         travado=1
-        echo -e "  ${YELLOW}⚠ Tarefas em FAZENDO sem agente ativo:${lista_orfas}${NC}"
+        resumo="${resumo}tarefa(s) em FAZENDO sem agente ativo:${orfas}. "
+        echo -e "  ${YELLOW}⚠ Tarefas em FAZENDO sem agente ativo:${orfas}${NC}"
+    fi
+    if [ "$bloqueios" -gt 0 ]; then
+        travado=1
+        resumo="${resumo}${bloqueios} bloqueio(s) no quadro. "
+        echo -e "  ${YELLOW}⚠ ${bloqueios} bloqueio(s) registrado(s) no quadro${NC}"
     fi
 
-    if [ "$num_bloqueios" -gt 0 ]; then
-        echo -e "  ${YELLOW}⚠ ${num_bloqueios} bloqueio(s) registrado(s) no kanban${NC}"
-    fi
-
-    if [ "$travado" -eq 0 ]; then
+    if [ "$travado" -eq 1 ]; then
+        notificar "Δ-11 precisa de atenção" "$resumo"
+        registrar_aviso "$resumo"
+        echo -e "  ${DIM}Quem retoma é o CRONOS (Agent tool). Você não precisa abrir janela nem colar nada.${NC}"
+    else
+        limpar_aviso
         echo ""
         echo -e "  ${GREEN}✓ Sistema ativo — tudo fluindo${NC}"
     fi
-
-    return $travado
+    return 0
 }
 
-ciclo_verificacao() {
-    exibir_status
-    local parado=$?
-
-    if [ "$parado" -eq 1 ]; then
-        local resultado_pendentes
-        resultado_pendentes=$(prompts_pendentes)
-        local num_pendentes
-        num_pendentes=$(echo "$resultado_pendentes" | cut -d'|' -f1)
-        local lista_pendentes
-        lista_pendentes=$(echo "$resultado_pendentes" | cut -d'|' -f2)
-
-        local resultado_orfas
-        resultado_orfas=$(tarefas_orfas)
-        local num_orfas
-        num_orfas=$(echo "$resultado_orfas" | cut -d'|' -f1)
-        local lista_orfas
-        lista_orfas=$(echo "$resultado_orfas" | cut -d'|' -f2)
-
-        # Montar mensagem de notificação
-        local msg=""
-        [ "$num_pendentes" -gt 0 ] && msg="${msg}${num_pendentes} agente(s) sem ACK. "
-        [ "$num_orfas" -gt 0 ] && msg="${msg}${num_orfas} tarefa(s) sem agente ativo. "
-        [ -z "$msg" ] && msg="Nenhum arquivo foi atualizado nos últimos 15 minutos."
-
-        notificar "Δ-11 TRAVADO" "$msg"
-
-        # Tentar redespachar agentes pendentes (prompts sem ACK)
-        if [ "$num_pendentes" -gt 0 ]; then
-            echo ""
-            echo -e "  ${BOLD}Tentando redespachar agentes pendentes...${NC}"
-            for agente in $lista_pendentes; do
-                tentar_redespacho "$agente"
-                sleep 8  # Esperar entre dispatches (regra do Delta-11)
-            done
-        fi
-
-        # Alertar sobre tarefas órfãs (não pode redespachar automaticamente — precisa do prompt)
-        if [ "$num_orfas" -gt 0 ]; then
-            echo ""
-            echo -e "  ${YELLOW}Tarefas órfãs detectadas (agente morreu no meio do trabalho):${NC}"
-            echo -e "  ${YELLOW}Agentes afetados:${lista_orfas}${NC}"
-            echo -e "  ${DIM}v6.1+: CRONOS auto-retoma via Agent tool — nenhuma acao manual necessaria. Tarefas orfas serao retomadas automaticamente.${NC}"
-        fi
-    fi
-}
-
-# ─── Tratamento de argumentos ────────────────────────────────
+# ─── Argumentos ───────────────────────────────────────────────
 
 case "${1:-}" in
     --once)
@@ -383,57 +296,56 @@ case "${1:-}" in
         exit 0
         ;;
     --stop)
-        # Parar todos os vigilantes deste projeto
-        for pid_file in /tmp/delta11-vigilante-*.pid; do
+        verificar_delta11
+        for pid_file in "$PID_DIR"/vigilante-*.pid; do
             [ -f "$pid_file" ] || continue
-            local_path=$(head -1 "$pid_file" 2>/dev/null)
-            if [ "$local_path" = "$(pwd)" ]; then
-                pid=$(basename "$pid_file" | sed 's/delta11-vigilante-//' | sed 's/.pid//')
-                if processo_rodando "$pid"; then
-                    kill "$pid" 2>/dev/null && echo "Vigilante $pid parado."
-                else
-                    echo "Vigilante $pid já não existia."
-                fi
-                rm -f "$pid_file"
+            pid=$(basename "$pid_file" .pid)
+            pid="${pid#vigilante-}"
+            [ -n "$pid" ] || continue
+            if processo_rodando "$pid"; then
+                kill "$pid" 2>/dev/null && echo "Vigilante $pid parado."
+            else
+                echo "Vigilante $pid já não existia."
             fi
+            rm -f "$pid_file"
         done
         exit 0
         ;;
     --help|-h)
-        echo "Uso: ./vigilante.sh [--once|--stop|--help]"
+        echo "Uso: .delta-11/scripts/vigilante.sh [--once|--stop|--help]"
         echo ""
         echo "  (sem argumentos)  Inicia monitoramento contínuo"
         echo "  --once            Verifica uma vez e sai"
-        echo "  --stop            Para o vigilante rodando em background"
+        echo "  --stop            Para o vigilante rodando em segundo plano"
         echo "  --help            Mostra esta ajuda"
         echo ""
         echo "  Sistema detectado: $OS_TYPE"
+        echo "  Projeto detectado: $PROJECT_PATH"
         exit 0
         ;;
 esac
 
-# ─── Loop principal ──────────────────────────────────────────
+# ─── Loop principal ───────────────────────────────────────────
 
 verificar_delta11
-
-# Salvar PID para --stop
-echo "$(pwd)" > "$PID_FILE"
-
-# Limpar PID ao sair
+mkdir -p "$PID_DIR"
+echo "$PROJECT_PATH" > "$PID_FILE"
 trap "rm -f '$PID_FILE'; echo ''; echo 'Vigilante encerrado.'; exit 0" INT TERM
 
 echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
 echo -e "${BOLD}  Δ-11 VIGILANTE — Iniciando monitoramento${NC}"
 echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
 echo ""
-echo -e "  Sistema:           ${BOLD}${OS_TYPE}${NC}"
+echo -e "  Projeto:            ${BOLD}${PROJECT_PATH}${NC}"
+echo -e "  Sistema:            ${BOLD}${OS_TYPE}${NC}"
 echo -e "  Verificando a cada: ${BOLD}$((INTERVALO / 60)) minutos${NC}"
-echo -e "  Alerta após:       ${BOLD}$((LIMITE_SILENCIO / 60)) minutos${NC} sem atividade"
-echo -e "  Para parar:        ${DIM}Ctrl+C${NC}"
+echo -e "  Alerta após:        ${BOLD}$((LIMITE_SILENCIO / 60)) minutos${NC} sem atividade"
+echo -e "  Para parar:         ${DIM}Ctrl+C${NC}"
 
 while true; do
     ciclo_verificacao
     echo ""
     echo -e "  ${DIM}Próxima verificação em $((INTERVALO / 60)) minutos...${NC}"
-    sleep "$INTERVALO"
+    sleep "$INTERVALO" &
+    wait $!
 done

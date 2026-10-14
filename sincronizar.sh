@@ -1,50 +1,74 @@
 #!/bin/bash
 
 # ═══════════════════════════════════════════════════════════════
-# FORMACAO D-11 — Sincronizar Sistema em Todos os Projetos
+# FORMAÇÃO Δ-11 — Sincronizar o Sistema em Todos os Projetos (v6.3)
 # ═══════════════════════════════════════════════════════════════
 #
-# Este script detecta AUTOMATICAMENTE todos os projetos com D-11
-# instalado (presença de pasta .delta-11/) nos diretórios de busca
-# e sincroniza os arquivos ESTRUTURAIS do sistema:
+# Leva os arquivos de SISTEMA da fonte oficial para cada projeto que
+# usa o Δ-11. Nunca mexe nos dados do projeto.
 #
-# O que ELE SINCRONIZA (arquivos do sistema):
+# De onde vêm os projetos:
+#   1. a lista "projects" do registro central (~/.delta-11-registry.json);
+#   2. uma varredura de pastas (SEARCH_PATHS abaixo).
+#   O registro é reescrito no fim com a lista real (sem pastas que sumiram).
+#
+# NUNCA são tratados como projeto (C-057):
+#   - a própria fonte e a pasta de onde este script roda;
+#   - worktrees de agentes (.claude/worktrees/...);
+#   - cópias e clones do próprio sistema: pasta com
+#     boilerplate-delta-11-nextjs/, ou com .delta-11/CHANGELOG.md
+#     + sincronizar.sh na raiz, ou com .delta-11/.e-copia-do-sistema,
+#     e a pasta construcao-delta-11/sistema-atual.
+#
+# O que ELE SINCRONIZA (arquivos de sistema, por cima):
 #   - CLAUDE.md
-#   - .delta-11/operativos/*.md
-#   - .delta-11/protocolos/*.md
-#   - .delta-11/sub-agentes/*.md
-#   - .delta-11/templates/*.md
-#   - .delta-11/painel.html
-#   - .delta-11/hooks/*.js          (rastreamento em tempo real)
-#   - .delta-11/hooks/*.py          (v5 — pre-despacho, pre-leitura, pre-selo)
-#   - .delta-11/hooks/*.sh          (heartbeat, on-stop, pre-compact)
-#   - .delta-11/.modo-selo          (v5 — modo manual/automatico do Selo humano)
-#   - .claude/settings.json         (hooks do projeto — merge inteligente)
+#   - .delta-11/{operativos,protocolos,sub-agentes,templates,conhecimento,
+#                hooks,ferramentas,perfis,mcp,tests}/**   (pastas inteiras)
+#   - .delta-11/painel.html, .delta-11/CHANGELOG*.md e os README das
+#     pastas canônicas (scratch, evidencias/screenshots, logs/sub-agentes)
+#   - task-done.sh, monitor-delta11.sh, vigilante.sh  →  .delta-11/scripts/
+#     (C-053; as cópias velhas na raiz do projeto são retiradas)
+#   - .claude/settings.json: os vigias (hooks) do Δ-11 são SUBSTITUÍDOS
+#     pelos do modelo; vigias do usuário são preservados (C-058)
+#
+# O que ele cria SÓ SE FALTAR (nunca sobrescreve):
+#   - .delta-11/.modo-selo           (D1 — o modo de cada projeto é dele)
+#   - .delta-11/.config-limites.json (D36)
+#   - .delta-11/memoria/gotchas.md   (a partir do modelo)
+#   - .delta-11/pulsos-data.js e .delta-11/monitor-data.js (modelos do painel)
+#   - linhas de proteção no .gitignore (segredos + estado de execução)
+#
+# O que ele APAGA (C-054):
+#   - só os arquivos listados em .delta-11/removidos.txt da fonte, e só
+#     se eles não existirem mais na fonte. Mostra cada um antes de apagar.
 #
 # O que ELE NUNCA TOCA (dados do projeto):
-#   - .delta-11/kanban.md
-#   - .delta-11/kanban-data.js
-#   - .delta-11/memoria/**
-#   - .delta-11/ativacoes/**
-#   - .delta-11/.dispatch-mode  (modo de dispatch é específico de cada projeto/máquina)
-#
-# Diretórios de busca (configurável na variável SEARCH_PATHS abaixo):
-#   - ~/Documents/VSCODE
-#   - ~/projetos
-#   - ~/Downloads
+#   - .delta-11/kanban.md, .delta-11/kanban-data.js
+#   - .delta-11/pulsos-data.js, .delta-11/monitor-data.js (só criados se faltarem)
+#   - .delta-11/memoria/** (exceto criar gotchas.md se faltar)
+#   - .delta-11/ativacoes/**, locks, logs, planos/, scratch
+#   (a imagem e os sprites antigos do painel saíram da fonte e são
+#    retirados dos projetos pela lista removidos.txt — C-056)
+#   - .delta-11/.dispatch-mode, .delta-11/.nao-abrir-painel
+#   - .delta-11/ativacoes/agentes-sessao.json (vínculos de sessão, tempo de execução)
 #
 # Como usar:
-#   ./sincronizar.sh                    # Sincroniza tudo (detecção automática)
-#   ./sincronizar.sh --pull             # git pull antes de sincronizar
-#   ./sincronizar.sh --dry-run          # Mostra o que faria sem fazer
-#   ./sincronizar.sh --diff             # Mostra diff entre repo e projetos
-#   ./sincronizar.sh --nota "mensagem"  # Adiciona nota de atualizacao
+#   ./sincronizar.sh                    # sincroniza tudo
+#   ./sincronizar.sh --dry-run          # só MOSTRA o que faria (não grava nada)
+#   ./sincronizar.sh --diff             # compara fonte × projetos (não grava nada)
+#   ./sincronizar.sh --pull             # git pull na fonte antes de sincronizar
+#   ./sincronizar.sh --nota "mensagem"  # nota gravada no .last-update
+#
+# Variáveis opcionais (usadas pelos testes):
+#   DELTA11_REGISTRY      caminho do registro (padrão ~/.delta-11-registry.json)
+#   DELTA11_SEARCH_PATHS  pastas de varredura separadas por ":"
 #
 # REQUER: jq (brew install jq)
 #
 # ═══════════════════════════════════════════════════════════════
 
 set -e
+set -o pipefail
 
 CYAN='\033[0;36m'
 GREEN='\033[0;32m'
@@ -54,422 +78,479 @@ BOLD='\033[1m'
 DIM='\033[2m'
 NC='\033[0m'
 
-REGISTRY="$HOME/.delta-11-registry.json"
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REGISTRY="${DELTA11_REGISTRY:-$HOME/.delta-11-registry.json}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 DRY_RUN=false
 DO_PULL=false
 DO_DIFF=false
 NOTA=""
 
-# ─── Diretórios onde o script vai procurar projetos com D-11 ──
-SEARCH_PATHS=(
-    "$HOME/Documents/VSCODE"
-    "$HOME/projetos"
-    "$HOME/Downloads"
-)
+# ─── Pastas onde o script procura projetos com Δ-11 ──────────
+if [ -n "${DELTA11_SEARCH_PATHS:-}" ]; then
+    IFS=':' read -r -a SEARCH_PATHS <<< "$DELTA11_SEARCH_PATHS"
+else
+    SEARCH_PATHS=(
+        "$HOME/Documents/VSCODE"
+        "$HOME/projetos"
+        "$HOME/Downloads"
+    )
+fi
 
-# ─── Parse argumentos ──────────────────────────────────────────
+# Pastas de SISTEMA dentro de .delta-11/ (copiadas inteiras, recursivamente)
+PASTAS_DE_SISTEMA="operativos protocolos sub-agentes templates conhecimento hooks ferramentas perfis mcp tests"
+
+# Scripts de operação: na fonte ficam na raiz; nos projetos, em .delta-11/scripts/
+SCRIPTS_DE_OPERACAO="task-done.sh monitor-delta11.sh vigilante.sh"
+
+# ─── Argumentos ────────────────────────────────────────────────
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         --dry-run) DRY_RUN=true; shift ;;
         --pull) DO_PULL=true; shift ;;
-        --diff) DO_DIFF=true; shift ;;
-        --nota) NOTA="$2"; shift 2 ;;
+        --diff) DO_DIFF=true; DRY_RUN=true; shift ;;
+        --nota)
+            if [ -z "${2:-}" ]; then
+                echo -e "${RED}--nota precisa de um texto${NC}"; exit 1
+            fi
+            NOTA="$2"; shift 2 ;;
+        -h|--help|--ajuda)
+            sed -n '3,64p' "$0"; exit 0 ;;
         *) echo -e "${RED}Argumento desconhecido: $1${NC}"; exit 1 ;;
     esac
 done
 
-# ─── Header ────────────────────────────────────────────────────
+# ─── Cabeçalho ─────────────────────────────────────────────────
 
 echo ""
 echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
-if [ "$DRY_RUN" = true ]; then
-    echo -e "${BOLD}  FORMACAO D-11 — Sincronizacao (DRY RUN)${NC}"
+if [ "$DO_DIFF" = true ]; then
+    echo -e "${BOLD}  FORMAÇÃO Δ-11 — Comparação fonte × projetos (nada é gravado)${NC}"
+elif [ "$DRY_RUN" = true ]; then
+    echo -e "${BOLD}  FORMAÇÃO Δ-11 — Sincronização (DRY RUN: nada é gravado)${NC}"
 else
-    echo -e "${BOLD}  FORMACAO D-11 — Sincronizando Sistema${NC}"
+    echo -e "${BOLD}  FORMAÇÃO Δ-11 — Sincronizando Sistema${NC}"
 fi
 echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
 echo ""
 
-# ─── Verificar pre-requisitos ──────────────────────────────────
+# ─── Pré-requisitos ────────────────────────────────────────────
 
 if ! command -v jq &> /dev/null; then
-    echo -e "${RED}x jq nao encontrado. Instale com: brew install jq${NC}"
+    echo -e "${RED}x jq não encontrado. Instale com: brew install jq${NC}"
     exit 1
 fi
 
 if [ ! -f "$REGISTRY" ]; then
-    echo -e "${RED}x Registry nao encontrado em $REGISTRY${NC}"
-    echo "  Rode instalar.sh em um projeto para criar o registry."
+    echo -e "${RED}x Registro não encontrado em $REGISTRY${NC}"
+    echo "  Rode o instalar.sh na pasta da fonte oficial para criar o registro."
     exit 1
 fi
 
-# ─── Ler metadados do registry ─────────────────────────────────
-# O registry continua sendo usado para: source, backup, historical
-# Mas os projetos a sincronizar são detectados automaticamente
+if ! jq empty "$REGISTRY" 2>/dev/null; then
+    echo -e "${RED}x O registro $REGISTRY não é um JSON válido. Nada foi feito.${NC}"
+    exit 1
+fi
 
-SOURCE=$(jq -r '.source' "$REGISTRY")
-BACKUP=$(jq -r '.backup' "$REGISTRY")
-HISTORICAL=$(jq -r '.historical' "$REGISTRY")
+# ─── Funções auxiliares ────────────────────────────────────────
 
-# ─── Detectar automaticamente todos os projetos com D-11 ───────
+caminho_real() {
+    # Caminho absoluto sem links simbólicos; vazio se a pasta não existir
+    (cd "$1" 2>/dev/null && pwd -P) || true
+}
 
-echo -e "  ${BOLD}Detectando projetos com D-11 instalado...${NC}"
-echo -e "  ${DIM}Buscando em: ${SEARCH_PATHS[*]}${NC}"
-echo ""
+expandir_til() {
+    local p="$1"
+    case "$p" in
+        "~") p="$HOME" ;;
+        "~/"*) p="$HOME/${p#\~/}" ;;
+    esac
+    echo "$p"
+}
+
+e_copia_do_sistema() {
+    # C-057: verdadeiro (0) se a pasta é uma cópia/clone do PRÓPRIO sistema
+    local pasta="$1"
+    [ -d "$pasta/boilerplate-delta-11-nextjs" ] && return 0
+    [ -f "$pasta/.delta-11/CHANGELOG.md" ] && [ -f "$pasta/sincronizar.sh" ] && return 0
+    [ -f "$pasta/.delta-11/.e-copia-do-sistema" ] && return 0
+    case "$pasta" in
+        */construcao-delta-11/sistema-atual|*/construcao-delta-11/sistema-atual/*) return 0 ;;
+    esac
+    return 1
+}
+
+# ─── Fonte e backup (C-055: nunca seguir com origem vazia) ────
+
+SOURCE_BRUTA=$(jq -r '.source // empty' "$REGISTRY" 2>/dev/null) || SOURCE_BRUTA=""
+if [ -z "$SOURCE_BRUTA" ] || [ "$SOURCE_BRUTA" = "null" ]; then
+    echo -e "${RED}x O registro não diz onde está a fonte oficial (campo \"source\" vazio).${NC}"
+    echo "  Nada foi copiado. Rode o instalar.sh na pasta da fonte oficial."
+    exit 1
+fi
+SOURCE_BRUTA=$(expandir_til "$SOURCE_BRUTA")
+SOURCE=$(caminho_real "$SOURCE_BRUTA")
+if [ -z "$SOURCE" ] || [ ! -d "$SOURCE/.delta-11" ] || [ ! -f "$SOURCE/CLAUDE.md" ]; then
+    echo -e "${RED}x A fonte \"$SOURCE_BRUTA\" não existe ou não tem CLAUDE.md + .delta-11/.${NC}"
+    echo "  Nada foi copiado."
+    exit 1
+fi
+
+BACKUP_BRUTO=$(jq -r '.backup // empty' "$REGISTRY" 2>/dev/null) || BACKUP_BRUTO=""
+BACKUP=""
+if [ -n "$BACKUP_BRUTO" ] && [ "$BACKUP_BRUTO" != "null" ]; then
+    BACKUP_BRUTO=$(expandir_til "$BACKUP_BRUTO")
+    BACKUP=$(caminho_real "$BACKUP_BRUTO")
+fi
+
+if [ "$SOURCE" != "$SCRIPT_DIR" ]; then
+    echo -e "${YELLOW}  AVISO: este script está em $SCRIPT_DIR, mas a fonte do registro é $SOURCE.${NC}"
+    echo -e "${YELLOW}  Os arquivos serão copiados DA FONTE DO REGISTRO (não desta pasta).${NC}"
+    echo ""
+fi
+
+# ─── Montar a lista de projetos ────────────────────────────────
 
 PROJECTS=()
-for search_path in "${SEARCH_PATHS[@]}"; do
-    if [ ! -d "$search_path" ]; then
-        continue
+PROJETOS_VISTOS=$'\n'
+PULADOS=()
+
+motivo_para_pular() {
+    local pasta="$1"
+    [ -d "$pasta/.delta-11" ] || { echo "sem pasta .delta-11"; return; }
+    [ "$pasta" = "$SOURCE" ] && { echo "é a fonte oficial"; return; }
+    [ "$pasta" = "$SCRIPT_DIR" ] && { echo "é a pasta deste script (self-sync)"; return; }
+    [ -n "$BACKUP" ] && [ "$pasta" = "$BACKUP" ] && { echo "é o backup do sistema"; return; }
+    case "$pasta" in
+        */.claude/worktrees/*) echo "é worktree de agente"; return ;;
+    esac
+    if e_copia_do_sistema "$pasta"; then
+        echo "é cópia/clone do próprio sistema"; return
     fi
+    echo ""
+}
+
+adicionar_projeto() {
+    local bruto real motivo
+    bruto=$(expandir_til "$1")
+    real=$(caminho_real "$bruto")
+    if [ -z "$real" ]; then
+        PULADOS+=("$bruto — pasta não existe mais")
+        return
+    fi
+    case "$PROJETOS_VISTOS" in
+        *$'\n'"$real"$'\n'*) return ;;
+    esac
+    PROJETOS_VISTOS="${PROJETOS_VISTOS}${real}"$'\n'
+    motivo=$(motivo_para_pular "$real")
+    if [ -n "$motivo" ]; then
+        PULADOS+=("$real — $motivo")
+        return
+    fi
+    PROJECTS+=("$real")
+}
+
+echo -e "  ${BOLD}Procurando projetos com Δ-11...${NC}"
+echo -e "  ${DIM}Registro: $REGISTRY${NC}"
+echo -e "  ${DIM}Varredura: ${SEARCH_PATHS[*]}${NC}"
+echo ""
+
+# 1. Lista do registro (C-049: projetos fora das pastas varridas também entram)
+while IFS= read -r linha; do
+    [ -n "$linha" ] && adicionar_projeto "$linha"
+done < <(jq -r '(.projects // [])[] | if type == "string" then . elif type == "object" then (.path // empty) else empty end' "$REGISTRY" 2>/dev/null || true)
+
+# 2. Varredura de pastas
+for search_path in "${SEARCH_PATHS[@]}"; do
+    [ -d "$search_path" ] || continue
     while IFS= read -r delta11_dir; do
-        proj_dir=$(dirname "$delta11_dir")
-        # Excluir o repo de distribuição (fonte da verdade)
-        if [ "$proj_dir" = "$SOURCE" ]; then
-            continue
-        fi
-        # v5.4 (E2) — SELF-SYNC GUARD: SE o projeto achado é o próprio
-        # repo onde este script ESTÁ rodando, NAO sincronizar nele. O
-        # registry pode estar desatualizado (apontando para um clone
-        # antigo em outro path) e a comparacao "$proj_dir = $SOURCE"
-        # nao pega. Self-sync sobrescreve a fonte da verdade com versão
-        # velha de outro clone. Licao aprendida em 2026-07-10: o
-        # sincronizar.sh trouxe versao antiga do hook do clone em
-        # ~/projetos/ e sobrescreveu o repo real em ~/Documents/VSCODE/.
-        if [ "$proj_dir" = "$SCRIPT_DIR" ]; then
-            echo -e "${YELLOW}  AVISO: SELF-SYNC detectado em $proj_dir — pulando (compare SOURCE do registry com o path real)${NC}"
-            continue
-        fi
-        # Excluir worktrees de execução do Δ-11: cada agente com
-        # isolation:worktree cria um clone completo do repo dentro de
-        # .claude/worktrees/agent-*/ — a .delta-11 dentro é cópia
-        # descartável, não um projeto real. Escrever nela sobrescreve
-        # trabalho em andamento do agente.
-        case "$delta11_dir" in
-            */.claude/worktrees/*) continue ;;
-        esac
-        PROJECTS+=("$proj_dir")
-    done < <(find "$search_path" -maxdepth 3 -name ".delta-11" -type d 2>/dev/null | sort)
+        adicionar_projeto "$(dirname "$delta11_dir")"
+    done < <(find "$search_path" -maxdepth 3 \( -name node_modules -o -name .git -o -path '*/.claude/worktrees' \) -prune -o -type d -name ".delta-11" -print 2>/dev/null | sort)
 done
 
 echo -e "  ${BOLD}Fonte:${NC}    $SOURCE"
-echo -e "  ${BOLD}Projetos:${NC} ${#PROJECTS[@]} encontrados automaticamente"
-echo -e "  ${BOLD}Backup:${NC}   $BACKUP"
-echo ""
-
-if [ ${#PROJECTS[@]} -eq 0 ]; then
-    echo -e "${YELLOW}! Nenhum projeto com D-11 encontrado nos diretórios de busca.${NC}"
-    echo -e "  ${DIM}Verifique se os projetos estão em: ${SEARCH_PATHS[*]}${NC}"
-    exit 0
-fi
-
-echo -e "  ${DIM}Projetos encontrados:${NC}"
+echo -e "  ${BOLD}Backup:${NC}   ${BACKUP:-(nenhum configurado)}"
+echo -e "  ${BOLD}Projetos:${NC} ${#PROJECTS[@]}"
 for proj in "${PROJECTS[@]}"; do
     echo -e "  ${DIM}  - $(basename "$proj") ($proj)${NC}"
 done
+if [ ${#PULADOS[@]} -gt 0 ]; then
+    echo -e "  ${BOLD}Ignorados:${NC} ${#PULADOS[@]}"
+    for p in "${PULADOS[@]}"; do
+        echo -e "  ${DIM}  - $p${NC}"
+    done
+fi
 echo ""
 
 # ─── Git pull (opcional) ───────────────────────────────────────
 
 if [ "$DO_PULL" = true ]; then
-    echo -e "  ${YELLOW}[PULL]${NC} Atualizando repo de distribuicao..."
-    cd "$SOURCE"
-    git pull 2>&1 | while read line; do echo "    $line"; done
-    echo -e "  ${GREEN}OK${NC} Pull concluido"
+    if [ "$DRY_RUN" = true ]; then
+        echo -e "  ${YELLOW}[DRY]${NC} faria git pull na fonte (pulado: modo sem gravação)"
+    else
+        echo -e "  ${YELLOW}[PULL]${NC} Atualizando a fonte oficial..."
+        git -C "$SOURCE" pull --ff-only 2>&1 | while read -r line; do echo "    $line"; done
+        echo -e "  ${GREEN}OK${NC} Pull concluído"
+    fi
     echo ""
 fi
 
-# ─── Definir arquivos a sincronizar ────────────────────────────
+# ─── Lista de arquivos de sistema ──────────────────────────────
+# Cada item é "origem|destino" (caminhos relativos à raiz).
 
-SYNC_FILES=()
+SYNC_PARES=()
+adicionar_par() { SYNC_PARES+=("$1|$2"); }
 
-# CLAUDE.md
-if [ -f "$SOURCE/CLAUDE.md" ]; then
-    SYNC_FILES+=("CLAUDE.md")
-fi
+[ -f "$SOURCE/CLAUDE.md" ] && adicionar_par "CLAUDE.md" "CLAUDE.md"
 
-# Operativos
-for f in "$SOURCE/.delta-11/operativos/"*.md; do
-    [ -f "$f" ] && SYNC_FILES+=(".delta-11/operativos/$(basename "$f")")
+for pasta in $PASTAS_DE_SISTEMA; do
+    [ -d "$SOURCE/.delta-11/$pasta" ] || continue
+    while IFS= read -r arquivo; do
+        rel=".delta-11/${arquivo#"$SOURCE/.delta-11/"}"
+        adicionar_par "$rel" "$rel"
+    done < <(find "$SOURCE/.delta-11/$pasta" -type f ! -name ".DS_Store" ! -name "*.pyc" ! -path "*/__pycache__/*" | sort)
 done
 
-# Protocolos
-for f in "$SOURCE/.delta-11/protocolos/"*.md; do
-    [ -f "$f" ] && SYNC_FILES+=(".delta-11/protocolos/$(basename "$f")")
+# Painel
+for rel in .delta-11/painel.html \
+           .delta-11/scratch/README.md \
+           .delta-11/evidencias/screenshots/README.md \
+           .delta-11/logs/sub-agentes/README.md; do
+    [ -f "$SOURCE/$rel" ] && adicionar_par "$rel" "$rel"
 done
 
-# Sub-agentes
-for f in "$SOURCE/.delta-11/sub-agentes/"*.md; do
-    [ -f "$f" ] && SYNC_FILES+=(".delta-11/sub-agentes/$(basename "$f")")
-done
-
-# Templates
-for f in "$SOURCE/.delta-11/templates/"*.md; do
-    [ -f "$f" ] && SYNC_FILES+=(".delta-11/templates/$(basename "$f")")
-done
-
-# Conhecimento (bases de conhecimento dos agentes — arquivos de SISTEMA)
-# Corrigido em 2026-07-05: a pasta ficava fora da lista e mudanças nesses
-# arquivos nunca chegavam aos projetos (descoberto na remoção do Code Simplifier)
-for f in "$SOURCE/.delta-11/conhecimento/"*.md; do
-    [ -f "$f" ] && SYNC_FILES+=(".delta-11/conhecimento/$(basename "$f")")
-done
-
-# CHANGELOG do sistema (v5.4 E3): narrativa por versão. Complementa git log.
-# Sem sync explicito, mudanças no CHANGELOG nao chegavam aos projetos — mesmo
-# problema da pasta conhecimento/ corrigido em 2026-07-05.
 for f in "$SOURCE/.delta-11/"CHANGELOG*.md; do
-    [ -f "$f" ] && SYNC_FILES+=(".delta-11/$(basename "$f")")
+    [ -f "$f" ] && adicionar_par ".delta-11/$(basename "$f")" ".delta-11/$(basename "$f")"
 done
 
-# Tests (suíte de regressão automatizada do sistema — v5.4 Estágio 0)
-# Cobre .test.py, .test.sh e arquivos de suporte da pasta tests/.
-# Sem isso, melhorias na suíte nunca chegariam aos projetos.
-for f in "$SOURCE/.delta-11/tests/"*.sh "$SOURCE/.delta-11/tests/"*.py; do
-    [ -f "$f" ] && SYNC_FILES+=(".delta-11/tests/$(basename "$f")")
-done
-if [ -d "$SOURCE/.delta-11/tests/hooks" ]; then
-    for f in "$SOURCE/.delta-11/tests/hooks/"*.py "$SOURCE/.delta-11/tests/hooks/"*.sh; do
-        [ -f "$f" ] && SYNC_FILES+=(".delta-11/tests/hooks/$(basename "$f")")
-    done
-fi
-if [ -d "$SOURCE/.delta-11/tests/templates" ]; then
-    for f in "$SOURCE/.delta-11/tests/templates/"*.py "$SOURCE/.delta-11/tests/templates/"*.sh; do
-        [ -f "$f" ] && SYNC_FILES+=(".delta-11/tests/templates/$(basename "$f")")
-    done
-fi
-if [ -d "$SOURCE/.delta-11/tests/scripts" ]; then
-    for f in "$SOURCE/.delta-11/tests/scripts/"*.py "$SOURCE/.delta-11/tests/scripts/"*.sh; do
-        [ -f "$f" ] && SYNC_FILES+=(".delta-11/tests/scripts/$(basename "$f")")
-    done
-fi
-# v6.0: diretorios adicionados pelo alinhamento com Metodologia Genesis
-if [ -d "$SOURCE/.delta-11/tests/protocolos" ]; then
-    for f in "$SOURCE/.delta-11/tests/protocolos/"*.py "$SOURCE/.delta-11/tests/protocolos/"*.sh; do
-        [ -f "$f" ] && SYNC_FILES+=(".delta-11/tests/protocolos/$(basename "$f")")
-    done
-fi
-if [ -d "$SOURCE/.delta-11/tests/conhecimento" ]; then
-    for f in "$SOURCE/.delta-11/tests/conhecimento/"*.py "$SOURCE/.delta-11/tests/conhecimento/"*.sh; do
-        [ -f "$f" ] && SYNC_FILES+=(".delta-11/tests/conhecimento/$(basename "$f")")
-    done
-fi
-
-# Painel + imagem de fundo + sprites dos agentes
-if [ -f "$SOURCE/.delta-11/painel.html" ]; then
-    SYNC_FILES+=(".delta-11/painel.html")
-fi
-if [ -f "$SOURCE/.delta-11/bg-delta11.png" ]; then
-    SYNC_FILES+=(".delta-11/bg-delta11.png")
-fi
-for f in "$SOURCE/.delta-11/sprites/"*.png; do
-    [ -f "$f" ] && SYNC_FILES+=(".delta-11/sprites/$(basename "$f")")
+# C-053: scripts de operação → .delta-11/scripts/
+for s in $SCRIPTS_DE_OPERACAO; do
+    [ -f "$SOURCE/$s" ] && adicionar_par "$s" ".delta-11/scripts/$s"
 done
 
-# Hooks (scripts de rastreamento em tempo real — .js, .sh, .py)
-# v5 adicionou hooks Python (pre-despacho.py, pre-leitura.py) — inclusos aqui
-for f in "$SOURCE/.delta-11/hooks/"*.js "$SOURCE/.delta-11/hooks/"*.sh "$SOURCE/.delta-11/hooks/"*.py; do
-    [ -f "$f" ] && SYNC_FILES+=(".delta-11/hooks/$(basename "$f")")
-done
+# Criados só se faltarem no destino (nunca sobrescritos)
+SE_FALTAR_PARES=()
+[ -f "$SOURCE/.delta-11/.modo-selo" ] && SE_FALTAR_PARES+=(".delta-11/.modo-selo|.delta-11/.modo-selo")
+[ -f "$SOURCE/.delta-11/.config-limites.json" ] && SE_FALTAR_PARES+=(".delta-11/.config-limites.json|.delta-11/.config-limites.json")
+[ -f "$SOURCE/.delta-11/pulsos-data.js" ] && SE_FALTAR_PARES+=(".delta-11/pulsos-data.js|.delta-11/pulsos-data.js")
+[ -f "$SOURCE/.delta-11/monitor-data.js" ] && SE_FALTAR_PARES+=(".delta-11/monitor-data.js|.delta-11/monitor-data.js")
+[ -f "$SOURCE/.delta-11/templates/gotchas-inicial.md" ] && SE_FALTAR_PARES+=(".delta-11/templates/gotchas-inicial.md|.delta-11/memoria/gotchas.md")
 
-# .modo-selo (v5 — configuração de gating manual/automatico do Selo humano)
-# NOTA: este arquivo é sincronizado apenas se não existir no destino.
-# Se já existir, respeita a configuração local do projeto (pode estar em modo diferente).
-if [ -f "$SOURCE/.delta-11/.modo-selo" ]; then
-    SYNC_FILES+=(".delta-11/.modo-selo")
-fi
-
-# .claude/settings.json — tratado separadamente na função sincronizar_projeto
-# Fonte: template de hooks em .delta-11/templates/settings-hooks.json
 SETTINGS_HOOKS_SOURCE="$SOURCE/.delta-11/templates/settings-hooks.json"
+REMOVIDOS_LISTA="$SOURCE/.delta-11/removidos.txt"
 
-# Scripts do sistema (task-done.sh e outros .sh na raiz)
-for f in "$SOURCE"/*.sh; do
-    script_name=$(basename "$f")
-    case "$script_name" in
-        instalar.sh|novo-projeto.sh|disparar.sh|sincronizar.sh) continue ;;
-    esac
-    [ -f "$f" ] && SYNC_FILES+=("$script_name")
-done
-
-# Skills globais (vão para ~/.claude/skills/, não para dentro dos projetos)
-SKILLS_UPDATED=0
-for skill_dir in "$SOURCE"/skills/*/; do
-    [ -d "$skill_dir" ] || continue
-    skill_name=$(basename "$skill_dir")
-    skill_dest="$HOME/.claude/skills/$skill_name"
-    if [ -d "$skill_dest" ]; then
-        # Comparar se houve mudança
-        if ! diff -rq "$skill_dir" "$skill_dest" &> /dev/null 2>&1; then
-            if [ "$DO_DRY" = true ]; then
-                echo -e "  ${YELLOW}[DRY]${NC} Atualizaria skill: $skill_name"
-            else
-                mkdir -p "$skill_dest"
-                cp -r "$skill_dir/." "$skill_dest/"
-                SKILLS_UPDATED=$((SKILLS_UPDATED + 1))
-            fi
-        fi
-    else
-        # Skill nova — instalar
-        if [ "$DO_DRY" = true ]; then
-            echo -e "  ${YELLOW}[DRY]${NC} Instalaria skill: $skill_name"
-        else
-            mkdir -p "$skill_dest"
-            cp -r "$skill_dir/." "$skill_dest/"
-            SKILLS_UPDATED=$((SKILLS_UPDATED + 1))
-        fi
-    fi
-done
-
-echo -e "  ${BOLD}Arquivos de sistema:${NC} ${#SYNC_FILES[@]}"
-if [ "$SKILLS_UPDATED" -gt 0 ]; then
-    echo -e "  ${BOLD}Skills atualizadas:${NC} ${SKILLS_UPDATED}"
-fi
+echo -e "  ${BOLD}Arquivos de sistema:${NC} ${#SYNC_PARES[@]}"
 echo ""
 
-# ─── Modo diff ─────────────────────────────────────────────────
+# ─── Mescla de .claude/settings.json (C-058) ──────────────────
+# Todo vigia cujo comando aponta para .delta-11/hooks/ é do Δ-11: sai inteiro e
+# entra o que está no modelo (assim registros velhos ou errados somem).
+# Vigias do usuário (qualquer outro comando) ficam. Permissões: união.
+FILTRO_MESCLA='
+def e_do_delta11: ((.command // "") | test("\\.delta-11/hooks/"));
+.[0] as $proj | .[1] as $modelo |
+($proj.hooks // {}) as $ph |
+($modelo.hooks // {}) as $mh |
+($ph | with_entries(
+    .value |= ( map(.hooks = ((.hooks // []) | map(select(e_do_delta11 | not))))
+                | map(select((.hooks | length) > 0)) )
+  ) | with_entries(select((.value | length) > 0))) as $usuario |
+((($usuario | keys) + ($mh | keys)) | unique) as $eventos |
+($eventos | map({ (.): (($mh[.] // []) + ($usuario[.] // [])) }) | add // {}) as $hooks |
+$proj
+| .hooks = $hooks
+| if ($modelo.permissions // null) != null then
+    .permissions = (
+      (($modelo.permissions | del(.allow, .ask, .deny)) * (($proj.permissions // {}) | del(.allow, .ask, .deny)))
+      + ( ["allow", "ask", "deny"]
+          | map(. as $k | { ($k): ((($proj.permissions // {})[$k] // []) + ($modelo.permissions[$k] // []) | unique) })
+          | add )
+    )
+  else . end
+'
 
-if [ "$DO_DIFF" = true ]; then
-    echo -e "  ${BOLD}Comparando repo com projetos...${NC}"
-    echo ""
+# ─── Proteção do .gitignore (C-147) ───────────────────────────
+LINHAS_GITIGNORE=(
+    ".env"
+    ".env.*"
+    "!.env.example"
+    "*.pem"
+    "*.key"
+    "credentials.json"
+    ".claude/settings.local.json"
+    ".DS_Store"
+    ".delta-11/activity-log.md"
+    ".delta-11/monitor-status.json"
+    ".delta-11/monitor-data.js"
+    ".delta-11/pulsos-data.js"
+    ".delta-11/ativacoes/"
+    ".delta-11/locks/*"
+    "!.delta-11/locks/.gitkeep"
+    ".delta-11/scratch/*"
+    "!.delta-11/scratch/README.md"
+    ".delta-11/logs/sub-agentes/*.log"
+    ".claude/worktrees/"
+)
 
-    for proj in "${PROJECTS[@]}"; do
-        proj_name=$(basename "$proj")
-        echo -e "  ${CYAN}[$proj_name]${NC}"
-
-        if [ ! -d "$proj" ]; then
-            echo -e "    ${RED}x Pasta nao encontrada${NC}"
-            continue
+garantir_gitignore() {
+    local destino="$1" arquivo="$1/.gitignore" faltando=() linha
+    for linha in "${LINHAS_GITIGNORE[@]}"; do
+        if [ ! -f "$arquivo" ] || ! grep -Fxq -- "$linha" "$arquivo"; then
+            faltando+=("$linha")
         fi
-
-        DIFF_COUNT=0
-        for rel_path in "${SYNC_FILES[@]}"; do
-            src="$SOURCE/$rel_path"
-            dst="$proj/$rel_path"
-
-            if [ ! -f "$dst" ]; then
-                echo -e "    ${YELLOW}+ $rel_path${NC} (nao existe no projeto)"
-                DIFF_COUNT=$((DIFF_COUNT + 1))
-            elif ! diff -q "$src" "$dst" &> /dev/null; then
-                echo -e "    ${YELLOW}~ $rel_path${NC} (diferente)"
-                DIFF_COUNT=$((DIFF_COUNT + 1))
-            fi
-        done
-
-        if [ $DIFF_COUNT -eq 0 ]; then
-            echo -e "    ${GREEN}OK Todos iguais${NC}"
-        else
-            echo -e "    ${YELLOW}$DIFF_COUNT arquivo(s) diferente(s)${NC}"
-        fi
-        echo ""
     done
+    [ ${#faltando[@]} -eq 0 ] && return 0
+    if [ "$DRY_RUN" = true ]; then
+        echo -e "    ${YELLOW}~ .gitignore${NC} (acrescentaria ${#faltando[@]} linha(s) de proteção)"
+    else
+        {
+            [ -f "$arquivo" ] && [ -s "$arquivo" ] && echo ""
+            echo "# ─── Formação Δ-11 (v6.3): segredos e estado de execução nunca vão ao GitHub ───"
+            printf '%s\n' "${faltando[@]}"
+        } >> "$arquivo"
+        echo -e "    ${YELLOW}~ .gitignore${NC} (${#faltando[@]} linha(s) de proteção acrescentadas)"
+    fi
+    return 0
+}
 
-    exit 0
-fi
+# ─── Apagar o que saiu da fonte (C-054, C-150) ────────────────
+aplicar_removidos() {
+    local destino="$1" rel alvo
+    [ -n "$destino" ] || { echo -e "    ${RED}ERRO: destino vazio, abortando remoções${NC}"; return 1; }
+    [ -f "$REMOVIDOS_LISTA" ] || return 0
+    while IFS= read -r rel || [ -n "$rel" ]; do
+        rel="${rel%%#*}"
+        rel="$(echo "$rel" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+        [ -z "$rel" ] && continue
+        case "$rel" in
+            /*|*..*) echo -e "    ${RED}! removidos.txt: caminho recusado: $rel${NC}"; continue ;;
+        esac
+        [ -e "$SOURCE/$rel" ] && continue   # voltou para a fonte: não apagar
+        alvo="$destino/$rel"
+        [ -f "$alvo" ] || continue
+        if [ "$DRY_RUN" = true ]; then
+            echo -e "    ${RED}- $rel${NC} (seria apagado: saiu da fonte)"
+        else
+            echo -e "    ${RED}- apagando (saiu da fonte):${NC}"
+            ls -l "$alvo" | sed 's/^/        /'
+            rm -f "$alvo"
+        fi
+    done < "$REMOVIDOS_LISTA"
+    return 0
+}
 
-# ─── Funcao: sincronizar um destino ───────────────────────────
+# ─── Sincronizar UM projeto ───────────────────────────────────
 
 sincronizar_destino() {
     local destino="$1"
-    local nome="$2"
-    local copiados=0
-    local ignorados=0
+    local copiados=0 ignorados=0 par src_rel dst_rel src dst
 
-    if [ ! -d "$destino" ]; then
-        echo -e "    ${RED}x Pasta nao encontrada: $destino${NC}"
+    if [ -z "$destino" ] || [ ! -d "$destino" ]; then
+        echo -e "    ${RED}x Pasta não encontrada: $destino${NC}"
         return 1
     fi
 
-    # Garantir que pastas de infraestrutura existam
+    # Pastas de infraestrutura
     if [ "$DRY_RUN" = false ]; then
-        mkdir -p "$destino/.delta-11/hooks" 2>/dev/null
-        mkdir -p "$destino/.delta-11/locks" 2>/dev/null
-        touch "$destino/.delta-11/locks/.gitkeep" 2>/dev/null
-        mkdir -p "$destino/.claude" 2>/dev/null
-        # v5.3 — F3 da auditoria: retroalimenta projetos criados antes das Ondas 2/3
-        for pasta_v53 in ".delta-11/bugs" ".delta-11/logs/autocritica" ".delta-11/memoria/decisoes"; do
-            mkdir -p "$destino/$pasta_v53" 2>/dev/null
-            [ ! -f "$destino/$pasta_v53/.gitkeep" ] && touch "$destino/$pasta_v53/.gitkeep" 2>/dev/null
+        mkdir -p "$destino/.delta-11/hooks" "$destino/.delta-11/scripts" \
+                 "$destino/.delta-11/ativacoes" "$destino/.delta-11/locks" \
+                 "$destino/.delta-11/scratch" "$destino/.claude"
+        [ -f "$destino/.delta-11/locks/.gitkeep" ] || touch "$destino/.delta-11/locks/.gitkeep"
+        for pasta_canonica in ".delta-11/bugs" ".delta-11/logs/autocritica" ".delta-11/memoria/decisoes"; do
+            mkdir -p "$destino/$pasta_canonica"
+            [ -f "$destino/$pasta_canonica/.gitkeep" ] || touch "$destino/$pasta_canonica/.gitkeep"
         done
     fi
 
-    for rel_path in "${SYNC_FILES[@]}"; do
-        local src="$SOURCE/$rel_path"
-        local dst="$destino/$rel_path"
+    # 1. Arquivos de sistema (por cima)
+    for par in "${SYNC_PARES[@]}"; do
+        src_rel="${par%%|*}"
+        dst_rel="${par#*|}"
+        src="$SOURCE/$src_rel"
+        dst="$destino/$dst_rel"
 
-        # Criar diretorio pai se nao existir
-        local dst_dir=$(dirname "$dst")
-        if [ ! -d "$dst_dir" ]; then
-            if [ "$DRY_RUN" = true ]; then
-                echo -e "    ${DIM}mkdir -p $dst_dir${NC}"
-            else
-                mkdir -p "$dst_dir"
-            fi
-        fi
-
-        # Verificar se precisa copiar
-        if [ -f "$dst" ] && diff -q "$src" "$dst" &> /dev/null; then
+        if [ -f "$dst" ] && cmp -s "$src" "$dst"; then
             ignorados=$((ignorados + 1))
             continue
         fi
 
-        # Pular .claude/settings.json no loop — tratado separadamente abaixo
-        if [ "$rel_path" = ".claude/settings.json" ]; then
-            continue
-        fi
-
-        # Copiar
         if [ "$DRY_RUN" = true ]; then
             if [ ! -f "$dst" ]; then
-                echo -e "    ${GREEN}+ $(basename "$rel_path")${NC} (novo)"
+                echo -e "    ${GREEN}+ $dst_rel${NC} (novo)"
             else
-                echo -e "    ${YELLOW}~ $(basename "$rel_path")${NC} (atualizado)"
+                echo -e "    ${YELLOW}~ $dst_rel${NC} (atualizado)"
             fi
         else
+            mkdir -p "$(dirname "$dst")"
             cp "$src" "$dst"
+            if [ -x "$src" ] || [[ "$dst_rel" == .delta-11/scripts/*.sh ]]; then
+                chmod +x "$dst"
+            fi
         fi
         copiados=$((copiados + 1))
     done
 
-    # Sincronizar .claude/settings.json separadamente (merge de hooks)
-    if [ -n "$SETTINGS_HOOKS_SOURCE" ] && [ -f "$SETTINGS_HOOKS_SOURCE" ]; then
-        local settings_dst="$destino/.claude/settings.json"
-        if [ -f "$settings_dst" ]; then
-            # Merge: combinar hooks do D-11 com hooks existentes do projeto
-            if [ "$DRY_RUN" = true ]; then
-                echo -e "    ${YELLOW}~ settings.json${NC} (merge de hooks)"
-            else
-                local merged
-                merged=$(jq -s '
-                  .[0] as $existing |
-                  .[1] as $d11 |
-                  $existing * {
-                    hooks: (
-                      ($existing.hooks // {}) as $eh |
-                      ($d11.hooks // {}) as $dh |
-                      ($eh | keys) + ($dh | keys) | unique | map(
-                        . as $key |
-                        (($eh[$key] // []) + ($dh[$key] // [])) | unique_by(.hooks[0].command) |
-                        {($key): .}
-                      ) | add // {}
-                    )
-                  }
-                ' "$settings_dst" "$SETTINGS_HOOKS_SOURCE" 2>/dev/null)
-                if [ $? -eq 0 ] && [ -n "$merged" ]; then
-                    echo "$merged" > "$settings_dst"
-                    echo -e "    ${YELLOW}~ settings.json${NC} (hooks atualizados via merge)"
-                else
-                    cp "$SETTINGS_HOOKS_SOURCE" "$settings_dst"
-                    echo -e "    ${YELLOW}~ settings.json${NC} (merge falhou, copiado template)"
-                fi
-            fi
-            copiados=$((copiados + 1))
+    # 2. Criados só se faltarem (D1: o .modo-selo do projeto é preservado)
+    for par in "${SE_FALTAR_PARES[@]}"; do
+        src_rel="${par%%|*}"
+        dst_rel="${par#*|}"
+        dst="$destino/$dst_rel"
+        [ -f "$dst" ] && continue
+        if [ "$DRY_RUN" = true ]; then
+            echo -e "    ${GREEN}+ $dst_rel${NC} (novo, só porque faltava)"
         else
-            # Projeto não tem settings.json — copiar template
+            mkdir -p "$(dirname "$dst")"
+            cp "$SOURCE/$src_rel" "$dst"
+        fi
+        copiados=$((copiados + 1))
+    done
+
+    # 3. C-053: cópias velhas dos scripts de operação na raiz do projeto
+    local s alvo
+    for s in $SCRIPTS_DE_OPERACAO; do
+        alvo="$destino/$s"
+        [ -f "$alvo" ] || continue
+        # Só apaga se for mesmo um script do Δ-11 (nunca um arquivo do usuário com o mesmo nome)
+        if ! sed -n '1,25p' "$alvo" 2>/dev/null | grep -E "Δ-11|D-11|DELTA-11|Delta-11" > /dev/null; then
+            continue
+        fi
+        if [ "$DRY_RUN" = true ]; then
+            echo -e "    ${RED}- $s${NC} (sairia da raiz: agora mora em .delta-11/scripts/)"
+        else
+            echo -e "    ${RED}- retirando da raiz (agora mora em .delta-11/scripts/):${NC}"
+            ls -l "$alvo" | sed 's/^/        /'
+            rm -f "$alvo"
+        fi
+    done
+
+    # 4. C-054: arquivos que saíram da fonte
+    aplicar_removidos "$destino"
+
+    # 5. C-058: .claude/settings.json
+    if [ -f "$SETTINGS_HOOKS_SOURCE" ]; then
+        local settings_dst="$destino/.claude/settings.json" mesclado
+        if [ -f "$settings_dst" ]; then
+            if mesclado=$(jq -s "$FILTRO_MESCLA" "$settings_dst" "$SETTINGS_HOOKS_SOURCE" 2>/dev/null) && [ -n "$mesclado" ]; then
+                if [ "$(printf '%s\n' "$mesclado" | jq -S .)" = "$(jq -S . "$settings_dst")" ]; then
+                    :
+                elif [ "$DRY_RUN" = true ]; then
+                    echo -e "    ${YELLOW}~ .claude/settings.json${NC} (vigias do Δ-11 seriam trocados pelos do modelo)"
+                    copiados=$((copiados + 1))
+                else
+                    local tmp_settings
+                    tmp_settings=$(mktemp "$settings_dst.XXXXXX")
+                    printf '%s\n' "$mesclado" > "$tmp_settings"
+                    mv "$tmp_settings" "$settings_dst"
+                    echo -e "    ${YELLOW}~ .claude/settings.json${NC} (vigias do Δ-11 trocados pelos do modelo; os seus foram mantidos)"
+                    copiados=$((copiados + 1))
+                fi
+            else
+                # NUNCA sobrescrever um settings.json que não deu para ler
+                echo -e "    ${RED}! .claude/settings.json inválido — NÃO foi alterado. Corrija o JSON e rode de novo.${NC}"
+            fi
+        else
             if [ "$DRY_RUN" = true ]; then
-                echo -e "    ${GREEN}+ settings.json${NC} (novo, do template)"
+                echo -e "    ${GREEN}+ .claude/settings.json${NC} (novo, do modelo)"
             else
                 cp "$SETTINGS_HOOKS_SOURCE" "$settings_dst"
             fi
@@ -477,100 +558,171 @@ sincronizar_destino() {
         fi
     fi
 
+    # 6. C-147: proteção do .gitignore
+    garantir_gitignore "$destino"
+
     if [ $copiados -eq 0 ]; then
-        echo -e "    ${GREEN}OK Ja estava atualizado${NC}"
+        echo -e "    ${GREEN}OK Já estava atualizado${NC}"
+    elif [ "$DRY_RUN" = true ]; then
+        echo -e "    ${YELLOW}${copiados} mudança(s) seriam feitas${NC}, ${ignorados} arquivo(s) já iguais"
     else
-        echo -e "    ${GREEN}OK ${copiados} arquivo(s) sincronizado(s)${NC}, ${ignorados} ja iguais"
+        echo -e "    ${GREEN}OK ${copiados} arquivo(s) sincronizado(s)${NC}, ${ignorados} já iguais"
     fi
+    return 0
 }
 
-# ─── Sincronizar todos os projetos detectados ──────────────────
+# ─── Sincronizar todos os projetos ────────────────────────────
 
-echo -e "  ${BOLD}Sincronizando projetos...${NC}"
-echo ""
+if [ ${#PROJECTS[@]} -eq 0 ]; then
+    echo -e "${YELLOW}! Nenhum projeto com Δ-11 encontrado.${NC}"
+fi
 
 PROJ_OK=0
 PROJ_FAIL=0
+PROJ_SINCRONIZADOS=()
 
 for proj in "${PROJECTS[@]}"; do
-    proj_name=$(basename "$proj")
-    echo -e "  ${CYAN}[$proj_name]${NC}"
+    echo -e "  ${CYAN}[$(basename "$proj")]${NC}"
     echo -e "  ${DIM}$proj${NC}"
-
-    if sincronizar_destino "$proj" "$proj_name"; then
+    if sincronizar_destino "$proj"; then
         PROJ_OK=$((PROJ_OK + 1))
+        PROJ_SINCRONIZADOS+=("$proj")
     else
         PROJ_FAIL=$((PROJ_FAIL + 1))
     fi
     echo ""
 done
 
-# ─── Sincronizar backup ───────────────────────────────────────
-
-echo -e "  ${BOLD}Sincronizando backup...${NC}"
-echo ""
-
-backup_name=$(basename "$BACKUP")
-echo -e "  ${CYAN}[$backup_name]${NC}"
-if [ -d "$BACKUP" ]; then
-    sincronizar_destino "$BACKUP" "$backup_name"
-
-    # Backup tambem recebe os scripts de distribuicao
-    for script in instalar.sh novo-projeto.sh disparar.sh sincronizar.sh GUIA-DO-COMANDANTE.md README.md; do
-        if [ -f "$SOURCE/$script" ]; then
-            if [ "$DRY_RUN" = true ]; then
-                if [ ! -f "$BACKUP/$script" ] || ! diff -q "$SOURCE/$script" "$BACKUP/$script" &> /dev/null; then
-                    echo -e "    ${YELLOW}~ $script${NC} (script de distribuicao)"
-                fi
-            else
-                cp "$SOURCE/$script" "$BACKUP/$script"
-            fi
-        fi
-    done
-else
-    echo -e "    ${YELLOW}! Pasta de backup nao encontrada${NC}"
+if [ "$DO_DIFF" = true ]; then
+    echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
+    echo -e "${BOLD}  Comparação concluída — nenhum arquivo foi alterado${NC}"
+    echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
+    echo ""
+    exit 0
 fi
 
-echo ""
+# ─── Skills globais (só se a fonte tiver a pasta skills/) ─────
+# C-051: o modo de teste NUNCA copia. Antes de sobrescrever uma skill,
+# guardamos uma cópia dela (C-150).
+SKILLS_UPDATED=0
+if [ -d "$SOURCE/skills" ]; then
+    for skill_dir in "$SOURCE"/skills/*/; do
+        [ -d "$skill_dir" ] || continue
+        skill_name=$(basename "$skill_dir")
+        [ -n "$skill_name" ] || continue
+        skill_dest="$HOME/.claude/skills/$skill_name"
+        if [ -d "$skill_dest" ] && diff -rq "$skill_dir" "$skill_dest" &> /dev/null; then
+            continue
+        fi
+        if [ "$DRY_RUN" = true ]; then
+            echo -e "  ${YELLOW}[DRY]${NC} Atualizaria/instalaria a skill: $skill_name"
+            continue
+        fi
+        if [ -d "$skill_dest" ]; then
+            copia_skill="$HOME/.claude/skills/.backup-delta-11/${skill_name}-$(date +%Y%m%d-%H%M%S)"
+            mkdir -p "$(dirname "$copia_skill")"
+            cp -R "$skill_dest" "$copia_skill"
+            echo -e "  ${DIM}Cópia de segurança da skill $skill_name em $copia_skill${NC}"
+        fi
+        mkdir -p "$skill_dest"
+        cp -R "$skill_dir/." "$skill_dest/"
+        SKILLS_UPDATED=$((SKILLS_UPDATED + 1))
+    done
+    [ "$SKILLS_UPDATED" -gt 0 ] && echo -e "  ${BOLD}Skills atualizadas:${NC} ${SKILLS_UPDATED}" && echo ""
+fi
 
-# ─── Criar .last-update em cada projeto ────────────────────────
+# ─── Backup (espelho da distribuição) ─────────────────────────
+# C-055: a cópia do backup roda dentro de um "if" e nunca derruba o script.
+
+espelhar_backup() {
+    local destino="$1" arquivo n=0
+    [ -n "$destino" ] && [ -d "$destino" ] || return 1
+    if git -C "$SOURCE" rev-parse --is-inside-work-tree &>/dev/null; then
+        LISTA_DISTRIBUICAO=$(git -C "$SOURCE" ls-files --cached --others --exclude-standard)
+    else
+        LISTA_DISTRIBUICAO=$(cd "$SOURCE" && find . -type f ! -path "./.git/*" ! -name ".DS_Store" | sed 's|^\./||')
+    fi
+    while IFS= read -r arquivo; do
+        [ -n "$arquivo" ] && [ -f "$SOURCE/$arquivo" ] || continue
+        if [ -f "$destino/$arquivo" ] && cmp -s "$SOURCE/$arquivo" "$destino/$arquivo"; then
+            continue
+        fi
+        if [ "$DRY_RUN" = true ]; then
+            echo -e "    ${YELLOW}~ $arquivo${NC}"
+        else
+            mkdir -p "$(dirname "$destino/$arquivo")"
+            cp -p "$SOURCE/$arquivo" "$destino/$arquivo"
+        fi
+        n=$((n + 1))
+    done <<< "$LISTA_DISTRIBUICAO"
+    aplicar_removidos "$destino" || return 1
+    echo -e "    ${GREEN}OK${NC} $n arquivo(s) $([ "$DRY_RUN" = true ] && echo "seriam copiados" || echo "copiados")"
+    return 0
+}
+
+BACKUP_STATUS="nenhum configurado"
+if [ -n "$BACKUP" ]; then
+    echo -e "  ${BOLD}Backup:${NC} ${CYAN}[$(basename "$BACKUP")]${NC}"
+    if [ "$BACKUP" = "$SOURCE" ]; then
+        echo -e "    ${RED}! O backup aponta para a própria fonte — pulado${NC}"
+        BACKUP_STATUS="pulado (aponta para a fonte)"
+    elif [ -d "$BACKUP/.delta-11" ] && ! e_copia_do_sistema "$BACKUP"; then
+        echo -e "    ${RED}! O backup parece um PROJETO, não uma cópia do sistema — pulado${NC}"
+        BACKUP_STATUS="pulado (parece projeto)"
+    elif espelhar_backup "$BACKUP"; then
+        BACKUP_STATUS="atualizado"
+    else
+        echo -e "    ${RED}! Falha ao atualizar o backup (os projetos já foram sincronizados)${NC}"
+        BACKUP_STATUS="falhou"
+    fi
+    echo ""
+elif [ -n "$BACKUP_BRUTO" ] && [ "$BACKUP_BRUTO" != "null" ]; then
+    echo -e "  ${YELLOW}! Pasta de backup não encontrada: $BACKUP_BRUTO${NC}"
+    BACKUP_STATUS="pasta não encontrada"
+    echo ""
+fi
+
+# ─── .last-update e registro central ──────────────────────────
 
 if [ "$DRY_RUN" = false ]; then
-    TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%S")
+    TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    UPDATE_NOTE="${NOTA:-Sincronização automática}"
 
-    ALTERADOS=""
-    for rel_path in "${SYNC_FILES[@]}"; do
-        ALTERADOS="$ALTERADOS, $(basename "$rel_path")"
-    done
-    ALTERADOS="${ALTERADOS:2}"
-
-    UPDATE_NOTE="${NOTA:-Sincronizacao automatica}"
-
-    for proj in "${PROJECTS[@]}"; do
+    for proj in "${PROJ_SINCRONIZADOS[@]}"; do
         if [ -d "$proj/.delta-11" ]; then
             cat > "$proj/.delta-11/.last-update" << UPDATEEOF
 $TIMESTAMP
-Atualizacao: $UPDATE_NOTE
-Arquivos sincronizados: $ALTERADOS
+Atualização: $UPDATE_NOTE
+Fonte: $SOURCE
+Arquivos de sistema conferidos: ${#SYNC_PARES[@]}
 UPDATEEOF
         fi
     done
 
-    # Atualizar timestamp e lista real de projetos no registry
-    # A lista projects[] e reescrita com o que a varredura encontrou e sincronizou,
-    # para o registry nunca ficar desatualizado em relacao a realidade
-    TMP_REG=$(mktemp)
-    PROJECTS_JSON=$(printf '%s\n' "${PROJECTS[@]}" | jq -R . | jq -s .)
-    jq --arg ts "$TIMESTAMP" --argjson projetos "$PROJECTS_JSON" '.last_sync = $ts | .projects = $projetos' "$REGISTRY" > "$TMP_REG" && mv "$TMP_REG" "$REGISTRY"
+    # A lista projects[] passa a ser a lista REAL (registro + varredura, sem
+    # pastas que sumiram e sem cópias do sistema).
+    if [ ${#PROJECTS[@]} -gt 0 ]; then
+        PROJECTS_JSON=$(printf '%s\n' "${PROJECTS[@]}" | jq -R . | jq -s .)
+    else
+        PROJECTS_JSON='[]'
+    fi
+    TMP_REG=$(mktemp "${REGISTRY}.XXXXXX")
+    if jq --arg ts "$TIMESTAMP" --argjson projetos "$PROJECTS_JSON" \
+          '.last_sync = $ts | .projects = $projetos' "$REGISTRY" > "$TMP_REG"; then
+        mv "$TMP_REG" "$REGISTRY"
+    else
+        rm -f "$TMP_REG"
+        echo -e "  ${RED}! Não consegui atualizar o registro (ele continua como estava)${NC}"
+    fi
 fi
 
-# ─── Relatorio final ──────────────────────────────────────────
+# ─── Relatório final ──────────────────────────────────────────
 
 echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
 if [ "$DRY_RUN" = true ]; then
     echo -e "${YELLOW}${BOLD}  DRY RUN — Nenhum arquivo foi alterado${NC}"
 else
-    echo -e "${GREEN}${BOLD}  OK Sincronizacao concluida${NC}"
+    echo -e "${GREEN}${BOLD}  OK Sincronização concluída${NC}"
 fi
 echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
 echo ""
@@ -578,10 +730,12 @@ echo -e "  Projetos: ${GREEN}$PROJ_OK OK${NC}"
 if [ $PROJ_FAIL -gt 0 ]; then
     echo -e "  Falhas:   ${RED}$PROJ_FAIL${NC}"
 fi
-echo -e "  Backup:   ${GREEN}Atualizado${NC}"
+echo -e "  Backup:   $BACKUP_STATUS"
 echo ""
 
 if [ "$DRY_RUN" = false ]; then
-    echo -e "  ${DIM}Para verificar: ./sincronizar.sh --diff${NC}"
+    echo -e "  ${DIM}Para conferir: ./sincronizar.sh --diff${NC}"
     echo ""
 fi
+
+[ $PROJ_FAIL -eq 0 ]
