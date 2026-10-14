@@ -1,161 +1,139 @@
 #!/usr/bin/env python3
 """
-Hook PreToolUse do Delta-11 v6.2: BLOQUEIA Edits com URLs mal-formadas.
+Vigia "URLs validas" — Delta-11 v6.3 (2026-10-14). Item C-041, decisao D34.
 
-Materializa o Furo 10 da auditoria 2026-08-11 (D-scan completo):
-'URLs erradas no brief de retomada'. Agente escreve URL com
-espaco, sem TLD, ou com protocolo invalido, e humano cola no
-Claude Code. Hook previne que URL mal-formada entre no sistema.
+Furo 10 da auditoria 2026-08-11: o brief de retomada levou URLs quebradas (sem
+dominio completo, cortadas). Este vigia barra URL mal formada em Edit/Write.
 
-ALVO: Edits em qualquer arquivo (Brief, kanban, project-core, etc).
+Validas (D34):
+  - dominio com terminacao de 2+ letras: https://api.exemplo.com/x
+  - localhost, 127.0.0.1 (e outros IPs), [::1], *.local: http://localhost:3000
+  - nome interno com porta (ex.: docker): http://db:5432
+Ignoradas (nao sao URL "de verdade"):
+  - aspas, crase e < > em volta sao descartados: "https://api.x.com" e valida
+  - marcadores de modelo no endereco: https://${HOST}/api, https://{{dominio}},
+    https://[seu-dominio], https://<host> — nao sao conferidos
+  - pontuacao no fim da frase (. , ; : ! ?) e parenteses/colchetes de fechamento
+Invalidas (bloqueia, exit 2):
+  - sem endereco depois de http(s)://, nome sem terminacao e sem porta
+    (https://exemplo), terminacao numerica ou com caractere proibido.
 
-LOGICA:
-  1. Extrai URLs do conteudo (regex https?://...)
-  2. Para cada URL, valida formato:
-     - Tem TLD (parte final apos ultimo ponto)
-     - Nao tem espacos
-     - Nao tem caracteres invalidos
-  3. Se alguma URL invalida: BLOQUEIA (exit 2)
-  4. Caso contrario: PASSA (exit 0)
+Quando age: PreToolUse em Edit|Write, em qualquer arquivo; confere so o texto NOVO
+(new_string / content).
+
+Erro interno: libera a acao, registra ERRO-INTERNO no activity-log e avisa no
+stderr (exit 1) — ver _comum.run.
 """
 
 from __future__ import annotations
 
-import json
+import ipaddress
+import os
 import re
 import sys
-from datetime import datetime
-from pathlib import Path
+from urllib.parse import urlsplit
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _comum as comum  # noqa: E402
+
+HOOK = "urls-validas"
+URL_RE = re.compile(r"https?://[^\s\"'`<>]*", re.IGNORECASE)
+PONTUACAO_FINAL = ".,;:!?)]}*_"
+MARCADORES = ("${", "{{", "{", "}", "[", "]", "<", ">", "%", "$", "*")
+ROTULO_RE = re.compile(r"^(?!-)[A-Za-z0-9-]{1,63}(?<!-)$")
+TERMINACAO_RE = re.compile(r"^(?:[A-Za-z]{2,63}|xn--[A-Za-z0-9-]{2,59})$")
 
 
-ACTIVITY_LOG = Path(".delta-11/activity-log.md")
-
-URL_RE = re.compile(r"https?://[^\s)]+", re.IGNORECASE)
-# TLD: parte apos ultimo ponto deve ter 2+ chars alfanumericos
-TLD_RE = re.compile(r"\.[a-zA-Z]{2,}(?:[/:?#]|$)")
-
-
-def timestamp_utc() -> str:
-    return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+def clean(url: str) -> str:
+    while url and url[-1] in PONTUACAO_FINAL:
+        if url[-1] == ")" and url.count("(") >= url.count(")"):
+            break
+        url = url[:-1]
+    return url
 
 
-def log_activity(mensagem: str) -> None:
+def check(url: str) -> str | None:
+    """None se valida (ou ignorada); senao, o motivo."""
+    depois = url.split("://", 1)[1] if "://" in url else ""
+    if not depois:
+        return None  # "https://" sozinho: texto sobre o protocolo, nao endereco
+    autoridade = re.split(r"[/?#]", depois, maxsplit=1)[0]
+    if any(m in autoridade for m in MARCADORES if m not in ("[", "]")) or (
+        "[" in autoridade and not autoridade.startswith("[")
+    ):
+        return None  # marcador de modelo
     try:
-        ACTIVITY_LOG.parent.mkdir(parents=True, exist_ok=True)
-        with ACTIVITY_LOG.open("a", encoding="utf-8") as f:
-            f.write(f"- [{timestamp_utc()}] [urls-validas] {mensagem}\n")
-    except OSError:
+        partes = urlsplit(url)
+        host = partes.hostname or ""
+        porta = partes.port
+    except ValueError:
+        if autoridade.startswith("["):
+            return None  # [seu-dominio] — marcador
+        return "porta ou endereco invalido"
+    if not host:
+        return "sem endereco depois de http(s)://"
+    if autoridade.startswith("["):
+        try:
+            ipaddress.ip_address(host)
+            return None
+        except ValueError:
+            return None  # [seu-dominio] — marcador
+    try:
+        ipaddress.ip_address(host)
+        return None
+    except ValueError:
         pass
+    if host == "localhost" or host.endswith(".localhost") or host.endswith(".local"):
+        return None
+    rotulos = host.split(".")
+    if any(not ROTULO_RE.match(r) for r in rotulos):
+        return "caractere invalido no endereco"
+    if len(rotulos) == 1:
+        if porta is not None:
+            return None  # nome interno com porta (docker, rede local)
+        return "sem terminacao de dominio (ex.: .com, .com.br)"
+    if not TERMINACAO_RE.match(rotulos[-1]):
+        return "terminacao de dominio invalida"
+    return None
 
 
-def read_hook_event() -> dict:
-    raw = sys.stdin.read().strip()
-    if not raw:
-        return {}
-    try:
-        return json.loads(raw)
-    except json.JSONDecodeError:
-        return {}
-
-
-def get_combined_content(event: dict) -> str:
-    tool_input = event.get("tool_input") or {}
-    return (
-        tool_input.get("new_string", "")
-        + "\n"
-        + tool_input.get("content", "")
+def message(invalidas: list[tuple[str, str]], caminho: str) -> str:
+    texto = (
+        f"[{HOOK}] BLOQUEIO {comum.VERSAO} — URL mal formada\n"
+        f"\n"
+        f"Arquivo: {caminho}\n"
+        f"URLs com problema:\n"
     )
-
-
-def extract_urls(content: str) -> list[str]:
-    return URL_RE.findall(content)
-
-
-def is_valid_url(url: str) -> tuple[bool, str]:
-    """Valida URL. Retorna (valida, motivo_se_invalida)."""
-    # TLD check
-    if not TLD_RE.search(url):
-        return False, f"sem TLD valido (ultimo segmento sem extensao): {url}"
-
-    # Caracteres invalidos
-    chars_invalidos = set(' \t\n"\'<>{}|\\^`')
-    invalidos_encontrados = [c for c in url if c in chars_invalidos]
-    if invalidos_encontrados:
-        return False, f"caracteres invalidos {invalidos_encontrados}: {url}"
-
-    return True, ""
-
-
-def block_invalid_urls(invalid_urls: list[tuple[str, str]], file_path: str) -> int:
-    msg = (
-        f"[urls-validas] BLOQUEIO v6.2.0 — URL(s) mal-formada(s) detectada(s)\n"
-        f"\n"
-        f"Arquivo: {file_path}\n"
-        f"\n"
-        f"URLs invalidas:\n"
+    texto += "".join(f"  - {u}\n    Motivo: {m}\n" for u, m in invalidas[:10])
+    texto += (
+        "\nFormato certo: https://dominio.com/caminho. Tambem valem localhost,\n"
+        "127.0.0.1, *.local e nome interno com porta (http://db:5432).\n"
+        "Marcadores de modelo (https://${HOST}, https://{{dominio}}) sao aceitos.\n"
     )
-    for url, motivo in invalid_urls:
-        msg += f"  - {url}\n    Motivo: {motivo}\n"
-    msg += (
-        f"\n"
-        f"Por que isso e' importante:\n"
-        f"A auditoria de 2026-08-11 (D-scan) documentou que o brief\n"
-        f"de retomada continha URLs com espacos e formato invalido,\n"
-        f"quebravam ao serem coladas em Claude Code ou navegador.\n"
-        f"\n"
-        f"Acao requerida (v6.2+):\n"
-        f"  1. Corrija as URLs acima (remova espacos, adicione TLD,\n"
-        f"     use apenas https:// ou http://)\n"
-        f"  2. URLs validas tem formato: https://dominio.com/caminho\n"
-        f"  3. Repita o edit. Hook passara quando todas URLs forem validas.\n"
-        f"\n"
-        f"Referencia: Furo 10 da auditoria 2026-08-11 (D-scan completo).\n"
-    )
-    print(msg, file=sys.stderr)
-    return 2
+    return texto
 
 
 def main() -> int:
-    try:
-        event = read_hook_event()
-        file_path = (
-            (event.get("tool_input") or {}).get("file_path", "")
-            or "<desconhecido>"
-        )
-        combined = get_combined_content(event)
-
-        urls = extract_urls(combined)
-        if not urls:
-            return 0
-
-        invalid = []
-        for url in urls:
-            valid, motivo = is_valid_url(url)
-            if not valid:
-                invalid.append((url, motivo))
-
-        if invalid:
-            log_activity(
-                f"BLOQUEIO: {len(invalid)} URL(s) invalida(s) em {file_path}"
-            )
-            sys.exit(block_invalid_urls(invalid, file_path))
-
+    evento = comum.read_event()
+    if evento.get("tool_name") not in {"Edit", "Write", "MultiEdit"}:
         return 0
-
-    except Exception as exc:  # noqa: BLE001
-        print(f"[urls-validas] erro não-fatal: {exc}", file=sys.stderr)
-        try:
-            log_activity(f"ERRO nao-fatal: {exc}")
-        except Exception:  # noqa: BLE001
-            pass
+    entrada = comum.tool_input(evento)
+    textos = [entrada.get("new_string") or "", entrada.get("content") or ""]
+    for item in entrada.get("edits") or []:
+        if isinstance(item, dict):
+            textos.append(item.get("new_string") or "")
+    invalidas = []
+    for bruta in URL_RE.findall("\n".join(textos)):
+        url = clean(bruta)
+        motivo = check(url)
+        if motivo:
+            invalidas.append((url, motivo))
+    if not invalidas:
         return 0
+    caminho = comum.target_path_text(evento) or "<desconhecido>"
+    return comum.block(HOOK, message(invalidas, caminho), f"{len(invalidas)} URL(s) invalida(s) em {caminho}")
 
 
 if __name__ == "__main__":
-    try:
-        sys.exit(main())
-    except SystemExit:
-        raise
-    except Exception as exc:  # noqa: BLE001
-        print(f"[urls-validas] erro fatal: {exc}", file=sys.stderr)
-        sys.exit(0)
+    comum.run(main, HOOK)
