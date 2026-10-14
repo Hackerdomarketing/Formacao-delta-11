@@ -61,3 +61,4 @@ Nenhum agente dispara outro agente por conta própria. Quem dispara o agente de 
 - Erro no código que outro agente escreveu: NÃO altere sem antes ler o `-produto.md` daquele agente.
 - Documente o erro e a correção no seu `-produto.md` (o que existe agora) e no seu `-historia.md` (o que foi tentado).
 - O kanban é escrito só pelo CRONOS: você informa, ele registra.
+- Toda reprovação do SHIELD também é gravada em `.delta-11/logs/sub-agentes/shield-falhas.log`, uma linha por falha: `[AAAA-MM-DDTHH:MM:SSZ] [AGENTE-AVALIADO] FAIL T-XXX motivo`. Com 3 reprovações do mesmo agente em 4 horas, o hook `3-tentativas-shield.py` trava novos disparos desse agente; o CRONOS aplica a mesma escada acima (novo SCOUT com contexto limpo; ATLAS depois de 6).
