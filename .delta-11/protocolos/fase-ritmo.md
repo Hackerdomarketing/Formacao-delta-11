@@ -180,7 +180,7 @@ Sem o SUSTENTA do BACK e a aprovação do SHIELD, a Fase 4 (Desenvolvimento) NÃ
 
 ## Critério objetivo de selo
 
-Os 10 arquivos `.delta-11/memoria/decisoes/...` existem, cada um com pelo menos 4 seções preenchidas (descrição, escolha, justificativa, link). O BACK declara "Fase 3.5 selada" com a resposta **SUSTENTA** (ele avisa o CRONOS, que registra no kanban). Em modo `automatico`, o CRONOS abre a Fase 4 quando a cadeia de selo está verde; em `modo manual`, o comandante digita `aprovar`.
+Os 10 arquivos `.delta-11/memoria/decisoes/...` existem, cada um com pelo menos 4 seções preenchidas (descrição, escolha, justificativa, link). O BACK (líder técnico da Fundação) declara "Fase 3.5 selada" com a resposta **SUSTENTA** ao CRONOS, por `SendMessage` e no `BACK-produto.md`; o CRONOS registra no kanban. Em modo `automatico`, o CRONOS abre a Fase 4 quando a cadeia de selo está verde; em `modo manual`, o comandante digita `aprovar`.
 
 A partir daí, a Fase 4 pode começar com a confiança de que os habitats do Dia 5 têm ritmo temporal para governá-los.
 

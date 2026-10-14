@@ -75,7 +75,7 @@ A Metodologia Gênesis afirma que cada um dos 7 dias "segue o mesmo ciclo intern
 
 **O que:** alguém **encarregado de tentar quebrar** o resultado, sem alinhamento com o autor. Sem isso, bugs sutis passam.
 
-**Mecanismo no D-11:** cada executor roda a cadeia obrigatória de sub-agentes por tarefa (`build-validator` no Passo 3.5 + `contract-tester` no Passo 3.7, que gera E roda os testes de contrato). Ao final da Fase 4, o CRONOS dispara o `SCOUT` para a varredura completa de todo o código.
+**Mecanismo no D-11:** cada executor roda a cadeia obrigatória de sub-agentes por tarefa (`build-validator` no Passo 3.5 + `contract-tester` no Passo 3.7, que gera E roda os testes de contrato). Ao fim da Fase 4.5 (antes da Fase 5), o CRONOS dispara o `SCOUT` para a varredura completa de todo o código.
 
 **Pergunta concreta:** "O que pode dar errado aqui que o autor não previu?"
 
@@ -107,8 +107,8 @@ Cada fase do D-11 executa as 7 sub-etapas. Como o protocolo é replicável:
 | 2.5 — Sequenciamento | plano de ondas | mini-planos por agente | cronograma paralelo | dependências cruzadas | code-architect (opcional) | teste a seco do plano | CRONOS sela (`modo manual`: comandante aprova) |
 | 3 — Fundação | mini-plano do VAULT | mini-plano VAULT (+ SHIELD em paralelo) | VAULT executa + SHIELD prepara | avisos pelo CRONOS | SHIELD revisa migrations | schema-validator + tentar quebrar o esquema | SHIELD APROVADO + SUSTENTA do Dia 2 |
 | 3.5 — Ritmo | mini-planos da Fase 3.5 | BACK, ENGINE, VAULT, SHIELD com artefatos próprios | até 3 em paralelo | avisos pelo CRONOS | SHIELD revisa os 10 | SCOUT derruba uma dependência | **10 artefatos** + SUSTENTA do BACK |
-| 4 — Desenvolvimento | mini-planos por agente | até 3 executores por vez, em ondas | execução paralela | avisos pelo CRONOS | SHIELD revisa cada tarefa + code-architect no fim | build-validator + contract-tester por tarefa; SCOUT no fim | SHIELD APROVADO em todas + cadeia de selo |
-| 4.5 — Consciência | mini-planos da Fase 4.5 | VAULT, ENGINE, FORM/PIXEL | até 3 em paralelo | alinham regras de negócio via CRONOS | SHIELD revisa segurança | SCOUT tenta contornar | **5 entregáveis** + selo do SHIELD |
+| 4 — Desenvolvimento | mini-planos por agente | até 3 executores por vez, em ondas | execução paralela | avisos pelo CRONOS | SHIELD revisa cada tarefa + code-architect no fim | build-validator + contract-tester por tarefa | SHIELD APROVADO em todas + cadeia de selo |
+| 4.5 — Consciência | mini-planos da Fase 4.5 | VAULT, ENGINE, FORM/PIXEL | até 3 em paralelo | alinham regras de negócio via CRONOS | SHIELD revisa segurança | varredura completa do SCOUT (tenta contornar) | **5 entregáveis** + selo do SHIELD |
 | 5 — Testes Integração | plano de E2E | contextos isolados | (fase é 1 agente) | N/A | fresh-reviewer + qa-ui-tandem | tentar quebrar fluxos | E2E verdes |
 | 6 — Preparação | plano de deploy | contexto de produção | (fase é 1 agente) | N/A | SHIELD audita segurança | verify-app pré-deploy | Sentry ativo + comandante aprova o deploy |
 | 7 — Descanso | plano de consagração | 10 entregáveis distribuídos | até 3 em paralelo | avisos pelo CRONOS | fresh-reviewer + pessoa nova (onboarding) | SCOUT simula incidentes; monitor detecta autonomia | **10 entregáveis + teste supremo de 2 semanas** |

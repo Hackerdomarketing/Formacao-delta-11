@@ -414,7 +414,10 @@ O CRONOS acrescenta de 3 a 5 lições ao arquivo `~/.delta-11/aprendizados-entre
 **Ao final da Fase 4:**
 - [ ] build-validator e contract-tester rodaram em CADA tarefa de código?
 - [ ] code-architect deu nota B ou superior?
-- [ ] SCOUT fez a varredura preventiva completa?
+- [ ] Todos os problemas encontrados foram corrigidos?
+
+**Ao final da Fase 4.5 (antes da Fase 5):**
+- [ ] SCOUT fez a varredura preventiva completa (Dias 5 e 6)?
 - [ ] Todos os problemas encontrados foram corrigidos?
 
 **Ao final da Fase 6 (antes do deploy):**

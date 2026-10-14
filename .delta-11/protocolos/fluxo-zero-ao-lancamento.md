@@ -205,7 +205,7 @@ O VAULT cria o banco de dados, autenticação, e políticas de segurança. O SHI
 
 **Resultado:** os 10 artefatos acima existem como arquivos `.delta-11/memoria/decisoes/AAAA-MM-DD-ritmo-temporal-<NN>-<slug>.md` (um por artefato, `<NN>` de 01 a 10), cada um com pelo menos: descrição, escolha tecnológica, justificativa, referência à documentação. **Nenhum agente de funcionalidade começa antes dos 10 artefatos estarem presentes.**
 
-**Quem sela:** o BACK (líder técnico) declara **SUSTENTA** no kanban (via CRONOS); o SHIELD revisa; o CRONOS roda a cadeia de selo. Em `modo manual`, o comandante digita `aprovar`. Selo provisório permite iniciar a Fase 4.
+**Quem sela:** o BACK (líder técnico da Fundação) declara **SUSTENTA** ao CRONOS por `SendMessage` (e no `BACK-produto.md`); o CRONOS registra no kanban; o SHIELD revisa; o CRONOS roda a cadeia de selo. Em `modo manual`, o comandante digita `aprovar`. Selo provisório permite iniciar a Fase 4.
 
 **Arquivos relacionados:**
 - `.delta-11/templates/fase-ritmo-template.md` — modelo dos 10 artefatos
@@ -259,10 +259,11 @@ Todo agente que escreve código (VAULT, BACK, ENGINE, FRONT, PIXEL, FORM, SCOUT)
 Se o CRONOS percebe que um agente está demorando muito ou fazendo muitos commits, pode disparar o `code-architect` para verificar se o agente está seguindo o mini-plano ou improvisando. Se detectar desvio significativo, o CRONOS pode parar o agente e forçar replanejamento. Em projetos de BAIXA complexidade (5–8) o desvio costuma ser mais raro — mas a regra é a mesma.
 
 **Ao final da Fase 4 (quando todos os agentes de desenvolvimento terminam):**
-1. **Varredura preventiva (OBRIGATÓRIO):** o CRONOS dispara o SCOUT para varredura completa de todo o código antes da Fase 4.5. Busca: inicializações perigosas, contratos contornados, validações ausentes, links quebrados, condições de corrida, falhas de segurança.
-2. **Auditoria arquitetural (OBRIGATÓRIO):** o CRONOS dispara o sub-agente `code-architect` para comparar código real vs arquitetura planejada no project-core. Se a nota for C ou pior, o CRONOS cria tarefas de correção no kanban antes de avançar. Se detectar problema estrutural que exige mudança de contrato, o CRONOS dispara o ATLAS.
+- **Auditoria arquitetural (OBRIGATÓRIO):** o CRONOS dispara o sub-agente `code-architect` para comparar código real vs arquitetura planejada no project-core. Se a nota for C ou pior, o CRONOS cria tarefas de correção no kanban antes de avançar. Se detectar problema estrutural que exige mudança de contrato, o CRONOS dispara o ATLAS.
 
-**Resultado:** Todas as funcionalidades implementadas, aprovadas uma a uma pelo SHIELD, varridas pelo SCOUT, e auditadas arquiteturalmente. Problemas encontrados são corrigidos antes de avançar.
+A varredura preventiva completa do SCOUT acontece depois, ao fim da Fase 4.5, para cobrir também o código da Consciência (Dia 6).
+
+**Resultado:** Todas as funcionalidades implementadas, aprovadas uma a uma pelo SHIELD e auditadas arquiteturalmente. Problemas encontrados são corrigidos antes de avançar.
 
 ---
 
@@ -291,6 +292,8 @@ Se o CRONOS percebe que um agente está demorando muito ou fazendo muitos commit
 4. **Sistema de consentimento LGPD/GDPR** — banner de cookies opt-in, registro de consentimento, fluxo de exportação de dados pessoais do usuário (direito de acesso), fluxo de exclusão de dados (direito ao esquecimento), encarregado de dados (DPO) designado.
 
 5. **Fluxos de aprovação para operações críticas** — apagar em massa, transações financeiras, mudança de papel/permissão, alteração de dados de outro usuário. Cada operação crítica tem um fluxo de aprovação explícito (um passo, vários passos, ou automático por regra).
+
+**Varredura preventiva (OBRIGATÓRIO, ao fim da Fase 4.5, antes da Fase 5):** o CRONOS dispara o SCOUT para varredura completa de todo o código (Dias 5 e 6). Busca: inicializações perigosas, contratos contornados, validações ausentes, links quebrados, condições de corrida, falhas de segurança, autorização ou limite de requisições contornáveis. O que ele achar é corrigido antes do selo.
 
 **Quem sela:** SHIELD (auditoria + limite de requisições + teste cruzado). O CRONOS roda a cadeia de selo. Em `modo manual`, o comandante digita `aprovar`. Selo permite iniciar a Fase 5.
 
@@ -392,7 +395,7 @@ Todo executor sabe que estas três fases existem e o que entrega nelas. O CRONOS
 | **PIXEL** | Não escreve artefato; aplica os estados de carregando/erro | Banner de cookies e telas de aprovação/histórico (04 e 05) | Apoia o 10 (alteração pequena de interface documentada) |
 | **FORM** | Não escreve artefato; aplica tempos-limite e novas tentativas nos envios | Telas de consentimento, pedido de exportação/exclusão e pedido de aprovação (04 e 05) | Apoia o 10 |
 | **SHIELD** | 08 (CI/CD em staging) e 09 (observabilidade); revisa os 10 | Sela 01 e 02; teste cruzado (o `audit_log` grava; a 6ª tentativa de login é recusada) | 03 (E2E em CI), 04 (deploy automatizado com volta atrás), 05 (runbooks), 06 (painéis e alertas), 07 (tag de release); confere os 10 |
-| **SCOUT** | Teste adversarial: derruba uma dependência e confere se o circuit breaker abre | Tenta contornar autorização, limite de requisições e aprovação | Simula os incidentes dos runbooks (teste de mesa) |
+| **SCOUT** | Teste adversarial: derruba uma dependência e confere se o circuit breaker abre | Varredura preventiva completa ao fim da fase (antes da Fase 5): tenta contornar autorização, limite de requisições e aprovação | Simula os incidentes dos runbooks (teste de mesa) |
 | **ATLAS** | — | Só se faltar regra de negócio no project-core (o CRONOS o dispara) | 02 (documentação de domínio: glossário e regras em prosa), disparado pelo CRONOS |
 | **CRONOS** | Orquestra, roda a cadeia de selo | Orquestra, roda a cadeia de selo | Orquestra, abre o período de observação de 2 semanas, registra as lições entre projetos |
 
