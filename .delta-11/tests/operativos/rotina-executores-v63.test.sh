@@ -13,7 +13,9 @@
 #   D8  Estado = [NOME]-produto.md + [NOME]-historia.md. Nenhuma instrução
 #       manda escrever [NOME]-estado.md (legado: só leitura, se existir).
 #   D10 Só o CRONOS escreve kanban.md e kanban-data.js: nenhum executor
-#       manda atualizar/escrever/mover nada no kanban.
+#       manda atualizar/escrever/mover nada no kanban. Não contam as linhas
+#       que dizem que o dono do kanban é o CRONOS ("só o CRONOS escreve",
+#       "é o único que escreve o kanban", "quem marca ... é o CRONOS").
 #   D16 O executor sabe que as Fases 3.5, 4.5 e 7 existem.
 # ════════════════════════════════════════════════════════════════
 
@@ -22,6 +24,11 @@ source "$(cd "$(dirname "$0")/.." && pwd)/framework/test-helpers.sh"
 
 EXECUTORES=("VAULT" "BACK" "ENGINE" "FRONT" "PIXEL" "FORM" "SCOUT")
 LEEM_FATIAS=" VAULT BACK ENGINE FRONT PIXEL FORM "
+# Linha que diz que o CRONOS é o dono do kanban (descrição do papel do
+# CRONOS, não instrução para o executor escrever): "só o CRONOS escreve",
+# a linha do CRONOS na tabela da equipe ("é o único que escreve o kanban")
+# e "quem marca/move ... é o CRONOS".
+KANBAN_OWNER_PATTERN='((só|so) o CRONOS (escreve|grava|move|atualiza)|\| \*\*CRONOS\*\* \|[^|]*\|[^|]*(único|unico) que (escreve|grava|move|atualiza)[^.|]{0,20}kanban|quem (move|marca|escreve|grava|atualiza)[^.]{0,80} (é|e) o CRONOS)'
 
 for agente in "${EXECUTORES[@]}"; do
     arquivo="$DELTA_DIR/operativos/$agente.md"
@@ -54,8 +61,15 @@ for agente in "${EXECUTORES[@]}"; do
         "($agente|\[NOME\]|\[AGENTE\])-estado\.md" "$arquivo"
 
     # D10 — kanban é só do CRONOS
-    expect_no_instruction "$agente D10: não escreve no kanban (só o CRONOS escreve)" \
-        "(atualiz|escrev|grav|mov|adicion|marqu|edit|registr)[a-z]*[^.]{0,50}kanban" "$arquivo"
+    escreve_kanban=$(instruction_lines \
+        "(atualiz|escrev|grav|mov|adicion|marqu|edit|registr)[a-z]*[^.]{0,50}kanban" "$arquivo" \
+        | { grep -viE -- "$KANBAN_OWNER_PATTERN" || true; } | head -8)
+    if [ -z "$escreve_kanban" ]; then
+        pass "$agente D10: não escreve no kanban (só o CRONOS escreve)"
+    else
+        fail "$agente D10: não escreve no kanban (só o CRONOS escreve) — ainda aparece como instrução:"
+        echo "$escreve_kanban" | cut -c1-220 | sed 's/^/            /'
+    fi
 
     # D16 — fases que o executor precisa conhecer
     for fase in "3\.5" "4\.5" "7([^.0-9]|$)"; do

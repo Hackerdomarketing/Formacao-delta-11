@@ -4,7 +4,8 @@
 # ════════════════════════════════════════════════════════════════
 # Conceitos conferidos (D3, D5):
 #   1. ATLAS.md não manda o comandante copiar/colar prompt nem abrir janela.
-#   2. ATLAS.md dispara o CRONOS automaticamente pelo Agent tool.
+#   2. ATLAS.md dispara o CRONOS automaticamente pelo Agent tool (v6.3:
+#      "Como disparar (via `Agent tool`, sem pedir nada ao comandante)").
 #   3. D5: o ATLAS dispara SOMENTE o CRONOS — todo bloco Agent(...) do
 #      ATLAS.md é do CRONOS (o SHIELD, por exemplo, é pedido ao CRONOS).
 # ════════════════════════════════════════════════════════════════
@@ -18,7 +19,7 @@ require_file "$ATLAS" ".delta-11/operativos/ATLAS.md" || finish_test "AP#3"
 expect_no_instruction "ATLAS.md não manda o comandante copiar/colar prompt" \
     "cop(i|ia|iar|ie)[a-z]*[[:space:]]+(e|ou)[[:space:]]+col|comandante col(a|aria|e)|(^|[^a-z])col(e|ar)[[:space:]]+(o[[:space:]]+)?(texto|bloco|prompt)" "$ATLAS"
 expect_match "$ATLAS" "Agent tool|Agent\(" "ATLAS.md usa o Agent tool para disparar"
-expect_match "$ATLAS" "dispar(e|a|ar)[^.]{0,30}CRONOS[^.]{0,40}automaticamente|CRONOS[^.]{0,40}automaticamente via Agent|disparo[^.]{0,20}aut(ô|o)nomo" \
+expect_match "$ATLAS" "dispar(e|a|ar)[^.]{0,30}CRONOS[^.]{0,40}automaticamente|CRONOS[^.]{0,40}automaticamente via Agent|disparo[^.]{0,20}aut(ô|o)nomo|disparar \\(via .?Agent tool.?, sem pedir nada ao comandante" \
     "ATLAS.md dispara o CRONOS automaticamente"
 
 agent_report=$(python3 - "$ATLAS" <<'PY'
