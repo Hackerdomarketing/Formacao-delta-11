@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
   "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  FORMAÇÃO Δ-11 — MODELO do LaunchAgent do monitor (v6.3, C-062).
+  Não copie este arquivo à mão: o instalar.sh troca __CAMINHO_DA_FONTE__ pelo
+  caminho real da fonte oficial e __PASTA_DE_LOGS__ por ~/.delta-11/logs,
+  grava o resultado em ~/Library/LaunchAgents/com.delta11.monitor.plist e
+  recarrega com launchctl. Nada aqui é fixo de um usuário.
+-->
 <plist version="1.0">
 <dict>
     <key>Label</key>
@@ -8,15 +15,15 @@
     <key>ProgramArguments</key>
     <array>
         <string>/bin/bash</string>
-        <string>/Users/alfa/projetos/Formacao-delta-11/monitor-delta11.sh</string>
+        <string>__CAMINHO_DA_FONTE__/monitor-delta11.sh</string>
     </array>
     <key>StartInterval</key>
     <integer>300</integer>
     <key>RunAtLoad</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/tmp/delta11-monitor.log</string>
+    <string>__PASTA_DE_LOGS__/monitor.log</string>
     <key>StandardErrorPath</key>
-    <string>/tmp/delta11-monitor.err</string>
+    <string>__PASTA_DE_LOGS__/monitor.err</string>
 </dict>
 </plist>
