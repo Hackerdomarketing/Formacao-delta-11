@@ -4,8 +4,10 @@
 # ════════════════════════════════════════════════════════════════
 # Conceitos conferidos (seção = do título "FASE 7" ao próximo título de fase):
 #   1. Título da Fase 7 com termo do Dia 7.
-#   2. Quem faz, janela e resultado.
-#   3. Os 10 entregáveis do Dia 7.
+#   2. Quem faz, quem sela e resultado. (As "janelas" foram abolidas na
+#      v6.3 — D3: ninguém abre janela; o CRONOS conduz.)
+#   3. Os 10 entregáveis do Dia 7. Desde a v6.3 o fluxo diz "recuperação
+#      de desastre testada" (DR testado). O teste aceita os dois nomes.
 #   4. D16: teste supremo de 2 semanas.
 #   5. Ordem: Fase 6 < Fase 7.
 # ════════════════════════════════════════════════════════════════
@@ -29,7 +31,7 @@ section_has() {
 }
 section_has "^#{2,4} FASE 7.*(descanso|consagra(ção|cao)|aut(ô|o)noma)" "Fase 7 nomeada com termo do Dia 7"
 section_has "quem" "Fase 7 diz quem faz"
-section_has "janela" "Fase 7 diz a janela"
+section_has "quem sela|quem conduz|orquestrad[oa]s? pelo CRONOS" "Fase 7 diz quem conduz / quem sela"
 section_has "resultado" "Fase 7 diz o resultado"
 ENTREGAVEIS=(
     "documenta(ção|cao) t(é|e)cnica"
@@ -40,7 +42,7 @@ ENTREGAVEIS=(
     "alerta"
     "tag de release"
     "backup testado"
-    "DR testado|disaster recovery"
+    "DR testado|disaster recovery|recupera(ç|c)(ã|a)o de desastre testada"
     "onboarding"
 )
 for entregavel in "${ENTREGAVEIS[@]}"; do
