@@ -1,293 +1,49 @@
 {
   "permissions": {
     "allow": [
-      "Read(/Users/alfa/.claude/skills/**)",
-      "Read(/Users/alfa/.claude/skills/**/SKILL.md)",
-      "Read(/Users/alfa/.claude/skills/**/references/**)",
-      "Read(/Users/alfa/.claude/skills/**/scripts/**)",
-      "Read(/Users/alfa/.claude/skills/**/assets/**)"
+      "Read(~/.claude/skills/**)",
+      "Read(~/.claude/skills/**/SKILL.md)",
+      "Read(~/.claude/skills/**/references/**)",
+      "Read(~/.claude/skills/**/scripts/**)",
+      "Read(~/.claude/skills/**/assets/**)"
     ],
     "ask": [],
     "deny": []
   },
   "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .delta-11/hooks/heartbeat.sh",
-            "timeout": 2000
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit|Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .delta-11/hooks/log-activity.js",
-            "timeout": 3000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/regenerar-contratos.py || python .delta-11/hooks/regenerar-contratos.py",
-            "timeout": 10000
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/guarda-worktree.py || python .delta-11/hooks/guarda-worktree.py",
-            "timeout": 5000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/contraposicao-checker.py || python .delta-11/hooks/contraposicao-checker.py",
-            "timeout": 3000
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .delta-11/hooks/check-lock.js",
-            "timeout": 3000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/pre-selo.py || python .delta-11/hooks/pre-selo.py",
-            "timeout": 5000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/validar-contratos-fim-fase.py || python .delta-11/hooks/validar-contratos-fim-fase.py",
-            "timeout": 300000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/validar-arquitetura-vs-modelos.py || python .delta-11/hooks/validar-arquitetura-vs-modelos.py",
-            "timeout": 10000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/fase-ritmo-checker.py || python .delta-11/hooks/fase-ritmo-checker.py",
-            "timeout": 10000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/fase-consciencia-checker.py || python .delta-11/hooks/fase-consciencia-checker.py",
-            "timeout": 10000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/fase-descanso-checker.py || python .delta-11/hooks/fase-descanso-checker.py",
-            "timeout": 10000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/dia1-badal-checker.py || python .delta-11/hooks/dia1-badal-checker.py",
-            "timeout": 10000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write|Task|Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/anti-autocompact.py || python .delta-11/hooks/anti-autocompact.py",
-            "timeout": 10000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/anti-stash.py || python .delta-11/hooks/anti-stash.py",
-            "timeout": 10000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/shield-aprovado.py || python .delta-11/hooks/shield-aprovado.py",
-            "timeout": 10000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/urls-validas.py || python .delta-11/hooks/urls-validas.py",
-            "timeout": 3000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/contratos-minimos.py || python .delta-11/hooks/contratos-minimos.py",
-            "timeout": 5000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/brief-preservado.py || python .delta-11/hooks/brief-preservado.py",
-            "timeout": 3000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/topologia-deploy.py || python .delta-11/hooks/topologia-deploy.py",
-            "timeout": 5000
-          }
-        ]
-      },
-      {
-        "matcher": "SessionStart",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/worktree-prune.py || python .delta-11/hooks/worktree-prune.py",
-            "timeout": 30000
-          },
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/3-tentativas-shield.py || python .delta-11/hooks/3-tentativas-shield.py",
-            "timeout": 5000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/produto-atualizado.py || python .delta-11/hooks/produto-atualizado.py",
-            "timeout": 10000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/forca-despacho.py || python .delta-11/hooks/forca-despacho.py",
-            "timeout": 10000
-          }
-        ]
-      },
-      {
-        "matcher": "Read",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/pre-leitura.py || python .delta-11/hooks/pre-leitura.py",
-            "timeout": 3000
-          }
-        ]
-      },
-      {
-        "matcher": "Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/pre-despacho.py || python .delta-11/hooks/pre-despacho.py",
-            "timeout": 3000
-          }
-        ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .delta-11/hooks/pre-criacao-arquivo.py || python .delta-11/hooks/pre-criacao-arquivo.py",
-            "timeout": 3000
-          }
-        ]
-      }
-    ],
     "SessionStart": [
       {
         "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .delta-11/hooks/gc-locks.py || python .delta-11/hooks/gc-locks.py",
-            "timeout": 5000
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/gc-locks.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/worktree-prune.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/3-tentativas-shield.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/abrir-painel.sh\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/pre-compact.sh\"",
+            "timeout": 5
           }
         ]
       }
@@ -298,20 +54,199 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .delta-11/hooks/validar-deploy.py || python .delta-11/hooks/validar-deploy.py",
-            "timeout": 600000
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/validar-deploy.py\"",
+            "timeout": 120
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/guarda-worktree.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/check-lock.js\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/contraposicao-checker.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/pre-selo.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/validar-contratos-fim-fase.py\"",
+            "timeout": 120
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/validar-arquitetura-vs-modelos.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/fase-ritmo-checker.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/fase-consciencia-checker.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/fase-descanso-checker.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/dia1-badal-checker.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/anti-stash.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/shield-aprovado.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/urls-validas.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/contratos-minimos.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/produto-atualizado.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/forca-despacho.py\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/pre-criacao-arquivo.py\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/pre-leitura.py\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/pre-despacho.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/3-tentativas-shield.py\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|Agent|Task|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/anti-autocompact.py\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/topologia-deploy.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/heartbeat.sh\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/log-activity.js\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/regenerar-contratos.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/brief-preservado.py\"",
+            "timeout": 5
           }
         ]
       }
     ],
     "PreCompact": [
       {
-        "matcher": "*",
+        "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "bash .delta-11/hooks/pre-compact.sh",
-            "timeout": 3000
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/pre-compact.sh\"",
+            "timeout": 5
           }
         ]
       }
@@ -322,13 +257,42 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .delta-11/hooks/on-stop.sh",
-            "timeout": 5000
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/on-stop.sh\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/fim-subagente.sh\"",
+            "timeout": 5
           },
           {
             "type": "command",
-            "command": "node .delta-11/hooks/release-locks.js",
-            "timeout": 3000
+            "command": "node \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/release-locks.js\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/on-stop.sh\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/release-locks.js\"",
+            "timeout": 5
           }
         ]
       }
