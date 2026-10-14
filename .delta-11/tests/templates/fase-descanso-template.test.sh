@@ -17,32 +17,31 @@ else
     err "template AUSENTE"; exit 1
 fi
 
-# Cobre os 10 entregaveis
+# Cobre os 10 entregaveis — CADA UM conferido; acentos por alternância
+# (o "[ée]" mudava de resultado conforme o idioma do terminal).
 entregaveis=(
-    "doc.*t[ée]cnica"
-    "doc.*dom"
-    "(E2E|aceita)"
+    "documenta(ção|cao)[^.]{0,10}t(é|e)cnica|doc[^.]{0,20}t(é|e)cnica"
+    "documenta(ção|cao)[^.]{0,10}dom(í|i)nio|doc[^.]{0,20}dom(í|i)nio"
+    "E2E|testes? de aceita(ção|cao)"
     "deploy automatizado"
     "runbook"
     "alerta"
     "tag de release"
     "backup testado"
-    "DR testado"
+    "DR testado|disaster recovery"
     "onboarding"
 )
-cobertos=0
 for ent in "${entregaveis[@]}"; do
-    if grep -qiE "$ent" "$TEMPLATE"; then cobertos=$((cobertos + 1)); fi
+    if grep -qiE "$ent" "$TEMPLATE"; then
+        ok "entregavel '$ent' coberto"
+    else
+        err "entregavel '$ent' NAO coberto"
+    fi
 done
-if [ "$cobertos" -ge 10 ]; then
-    ok "10 entregaveis cobertos (encontrados $cobertos)"
-else
-    err "apenas $cobertos entregaveis cobertos (minimo 10)"
-fi
 
 # Estrutura canonica
-if grep -qE "##\s+.*[Dd]escri" "$TEMPLATE" && \
-   grep -qE "##\s+.*[Ee]vid" "$TEMPLATE"; then
+if grep -qE "##[[:space:]]+.*[Dd]escri" "$TEMPLATE" && \
+   grep -qE "##[[:space:]]+.*[Ee]vid" "$TEMPLATE"; then
     ok "template tem Descricao + Evidencia (essencial para Dia 7)"
 else
     err "template NAO tem Evidencia"
@@ -64,8 +63,13 @@ if grep -qE "\{\{[A-Z_]+\}\}|\[A-Z_+\]" "$TEMPLATE"; then
 fi
 
 # Aviso: NAO avancar sem teste supremo
-if grep -qiE "teste supremo|opera[cç][ãa]o aut[ôo]noma" "$TEMPLATE"; then
+if grep -qiE "teste supremo|opera(ção|cao) aut(ô|o)noma" "$TEMPLATE"; then
     ok "template menciona teste supremo"; else err "sem menção a teste supremo"
+fi
+
+# D16: teste supremo de 2 semanas
+if grep -qiE "(2|duas)\+? semanas" "$TEMPLATE"; then
+    ok "D16: teste supremo de 2 semanas"; else err "D16: template não diz que o teste supremo é de 2 semanas"
 fi
 
 # Cross-ref com skills globais (runbooks)

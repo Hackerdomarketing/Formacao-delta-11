@@ -1,55 +1,67 @@
 #!/usr/bin/env bash
-# Teste de regressão: AP#9 + AP#10 + AP#12 — defaults invertidos + auto-abertura
-# - AP#9: modo `automatico` e' default v6.1+ (nao `manual`)
-# - AP#10: painel.html auto-aberto (nao instrui humano a abrir)
-# - AP#12: instalar.sh tenta multiplas plataformas antes de pedir humano
+# ════════════════════════════════════════════════════════════════
+# Teste de regressão AP#9 + AP#10 + AP#12 — modo padrão e painel automático
+# ════════════════════════════════════════════════════════════════
+# Conceitos conferidos:
+#   AP#9  (D1)  O modo padrão do selo é "automatico":
+#               - o arquivo .delta-11/.modo-selo da distribuição contém automatico;
+#               - CLAUDE.md, CRONOS.md e o template do selo não chamam o
+#                 "manual" de padrão;
+#               - CLAUDE.md e CRONOS.md dizem que o padrão é automático;
+#               - o comando "modo manual" continua existindo (opção).
+#   AP#10 (D27) O painel abre sozinho: existe o hook hooks/abrir-painel.sh,
+#               ele tenta macOS (open), Linux (xdg-open) e Windows (start), e
+#               o CLAUDE.md não manda o comandante abrir o painel na mão.
+#   AP#12       instalar.sh (só na fonte oficial) tenta várias plataformas.
+# ════════════════════════════════════════════════════════════════
 
 set -euo pipefail
-GREEN='\033[0;32m'; RED='\033[0;31m'; NC='\033[0m'
+source "$(cd "$(dirname "$0")/.." && pwd)/framework/test-helpers.sh"
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-RAIZ="$SCRIPT_DIR/../../../"
-CRONOS="$RAIZ/.delta-11/operativos/CRONOS.md"
-CLAUDE="$RAIZ/CLAUDE.md"
-INSTALAR="$RAIZ/instalar.sh"
+CLAUDE="$REPO_ROOT/CLAUDE.md"
+CRONOS="$DELTA_DIR/operativos/CRONOS.md"
+SELO="$DELTA_DIR/templates/selo-experiencial-template.md"
+MODO_SELO="$DELTA_DIR/.modo-selo"
+ABRIR_PAINEL="$DELTA_DIR/hooks/abrir-painel.sh"
+INSTALAR="$REPO_ROOT/instalar.sh"
 
-falhou=0
-ok() { echo -e "  ${GREEN}[OK]${NC}   $1"; }
-err() { echo -e "  ${RED}[FALTA]${NC} $1"; falhou=$((falhou + 1)); }
-
-# AP#9 — `manual` NAO pode ser PADRÃO
-if grep -qE "manual.*PADR[AÃ]O|manual.*padr[aã]o.*mais seguro" "$CRONOS"; then
-    err "CRONOS.md ainda trata 'manual' como PADRÃO (AP#9)"
-else
-    ok "CRONOS.md NAO trata 'manual' como PADRÃO (AP#9)"
+# ─── AP#9 / D1 ───────────────────────────────────────────────
+if require_file "$MODO_SELO" ".delta-11/.modo-selo"; then
+    modo_atual=$(tr -d '[:space:]' < "$MODO_SELO")
+    if [ "$modo_atual" = "automatico" ]; then
+        pass "D1: .delta-11/.modo-selo da distribuição contém \"automatico\""
+    else
+        fail "D1: .delta-11/.modo-selo contém \"$modo_atual\" (esperado: automatico)"
+    fi
 fi
 
-# AP#9 — `automatico` DEVE ser PADRÃO v6.1+
-if grep -qE "automatico.*PADRÃO.*v6\.1|automático.*PADRÃO.*v6\.1" "$CRONOS"; then
-    ok "CRONOS.md documenta 'automatico' como PADRÃO v6.1+ (AP#9)"
+MANUAL_PADRAO='modo manual[^.;]{0,40}(padr(ã|a)o|PADR(Ã|A)O|default)|`manual`[^.;]{0,40}(padr(ã|a)o|PADR(Ã|A)O|default)|manual[^.;]{0,6}\((padr(ã|a)o|PADR(Ã|A)O)'
+expect_no_instruction "D1: nenhum texto chama o modo manual de padrão" \
+    "$MANUAL_PADRAO" "$CLAUDE" "$CRONOS" "$SELO"
+
+AUTOMATICO_PADRAO='autom(á|a)tico`?[^.;]{0,40}(padr(ã|a)o|PADR(Ã|A)O|default)|(padr(ã|a)o|PADR(Ã|A)O|default)[^.;]{0,30}autom(á|a)tico'
+expect_match "$CLAUDE" "$AUTOMATICO_PADRAO" "D1: CLAUDE.md diz que o padrão é automático"
+expect_match "$CRONOS" "$AUTOMATICO_PADRAO" "D1: CRONOS.md diz que o padrão é automático"
+expect_match "$CRONOS" "modo manual" "D1: o comando \"modo manual\" continua documentado no CRONOS.md"
+
+# ─── AP#10 / D27 ─────────────────────────────────────────────
+if require_file "$ABRIR_PAINEL" ".delta-11/hooks/abrir-painel.sh (D27)"; then
+    for comando in "open" "xdg-open" "start"; do
+        if grep -qE "(^|[^a-z-])$comando([^a-z-]|$)" "$ABRIR_PAINEL"; then
+            pass "D27: abrir-painel.sh tenta \"$comando\""
+        else
+            fail "D27: abrir-painel.sh não tenta \"$comando\""
+        fi
+    done
+fi
+expect_no_instruction "AP#10: CLAUDE.md não manda o comandante abrir o painel na mão" \
+    "painel[^.]{0,40}(abrir no navegador|abra (no|o) navegador|abra manualmente)|abr(a|ir) (o )?painel[^.]{0,20}manualmente" "$CLAUDE"
+
+# ─── AP#12 (arquivo só da fonte oficial) ─────────────────────
+if is_official_source; then
+    expect_match "$INSTALAR" "xdg-open" "AP#12: instalar.sh tenta xdg-open (Linux) além de open (Mac)"
 else
-    err "CRONOS.md NAO documenta 'automatico' como PADRÃO v6.1+"
+    skip "AP#12: instalar.sh só existe na fonte oficial (rodando dentro de um projeto)"
 fi
 
-# AP#10 — CLAUDE.md NAO deve dizer "abrir no navegador"
-if grep -qF "painel.html          ← Painel visual para o comandante (abrir no navegador)" "$CLAUDE"; then
-    err "CLAUDE.md ainda diz painel 'abrir no navegador' (AP#10)"
-else
-    ok "CLAUDE.md NAO diz 'abrir no navegador' (AP#10)"
-fi
-
-# AP#12 — instalar.sh deve tentar multiplas plataformas
-if grep -qF "xdg-open" "$INSTALAR" 2>/dev/null; then
-    ok "instalar.sh tenta xdg-open (Linux) alem de open (Mac) (AP#12)"
-else
-    err "instalar.sh NAO tenta multiplas plataformas (AP#12)"
-fi
-
-echo ""
-if [ "$falhou" -eq 0 ]; then
-    echo -e "${GREEN}OK — AP#9+AP#10+AP#12 corrigidos (defaults invertidos + auto-abertura)${NC}"
-    exit 0
-else
-    echo -e "${RED}FALTA $falhou item(ns)${NC}"
-    exit 1
-fi
+finish_test "AP#9 + AP#10 + AP#12 — modo automático e painel que abre sozinho"

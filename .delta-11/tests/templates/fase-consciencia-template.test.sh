@@ -23,32 +23,27 @@ else
     exit 1
 fi
 
-# 2. Cobre os 5 entregaveis
+# 2. Cobre os 5 entregaveis — CADA UM conferido (antes a contagem somava
+#    variações com e sem acento e passava faltando entregável).
 entregaveis=(
-    "auditoria imutavel"
-    "auditoria imutável"
-    "rate limiting"
+    "auditoria imut(á|a)vel"
+    "rate limit"
     "motor de regras"
     "LGPD"
-    "fluxos de aprovação"
-    "fluxos de aprovacao"
+    "fluxos? de aprova(ção|cao|ções|coes)"
 )
-cobertos=0
 for ent in "${entregaveis[@]}"; do
-    if grep -qi "$ent" "$TEMPLATE"; then
-        cobertos=$((cobertos + 1))
+    if grep -qiE "$ent" "$TEMPLATE"; then
+        ok "entregavel '$ent' coberto"
+    else
+        err "entregavel '$ent' NAO coberto"
     fi
 done
-if [ "$cobertos" -ge 5 ]; then
-    ok "5 entregaveis cobertos (encontrados $cobertos)"
-else
-    err "apenas $cobertos entregaveis cobertos"
-fi
 
 # 3. Estrutura canonica por entregavel
-if grep -qE "##\s+.*[Dd]escri" "$TEMPLATE" && \
-   grep -qE "##\s+.*[Ee]scolha" "$TEMPLATE" && \
-   grep -qE "##\s+.*[Jj]ustificativa" "$TEMPLATE"; then
+if grep -qE "##[[:space:]]+.*[Dd]escri" "$TEMPLATE" && \
+   grep -qE "##[[:space:]]+.*[Ee]scolha" "$TEMPLATE" && \
+   grep -qE "##[[:space:]]+.*[Jj]ustificativa" "$TEMPLATE"; then
     ok "template tem secoes Descricao / Escolha / Justificativa"
 else
     err "template NAO tem secoes canonicas"
@@ -76,7 +71,7 @@ else
 fi
 
 # 7. Aviso NAO avancar Fase 5
-if grep -qE "N..o avan..ar.*Fase 5|antes da Fase 5" "$TEMPLATE"; then
+if grep -qiE "(Não|Nao|NÃO|NAO) avan(ç|c)ar[^.]{0,20}Fase 5([^.0-9]|$)|antes da Fase 5([^.0-9]|$)|Fase 5[^.]{0,40}(não|nao) pode come(ç|c)ar" "$TEMPLATE"; then
     ok "template avisa sobre dependencia com Fase 5"
 else
     err "template NAO avisa sobre dependencia"
