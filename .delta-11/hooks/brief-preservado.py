@@ -1,147 +1,128 @@
 #!/usr/bin/env python3
 """
-Hook PostToolUse do Delta-11 v6.2: monitora .delta-11/ativacoes/*.txt
-(briefs de agentes) — se arquivo for deletado ou sobrescrito com
-tamanho < 50% do original, loga ALERTA no activity-log.
+Vigia "brief preservado" — Delta-11 v6.3 (2026-10-14). Itens C-003, C-021.
 
-Materializa o Furo 8 da auditoria 2026-08-11 (D-scan completo):
-'Brief inicial do CRONOS sumiu'. gc-locks.py NAO TOCA ativacoes.
-Se agente sobrescreve ou deleta um brief, nao ha deteccao.
+Registrado em PostToolUse (DEPOIS da ferramenta rodar). Nunca bloqueia: so
+registra ALERTA no activity-log para o comandante ver no painel.
 
-Este hook NAO BLOQUEIA (PostToolUse e' informativo). Apenas LOGA
-o evento com severidade alta para o comandante ver no painel.
+O que vigia: os briefs [instrucoes de trabalho] em `.delta-11/ativacoes/*.txt` da
+pasta principal. Arquivos de sinal nao sao briefs e ficam de fora: ack-*,
+pulso-*, morte-*, contrato-alterado-*, contratos-desatualizados*, impacto-*,
+janela-* e arquivos ocultos.
 
-ALVO: PostToolUse em qualquer arquivo .delta-11/ativacoes/*.txt.
+Como mede (C-021):
+  - Depois de Edit/Write, le o TAMANHO REAL do arquivo ja salvo no disco (nao o
+    trecho do Edit). Se o evento chegar como PreToolUse, simula o resultado final.
+  - Se o tamanho cair mais de 50 % em relacao ao ultimo visto: ALERTA.
+  - Depois de qualquer Bash, confere se algum brief conhecido SUMIU (ex.: `rm`):
+    ALERTA de exclusao.
+  - Historico: `.delta-11/memoria/brief-tamanhos.json` (chave = caminho dentro da
+    .delta-11, igual na pasta principal e nas worktrees).
 
-LOGICA:
-  1. Detecta Write/Edit em .delta-11/ativacoes/*.txt
-  2. Calcula tamanho novo do conteudo
-  3. Compara com historico (se hook ja viu esse arquivo antes)
-  4. Se tamanho novo < 50% do tamanho anterior (significa sobrescrita
-     destrutiva ou delecao implicita): loga ALERTA
-  5. Se arquivo eh novo: loga INFO (normal)
-  6. Persiste historico em .delta-11/memoria/brief-tamanhos.json
+Erro interno: registra ERRO-INTERNO no activity-log e avisa no stderr (exit 1);
+nunca bloqueia — ver _comum.run.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
-from datetime import datetime
 from pathlib import Path
 
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _comum as comum  # noqa: E402
 
-ACTIVITY_LOG = Path(".delta-11/activity-log.md")
-HISTORICO_FILE = Path(".delta-11/memoria/brief-tamanhos.json")
-
-ATIVACOES_RE = re.compile(
-    r"(?:^|[\\/])\.delta-11[\\/]ativacoes[\\/].+\.txt$"
+HOOK = "brief-preservado"
+PREFIXOS_DE_SINAL = (
+    "ack-", "pulso-", "morte-", "contrato-alterado-", "contratos-desatualizados",
+    "impacto-", "janela-", ".",
 )
+ATIVACAO_RE = re.compile(r"(?:^|/)\.delta-11/ativacoes/([^/]+\.txt)$")
 
 
-def timestamp_utc() -> str:
-    return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+def brief_name(caminho: Path | None) -> str | None:
+    if caminho is None:
+        return None
+    achado = ATIVACAO_RE.search(str(caminho).replace("\\", "/"))
+    if not achado:
+        return None
+    nome = achado.group(1)
+    if nome.startswith(PREFIXOS_DE_SINAL):
+        return None
+    return nome
 
 
-def log_activity(mensagem: str, severidade: str = "INFO") -> None:
+def history_file() -> Path:
+    return comum.delta_dir() / "memoria" / "brief-tamanhos.json"
+
+
+def load_history() -> dict:
     try:
-        ACTIVITY_LOG.parent.mkdir(parents=True, exist_ok=True)
-        with ACTIVITY_LOG.open("a", encoding="utf-8") as f:
-            f.write(
-                f"- [{timestamp_utc()}] [{severidade}] [brief-preservado] {mensagem}\n"
-            )
-    except OSError:
-        pass
-
-
-def read_hook_event() -> dict:
-    raw = sys.stdin.read().strip()
-    if not raw:
-        return {}
-    try:
-        return json.loads(raw)
-    except json.JSONDecodeError:
-        return {}
-
-
-def is_ativacao_file(event: dict) -> str | None:
-    tool_input = event.get("tool_input") or {}
-    file_path = tool_input.get("file_path") or tool_input.get("path") or ""
-    if ATIVACOES_RE.search(file_path) and file_path.endswith(".txt"):
-        return file_path
-    return None
-
-
-def get_new_content_size(event: dict) -> int:
-    tool_input = event.get("tool_input") or {}
-    content = tool_input.get("content", "") or tool_input.get("new_string", "")
-    return len(content)
-
-
-def load_historico() -> dict:
-    if not HISTORICO_FILE.exists():
-        return {}
-    try:
-        return json.loads(HISTORICO_FILE.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+        dados = json.loads(history_file().read_text(encoding="utf-8"))
+        return dados if isinstance(dados, dict) else {}
+    except (OSError, ValueError):
         return {}
 
 
-def save_historico(historico: dict) -> None:
-    try:
-        HISTORICO_FILE.parent.mkdir(parents=True, exist_ok=True)
-        HISTORICO_FILE.write_text(
-            json.dumps(historico, indent=2, ensure_ascii=False),
-            encoding="utf-8",
-        )
-    except OSError:
-        pass
+def save_history(historico: dict) -> None:
+    arquivo = history_file()
+    if not arquivo.parent.is_dir():
+        return
+    temporario = arquivo.with_name(f"{arquivo.name}.{os.getpid()}.tmp")
+    temporario.write_text(json.dumps(historico, indent=2, ensure_ascii=False), encoding="utf-8")
+    os.replace(str(temporario), str(arquivo))
+
+
+def check_deleted(historico: dict) -> bool:
+    mudou = False
+    pasta = comum.delta_dir() / "ativacoes"
+    for nome in list(historico):
+        if not (pasta / nome).exists():
+            comum.log(HOOK, f"ALERTA: brief APAGADO (tinha {historico[nome]} caracteres): ativacoes/{nome}")
+            del historico[nome]
+            mudou = True
+    return mudou
 
 
 def main() -> int:
-    try:
-        event = read_hook_event()
-        file_path = is_ativacao_file(event)
-        if not file_path:
-            return 0
+    evento = comum.read_event()
+    ferramenta = evento.get("tool_name", "")
+    historico = load_history()
 
-        new_size = get_new_content_size(event)
-        historico = load_historico()
-        old_size = historico.get(file_path)
-
-        if old_size is None:
-            # Primeira vez vendo este arquivo: registra
-            log_activity(
-                f"INFO: brief criado/atualizado: {file_path} ({new_size} chars)"
-            )
-        elif new_size < old_size * 0.5:
-            # Tamanho caiu mais de 50%: alerta!
-            reducao_pct = (1 - new_size / old_size) * 100 if old_size else 0
-            log_activity(
-                f"ALERTA: brief sobrescrito com reducao de {reducao_pct:.0f}% "
-                f"({old_size} -> {new_size} chars): {file_path}",
-                severidade="ALERTA",
-            )
-        elif new_size < old_size:
-            reducao_pct = (1 - new_size / old_size) * 100 if old_size else 0
-            log_activity(
-                f"INFO: brief atualizado com reducao de {reducao_pct:.0f}% "
-                f"({old_size} -> {new_size} chars): {file_path}"
-            )
-        else:
-            log_activity(
-                f"INFO: brief atualizado/cresceu ({old_size} -> {new_size} chars): {file_path}"
-            )
-
-        historico[file_path] = new_size
-        save_historico(historico)
+    if ferramenta == "Bash":
+        if historico and check_deleted(historico):
+            save_history(historico)
+        return 0
+    if ferramenta not in {"Edit", "Write", "MultiEdit"}:
         return 0
 
-    except Exception as exc:  # noqa: BLE001
-        print(f"[brief-preservado] erro não-fatal: {exc}", file=sys.stderr)
+    alvo = comum.absolute_target(evento)
+    nome = brief_name(alvo)
+    if not nome:
         return 0
+
+    if evento.get("hook_event_name") == "PreToolUse":
+        _antes, depois = comum.before_and_after(evento)
+        novo = len(depois)
+    else:
+        novo = len(comum.read_text(alvo))
+
+    antigo = historico.get(nome)
+    if antigo is None:
+        comum.log(HOOK, f"INFO: brief registrado: ativacoes/{nome} ({novo} caracteres)")
+    elif antigo and novo < antigo * 0.5:
+        queda = (1 - novo / antigo) * 100
+        comum.log(
+            HOOK,
+            f"ALERTA: brief encolheu {queda:.0f}% ({antigo} -> {novo} caracteres): ativacoes/{nome}",
+        )
+    historico[nome] = novo
+    save_history(historico)
+    return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    comum.run(main, HOOK)

@@ -1,304 +1,128 @@
 #!/usr/bin/env python3
 """
-Hook PostToolUse do Delta-11: regenera testes de contrato quando project-core.md muda.
+Vigia PostToolUse "contratos desatualizados" — Delta-11 v6.3 (2026-10-14).
+Itens C-037, C-038 e decisao D31.
 
-Invocado pelo Claude Code quando Edit/Write atinge project-core.md. Compara o hash
-atual com o salvo em .delta-11/.contract-hash. Se mudou, faz backup dos testes,
-dispara contract-tester e impact-mapper, atualiza hash, notifica agentes ativos.
+O que mudou na v6.3 (D31): este vigia NAO dispara mais nenhum `claude --print`
+escondido em segundo plano (custava uso, deixava processos soltos e nem tinha
+permissao para gravar). Ele so AVISA:
 
-Cross-platform: funciona em macOS, Linux e Windows. Usa apenas biblioteca padrão.
-Requer Python 3.8+.
+  1. Quando o ATLAS altera o contrato — `.delta-11/memoria/project-core.md` ou
+     uma fatia em `.delta-11/memoria/project-core/*.md` —, calcula o hash
+     [impressao digital] do conjunto (project-core + fatias) da MESMA pasta
+     .delta-11 do arquivo editado (C-037: nao usa mais caminho relativo).
+  2. Se o hash mudou em relacao a `.delta-11/.contract-hash`, grava:
+       - `.delta-11/ativacoes/contratos-desatualizados.txt` com o hash novo e a
+         hora (o CRONOS ve o aviso, roda o contract-tester UMA vez depois que o
+         ATLAS termina as edicoes, e apaga o aviso);
+       - `.delta-11/ativacoes/contrato-alterado-[AGENTE].txt` para cada executor
+         com ACK ativo (nome unico do aviso ao agente — C-038);
+       - o hash novo em `.delta-11/.contract-hash`.
+  3. O impact-mapper so roda a pedido e nunca cria tarefas no kanban sem o CRONOS
+     aprovar — nada disso e feito aqui.
 
-Uso pelo Claude Code:
-  Configurado em .claude/settings.json na seção "hooks.PostToolUse":
-  {"matcher": "Edit|Write", "hooks": [{"type": "command",
-   "command": "python3 .delta-11/hooks/regenerar-contratos.py"}]}
-
-Input: recebe o JSON do evento do hook via stdin.
-Output (stdout): log legível; exit code 0 = sucesso, 1 = erro não-bloqueante.
+Nunca bloqueia (PostToolUse). Erro interno: registra ERRO-INTERNO no activity-log
+e avisa no stderr (exit 1) — ver _comum.run.
 """
 
 from __future__ import annotations
 
 import hashlib
-import json
 import os
-import shutil
-import subprocess
 import sys
-from datetime import datetime
 from pathlib import Path
 
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _comum as comum  # noqa: E402
 
-PROJECT_CORE_RELATIVE = Path(".delta-11/memoria/project-core.md")
-CONTRACT_HASH_FILE = Path(".delta-11/.contract-hash")
-CONTRACTS_DIR = Path("tests/contracts")
-BACKUP_ROOT = Path(".delta-11/.contract-backup")
-ACTIVATIONS_DIR = Path(".delta-11/ativacoes")
-ACTIVITY_LOG = Path(".delta-11/activity-log.md")
-IMPACT_REPORT_DIR = Path(".delta-11/memoria")
-
-
-def sha256_of_file(path: Path) -> str:
-    """SHA-256 de um arquivo, em hex. Trata arquivo inexistente como string vazia."""
-    if not path.exists():
-        return ""
-    h = hashlib.sha256()
-    with path.open("rb") as f:
-        for chunk in iter(lambda: f.read(65536), b""):
-            h.update(chunk)
-    return h.hexdigest()
+HOOK = "regenerar-contratos"
+AVISO_GERAL = "contratos-desatualizados.txt"
+NAO_RECEBEM_AVISO = {"ATLAS", "CRONOS"}
 
 
-def read_hook_event() -> dict:
-    """Lê evento JSON do stdin (formato do Claude Code hook)."""
-    raw = sys.stdin.read().strip()
-    if not raw:
-        return {}
-    try:
-        return json.loads(raw)
-    except json.JSONDecodeError:
-        return {}
+def contract_files(delta: Path) -> list[Path]:
+    memoria = delta / "memoria"
+    arquivos = [memoria / "project-core.md"]
+    fatias = memoria / "project-core"
+    if fatias.is_dir():
+        arquivos += sorted(fatias.glob("*.md"))
+    return [a for a in arquivos if a.is_file()]
 
 
-def extract_edited_path(event: dict) -> Path | None:
-    """
-    Extrai o path do arquivo modificado a partir do evento do hook.
+def contract_hash(delta: Path) -> str:
+    soma = hashlib.sha256()
+    for arquivo in contract_files(delta):
+        soma.update(arquivo.relative_to(delta).as_posix().encode("utf-8") + b"\0")
+        soma.update(arquivo.read_bytes() + b"\0")
+    return soma.hexdigest()
 
-    O Claude Code envia algo como:
-      {"tool_input": {"file_path": "/abs/path/to/file.md"}, ...}
-    Retorna o Path ou None se não for um Edit/Write em arquivo.
-    """
-    tool_input = event.get("tool_input") or {}
-    file_path = tool_input.get("file_path") or tool_input.get("path")
-    if not file_path:
+
+def is_contract_file(caminho: Path | None) -> Path | None:
+    """Devolve a pasta .delta-11 se `caminho` e o project-core ou uma fatia."""
+    delta = comum.delta_dir_of_path(caminho)
+    if delta is None or caminho is None:
         return None
-    return Path(file_path)
+    relativo = caminho.relative_to(delta).as_posix()
+    if relativo == "memoria/project-core.md":
+        return delta
+    if relativo.startswith("memoria/project-core/") and relativo.endswith(".md"):
+        return delta
+    return None
 
 
-def is_project_core(edited: Path | None) -> bool:
-    """Detecta se o arquivo editado é project-core.md (qualquer localização)."""
-    if edited is None:
-        return False
-    # compara por sufixo do path (funciona em qualquer SO)
-    return edited.as_posix().endswith(PROJECT_CORE_RELATIVE.as_posix())
-
-
-def timestamp_utc() -> str:
-    return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-def timestamp_filename() -> str:
-    return datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
-
-
-def log_activity(message: str) -> None:
-    """Acrescenta linha ao activity-log.md com timestamp."""
-    ACTIVITY_LOG.parent.mkdir(parents=True, exist_ok=True)
-    entry = f"- [{timestamp_utc()}] [regenerar-contratos] {message}\n"
-    with ACTIVITY_LOG.open("a", encoding="utf-8") as f:
-        f.write(entry)
-
-
-BACKUPS_MANTIDOS = 5  # v5.2 (M-16): rotação — auditoria antiga vive no git, não no disco
-
-
-def backup_contracts() -> Path | None:
-    """Copia tests/contracts/ atual para .delta-11/.contract-backup/[timestamp]/.
-
-    v5.2: após criar o backup novo, remove os mais antigos além de BACKUPS_MANTIDOS.
-    Achado empírico: 13 backups acumulados em projeto real sem regra de rotação.
-    """
-    if not CONTRACTS_DIR.exists():
-        return None
-    BACKUP_ROOT.mkdir(parents=True, exist_ok=True)
-    target = BACKUP_ROOT / timestamp_filename()
-    shutil.copytree(CONTRACTS_DIR, target)
-
-    # Rotação: nomes são timestamps ISO-compactos — ordenação lexicográfica = cronológica
-    backups = sorted(
-        (p for p in BACKUP_ROOT.iterdir() if p.is_dir()),
-        key=lambda p: p.name,
-        reverse=True,
-    )
-    for antigo in backups[BACKUPS_MANTIDOS:]:
-        shutil.rmtree(antigo, ignore_errors=True)
-        log_activity(f"backup antigo rotacionado (M-16): {antigo.name}")
-
-    return target
-
-
-def agents_currently_active() -> list[str]:
-    """Lê .delta-11/ativacoes/ack-*.txt e retorna nomes dos agentes com ACK ativo."""
-    if not ACTIVATIONS_DIR.exists():
-        return []
-    names: list[str] = []
-    for p in ACTIVATIONS_DIR.glob("ack-*.txt"):
-        name = p.stem[len("ack-"):]
-        if name:
-            names.append(name.upper())
-    return names
-
-
-def notify_active_agents(active: list[str]) -> None:
-    """Cria arquivos contrato-alterado-AGENTE.txt para agentes ativos."""
-    if not active:
-        return
-    ACTIVATIONS_DIR.mkdir(parents=True, exist_ok=True)
-    for agent in active:
-        path = ACTIVATIONS_DIR / f"contrato-alterado-{agent}.txt"
-        path.write_text(
-            f"Formação Δ-11 — Notificação automática\n"
-            f"Timestamp: {timestamp_utc()}\n"
-            f"Agente: {agent}\n\n"
-            f"O project-core.md foi alterado. Os testes de contrato foram regenerados "
-            f"automaticamente pelo hook. Antes de iniciar a próxima tarefa, releia "
-            f"a seção do project-core.md relevante para você e rode os testes de "
-            f"contrato atualizados em tests/contracts/ para confirmar que sua "
-            f"implementação continua conforme.\n",
-            encoding="utf-8",
-        )
-
-
-def dispatch_contract_tester() -> tuple[bool, str]:
-    """
-    Tenta disparar contract-tester via claude CLI. Se não disponível, retorna
-    instrução para execução manual (Onda 1 funciona assim; Onda 2 troca pelo SDK).
-
-    Retorna (sucesso, mensagem).
-    """
-    claude_bin = shutil.which("claude")
-    if not claude_bin:
-        return (
-            False,
-            "CLI 'claude' não encontrado no PATH — contract-tester deve ser disparado "
-            "manualmente pelo agente ativo ou pela Onda 2 via SDK nativo.",
-        )
-    prompt = (
-        "Você é o sub-agente contract-tester do Delta-11. Leia "
-        ".delta-11/sub-agentes/contract-tester.md e siga o cenário 2 (Regeneração). "
-        "Motivo: project-core.md foi alterado; hash antigo não bate. Gere "
-        "novamente os arquivos em tests/contracts/ preservando os marcados com "
-        "// CONTRATO INCOMPLETO. Retorne o relatório estruturado."
-    )
-    try:
-        # Dispara em background (não bloqueia o hook).
-        subprocess.Popen(
-            [claude_bin, "--print", prompt],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            stdin=subprocess.DEVNULL,
-        )
-        return (True, "contract-tester disparado via claude CLI (background)")
-    except OSError as e:
-        return (False, f"falha ao disparar contract-tester: {e}")
-
-
-def dispatch_impact_mapper() -> tuple[bool, str]:
-    """
-    Dispara impact-mapper em paralelo. Mesmo fallback se CLI ausente.
-    Retorna (sucesso, mensagem).
-    """
-    claude_bin = shutil.which("claude")
-    if not claude_bin:
-        return (
-            False,
-            "CLI 'claude' não encontrado no PATH — impact-mapper deve ser disparado "
-            "manualmente.",
-        )
-    prompt = (
-        "Você é o sub-agente impact-mapper do Delta-11. Leia "
-        ".delta-11/sub-agentes/impact-mapper.md e execute o protocolo. Motivo: "
-        "project-core.md foi alterado; o CRONOS precisa do relatório de impacto "
-        "para decidir quais tarefas criar no kanban. Gere o arquivo "
-        ".delta-11/memoria/impacto-mudanca-[timestamp].md e atualize kanban.md "
-        "com tarefas [IMPACTO-MUDANCA]."
-    )
-    try:
-        subprocess.Popen(
-            [claude_bin, "--print", prompt],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            stdin=subprocess.DEVNULL,
-        )
-        return (True, "impact-mapper disparado via claude CLI (background)")
-    except OSError as e:
-        return (False, f"falha ao disparar impact-mapper: {e}")
-
-
-def save_new_hash(new_hash: str) -> None:
-    CONTRACT_HASH_FILE.parent.mkdir(parents=True, exist_ok=True)
-    CONTRACT_HASH_FILE.write_text(new_hash + "\n", encoding="utf-8")
+def active_executors(delta: Path) -> list[str]:
+    nomes = []
+    for ack in sorted((delta / "ativacoes").glob("ack-*.txt")):
+        nome = ack.stem[len("ack-"):].upper()
+        if nome in comum.TODOS_OS_AGENTES and nome not in NAO_RECEBEM_AVISO:
+            nomes.append(nome)
+    return nomes
 
 
 def main() -> int:
-    # Só age se o arquivo editado é project-core.md
-    event = read_hook_event()
-    edited = extract_edited_path(event)
-
-    if not is_project_core(edited):
-        # Evento não relevante — sair silencioso com sucesso
+    evento = comum.read_event()
+    if evento.get("tool_name") not in {"Edit", "Write", "MultiEdit"}:
+        return 0
+    delta = is_contract_file(comum.absolute_target(evento))
+    if delta is None:
         return 0
 
-    # Garante working directory do projeto (Claude Code costuma rodar hook lá)
-    core_path = PROJECT_CORE_RELATIVE
-    if not core_path.exists():
-        print(f"[regenerar-contratos] {core_path} não existe; nada a fazer.")
+    novo = contract_hash(delta)
+    arquivo_hash = delta / ".contract-hash"
+    antigo = comum.read_text(arquivo_hash).strip()
+    if novo == antigo:
         return 0
 
-    # Compara hashes
-    new_hash = sha256_of_file(core_path)
-    old_hash = ""
-    if CONTRACT_HASH_FILE.exists():
-        old_hash = CONTRACT_HASH_FILE.read_text(encoding="utf-8").strip()
-
-    if new_hash == old_hash:
-        # project-core.md foi reescrito mas conteúdo idêntico — nada a fazer
-        print(f"[regenerar-contratos] hash inalterado ({new_hash[:12]}); nada a fazer.")
-        return 0
-
-    log_activity(
-        f"project-core.md alterado: hash {old_hash[:12] or '(vazio)'} -> {new_hash[:12]}"
+    agora = comum.timestamp_utc()
+    ativacoes = delta / "ativacoes"
+    ativacoes.mkdir(parents=True, exist_ok=True)
+    (ativacoes / AVISO_GERAL).write_text(
+        "Formação Δ-11 — contratos desatualizados (aviso automatico do vigia regenerar-contratos)\n"
+        f"hash_novo: {novo}\n"
+        f"hash_anterior: {antigo or '(nenhum)'}\n"
+        f"alterado_em: {agora}\n"
+        f"arquivo: {comum.target_path_text(evento)}\n\n"
+        "CRONOS: quando o ATLAS terminar as edicoes do project-core, rode o contract-tester\n"
+        "UMA vez (gera e roda os testes de contrato do que mudou) e apague este aviso.\n",
+        encoding="utf-8",
     )
-
-    # 1) Backup dos testes de contrato atuais
-    backup = backup_contracts()
-    if backup:
-        log_activity(f"backup de tests/contracts/ em {backup.as_posix()}")
-
-    # 2) Dispara contract-tester (regeneração)
-    ok_ct, msg_ct = dispatch_contract_tester()
-    log_activity(f"contract-tester: {msg_ct}")
-    print(f"[regenerar-contratos] contract-tester: {msg_ct}")
-
-    # 3) Dispara impact-mapper (em paralelo — ambos analisam o mesmo diff)
-    ok_im, msg_im = dispatch_impact_mapper()
-    log_activity(f"impact-mapper: {msg_im}")
-    print(f"[regenerar-contratos] impact-mapper: {msg_im}")
-
-    # 4) Atualiza hash salvo
-    save_new_hash(new_hash)
-    log_activity(f"contract-hash atualizado para {new_hash[:12]}")
-
-    # 5) Notifica agentes ativos
-    active = agents_currently_active()
-    if active:
-        notify_active_agents(active)
-        log_activity(f"agentes ativos notificados: {', '.join(active)}")
-        print(f"[regenerar-contratos] notificados: {', '.join(active)}")
-
-    # exit 0 mesmo se CLI ausente — dispatch fallback é responsabilidade do agente
+    avisados = active_executors(delta)
+    for agente in avisados:
+        (ativacoes / f"contrato-alterado-{agente}.txt").write_text(
+            "Formação Δ-11 — aviso automatico\n"
+            f"Agente: {agente}\n"
+            f"Hora: {agora}\n\n"
+            "O contrato (project-core e/ou fatias em memoria/project-core/) mudou. Antes da\n"
+            "proxima tarefa, releia a SUA fatia e aguarde o CRONOS rodar o contract-tester.\n"
+            "Apague este aviso depois de ler.\n",
+            encoding="utf-8",
+        )
+    arquivo_hash.write_text(novo + "\n", encoding="utf-8")
+    extra = f"; avisados: {', '.join(avisados)}" if avisados else ""
+    comum.log(HOOK, f"contrato alterado: hash {antigo[:12] or '(vazio)'} -> {novo[:12]}{extra}")
     return 0
 
 
 if __name__ == "__main__":
-    try:
-        sys.exit(main())
-    except Exception as exc:  # noqa: BLE001
-        # Hook nunca deve travar fluxo de Edit/Write por erro próprio
-        print(f"[regenerar-contratos] erro não-fatal: {exc}", file=sys.stderr)
-        try:
-            log_activity(f"ERRO não-fatal: {exc}")
-        except Exception:
-            pass
-        sys.exit(0)
+    comum.run(main, HOOK)
