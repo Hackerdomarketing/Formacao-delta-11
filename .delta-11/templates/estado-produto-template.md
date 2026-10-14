@@ -1,6 +1,6 @@
 # [NOME-AGENTE] — Produto
 
-**⚠️ LIMITE DURO (Mecanismo M4): 500 tokens (≈ 2000 caracteres) para os 8 agentes que não são ATLAS nem CRONOS (BACK, FRONT, PIXEL, FORM, ENGINE, VAULT, SHIELD, SCOUT). O valor vem de `produto_max_tokens` em `.delta-11/.config-limites.json`; o hook `pre-selo.py` bloqueia a transição de fase se ultrapassar.**
+**⚠️ LIMITE DURO: 500 tokens (Mecanismo M4) (≈ 2000 caracteres) para os 8 agentes que não são ATLAS nem CRONOS (BACK, FRONT, PIXEL, FORM, ENGINE, VAULT, SHIELD, SCOUT). O valor vem de `produto_max_tokens` em `.delta-11/.config-limites.json`; o hook `pre-selo.py` bloqueia a transição de fase se ultrapassar.**
 
 **Onde fica:** `memoria/[NOME-AGENTE]-produto.md` na pasta PRINCIPAL do projeto (nunca dentro da worktree). Junto com ele existe `memoria/[NOME-AGENTE]-historia.md` (diário, sem limite). O antigo `[NOME-AGENTE]-estado.md` é LEGADO — pode ser lido se existir, nunca escrito (D8).
 
