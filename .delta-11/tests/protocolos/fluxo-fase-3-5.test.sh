@@ -5,8 +5,11 @@
 # Conceitos conferidos (a seção vai do título "FASE 3.5" até o próximo
 # título de fase — não depende de "N linhas depois"):
 #   1. Existe o título da Fase 3.5, com termo do Dia 4 (ritmo/astros/temporal).
-#   2. A seção diz quem faz, a janela estimada e o resultado esperado.
-#   3. A seção cita os 10 artefatos do Dia 4.
+#   2. A seção diz quem faz, quem sela e o resultado esperado. (As "janelas"
+#      foram abolidas na v6.3 — D3: ninguém abre janela; o CRONOS conduz.)
+#   3. A seção cita os 10 artefatos do Dia 4. Desde a v6.3 o fluxo usa os
+#      nomes em português: "tempos-limite" (timeout) e "novas tentativas"
+#      (retry). O teste aceita os dois nomes.
 #   4. Ordem: Fase 3 < Fase 3.5 < Fase 4.
 #   5. Liga com a Metodologia Gênesis.
 # ════════════════════════════════════════════════════════════════
@@ -31,9 +34,9 @@ section_has() {
 }
 section_has "^#{2,4} FASE 3\.5.*(ritmo|astros|temporal)" "Fase 3.5 nomeada com termo do Dia 4"
 section_has "CRONOS|DevOps|SRE|l(í|i)der t(é|e)cnico|quem faz" "Fase 3.5 diz quem faz"
-section_has "janela" "Fase 3.5 diz a janela estimada"
+section_has "quem sela|quem conduz|orquestrad[oa]s? pelo CRONOS" "Fase 3.5 diz quem conduz / quem sela"
 section_has "resultado" "Fase 3.5 diz o resultado esperado"
-for artefato in "eventos" "filas" "jobs" "cache" "timeout" "retr(y|ies|i)" "circuit breaker" "CI/CD" "observabilidade" "sub-contraposi"; do
+for artefato in "eventos" "filas" "jobs" "cache" "timeout|tempos?-limite" "retr(y|ies|i)|novas tentativas" "circuit breaker" "CI/CD" "observabilidade" "sub-contraposi"; do
     section_has "$artefato" "Fase 3.5 cita o artefato '$artefato'"
 done
 
