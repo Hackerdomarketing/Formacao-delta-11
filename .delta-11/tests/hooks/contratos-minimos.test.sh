@@ -1,76 +1,26 @@
 #!/usr/bin/env bash
-# Teste do hook contratos-minimos.py (Etapa 7 do v6.2)
-set -euo pipefail
-GREEN='\033[0;32m'; RED='\033[0;31m'; NC='\033[0m'
+# Teste do vigia contratos-minimos.py (v6.3 — C-024)
+source "$(dirname "$0")/_ajudante-hooks-python.sh" contratos-minimos
+checagens_basicas
+if grep -q "CONCLUSAO_RE" "$HOOK"; then err "regra morta CONCLUSAO_RE ainda existe"; else ok "sem regra morta CONCLUSAO_RE"; fi
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-HOOKS_DIR="$(cd "$SCRIPT_DIR/../../hooks" && pwd)"
-HOOK="$HOOKS_DIR/contratos-minimos.py"
-SETTINGS="$SCRIPT_DIR/../../templates/settings-hooks.json"
+novo_projeto
+KB="$TEST_DIR/.delta-11/kanban.md"
+PC="$TEST_DIR/.delta-11/memoria/project-core.md"
+kanban $'# Kanban\n## [CICLO 2]\n- [ ] T-1 algo [BACK]'
+echo "# PC" > "$PC"; envelhecer "$PC" 5
 
-falhou=0
-ok() { echo -e "  ${GREEN}[OK]${NC}   $1"; }
-err() { echo -e "  ${RED}[FALTA]${NC} $1"; falhou=$((falhou + 1)); }
-
-if [ -f "$HOOK" ]; then ok "hook existe"; else err "hook AUSENTE"; exit 1; fi
-if [ -x "$HOOK" ]; then ok "hook executavel"; else err "hook NAO executavel"; fi
-if grep -qE "kanban\.md" "$HOOK"; then ok "hook detecta kanban.md"; else err "sem kanban"; fi
-if grep -qE "NOVO.CICLO|CICLO.\d+|\[1-9]..\s*CICLO" "$HOOK"; then ok "hook detecta novo ciclo"; else err "sem novo ciclo"; fi
-if grep -qE "project-core\.md" "$HOOK"; then ok "hook verifica project-core.md"; else err "sem project-core"; fi
-if grep -qE "sys\.exit|return 2" "$HOOK"; then ok "exit 2 (sys.exit ou return 2)"; else err "sem exit 2"; fi
-if head -1 "$HOOK" | grep -q "python"; then ok "Python"; else err "NAO Python"; fi
-if [ -f "$SETTINGS" ] && grep -q "contratos-minimos" "$SETTINGS"; then ok "registrado em settings"; else err "NAO em settings"; fi
-if head -10 "$HOOK" | grep -qE '"""'; then ok "docstring"; else err "sem docstring"; fi
-if grep -qE "sys\.exit\(0\)" "$HOOK"; then ok "exit 0"; else err "sem exit 0"; fi
-
-# Testes funcionais
-TEST_DIR=$(mktemp -d)
-cd "$TEST_DIR"
-mkdir -p .delta-11/memoria
-echo "# Kanban" > .delta-11/kanban.md
-echo "# Project Core" > .delta-11/memoria/project-core.md
-
-# Cenario A: kanban SEM novo ciclo = passa
-EVENT=$(python3 -c "
-import json
-print(json.dumps({
-    'tool_name': 'Edit',
-    'tool_input': {
-        'file_path': '.delta-11/kanban.md',
-        'old_string': '# Kanban',
-        'new_string': '# Kanban\n## CONCLUIDO\n- [x] T-1 [BACK] ok'
-    }
-}))
-")
-EXIT=$(echo "$EVENT" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?" | grep -oE '[0-9]+' | tail -1)
-if [ "$EXIT" = "0" ]; then ok "PASSA sem novo ciclo"; else err "NAO passa sem novo ciclo (exit=$EXIT)"; fi
-
-# Cenario B: novo ciclo + project-core.md recente = passa
-EVENT=$(python3 -c "
-import json
-print(json.dumps({
-    'tool_name': 'Edit',
-    'tool_input': {
-        'file_path': '.delta-11/kanban.md',
-        'old_string': '# Kanban',
-        'new_string': '# Kanban\n## FAZENDO\n- [ ] T-2 [CICLO 5] novo'
-    }
-}))
-")
-EXIT=$(echo "$EVENT" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?" | grep -oE '[0-9]+' | tail -1)
-if [ "$EXIT" = "0" ]; then ok "PASSA novo ciclo com project-core.md recente"; else err "NAO passa project-core recente (exit=$EXIT)"; fi
-
-# Cenario C: novo ciclo + project-core.md antigo = BLOQUEIA
-# Define mtime para 5h atras
-python3 -c "
-import os, time
-path = '.delta-11/memoria/project-core.md'
-os.utime(path, (time.time() - 5*3600, time.time() - 5*3600))
-"
-EXIT=$(echo "$EVENT" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?" | grep -oE '[0-9]+' | tail -1)
-if [ "$EXIT" = "2" ]; then ok "BLOQUEIA novo ciclo com project-core.md antigo (5h)"; else err "NAO bloqueia project-core antigo (exit=$EXIT)"; fi
-
-cd / && rm -rf "$TEST_DIR"
-
-echo ""
-if [ "$falhou" -eq 0 ]; then echo -e "${GREEN}OK — Hook 7 contratos-minimos.py${NC}"; exit 0; else echo -e "${RED}FALTA $falhou item(ns)${NC}"; exit 1; fi
+espera 0 "reescrever o kanban mantendo [CICLO 2]: passa (nao e ciclo novo)" "$(evento tool_name=Write tool_input.file_path=$KB $'tool_input.content=# Kanban\n## [CICLO 2]\n- [x] T-1 algo [BACK]')"
+espera 0 "texto livre 'novo ciclo' nao e marcador: passa" "$(evento tool_name=Edit tool_input.file_path=$KB 'tool_input.old_string=algo' 'tool_input.new_string=algo (pensar num novo ciclo depois)')"
+ABRE=$(evento tool_name=Edit tool_input.file_path=$KB 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\n## [CICLO 3]')
+espera 2 "abrir [CICLO 3] com project-core de 5 h: bloqueia" "$ABRE"
+stderr_contem "CICLO 3"
+touch "$PC"
+espera 0 "abrir [CICLO 3] com project-core recente: passa" "$ABRE"
+envelhecer "$PC" 5
+echo "contratos" > "$TEST_DIR/.delta-11/memoria/project-core/contratos.md"
+espera 0 "abrir ciclo com FATIA do project-core recente: passa" "$ABRE"
+rm -f "$TEST_DIR/.delta-11/memoria/project-core/contratos.md" "$PC"
+espera 2 "abrir ciclo sem project-core: bloqueia" "$ABRE"
+espera 2 "[NOVO CICLO] tambem conta" "$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\n- [NOVO CICLO] onda 1')"
+fim

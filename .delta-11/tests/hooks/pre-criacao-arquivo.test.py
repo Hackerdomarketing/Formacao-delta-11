@@ -20,12 +20,20 @@ Casos cobertos:
   7. Criar src/lib/ia/analise/README.md        → LIBERA  (destino correto config-ext)
   8. Criar adr-2026-01-15-stack-escolhida.md na raiz → BLOQUEIA (CASO D — ADR)
   9. Criar bug-001-login-quebrado.md na raiz   → BLOQUEIA (CASO E — bug report)
+ v6.3 (C-034):
+ 10. docs/relatorios/2026-10-14-relatorio.md   → LIBERA  (data no nome NAO e ADR)
+ 11. docs/2026-10-14-changelog.md              → LIBERA
+ 12. docs/decisao-banco.md                     → BLOQUEIA (CASO D — contem "decisao")
+ 13. .delta-11/memoria/decisoes/2026-10-14-adr-banco.md → LIBERA (endereco certo)
+ 14. GEMINI.md na raiz                         → LIBERA  (excecao B)
+ 15. .delta-11/bugs/bug-002-x.md               → LIBERA  (endereco certo)
+ 16. docs/notas/prd.md                         → BLOQUEIA (CASO F)
 
-Saída: exit 0 se todos os 9 passam, exit 1 se algum falha.
+Saída: exit 0 se todos passam, exit 1 se algum falha.
 
-IMPORTANTE — isola cada caso em diretório /tmp temporário para não
-poluir o repo real e não disparar a guarda em si quando o hook lê
-os arquivos de escape.
+IMPORTANTE — isola cada caso em diretório temporário (tempfile) e passa
+CLAUDE_PROJECT_DIR apontando para ele, para não poluir o repo real (o
+activity-log é gravado no projeto temporário).
 """
 
 from __future__ import annotations
@@ -55,11 +63,13 @@ def fazer_evento(file_path: str, cwd: str) -> str:
 def rodar_hook(file_path: str, cwd: str) -> tuple[int, str]:
     """Executa o hook com o evento e retorna (exit_code, stderr)."""
     evento = fazer_evento(file_path, cwd)
+    ambiente = dict(os.environ, CLAUDE_PROJECT_DIR=cwd)
     proc = subprocess.run(
         [sys.executable, str(HOOK_PATH)],
         input=evento.encode("utf-8"),
         capture_output=True,
         cwd=cwd,
+        env=ambiente,
         timeout=10,
     )
     return proc.returncode, proc.stderr.decode("utf-8", errors="replace")
@@ -80,9 +90,16 @@ CASOS = [
     ("F2-04-excecao-README-raiz",  "README.md",                                          0, None),
     ("F2-05-caso-B-md-na-raiz",    "plano-de-marketing.md",                              2, "CASO B"),
     ("F2-06-caso-C-skills-legada", "skills/qualquer.md",                                 2, "CASO C"),
-    ("F2-07-destino-correto",      "src/lib/ia/analise/README.md",                       0, None),
+    ("F2-07-destino-correto",      "src/lib/ai/competitive-analysis/README.md",          0, None),
     ("F2-08-caso-D-ADR-fora",      "adr-2026-01-15-stack-escolhida.md",                  2, "CASO D"),
     ("F2-09-caso-E-bug-fora",      "bug-001-login-quebrado.md",                          2, "CASO E"),
+    ("C034-10-relatorio-datado",   "docs/relatorios/2026-10-14-relatorio.md",            0, None),
+    ("C034-11-changelog-datado",   "docs/2026-10-14-changelog.md",                       0, None),
+    ("C034-12-decisao-fora",       "docs/decisao-banco.md",                              2, "CASO D"),
+    ("C034-13-adr-no-lugar-certo", ".delta-11/memoria/decisoes/2026-10-14-adr-banco.md", 0, None),
+    ("C034-14-excecao-GEMINI",     "GEMINI.md",                                          0, None),
+    ("C034-15-bug-no-lugar-certo", ".delta-11/bugs/bug-002-x.md",                        0, None),
+    ("C034-16-prd-fora",           "docs/notas/prd.md",                                  2, "CASO F"),
 ]
 
 

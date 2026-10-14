@@ -1,52 +1,65 @@
 #!/usr/bin/env bash
-# Teste do hook 3-tentativas-shield.py (Hook 11 do v6.2)
-set -euo pipefail
-GREEN='\033[0;32m'; RED='\033[0;31m'; NC='\033[0m'
+# Teste do vigia 3-tentativas-shield.py (v6.3 — C-018, C-002, D23, D35)
+source "$(dirname "$0")/_ajudante-hooks-python.sh" 3-tentativas-shield
+checagens_basicas
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-HOOKS_DIR="$(cd "$SCRIPT_DIR/../../hooks" && pwd)"
-HOOK="$HOOKS_DIR/3-tentativas-shield.py"
-SETTINGS="$SCRIPT_DIR/../../templates/settings-hooks.json"
+FALHAS=".delta-11/logs/sub-agentes/shield-falhas.log"
+disparo() { evento hook_event_name=PreToolUse tool_name=Agent "tool_input.name=$1" "tool_input.description=onda" "tool_input.prompt=Agente: ${2:-X}"; }
 
-falhou=0
-ok() { echo -e "  ${GREEN}[OK]${NC}   $1"; }
-err() { echo -e "  ${RED}[FALTA]${NC} $1"; falhou=$((falhou + 1)); }
+novo_projeto
+espera 0 "sem log de falhas: disparar BACK passa" "$(disparo back-onda-1)"
 
-if [ -f "$HOOK" ]; then ok "hook existe"; else err "hook AUSENTE"; exit 1; fi
-if [ -x "$HOOK" ]; then ok "hook executavel"; else err "hook NAO executavel"; fi
-if grep -qE "shield-falhas\.log" "$HOOK"; then ok "hook le shield-falhas.log"; else err "sem log"; fi
-if grep -qE "SessionStart|session.?start" "$HOOK"; then ok "hook documenta SessionStart"; else err "sem SessionStart"; fi
-if grep -qE "3|LIMITE_FALHAS" "$HOOK"; then ok "hook tem limite de 3 falhas"; else err "sem limite"; fi
-if grep -qE "sys\.exit\(2\)|return 2" "$HOOK"; then ok "exit 2"; else err "sem exit 2"; fi
-if head -1 "$HOOK" | grep -q "python"; then ok "Python"; else err "NAO Python"; fi
-if [ -f "$SETTINGS" ] && grep -q "3-tentativas-shield" "$SETTINGS"; then ok "registrado em settings"; else err "NAO em settings"; fi
-if head -10 "$HOOK" | grep -qE '"""'; then ok "docstring"; else err "sem docstring"; fi
-if grep -qE "sys\.exit\(0\)" "$HOOK"; then ok "exit 0"; else err "sem exit 0"; fi
+AGORA=$(agora_iso)
+printf '[%s] [BACK] FAIL T-010 teste vermelho\n[%s] [BACK] FAIL T-010 de novo\n' "$AGORA" "$AGORA" > "$FALHAS"
+espera 0 "2 falhas de BACK: ainda passa" "$(disparo back-onda-1)"
 
-# Testes funcionais
-TEST_DIR=$(mktemp -d)
-cd "$TEST_DIR"
-mkdir -p .delta-11/logs/sub-agentes
+printf '[%s] [BACK] FAIL T-010 terceira\n' "$AGORA" >> "$FALHAS"
+espera 2 "3 falhas de BACK (formato D35): bloqueia redisparo de BACK" "$(disparo back-onda-2)"
+stderr_contem "SCOUT NOVO"
+log_contem '^- \[[0-9T:Z-]+\] \[3-tentativas-shield\] \[[A-Z]+\] BLOQUEIO'
+espera 0 "SCOUT novo pode ser disparado (D23)" "$(disparo scout-onda-1)"
+espera 0 "sub-agente nao e bloqueado" "$(evento tool_name=Agent tool_input.description=build-validator tool_input.prompt=roda)"
+espera 0 "Edit nao e alvo deste vigia" "$(evento tool_name=Edit tool_input.file_path=$TEST_DIR/a.ts tool_input.old_string=a tool_input.new_string=b)"
 
-# Cenario A: sem falhas = PASSA
-EXIT=$(python3 "$HOOK" 2>/dev/null; echo "EXIT=$?" | grep -oE '[0-9]+' | tail -1)
-if [ "$EXIT" = "0" ]; then ok "PASSA sem falhas"; else err "NAO passa sem falhas (exit=$EXIT)"; fi
+# Formato antigo "[TS] [SHIELD] [AGENTE] FAIL" nao conta como falha "do SHIELD" (C-018)
+novo_projeto
+printf '%s\n' "[$AGORA] [SHIELD] [FRONT] FAIL T-1 a" "[$AGORA] [SHIELD] [FRONT] FAIL T-1 b" "[$AGORA] [SHIELD] [FRONT] FAIL T-1 c" > "$FALHAS"
+espera 2 "formato antigo com [SHIELD]: atribui a FRONT" "$(disparo front-onda-3)"
+espera 0 "SHIELD nao fica travado pelas falhas dos outros" "$(disparo shield-revisao)"
 
-# Cenario B: 2 falhas BACK = PASSA
-HOJE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-cat > .delta-11/logs/sub-agentes/shield-falhas.log <<EOF
-- [$HOJE] [BACK] FAIL tentativa 1
-- [$HOJE] [BACK] FAIL tentativa 2
-EOF
-EXIT=$(python3 "$HOOK" 2>/dev/null; echo "EXIT=$?" | grep -oE '[0-9]+' | tail -1)
-if [ "$EXIT" = "0" ]; then ok "PASSA com 2 falhas (< 3)"; else err "NAO passa com 2 (exit=$EXIT)"; fi
+# Linhas sem horario e falhas antigas nao contam
+novo_projeto
+VELHO=$(horas_atras 5)
+printf '%s\n' "[BACK] FAIL T-1 sem hora" "[BACK] FAIL T-1 sem hora" "[$VELHO] [BACK] FAIL T-1 antiga" "[$VELHO] [BACK] FAIL T-1 antiga" "[$AGORA] [BACK] FAIL T-1 nova" > "$FALHAS"
+espera 0 "sem horario ou fora da janela de 4 h: nao contam" "$(disparo back-onda-1)"
 
-# Cenario C: 3 falhas BACK = BLOQUEIA
-echo "- [$HOJE] [BACK] FAIL tentativa 3" >> .delta-11/logs/sub-agentes/shield-falhas.log
-EXIT=$(python3 "$HOOK" 2>/dev/null; echo "EXIT=$?" | grep -oE '[0-9]+' | tail -1)
-if [ "$EXIT" = "2" ]; then ok "BLOQUEIA com 3 falhas BACK"; else err "NAO bloqueia com 3 (exit=$EXIT)"; fi
+# Aprovacao do SHIELD depois das falhas zera a contagem (D33)
+novo_projeto
+ANTES=$(horas_atras 1)
+printf '%s\n' "[$ANTES] [BACK] FAIL T-1 a" "[$ANTES] [BACK] FAIL T-1 b" "[$ANTES] [BACK] FAIL T-1 c" > "$FALHAS"
+echo "- [$AGORA] [SHIELD] APROVADO T-1 [BACK]" >> .delta-11/activity-log.md
+espera 0 "APROVADO depois das falhas libera BACK" "$(disparo back-onda-1)"
 
-cd / && rm -rf "$TEST_DIR"
+# SCOUT so trava com 6 falhas no total (D23 -> ATLAS)
+novo_projeto
+for i in 1 2 3 4 5; do echo "[$AGORA] [SCOUT] FAIL T-2 tentativa $i" >> "$FALHAS"; done
+espera 0 "SCOUT com 5 falhas: CRONOS ainda pode disparar SCOUT novo" "$(disparo scout-onda-2)"
+echo "[$AGORA] [SCOUT] FAIL T-2 tentativa 6" >> "$FALHAS"
+espera 2 "SCOUT com 6 falhas: bloqueia (hora do ATLAS)" "$(disparo scout-onda-3)"
+stderr_contem "ATLAS"
 
-echo ""
-if [ "$falhou" -eq 0 ]; then echo -e "${GREEN}OK — Hook 11 3-tentativas-shield.py${NC}"; exit 0; else echo -e "${RED}FALTA $falhou item(ns)${NC}"; exit 1; fi
+# SessionStart: so avisa, exit 0, com additionalContext
+novo_projeto
+printf '%s\n' "[$AGORA] [VAULT] FAIL T-3 a" "[$AGORA] [VAULT] FAIL T-3 b" "[$AGORA] [VAULT] FAIL T-3 c" > "$FALHAS"
+espera 0 "SessionStart nunca bloqueia" "$(evento hook_event_name=SessionStart source=startup)"
+if printf '%s' "$SAIDA_PADRAO" | python3 -c "import json,sys; d=json.load(sys.stdin); assert 'VAULT' in d['hookSpecificOutput']['additionalContext']"; then ok "SessionStart devolve additionalContext citando VAULT"; else err "SessionStart sem additionalContext"; fi
+novo_projeto
+espera 0 "SessionStart sem falhas: silencioso" "$(evento hook_event_name=SessionStart source=startup)"
+if [ -z "$SAIDA_PADRAO" ]; then ok "nada no stdout"; else err "stdout inesperado: $SAIDA_PADRAO"; fi
+
+# Erro interno: exit 1 + ERRO-INTERNO no log (C-016)
+novo_projeto
+espera 1 "JSON quebrado vira erro interno visivel (exit 1)" "{quebrado"
+log_contem "ERRO-INTERNO"
+
+fim
