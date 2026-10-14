@@ -242,9 +242,9 @@ projeto é montado a partir dele. Se esta tabela e o template divergirem, vale o
 | 9 | `pre-selo.py` | PreToolUse (Edit\|Write) | Bloqueia o selo se o `-produto.md` de um executor passar de `produto_max_tokens` (M4) |
 | 10 | `validar-contratos-fim-fase.py` | PreToolUse (Edit\|Write) | Roda os testes de contrato antes de uma conclusão de fase no kanban (até 120 s) |
 | 11 | `validar-arquitetura-vs-modelos.py` | PreToolUse (Edit\|Write) | Bloqueia a conclusão da Fase 3 sem a validação retroativa "Dia 2 ← Dia 3" = SUSTENTA |
-| 12 | `fase-ritmo-checker.py` | PreToolUse (Edit\|Write) | Bloqueia a conclusão da Fase 3.5 sem os 10 artefatos `ritmo-temporal-NN-*.md` |
-| 13 | `fase-consciencia-checker.py` | PreToolUse (Edit\|Write) | Bloqueia a conclusão da Fase 4.5 sem os 5 entregáveis `consciencia-NN-*.md` |
-| 14 | `fase-descanso-checker.py` | PreToolUse (Edit\|Write) | Bloqueia a conclusão da Fase 7 sem os 10 entregáveis `descanso-NN-*.md` + o teste supremo (2 semanas) |
+| 12 | `fase-ritmo-checker.py` | PreToolUse (Edit\|Write) | No selo da Fase 3.5 ("Fase 3.5 selada" no kanban), bloqueia se faltarem os 10 artefatos `ritmo-temporal-NN-*.md` |
+| 13 | `fase-consciencia-checker.py` | PreToolUse (Edit\|Write) | No selo da Fase 4.5, bloqueia se faltarem os 5 entregáveis `consciencia-NN-*.md` |
+| 14 | `fase-descanso-checker.py` | PreToolUse (Edit\|Write) | No selo da Fase 7, bloqueia se faltarem os 10 entregáveis `descanso-NN-*.md` + o teste supremo (2 semanas) |
 | 15 | `anti-autocompact.py` | PreToolUse (Edit\|Write\|Agent\|Task\|Bash) | Bloqueia quando a conversa passa de ~85% do limite → aplique o Protocolo de Contexto Esgotado |
 | 16 | `anti-stash.py` | PreToolUse (Edit\|Write) | Bloqueia CONCLUÍDO no kanban com `git stash list` não vazio |
 | 17 | `shield-aprovado.py` | PreToolUse (Edit\|Write) | Bloqueia CONCLUÍDO de executor sem a linha `[SHIELD] APROVADO T-XXX [AGENTE]` dentro de `janela_horas` |
@@ -848,7 +848,7 @@ antigos. Cor de cada agente pela idade do último sinal: verde até 2 min, amare
 ## PROTOCOLO DE CONTEXTO ESGOTADO (OBRIGATÓRIO)
 
 **Como você percebe (não dependa de "sentir" que está cheio):**
-- O vigia `anti-autocompact.py` mede o tamanho da conversa e **bloqueia sua próxima ação** quando ela passa de ~85%
+- O vigia `anti-autocompact.py` mede o tamanho da conversa e, num sub-agente, **bloqueia sua próxima ação** quando ela passa de ~85% (na sessão principal ele só registra AVISO e deixa sempre salvar o estado em `.delta-11/`)
   do limite. A mensagem do bloqueio chega a você: ao vê-la, aplique este protocolo imediatamente.
 - O vigia `pre-compact.sh` roda antes da compactação automática e marca seu pulso como `contexto_critico`. O painel e
   o CRONOS veem esse sinal; não conte com ele para avisar você.

@@ -807,6 +807,13 @@ Só você escreve `.delta-11/kanban.md` e `.delta-11/kanban-data.js`. Os outros 
   python3 -c "from datetime import datetime; print(datetime.now().astimezone().isoformat(timespec='seconds'))"
   ```
 - **`agente_atualizador`:** sempre `"CRONOS"`.
+- **Formato das linhas no `kanban.md` (os vigias leem este formato — não invente outro):**
+  - Tarefa concluída: `- [x] **T-012** — descrição | Por: BACK | Aprovado: SHIELD | Data: 2026-10-14T15:00:00-03:00`
+    (só mova para CONCLUÍDO depois de existir no activity-log a linha `[SHIELD] APROVADO T-012 [BACK]`).
+  - Selo de fase: uma linha `- [x] Fase 3.5 selada | Por: CRONOS | Data: ...` (os vigias de fase conferem os
+    entregáveis NESSE momento, não a cada tarefa).
+  - Validação retroativa do Dia 2: `- [x] T-RETRO-001 Validação Retroativa Dia 2 ← Dia 3 — **SUSTENTA** | Por: ATLAS`
+    (ou **NÃO SUSTENTA**, que reabre a Fase 2).
 - **Sinal de vida dos agentes:** você NÃO grava sinal de vida por ninguém — nem pelos agentes das worktrees, nem por você. O vigia `heartbeat.sh` grava `ativacoes/pulso-[AGENTE].json` na pasta principal e regenera `.delta-11/pulsos-data.js`, que o painel lê sozinho. O array `heartbeats` do `kanban-data.js` é só reserva de compatibilidade.
 
 Exemplo de `kanban-data.js` (estrutura completa no próprio arquivo):
