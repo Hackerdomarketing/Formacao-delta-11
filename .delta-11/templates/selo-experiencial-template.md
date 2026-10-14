@@ -1,77 +1,102 @@
-# 🔍 SELO EXPERIENCIAL — [Ciclo/Fase] (v6.1+ — Automatizado via Tandem Browser)
+# 🔍 SELO EXPERIENCIAL — Fase [N] (v6.3 — executado pelo sub-agente qa-ui-tandem)
 
-> **Template v6.1 — Sub-agente de QA/UI autônomo.**
-> Em vez de roteiro para humano operar, o selo é EXECUTADO por sub-agente
-> usando Tandem Browser MCP (navegador Electron programável). Humano só vê o relatório.
+> **Template v6.3 (2026-10-14).** O selo é EXECUTADO pelo sub-agente `qa-ui-tandem`
+> (`.delta-11/sub-agentes/qa-ui-tandem.md`), que opera o produto num navegador real — o Tandem Browser, pela API
+> HTTP em `http://localhost:8765` — e devolve PASS / FAIL / BLOQUEADO com screenshots. Se o Tandem não estiver
+> rodando, o sub-agente usa o Playwright e avisa no relatório.
 >
-> Modo `.delta-11/.modo-selo`: `automatico` (default v6.1+). Em automatico, sub-agente QA
-> roda o roteiro e retorna PASS/FAIL. Em `manual`, humano recebe roteiro (legado).
+> **Onde este arquivo vive depois de preenchido:** o CRONOS copia este modelo para
+> `.delta-11/planos/selo-experiencial-fase-[N].md` e preenche a seção "Fluxos críticos".
+>
+> **Modo do selo** (`.delta-11/.modo-selo`): `automatico` é o PADRÃO (D1). O comandante troca com os comandos
+> `modo manual` / `modo automatico` — ninguém precisa editar arquivo à mão.
 
 ---
 
 ## Quem executa este selo
 
-**Sub-agente `qa-ui-tandem`** — disparado pelo CRONOS via `Agent tool` ao final da cadeia automatizada (SHIELD → Fresh Reviewer → Cold Start Tester), ANTES do comandante aprovar.
+**Sub-agente `qa-ui-tandem`** — disparado pelo CRONOS via `Agent tool`, sem worktree, ao final da cadeia
+automática de fim de fase:
+
+```
+SHIELD → Fresh Reviewer → Cold Start Tester → qa-ui-tandem (Selo Experiencial)
+```
 
 ```
 Agent(
-  description: "Selo UI — projeto [NOME]",
+  description: "qa-ui-tandem — Selo Fase [N]",
   subagent_type: "general-purpose",
+  model: "sonnet",
   run_in_background: false,
-  prompt: "Formação Δ-11. Selo Experiencial. Use Tandem Browser MCP para
-navegar autonomamente os fluxos críticos do projeto. Retorne PASS ou
-FAIL com diagnostico. NAO pergunte ao humano — execute."
+  prompt: "[conteúdo de .delta-11/sub-agentes/qa-ui-tandem.md]
+Projeto em: [caminho absoluto da pasta principal]. Fase: [N].
+Roteiro: .delta-11/planos/selo-experiencial-fase-[N].md. URL base: [http://localhost:3000].
+Execute agora. NÃO pergunte ao humano — devolva PASS, FAIL ou BLOQUEADO."
 )
 ```
 
 ---
 
-## Fluxos a serem testados pelo sub-agente
+## Fluxos críticos (o CRONOS preenche a partir do project-core e do PRD)
 
-Para cada fluxo crítico do produto, o sub-agente QA:
+Escreva cada fluxo do jeito que um usuário faria, com o resultado que ele deveria ver. Máximo de 7 fluxos por
+fase; priorize o que a fase acabou de entregar.
 
-1. **Acessa a URL** via `browser_navigate(url)` do Tandem Browser MCP
-2. **Executa ações** via `browser_click`, `browser_type`, `browser_snapshot`
-3. **Verifica resultados** via `browser_snapshot` para confirmar estado esperado
-4. **Reporta** PASS ou FAIL com evidência (snapshot do estado)
+- **[Fluxo 1 — nome curto]:** [URL inicial] → [ação 1] → [ação 2] → **resultado esperado:** [o que aparece na tela]
+- **[Fluxo 2]:** ...
+- **[Fluxo N]:** ...
 
-### Fluxos críticos (gerados pelo CRONOS baseado no project-core.md)
+**Conta de teste (se algum fluxo exigir login):** as variáveis `TEST_USER_EMAIL` e `TEST_USER_PASSWORD` no
+`.env.local` (só os NOMES aparecem aqui — nunca os valores).
 
-- **[Fluxo 1]**: [URL inicial] → [ação esperada] → [resultado esperado]
-- **[Fluxo 2]**: ...
-- **[Fluxo N]**: ...
+**O que NÃO testar neste selo:** [fluxos com pagamento real, envio real de e-mail/SMS, publicação externa — o
+sub-agente marca BLOQUEADO se encontrar].
 
 ---
 
-## O que muda em relação ao template v5.2
+## Como o sub-agente testa cada fluxo (resumo — detalhes no sub-agente)
 
-- ❌ Removido: roteiro de "Passo 1 — abra URL tal" (humano fazia)
-- ✅ Adicionado: sub-agente `qa-ui-tandem` que faz via Tandem Browser MCP
-- ❌ Removido: "o comandante OPERA o produto, não lê relatório"
-- ✅ Adicionado: "sub-agente QA opera autonomamente e retorna relatório estruturado"
+1. **Abre uma aba própria** em segundo plano: `POST /tabs/open` com `{"url": "...", "focus": false, "source": "wingman"}`
+2. **Lê a tela** pela árvore de acessibilidade: `GET /snapshot?interactive=true&compact=true` com `X-Tab-Id`
+3. **Age** com eventos reais de teclado e mouse: `POST /snapshot/click` (`{"ref":"@eN"}`) e `POST /snapshot/fill`
+4. **Confere** o resultado esperado num snapshot novo (e os erros do console)
+5. **Guarda a evidência:** `GET /screenshot` com `X-Tab-Id`, gravado em
+   `.delta-11/evidencias/screenshots/AAAA-MM-DD/HHMM-selo-fase-[N]-fluxo-[K]-passo-[P]-QA-UI-TANDEM.png`
+
+Relatório completo: `.delta-11/logs/sub-agentes/AAAA-MM-DD-qa-ui-tandem-CRONOS-fase-[N].md`.
+
+---
+
+## O que o CRONOS faz com o veredito
+
+### PASS
+- Modo `automatico`: a fase é selada e a próxima abre sozinha. O painel mostra "Selo verde ✓".
+- Modo `manual`: o CRONOS mostra ao comandante o relatório (com os screenshots) e um roteiro curto para ele
+  conferir com os próprios olhos, se quiser; o comandante digita `aprovar`.
+
+### FAIL
+1. Fix trivial (um campo, um texto, uma rota): o CRONOS dispara o executor responsável com o diagnóstico
+   (1 tentativa) e roda o qa-ui-tandem de novo.
+2. Fix não trivial: o CRONOS cria no kanban a tarefa `[SELO-FAIL] [fluxo] — [problema]` para o executor
+   responsável e bloqueia o avanço da fase.
+3. O painel mostra: "Selo vermelho: [problema]. Tarefa criada no kanban." — é um aviso, não uma pergunta.
+4. O CRONOS continua trabalhando no que não depende da fase bloqueada.
+
+Quem corrige é sempre o agente executor, despachado pelo CRONOS — nunca o comandante.
+
+### BLOQUEADO
+O sub-agente precisou de algo que só um humano tem (conta, CAPTCHA, código de acesso, ação externa real). O
+CRONOS só fala com o comandante se for uma das 3 situações permitidas (D4) — credencial/conta, risco de dano
+ou decisão de negócio — e pede a MENOR ação possível (ex.: "crie uma conta de teste e coloque
+`TEST_USER_EMAIL`/`TEST_USER_PASSWORD` no `.env.local`").
+
+---
+
+## O que mudou em relação ao template v5.2
+
+- ❌ Removido: roteiro de "Passo 1 — abra a URL tal" para o humano executar
+- ✅ Adicionado: sub-agente `qa-ui-tandem` que opera o produto pelo Tandem Browser e grava evidências
 - ❌ Removido: modo manual como padrão
-- ✅ Adicionado: modo automatico como padrão v6.1+; manual só sob comando explícito
-
----
-
-## Se o sub-agente QA reportar FAIL
-
-CRONOS recebe o diagnóstico e:
-1. Decide se é fix trivial (1 tentativa de auto-correção via dispatch ao agente executor responsável)
-2. Se fix não-trivial: cria tarefa no kanban com tag `[SELO-FAIL]` e bloqueia avanço de fase
-3. Notifica o comandante via painel: "Sub-agente QA encontrou [problema]. Tarefa criada no kanban."
-4. Continua trabalhando em paralelo nas fases que não dependem da bloqueada
-
-Humano é notificado, mas **não é** o executor da correção — quem corrige é o agente de execução correspondente, via auto-dispatch.
-
----
-
-## Compatibilidade com modo manual legado
-
-Em projeto que ainda exige `.delta-11/.modo-selo = manual`, o template v5.2 original (com roteiro para humano) é restaurado. O comando do comandante é:
-
-```
-echo "manual" > .delta-11/.modo-selo
-```
-
-E o sub-agente QA é substituído pelo roteiro humano tradicional. Mas isso é **opt-in** — v6.1+ default é automatico.
+- ✅ Adicionado: modo `automatico` como padrão; `modo manual` só por escolha do comandante
+- ✅ v6.3: endpoints reais da API HTTP do Tandem, alternativa com Playwright, veredito BLOQUEADO, caminho do
+  roteiro preenchido e das evidências

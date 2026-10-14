@@ -133,7 +133,7 @@ PROIBIDO em paralelo:
 1. Identifique qual tarefa esta bloqueando
 2. Verifique se o agente responsavel esta ativo e trabalhando nela
 3. Se nao: priorize essa tarefa (mova para o topo da fila do agente)
-4. Se sim mas demorando: pergunte ao comandante se pode resequenciar outras tarefas enquanto espera
+4. Se sim mas demorando: resequencie você mesmo (CRONOS) as tarefas que não dependem dela. O comandante só entra se a troca mudar escopo ou prazo combinado (D4)
 
 **Dois agentes tentando editar o mesmo arquivo:**
 1. Verifique `.delta-11/locks/` — ha conflito?
@@ -146,8 +146,8 @@ PROIBIDO em paralelo:
 
 ### Race condition de transicao de fase
 
-**Problema:** Dois agentes terminam ao mesmo tempo e ambos geram prompts da proxima fase.
-**Solucao:** Mecanismo de trava atomica (`mkdir .trava-fase-N`) — so o primeiro a criar o diretorio gera os prompts.
+**Problema:** Duas sessões tentam abrir a próxima fase ao mesmo tempo (ex.: o CRONOS original e uma retomada).
+**Solucao:** Só o CRONOS abre fase (D5) e usa a trava atômica (`mkdir .trava-fase-N`) — só quem cria o diretório abre a fase; quem encontra a trava pronta para.
 
 ### Duplicacao de trabalho
 
@@ -162,7 +162,7 @@ PROIBIDO em paralelo:
 ### Contexto esgotado no meio de tarefa critica
 
 **Problema:** Agente do caminho critico enche o contexto e para. Outros agentes ficam esperando.
-**Solucao:** Agente salva estado, gera prompt de retomada, e se auto-dispara. CRONOS monitora se a retomada aconteceu via ACK.
+**Solucao:** O agente grava `memoria/[AGENTE]-produto.md` e `-historia.md` (onde parou) e avisa o CRONOS por SendMessage. O CRONOS dispara a retomada do agente (ele mesmo sem worktree, `name: "cronos"`; o executor retomado volta com `isolation: "worktree"`) e confirma pela ACK. Nenhum agente se auto-dispara.
 
 ### Efeito domino de erro
 
@@ -177,8 +177,8 @@ CRONOS DEVE declarar replanejamento quando:
 
 | Gatilho | Acao |
 |---------|------|
-| 3 falhas consecutivas na mesma tarefa | Escalar para SCOUT ou ATLAS |
-| Mudanca de contrato no `project-core.md` | Verificar TODAS as tarefas afetadas no kanban |
+| 3 falhas consecutivas na mesma tarefa | O SCOUT para e avisa o CRONOS; o CRONOS dispara um NOVO SCOUT com contexto limpo (resumo do problema). Após 6 falhas no total, o CRONOS dispara o ATLAS (D23) |
+| Mudanca de contrato no `project-core.md` (aviso `ativacoes/contratos-desatualizados.txt`) | Esperar o ATLAS terminar, rodar o contract-tester UMA vez, apagar o aviso; se já há código, disparar o impact-mapper e decidir as tarefas propostas (D31) |
 | Taxa de aprovacao do SHIELD < 50% | Algo estrutural esta errado — escalar para ATLAS |
 | Dependencia fundamental impossivel de cumprir | Replanejar a ordem das tarefas |
 | Agente do caminho critico morreu e nao retomou em 15 min | Re-disparar ou redistribuir tarefas |
@@ -187,7 +187,7 @@ CRONOS DEVE declarar replanejamento quando:
 
 1. **Congele** o kanban — nenhum agente puxa nova tarefa
 2. **Diagnostique** a causa raiz (nao o sintoma)
-3. **Consulte** o comandante se a mudanca for grande
+3. **Dispare o ATLAS** se a causa for de contrato ou arquitetura; consulte o comandante só se a mudança for de escopo/negócio (D4)
 4. **Atualize** o kanban com a nova sequencia
 5. **Descongele** e informe os agentes ativos
 
@@ -201,7 +201,7 @@ CRONOS DEVE declarar replanejamento quando:
 - [ ] Nenhum lock ativo em `.delta-11/locks/`?
 - [ ] Nenhuma tarefa em REVISAO aguardando SHIELD?
 - [ ] Trava de fase criada com sucesso (`mkdir .trava-fase-N`)?
-- [ ] Prompts da proxima fase gerados com agentes na ordem correta de prioridade?
+- [ ] Mini-planos da próxima fase escritos em `planos/[AGENTE]-plan.md` (o anterior arquivado em `planos/arquivo/`) e despacho na ordem correta de prioridade?
 - [ ] Primeiro VAULT, depois ENGINE/BACK, depois FRONT, depois PIXEL/FORM?
 
 ### Durante execucao de fase
@@ -217,7 +217,7 @@ CRONOS DEVE declarar replanejamento quando:
 - [ ] Tarefa movida para CONCLUIDO (ou REVISAO se precisa SHIELD)?
 - [ ] Dependencias desbloqueadas foram identificadas?
 - [ ] Agente desbloqueado foi disparado automaticamente?
-- [ ] Estado do agente atualizado em `.delta-11/memoria/`?
+- [ ] `memoria/[AGENTE]-produto.md` e `-historia.md` atualizados (o antigo `-estado.md` é legado — D8)?
 
 ---
 
@@ -238,12 +238,12 @@ CRONOS DEVE declarar replanejamento quando:
 **Errado:** Esperar infinitamente um agente que encheu o contexto.
 **Certo:** Verificar heartbeat/ACK. Se ausente apos 10 min, re-disparar com prompt de retomada.
 
-### Resequenciar sem consultar o comandante
+### Levar ao comandante o que é decisão técnica (ou esconder dele o que é de negócio)
 
-**Errado:** Mudar a ordem das tarefas por conta propria quando ha impacto no escopo.
-**Certo:** Informar o comandante sobre o bloqueio e propor alternativa. Deixar a decisao com ele.
+**Errado:** Perguntar "posso resequenciar?" ao comandante, ou mudar escopo/prazo combinado sem falar com ele.
+**Certo:** Resequenciar é decisão do CRONOS — faça e registre no painel. Só leve ao comandante as 3 situações da D4: decisão de negócio/escopo que só ele pode tomar; credencial/conta/pagamento/CAPTCHA; risco de perda de dados ou publicação externa.
 
 ### Nao usar a trava de fase
 
-**Errado:** Gerar prompts da proxima fase sem verificar se outro agente ja esta fazendo isso.
-**Certo:** SEMPRE usar `mkdir .trava-fase-N` antes de gerar prompts. Se ja existe, parar.
+**Errado:** Abrir a próxima fase sem verificar se outra sessão do CRONOS já está fazendo isso.
+**Certo:** SEMPRE usar `mkdir .trava-fase-N` antes de abrir a fase. Se já existe, parar.

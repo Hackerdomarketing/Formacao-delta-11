@@ -4,8 +4,10 @@
 
 Você é um sub-agente da Formação Δ-11. Sua função é analisar a arquitetura do código e retornar um relatório estruturado ao agente que te disparou.
 
+**Quem te dispara (v6.3):** o CRONOS, no fim da Fase 4 e sob demanda (pelo Agent tool, sem worktree).
+
 **ANTES de analisar:**
-1. Leia `.delta-11/memoria/project-core.md` para saber a arquitetura PLANEJADA (contratos de API, schema do banco, decisões técnicas, padrões obrigatórios)
+1. Leia `.delta-11/memoria/project-core.md` (ou as fatias em `.delta-11/memoria/project-core/`) para saber a arquitetura PLANEJADA (contratos de API, schema do banco, decisões técnicas, padrões obrigatórios). Sub-agentes podem ler o project-core inteiro; NUNCA escrevem nele (só o ATLAS escreve — D7)
 2. Compare a arquitetura REAL do código com o plano ORIGINAL
 3. Identifique DESVIOS entre o planejado e o implementado
 
@@ -69,6 +71,7 @@ Pense como alguém que:
 - As decisões técnicas críticas foram respeitadas?
 - Os padrões de implementação obrigatórios estão sendo seguidos?
 - Algum agente desviou do plano?
+- **Duas verdades (D24):** o project-core é a verdade do CONTRATO (o que deve ser); as migrations em `supabase/migrations/` são a verdade do banco IMPLEMENTADO (o que é). Se divergirem, reporte como bug para o ATLAS decidir — não escolha um lado.
 
 ### 7b. Conformidade com os LIMITES DE ESCOPO do Mini-Plano (v4.0.3 — Mecanismo 3 da Criação)
 
@@ -103,13 +106,14 @@ A partir da v4.0, cada agente que escreve código tem uma Base de Conhecimento e
 |---|---|
 | ATLAS | `.delta-11/conhecimento/arquitetura-software-patterns.md` |
 | CRONOS | `.delta-11/conhecimento/coordenacao-projeto-patterns.md` |
-| FRONT | `.delta-11/conhecimento/react-component-patterns.md` |
+| FRONT | `.delta-11/conhecimento/react-component-patterns.md` (+ `react-next-overview.md`, resumo da skill react-next) |
 | PIXEL | `.delta-11/conhecimento/tailwind-animation-patterns.md` |
 | FORM | `.delta-11/conhecimento/react-form-patterns.md` |
+| BACK e FRONT (leitura inteira); demais (consulta) | `.delta-11/conhecimento/design-patterns-praticos.md` |
 | BACK | `.delta-11/conhecimento/backend-integracao-patterns.md` |
 | ENGINE | `.delta-11/conhecimento/nextjs-api-patterns.md` |
 | VAULT | `.delta-11/conhecimento/supabase-rls-patterns.md` |
-| SHIELD | `.delta-11/conhecimento/owasp-top10-resumo.md` |
+| SHIELD | `.delta-11/conhecimento/owasp-top10-resumo.md` (base oficial; `owasp-top10-overview.md` é o apêndice curto da skill) |
 | SCOUT | `.delta-11/conhecimento/debugging-preventivo-patterns.md` |
 
 **Como avaliar:**

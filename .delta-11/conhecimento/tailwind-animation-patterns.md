@@ -66,7 +66,7 @@ Foco: design responsivo, animacoes, micro-interacoes, tipografia, dark mode.
 // Transicao de opacidade (aparecer/desaparecer)
 <div className={`
   transition-opacity duration-300
-  ${visivel ? "opacity-100" : "opacity-0 pointer-events-none"}
+  ${visible ? "opacity-100" : "opacity-0 pointer-events-none"}
 `}>
   Conteudo que aparece e desaparece
 </div>
@@ -119,7 +119,7 @@ Foco: design responsivo, animacoes, micro-interacoes, tipografia, dark mode.
 import { motion, AnimatePresence } from "framer-motion"
 
 // Wrapper de pagina com fade + slide
-function TransicaoDePagina({ children }: { children: React.ReactNode }) {
+function PageTransition({ children }: { children: React.ReactNode }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -136,9 +136,9 @@ function TransicaoDePagina({ children }: { children: React.ReactNode }) {
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <AnimatePresence mode="wait">
-      <TransicaoDePagina key={/* pathname */}>
+      <PageTransition key={/* pathname */}>
         {children}
-      </TransicaoDePagina>
+      </PageTransition>
     </AnimatePresence>
   )
 }
@@ -150,30 +150,30 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 "use client"
 import { motion } from "framer-motion"
 
-const variantesDoContainer = {
-  escondido: { opacity: 0 },
-  visivel: {
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
     opacity: 1,
     transition: { staggerChildren: 0.08 },
   },
 }
 
-const variantesDoItem = {
-  escondido: { opacity: 0, y: 20 },
-  visivel: { opacity: 1, y: 0 },
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
 }
 
-function ListaAnimada({ itens }: { itens: Array<{ id: string; nome: string }> }) {
+function AnimatedList({ items }: { items: Array<{ id: string; name: string }> }) {
   return (
     <motion.ul
-      variants={variantesDoContainer}
-      initial="escondido"
-      animate="visivel"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
       className="space-y-2"
     >
-      {itens.map((item) => (
-        <motion.li key={item.id} variants={variantesDoItem} className="p-4 bg-white rounded shadow">
-          {item.nome}
+      {items.map((item) => (
+        <motion.li key={item.id} variants={itemVariants} className="p-4 bg-white rounded shadow">
+          {item.name}
         </motion.li>
       ))}
     </motion.ul>
@@ -201,7 +201,7 @@ function ListaAnimada({ itens }: { itens: Array<{ id: string; nome: string }> })
 
 ```tsx
 // Card skeleton completo
-function EsqueletoDeCard() {
+function CardSkeleton() {
   return (
     <div className="animate-pulse rounded-xl border p-4 space-y-4">
       {/* Imagem */}
@@ -220,11 +220,11 @@ function EsqueletoDeCard() {
 }
 
 // Grid de skeletons (enquanto a lista carrega)
-function EsqueletoDeGrid({ quantidade = 6 }: { quantidade?: number }) {
+function GridSkeleton({ count = 6 }: { count?: number }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {Array.from({ length: quantidade }).map((_, i) => (
-        <EsqueletoDeCard key={i} />
+      {Array.from({ length: count }).map((_, index) => (
+        <CardSkeleton key={index} />
       ))}
     </div>
   )
@@ -348,30 +348,44 @@ module.exports = {
 </div>
 
 // Toggle de dark mode
+// v6.3: le a preferencia salva ANTES de gravar qualquer coisa. O estado nasce null ("ainda nao li"),
+// e o efeito que grava so roda quando ja ha um valor real — assim o carregamento nunca sobrescreve
+// a escolha salva com "light".
 "use client"
 import { useEffect, useState } from "react"
 
-function BotaoDeDarkMode() {
-  const [escuro, setEscuro] = useState(false)
+type Theme = "light" | "dark"
+const THEME_STORAGE_KEY = "theme"
 
+function readInitialTheme(): Theme {
+  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY)
+  if (savedTheme === "light" || savedTheme === "dark") return savedTheme
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+}
+
+function DarkModeToggle() {
+  const [theme, setTheme] = useState<Theme | null>(null)
+
+  // 1. Ler (uma vez, no navegador)
   useEffect(() => {
-    const salvo = localStorage.getItem("tema")
-    const prefereEscuro = window.matchMedia("(prefers-color-scheme: dark)").matches
-    setEscuro(salvo === "escuro" || (!salvo && prefereEscuro))
+    setTheme(readInitialTheme())
   }, [])
 
+  // 2. Aplicar e gravar — so depois que o valor foi lido
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", escuro)
-    localStorage.setItem("tema", escuro ? "escuro" : "claro")
-  }, [escuro])
+    if (theme === null) return
+    document.documentElement.classList.toggle("dark", theme === "dark")
+    localStorage.setItem(THEME_STORAGE_KEY, theme)
+  }, [theme])
 
+  const isDark = theme === "dark"
   return (
     <button
-      onClick={() => setEscuro(!escuro)}
+      onClick={() => setTheme(isDark ? "light" : "dark")}
       className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-      aria-label={escuro ? "Ativar modo claro" : "Ativar modo escuro"}
+      aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
     >
-      {escuro ? "☀️" : "🌙"}
+      {isDark ? "☀️" : "🌙"}
     </button>
   )
 }

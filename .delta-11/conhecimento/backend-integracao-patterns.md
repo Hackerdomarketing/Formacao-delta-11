@@ -9,6 +9,11 @@
 Referencia pratica para lideranca tecnica de servidor em projetos web.
 Foco: Next.js API Routes + Supabase. Otimizacao, autenticacao, integracao.
 
+> **v6.3 (2026-10-14):** login conferido no servidor com `@supabase/ssr` + `getUser()` (o pacote
+> `@supabase/auth-helpers-nextjs` e `getSession()` no servidor estao proibidos). Formato de erro: o unico do sistema
+> (D13), definido em `nextjs-api-patterns.md` seção 3. Tempos-limite: tabela unica de `protocolos/regras-codigo.md`
+> (D19). Esta base e a FONTE UNICA de: N+1 (seção 2) e inicializacao sob demanda / `getStripe` (seção 5).
+
 ---
 
 ## 1. Arquitetura de Rotas Modulares
@@ -16,19 +21,19 @@ Foco: Next.js API Routes + Supabase. Otimizacao, autenticacao, integracao.
 ### Estrutura padrao de API Route (Next.js App Router)
 
 ```typescript
-// src/app/api/[recurso]/route.ts
+// src/app/api/orders/route.ts
 
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { createSupabaseClient } from '@/lib/supabase/server' // @supabase/ssr (ver nextjs-api-patterns.md seção 7)
+import { errorResponse } from '@/lib/api/error-response'      // formato unico D13
 
 export async function GET(request: Request) {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = await createSupabaseClient()
 
-  // 1. Autenticacao
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) {
-    return NextResponse.json({ error: 'nao autenticado' }, { status: 401 })
+  // 1. Autenticacao — getUser() confere o token com o Supabase (NUNCA getSession() no servidor)
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return errorResponse('UNAUTHORIZED', 'Nao autenticado')
   }
 
   // 2. Validacao de entrada
@@ -37,15 +42,15 @@ export async function GET(request: Request) {
 
   // 3. Query ao banco (sempre filtrar por user_id)
   const { data, error } = await supabase
-    .from('recurso')
-    .select('*')
-    .eq('user_id', session.user.id)
+    .from('orders')
+    .select('id, status, total_cents, created_at')
+    .eq('user_id', user.id)
     .range((page - 1) * 20, page * 20 - 1)
 
   // 4. Tratamento de erro
   if (error) {
-    console.error('[API /recurso GET]', error.message)
-    return NextResponse.json({ error: 'erro interno' }, { status: 500 })
+    console.error('[API /orders GET]', error.message)
+    return errorResponse('INTERNAL_ERROR', 'Erro interno')
   }
 
   // 5. Resposta
@@ -64,22 +69,22 @@ export async function GET(request: Request) {
 
 ## 2. Otimizacao de Queries
 
-### N+1 — O problema mais comum
+### N+1 — O problema mais comum (fonte unica desta licao)
 
 **O que e:** Para cada item de uma lista, fazer uma query extra ao banco.
 
 ```typescript
 // ERRADO — N+1: 1 query para pedidos + N queries para itens
-const pedidos = await supabase.from('pedidos').select('*')
-for (const pedido of pedidos.data) {
-  const itens = await supabase.from('itens').select('*').eq('pedido_id', pedido.id)
+const orders = await supabase.from('orders').select('*')
+for (const order of orders.data ?? []) {
+  const items = await supabase.from('order_items').select('*').eq('order_id', order.id)
 }
 
 // CERTO — 1 query com join
-const pedidos = await supabase
-  .from('pedidos')
-  .select('*, itens(*)')
-  .eq('user_id', session.user.id)
+const ordersWithItems = await supabase
+  .from('orders')
+  .select('*, order_items(*)')
+  .eq('user_id', user.id)
 ```
 
 ### Indices
@@ -88,12 +93,12 @@ Todo campo usado em WHERE, ORDER BY ou JOIN DEVE ter indice:
 
 ```sql
 -- Campos obrigatorios para indice
-CREATE INDEX idx_pedidos_user_id ON pedidos(user_id);
-CREATE INDEX idx_pedidos_created_at ON pedidos(created_at);
-CREATE INDEX idx_itens_pedido_id ON itens(pedido_id);
+CREATE INDEX idx_orders_user_id ON orders(user_id);
+CREATE INDEX idx_orders_created_at ON orders(created_at);
+CREATE INDEX idx_order_items_order_id ON order_items(order_id);
 
 -- Indice composto para queries frequentes
-CREATE INDEX idx_pedidos_user_status ON pedidos(user_id, status);
+CREATE INDEX idx_orders_user_id_status ON orders(user_id, status);
 ```
 
 ### Paginacao
@@ -107,8 +112,8 @@ const from = (page - 1) * PAGE_SIZE
 const to = from + PAGE_SIZE - 1
 
 const { data, count } = await supabase
-  .from('recurso')
-  .select('*', { count: 'exact' })
+  .from('orders')
+  .select('id, status, created_at', { count: 'exact' })
   .range(from, to)
   .order('created_at', { ascending: false })
 ```
@@ -130,8 +135,8 @@ const { data, count } = await supabase
 
 ```
 1. Login: supabase.auth.signInWithPassword()
-2. Sessao: cookie httpOnly gerenciado pelo Supabase Auth Helpers
-3. Verificacao: getSession() em toda rota protegida
+2. Sessao: cookie httpOnly gerenciado pelo @supabase/ssr (createServerClient / createBrowserClient)
+3. Verificacao: getUser() no servidor em toda rota protegida (getSession() so no navegador, para estado de tela)
 4. Refresh: automatico pelo Supabase (access token expira em 1h)
 5. Logout: supabase.auth.signOut()
 ```
@@ -140,35 +145,50 @@ const { data, count } = await supabase
 
 ```typescript
 // middleware.ts
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
-  const { data: { session } } = await supabase.auth.getSession()
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({ request })
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll: () => request.cookies.getAll(),
+        setAll: (cookiesToSet) => {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          response = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
+        },
+      },
+    }
+  )
+
+  // getUser() confere o token com o Supabase e renova o cookie se preciso
+  const { data: { user } } = await supabase.auth.getUser()
 
   // Rotas protegidas
-  if (req.nextUrl.pathname.startsWith('/app') && !session) {
-    return NextResponse.redirect(new URL('/login', req.url))
+  if (request.nextUrl.pathname.startsWith('/app') && !user) {
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   // Rotas de admin
-  if (req.nextUrl.pathname.startsWith('/admin')) {
-    if (!session) return NextResponse.redirect(new URL('/login', req.url))
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    if (!user) return NextResponse.redirect(new URL('/login', request.url))
     // Verificar role (coluna na tabela profiles)
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single()
     if (profile?.role !== 'admin') {
-      return NextResponse.redirect(new URL('/app', req.url))
+      return NextResponse.redirect(new URL('/app', request.url))
     }
   }
 
-  return res
+  return response
 }
 
 export const config = {
@@ -176,9 +196,11 @@ export const config = {
 }
 ```
 
+Middleware NAO e a unica defesa (CVE-2025-29927): toda rota e todo layout protegido confere `getUser()` de novo.
+
 ### Regras inviolaveis de autenticacao
 
-- TODA rota de API que retorna dados do usuario verifica `session`
+- TODA rota de API que retorna dados do usuario confere o usuario com `getUser()` no servidor
 - NUNCA confie em dados do cliente para autorizar (sempre re-verificar no servidor)
 - Tokens e chaves NUNCA no frontend (`NEXT_PUBLIC_` so para dados publicos)
 - RLS no Supabase e a segunda camada — middleware e a primeira
@@ -189,40 +211,38 @@ export const config = {
 
 ### Tabela de status codes
 
-| Status | Quando usar | Exemplo de resposta |
-|--------|------------|-------------------|
-| 200 | Sucesso em leitura | `{ data: [...] }` |
-| 201 | Sucesso em criacao | `{ data: { id: "..." } }` |
-| 400 | Entrada invalida | `{ error: "campo X obrigatorio" }` |
-| 401 | Nao autenticado | `{ error: "sessao expirada" }` |
-| 403 | Sem permissao | `{ error: "sem acesso a este recurso" }` |
-| 404 | Nao encontrado | `{ error: "recurso nao encontrado" }` |
-| 409 | Conflito (ex: duplicata) | `{ error: "email ja cadastrado" }` |
-| 422 | Validacao semantica | `{ error: "valor fora do range permitido" }` |
-| 429 | Limite de requisicoes | `{ error: "muitas requisicoes, aguarde" }` |
-| 500 | Erro interno | `{ error: "erro interno" }` |
+| Status | `error.code` | Quando usar |
+|--------|-------------|------------|
+| 200 | — | Sucesso em leitura: `{ data: [...] }` |
+| 201 | — | Sucesso em criacao: `{ data: { id: "..." } }` |
+| 400 | `VALIDATION_ERROR` | Entrada invalida, campo faltando, valor fora do permitido (inclui o que antes era 422) |
+| 401 | `UNAUTHORIZED` | Nao autenticado |
+| 403 | `FORBIDDEN` | Sem permissao |
+| 404 | `NOT_FOUND` | Nao encontrado |
+| 409 | `CONFLICT` | Conflito (ex: email ja cadastrado) |
+| 429 | `RATE_LIMITED` | Limite de requisicoes |
+| 500 | `INTERNAL_ERROR` | Erro interno |
 
-### Formato padrao de resposta de erro
+### Formato de resposta (unico do sistema — D13)
 
 ```typescript
 // Sucesso
 { data: { ... } }
 
-// Erro
-{ error: "mensagem legivel para o usuario" }
-
-// Erro com detalhes (validacao)
-{ error: "validacao falhou", details: { campo: "mensagem" } }
+// Erro (qualquer status 4xx/5xx)
+{ error: { code: "VALIDATION_ERROR", message: "mensagem legivel para o usuario", details: [{ field: "email", message: "formato invalido" }] } }
 ```
+
+A funcao `errorResponse(code, message, details)` esta em `nextjs-api-patterns.md` seção 3 — use a mesma.
 
 ### Logging de erros
 
 ```typescript
 // Sempre logue com contexto suficiente para diagnostico
-console.error(`[API /recurso ${method}]`, {
+console.error(`[API /orders ${method}]`, {
   error: error.message,
-  userId: session?.user?.id,
-  input: { campo1, campo2 } // NUNCA logue senhas ou tokens
+  userId: user?.id,
+  input: { status, page } // NUNCA logue senhas ou tokens
 })
 ```
 
@@ -230,18 +250,22 @@ console.error(`[API /recurso ${method}]`, {
 
 ## 5. Integracao com Servicos Externos
 
-### Padrao de inicializacao segura
+### Inicializacao sob demanda (fonte unica do padrao `getStripe`)
 
 ```typescript
-// ERRADO — crash se variavel ausente
-const stripe = new Stripe(process.env.STRIPE_KEY!)
+// ERRADO — executa no import; crash se a variavel estiver ausente, mesmo em rotas que nao usam Stripe
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
-// CERTO — inicializacao on-demand dentro da funcao
-function getStripe() {
-  if (!process.env.STRIPE_KEY) {
-    throw new Error('STRIPE_KEY nao configurada')
+// CERTO — inicializacao sob demanda dentro da funcao, com cache da instancia
+// (o mesmo codigo aparece em design-patterns-praticos.md como exemplo de Factory)
+let stripeInstance: Stripe | null = null
+
+function getStripe(): Stripe {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('Configuracao de pagamento ausente')
   }
-  return new Stripe(process.env.STRIPE_KEY)
+  stripeInstance ??= new Stripe(process.env.STRIPE_SECRET_KEY)
+  return stripeInstance
 }
 
 export async function POST(request: Request) {
@@ -252,26 +276,9 @@ export async function POST(request: Request) {
 
 ### Timeout + Retry
 
-```typescript
-async function callExternalService(url: string, tentativas = 3) {
-  for (let i = 0; i < tentativas; i++) {
-    try {
-      const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 5000) // 5s
-
-      const response = await fetch(url, { signal: controller.signal })
-      clearTimeout(timeout)
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      return await response.json()
-    } catch (error) {
-      if (i === tentativas - 1) throw error
-      // Backoff exponencial: 1s, 2s, 4s
-      await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000))
-    }
-  }
-}
-```
+Valores da tabela unica de `protocolos/regras-codigo.md` (D19): API externa 10 s, banco 5 s, chamada interna 3 s,
+3 novas tentativas com espera crescente (1 s, 2 s, 4 s), circuit breaker abre apos 5 falhas e fecha apos 60 s.
+Codigo pronto: `fetchWithTimeout` / `fetchWithRetry` em `nextjs-api-patterns.md` seção 8 — nao copie outra versao.
 
 ### Graceful degradation
 
@@ -280,15 +287,15 @@ Quando servico externo falha, o sistema DEVE continuar funcionando com funcional
 ```typescript
 // Exemplo: envio de email falha, mas pedido e criado
 try {
-  await enviarEmailConfirmacao(pedido)
+  await sendOrderConfirmationEmail(order)
 } catch (error) {
   console.error('[Email] Falha ao enviar confirmacao', error)
   // NAO retorne erro 500 — o pedido foi criado com sucesso
   // Registre para reenvio posterior
   await supabase.from('email_queue').insert({
-    tipo: 'confirmacao_pedido',
-    pedido_id: pedido.id,
-    tentativas: 0
+    kind: 'order_confirmation',
+    order_id: order.id,
+    attempts: 0
   })
 }
 ```
@@ -299,11 +306,11 @@ try {
 
 ### O que verificar ao revisar rotas do ENGINE
 
-- [ ] Toda rota verifica sessao antes de retornar dados?
+- [ ] Toda rota confere o usuario com `getUser()` antes de retornar dados (nenhum `getSession()` no servidor, nenhum `@supabase/auth-helpers-nextjs`)?
 - [ ] Queries filtram por `user_id` (nao retorna dados de outros usuarios)?
 - [ ] Todos os campos string tem `.max()` na validacao?
 - [ ] Paginacao implementada (nao retorna tudo)?
-- [ ] Erros retornam status HTTP correto (nao tudo 500)?
+- [ ] Erros retornam status HTTP correto (nao tudo 500) no formato unico `{ error: { code, message, details } }`?
 - [ ] Servicos externos inicializados dentro da funcao?
 - [ ] Sem N+1 (usa joins em vez de loops)?
 
@@ -329,11 +336,11 @@ try {
 
 ### Antes de marcar tarefa como concluida
 
-- [ ] Rota segue o contrato definido no `project-core.md`?
+- [ ] Rota segue o contrato da fatia `memoria/project-core/contratos.md`?
 - [ ] Todos os campos do contrato estao implementados (entrada E saida)?
 - [ ] Todos os cenarios de erro listados no contrato retornam o status correto?
 - [ ] Build Validator passou sem blockers?
-- [ ] Contract Tester verificou conformidade com `project-core.md`?
+- [ ] Contract Tester gerou E rodou os testes de contrato das rotas tocadas, com PASS (Passo 3.7)?
 
 ### Antes de aprovar tarefa do ENGINE ou VAULT
 
@@ -351,7 +358,7 @@ try {
 ### Esquecer de verificar sessao em rota de API
 
 **Errado:** Rota retorna dados sem verificar autenticacao.
-**Certo:** Toda rota protegida comeca com `getSession()` e retorna 401 se ausente.
+**Certo:** Toda rota protegida comeca com `getUser()` e retorna 401 (`UNAUTHORIZED`) se nao houver usuario.
 
 ### Confiar no cliente para validacao
 
@@ -360,7 +367,7 @@ try {
 
 ### Inicializar servico externo no topo do modulo
 
-**Errado:** `const stripe = new Stripe(process.env.STRIPE_KEY!)` — crash no import se variavel ausente.
+**Errado:** `const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)` — crash no import se variavel ausente.
 **Certo:** Funcao `getStripe()` que valida e retorna instancia on-demand.
 
 ### Retornar todos os campos do banco na resposta
@@ -371,4 +378,4 @@ try {
 ### Ignorar o contrato ao implementar
 
 **Errado:** Implementar rota "do jeito que faz sentido" sem consultar `project-core.md`.
-**Certo:** Abrir `project-core.md`, ler o contrato da rota, implementar EXATAMENTE o que esta definido.
+**Certo:** Abrir a fatia `memoria/project-core/contratos.md` (executores nao leem o project-core inteiro — D6), ler o contrato da rota, implementar EXATAMENTE o que esta definido. Divergencia → `PROPOSTAS PARA O PROJECT-CORE` no seu `-produto.md`.

@@ -19,7 +19,7 @@ Software alcança o **Descanso Consagrado do Dia 7** (operação autônoma) **so
 
 Da luz ao descanso, do externo ao interno. Cada camada só pode existir depois que a camada externa que a envolve foi criada e nomeada com nitidez. **Peixes não foram criados antes das águas. Código não é escrito antes do ritmo temporal.**
 
-**Aplicação no D-11:** as 7 fases do fluxo são executadas em ordem. Nenhuma fase pode ser pulada (Regra Inviolável 1 + hooks técnicos `pre-selo.py` e `validar-contratos-fim-fase.py`).
+**Aplicação no D-11:** as 13 fases do fluxo (0, 1, 2, 2.3, 2.4, 2.5, 2.7, 3, 3.5, 4, 4.5, 5, 6, 7) são executadas em ordem. Os 7 Dias correspondem a 7 delas — Dia 1 = Fase 0, Dia 2 = Fase 2, Dia 3 = Fase 3, Dia 4 = Fase 3.5, Dia 5 = Fase 4, Dia 6 = Fase 4.5, Dia 7 = Fase 7; as Fases 1, 2.x, 5 e 6 são fases de apoio, fora dos Dias. Nenhuma fase pode ser pulada (Regra Inviolável 1 + hooks técnicos `pre-selo.py` e `validar-contratos-fim-fase.py`).
 
 ### Princípio 2 — Selagem Antes da Próxima Camada
 
@@ -49,7 +49,7 @@ Cada camada tem uma contraposição lateral **do tipo específico** daquela cama
 
 **Quem faz:** ATLAS (Facilitador) + Comandante. Janela única. Selado pelo Comandante.
 
-**Referência no D-11 v6.0:** Fase 0 do fluxo + template `fase-luz-template.md` + hook `dia1-badal-checker.py`.
+**Referência no D-11:** Fase 0 do fluxo + `templates/fase-luz-template.md` (roteiro das 8 perguntas, v6.3) + seção 0 de `templates/prd-documento-de-requisitos-template.md` + seção VISÃO DO PRODUTO de `memoria/project-core.md` + hook `dia1-badal-checker.py` (exige 6 de 8 no PRD ou no project-core).
 
 ---
 
@@ -99,7 +99,7 @@ Cada camada tem uma contraposição lateral **do tipo específico** daquela cama
 
 **Critério objetivo de selo:** os 10 artefatos obrigatórios declarados e verificados (eventos, filas, jobs, cache, timeouts, retries, circuit breakers, CI/CD em staging, observabilidade, sub-contraposição declarada).
 
-**Quem faz:** CRONOS dispara; Engenheiro de DevOps/SRE + Líder Técnico. Janela 1. Selo do líder técnico + aprovação do Comandante.
+**Quem faz:** CRONOS dispara; Engenheiro de DevOps/SRE + Líder Técnico. Janela 1. Selo do líder técnico (no `modo manual`, também o `aprovar` do Comandante).
 
 **Referência no D-11 v6.0:** **Fase 3.5 (NOVA no v6.0)** + `protocolos/fase-ritmo.md` + `templates/fase-ritmo-template.md`. Esta fase **NÃO EXISTIA antes do v6.0** — é a correção do achado #4 (furo principal da auditoria).
 
@@ -135,7 +135,7 @@ Cada camada tem uma contraposição lateral **do tipo específico** daquela cama
 
 **Critério objetivo de selo:** os 5 entregáveis verificados (auditoria imutável, rate limiting por endpoint crítico, motor de regras central, LGPD, fluxos de aprovação); auth e authz testadas positiva e negativamente; regras de negócio testadas com casos de borda; auditoria funcionando com logs imutáveis; rate limiting ativo; isolamento multi-tenant verificado; validação profunda passando.
 
-**Quem faz:** CRONOS dispara; VAULT (auth + RLS) + SHIELD (auditoria) + Líder de produto (regras de negócio) + Especialista de compliance. Janela 1-2. Selo do SHIELD + aprovação do Comandante.
+**Quem faz:** CRONOS dispara; VAULT (auth + RLS) + SHIELD (auditoria) + Líder de produto (regras de negócio) + Especialista de compliance. Janela 1-2. Selo do SHIELD (no `modo manual`, também o `aprovar` do Comandante; regras de negócio que só ele pode decidir sobem para ele em qualquer modo — D4).
 
 **Referência no D-11 v6.0:** **Fase 4.5 (NOVA no v6.0)** + `protocolos/fase-consciencia.md` + `templates/fase-consciencia-template.md` + integração com skills globais `owasp-top10` (5 CVEs, 47 testes) e `supabase-rls` (P6 multi-tenancy, P7 Custom Hook).
 
@@ -145,7 +145,7 @@ Cada camada tem uma contraposição lateral **do tipo específico** daquela cama
 
 **Texto hebraico chave:** *vayechulu* (foram consumados) · *vayishbot* (cessou intencionalmente) · *vayvarech* (abençoou) · *kadash* (santificou)
 
-**Camada no software:** documentação técnica + de domínio consumada, testes de aceitação E2E, pipeline de deploy automatizado, **runbooks operacionais específicos do projeto** (instanciados da base global), monitoramento com dashboards + alertas ativos, versionamento com tag de release, backups configurados e testados, plano de DR testado, onboarding de novos devs testado, **teste supremo** ("se o criador tirar férias por um mês, o sistema continua?").
+**Camada no software:** documentação técnica + de domínio consumada, testes de aceitação E2E, pipeline de deploy automatizado, **runbooks operacionais específicos do projeto** (instanciados da base global), monitoramento com dashboards + alertas ativos, versionamento com tag de release, backups configurados e testados, plano de DR testado, onboarding de novos devs testado, **teste supremo** ("se o criador tirar 2 semanas de férias, o sistema continua?").
 
 **Contraposição lateral — Tipo 7 (de estado):** sistema no estado de obra consumada (selada, versionada, documentada, testada, em operação estável) contra sistema no estado de trabalho em curso (em desenvolvimento ativo, sem consagração final). Ambos coexistiram dentro da história do software — houve um momento em que estava em curso, houve um momento em que ficou consumado.
 
@@ -169,7 +169,7 @@ Toda fase (não importa qual) executa internamente o mesmo ciclo de 7 sub-etapas
 6. **Teste adversarial** — alguém encarregado de tentar quebrar o resultado.
 7. **Selagem por critérios objetivos** — só então avançar. Ver Seção abaixo.
 
-**Aplicação no D-11 v6.0:** `protocolos/ciclo-interno-7d.md` + `templates/ciclo-interno-template.md` + hook `ciclo-interno-checker.py`.
+**Aplicação no D-11:** `protocolos/ciclo-interno-7d.md` + `templates/ciclo-interno-template.md` + seção "Checklist do ciclo interno" do `templates/mini-plano-agente-template.md`. A verificação do ciclo interno é feita pelo CRONOS (sub-etapas 1 e 2) e pelo SHIELD (5 a 7) pelo checklist do mini-plano; não há hook específico.
 
 ---
 
@@ -180,9 +180,9 @@ Toda fase (não importa qual) executa internamente o mesmo ciclo de 7 sub-etapas
 | 1 — Luz | 8 perguntas obrigatórias respondidas | Teste "equipe responde igual sobre o propósito" | Comandante | — |
 | 2 — Container | ADR + fronteiras + protocolos | **Selo provisório** com nota retroativa | Arquiteto | Dia 3 |
 | 3 — Superfícies | Schema + modelos + contratos | **Retrovalidação do Dia 2** | VAULT + líder técnico | Dia 2 |
-| 4 — Astros | 10 artefatos do Ritmo | Sub-contraposição declarada | Líder técnico + Comandante | — |
+| 4 — Astros | 10 artefatos do Ritmo | Sub-contraposição declarada | Líder técnico (+ Comandante no `modo manual`) | — |
 | 5 — Habitantes | Cobertura de testes + endpoints em staging | Sub-contraposição escalar | SHIELD | — |
-| 6 — Consciência | 5 entregáveis verificados | Auth + Authz testadas + + e − | SHIELD + Comandante | — |
+| 6 — Consciência | 5 entregáveis verificados | Auth + Authz testadas (casos positivos e negativos) | SHIELD (+ Comandante no `modo manual`) | — |
 | 7 — Descanso | 10 entregáveis + 2 semanas operação autônoma | Tag + backup testado + DR testado | Comandante + líder técnico | — |
 
 ---
@@ -205,7 +205,7 @@ São testes VIVOS, executados a cada semana de projeto. Se algum falhar, voltar 
 
 | Dia | Fase no D-11 v6.0 | Novo no v6.0? | Hook bloqueante | Template |
 |-----|-------------------|---------------|-----------------|----------|
-| 1 — Luz | Fase 0 | Não (existente) | `dia1-badal-checker.py` (NOVO) | `fase-luz-template.md` (NOVO) |
+| 1 — Luz | Fase 0 | Não (existente) | `dia1-badal-checker.py` (NOVO) | `fase-luz-template.md` (criado na v6.3) + PRD seção 0 |
 | 2 — Container | Fase 2 | Não (existente) | `validar-arquitetura-vs-modelos.py` (NOVO, Etapa 4) | ADR (existente) |
 | 3 — Superfícies | Fase 3 | Não (existente) | `validar-arquitetura-vs-modelos.py` (retroativa) | `esquema-banco-template.md` (existente) |
 | 4 — Astros | **Fase 3.5 (NOVA)** | **SIM** | `fase-ritmo-checker.py` (NOVO, Etapa 5) | `fase-ritmo-template.md` (NOVO) |
@@ -213,7 +213,7 @@ São testes VIVOS, executados a cada semana de projeto. Se algum falhar, voltar 
 | 6 — Consciência | **Fase 4.5 (NOVA)** | **SIM** | `fase-consciencia-checker.py` (NOVO, Etapa 6) | `fase-consciencia-template.md` (NOVO) |
 | 7 — Descanso | **Fase 7 (NOVA)** | **SIM** | `fase-descanso-checker.py` (NOVO, Etapa 7) | `fase-descanso-template.md` (NOVO) |
 | Princípio 3 | (transversal) | **SIM** | `contraposicao-checker.py` (NOVO, Etapa 3) | (seção em cada Dia) |
-| Sub-etapas | (transversal) | **SIM** | `ciclo-interno-checker.py` (NOVO, Etapa 8) | `ciclo-interno-template.md` (NOVO) |
+| Sub-etapas | (transversal) | **SIM** | — (sem hook: CRONOS e SHIELD conferem) | `ciclo-interno-template.md` + checklist do mini-plano |
 
 ---
 
@@ -238,6 +238,6 @@ As 3 skills globais instaladas em v5.4 cobrem parcialmente 3 dos 7 dias:
 
 ---
 
-**Versão do documento:** v6.0.0 (2026-07-10)
+**Versão do documento:** v6.3 (2026-10-14) — 13 fases, teste supremo de 2 semanas, `fase-luz-template.md` criado, sem hook de ciclo interno. Antes: v6.0.0 (2026-07-10)
 **Manutenção:** Este documento é a referência canônica da Metodologia Gênesis dentro do D-11. Mudanças aqui devem ser propostas via ADR com aprovação do Comandante.
 **Próxima revisão programada:** após 90 dias de uso em produção em pelo menos 1 projeto real.

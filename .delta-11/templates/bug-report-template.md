@@ -5,7 +5,7 @@
 **Onde salvar:** `.delta-11/bugs/BUG-NNN-titulo-curto.md` (numeração sequencial: BUG-001, BUG-002…)
 
 **Quem escreve:**
-- **SHIELD** — ao REPROVAR uma tarefa em revisão (toda reprovação com defeito funcional gera bug report; a tarefa de correção no kanban referencia o BUG-NNN)
+- **SHIELD** — ao REPROVAR uma tarefa em revisão (toda reprovação com defeito funcional gera bug report e a linha `[SHIELD] REPROVADO T-XXX [AGENTE] motivo` no activity-log — D33). Quem cria a tarefa de correção no kanban, referenciando o BUG-NNN, é o CRONOS (só ele escreve o kanban — D10)
 - **CRONOS** — quando o fresh-reviewer ou o comandante relatam problema (CRONOS formaliza antes de despachar SCOUT)
 - **Qualquer agente** — que encontrar erro fora do próprio escopo
 
@@ -20,11 +20,11 @@
 - **Relatado por:** [agente ou comandante]
 - **Severidade:** 1-Crítico (sistema parado) | 2-Alto (funcionalidade crítica quebrada) | 3-Médio (funcionalidade secundária) | 4-Baixo
 - **Status:** aberto | em diagnóstico (SCOUT) | corrigido (T-XXX) | não reproduzível
-- **Tarefa de correção:** T-XXX (quando criada no kanban)
+- **Tarefa de correção:** T-XXX (quando o CRONOS criar no kanban)
 
 ## Comportamento esperado
 
-[1-2 frases: o que DEVERIA acontecer. Cite o contrato se houver: `[Fonte: contratos-api.md#rota]`]
+[1-2 frases: o que DEVERIA acontecer. Cite o contrato se houver: `[Fonte: project-core/contratos.md#rota]`]
 
 ## Comportamento real
 

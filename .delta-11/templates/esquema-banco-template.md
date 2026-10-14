@@ -1,12 +1,12 @@
 # ESQUEMA DE BANCO — [NOME DO PROJETO]
 
-> **Template v5.2 — Fatia de domínio "banco" (v4.0.1).**
-> Documento complementar ao project-core.md. Gerado por ATLAS na Fase 2. Salvo em
-> `.delta-11/memoria/esquema-banco.md` (ou `.delta-11/memoria/project-core/banco.md`).
+> **Template v6.3 (2026-10-14) — Fatia de domínio "banco".**
+> Salvo em `.delta-11/memoria/project-core/banco.md` (fatia do project-core). Gerado pelo ATLAS na Fase 2.
 > Consumido por: VAULT (implementa), BACK/ENGINE (consultam), SHIELD/SCOUT (verificam).
-> ATENÇÃO (lição T-017): as MIGRATIONS são a fonte de verdade final para nomes de colunas.
-> Este documento define a INTENÇÃO; o `schema-validator` compara os dois e acusa drift.
-> Somente o ATLAS edita.
+> **Duas verdades (D24):** este documento é a verdade do CONTRATO (o que o banco DEVE ser); as migrations em
+> `supabase/migrations/` são a verdade do banco IMPLEMENTADO (o que o banco É). O `schema-validator` compara os
+> dois; divergência é bug para o ATLAS decidir (corrigir este documento ou pedir nova migration).
+> Somente o ATLAS edita (D7). Nomes de tabela e coluna em inglês, `snake_case`, sem abreviação (D20).
 
 ## Visão geral do modelo
 
@@ -22,7 +22,8 @@
 |---|---|---|---|
 | id | uuid | PK, default gen_random_uuid() | identificador |
 | [coluna] | [tipo] | [NOT NULL / UNIQUE / CHECK (...) / default] | [o que guarda] |
-| criado_em | timestamptz | NOT NULL default now() | |
+| created_at | timestamptz | NOT NULL default now() | quando foi criado |
+| updated_at | timestamptz | NOT NULL default now() | última alteração (trigger `trg_set_updated_at`) |
 
 **Foreign keys:**
 - `[coluna]` → `[tabela].[coluna]` — ON DELETE [CASCADE/SET NULL/RESTRICT] — [justificativa da escolha]
@@ -38,7 +39,7 @@
 
 ## Regras de negócio no banco
 
-[Constraints que codificam regra de negócio — ex: "CHECK (creditos_disponiveis >= 0) em usuarios:
+[Constraints que codificam regra de negócio — ex: "CHECK (available_credits >= 0) em profiles:
 saldo nunca negativo, protege contra race condition de débito duplo".]
 
 ## Funções, triggers e RPCs
@@ -51,7 +52,7 @@ saldo nunca negativo, protege contra race condition de débito duplo".]
 
 | # | Arquivo | O que cria | Depende de |
 |---|---|---|---|
-| 001 | [nome] | [tabelas] | — |
+| 1 | [20261014130500_create_profiles.sql] | [tabelas] | — |
 
 **Regras de migration safety:**
 - NUNCA remover coluna antes do código que a usa ser removido e deployado
@@ -60,10 +61,11 @@ saldo nunca negativo, protege contra race condition de débito duplo".]
 
 ## Mapeamentos nome-de-coluna → campo-de-API
 
-[Onde o contrato de API usa nome diferente da coluna real — a causa raiz do bug T-017:]
+[Onde o contrato de API usa nome diferente da coluna real — causa comum de SQL de teste com coluna errada
+(ver `sub-agentes/schema-validator.md`):]
 
 | Tabela.coluna (real) | Campo na API | Rota |
 |---|---|---|
-| [licenses.name] | [client_name] | [GET /api/licenses] |
+| [customers.name] | [customerName] | [GET /api/customers] |
 
 [Se não houver mapeamentos: "Nenhum — nomes de API espelham colunas 1:1."]

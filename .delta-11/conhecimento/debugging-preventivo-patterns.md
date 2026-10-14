@@ -33,10 +33,11 @@ Causa raiz: RLS bloqueando query porque policy nao inclui o role do usuario
 
 ### Regra dos 3 tentativas
 
-Se nao resolver em 3 tentativas:
-1. Salve tudo no arquivo de estado (o que tentou, por que falhou, hipotese atual)
-2. Marque tarefa como "bloqueado" no kanban
-3. Gere prompt com contexto completo para nova sessao com contexto limpo
+Se nao resolver em 3 tentativas (D23):
+1. Salve tudo no `memoria/SCOUT-historia.md` (o que tentou, por que falhou, hipotese atual) e o resumo no `SCOUT-produto.md`
+2. PARE e avise o CRONOS por SendMessage (so o CRONOS escreve no kanban e marca o bloqueio)
+3. O CRONOS dispara um NOVO SCOUT com contexto limpo e o resumo do problema. SCOUT nunca dispara SCOUT.
+4. Apos 6 falhas no total, o CRONOS dispara o ATLAS (problema estrutural) e, se preciso, avisa o comandante
 
 ---
 
@@ -190,7 +191,7 @@ if (!error) {
 ### N+1 queries
 
 **Como detectar:** Loop fazendo query ao banco dentro de `.map()` ou `for`.
-**Como corrigir:** Usar JOIN ou `.select('*, relacao(*)')`.
+**Como corrigir:** Usar JOIN ou `.select('*, relation(*)')`. Explicacao completa e exemplo: `backend-integracao-patterns.md` seção 2 (fonte unica).
 
 ### Re-renders excessivos no React
 
@@ -214,8 +215,9 @@ if (!error) {
 **Como corrigir:** Criar indice para cada campo em WHERE/ORDER BY/JOIN.
 
 ```sql
--- Ver queries lentas no Supabase
-SELECT * FROM pg_stat_statements ORDER BY total_time DESC LIMIT 10;
+-- Ver queries lentas no Supabase (Postgres 13+: a coluna e total_exec_time)
+SELECT query, calls, total_exec_time, mean_exec_time
+FROM pg_stat_statements ORDER BY total_exec_time DESC LIMIT 10;
 
 -- Ver tabelas sem indices
 SELECT tablename FROM pg_tables
@@ -229,24 +231,10 @@ AND tablename NOT IN (SELECT tablename FROM pg_indexes WHERE schemaname = 'publi
 
 ### Timeout handling
 
-Toda chamada externa DEVE ter timeout:
-
-```typescript
-const controller = new AbortController()
-const timeout = setTimeout(() => controller.abort(), 5000)
-
-try {
-  const res = await fetch(url, { signal: controller.signal })
-  clearTimeout(timeout)
-  return res.json()
-} catch (error) {
-  clearTimeout(timeout)
-  if (error.name === 'AbortError') {
-    console.error('Timeout: servico nao respondeu em 5s')
-  }
-  throw error
-}
-```
+Toda chamada externa DEVE ter timeout. Valores da tabela unica de `protocolos/regras-codigo.md` (D19): API externa
+10 s, banco 5 s, chamada interna 3 s, 3 novas tentativas com espera crescente, circuit breaker apos 5 falhas por 60 s.
+Codigo pronto (`fetchWithTimeout`, `fetchWithRetry`): `nextjs-api-patterns.md` seção 8. Ao diagnosticar, confira se a
+chamada usa esses helpers — `fetch` sem `signal` e o suspeito numero 1 de "rota que trava".
 
 ### Race conditions
 
@@ -342,16 +330,18 @@ Checklist completo para varredura antes do lancamento:
 - Erro de importacao ou configuracao
 - Performance lenta em query especifica
 
-### Quando escalar para ATLAS
+Toda escalacao passa pelo CRONOS: o SCOUT nunca dispara outro agente nem fala direto com o comandante.
+
+### Quando pedir ao CRONOS que dispare o ATLAS
 
 - Contrato no `project-core.md` esta inconsistente ou incompleto
 - Arquitetura precisa mudar (nova tabela, nova rota, novo fluxo)
 - Erro afeta multiplas camadas ao mesmo tempo (banco + API + frontend)
 - Decisao de design que afeta o escopo do projeto
 
-### Quando escalar para o comandante
+### Quando o CRONOS leva ao comandante
 
-- 3 tentativas falharam E nova sessao tambem falhou
+- 6 falhas no total (dois SCOUTs) E o ATLAS confirmou que nao e problema estrutural resolvivel pelo time
 - Bug depende de servico externo fora do controle (API de terceiros)
 - Correcao exige credenciais ou acesso que o agente nao tem
 - Erro pode indicar problema no proprio sistema D-11 (nao no projeto)
@@ -359,7 +349,7 @@ Checklist completo para varredura antes do lancamento:
 ### Formato de escalacao
 
 ```
-ESCALACAO: [SCOUT → ATLAS/COMANDANTE]
+ESCALAÇÃO: SCOUT → CRONOS (novo SCOUT com contexto limpo após 3 falhas; ATLAS após 6)
 Erro: [descricao clara do que deveria acontecer vs o que acontece]
 Arquivos: [lista de arquivos envolvidos]
 Tentativas: [o que ja foi tentado e por que nao funcionou]
