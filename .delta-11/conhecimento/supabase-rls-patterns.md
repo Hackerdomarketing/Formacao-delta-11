@@ -1,6 +1,8 @@
 # Supabase RLS — Referência Curta para VAULT
 
-> **Esta é a base CURTA.** A versão COMPLETA (24k+ linhas, 32 armadilhas catalogadas, 14 princípios operacionais, 5 padrões canônicos com SQL copy-pastable) vive em `~/.claude/skills/supabase-rls/` (skill global instalada em v5.4 Estágio 4.1).
+> **Base OFICIAL do VAULT (`perfis/VAULT.json`) — v6.3 (2026-10-14).** É a referência curta. A versão COMPLETA (14 princípios operacionais, 7 padrões canônicos P1–P7 com SQL pronto, troubleshooting, 32 testes de validação) vive em `~/.claude/skills/supabase-rls/` (skill global instalada na v5.4).
+>
+> **Duas verdades (D24):** o esquema no project-core (`memoria/project-core/banco.md`) é o CONTRATO; as migrations em `supabase/migrations/` são o banco IMPLEMENTADO. Se divergirem, avise o CRONOS (que leva ao ATLAS) — não escolha sozinho.
 >
 > **Quando consultar esta base vs a skill:**
 > - Esta base: criação rápida de policy que segue padrão conhecido; review rápido sem precisar mergulhar
@@ -21,7 +23,7 @@
 4. **USING filtra linhas existentes. WITH CHECK valida linhas novas.** Em UPDATE, as duas coexistem. UPDATE sem WITH CHECK = user transfere ownership.
 5. **STABLE + SECURITY DEFINER não substitui o wrap.** O wrap é o que ativa initPlan no planner.
 
-Para os 14 princípios completos (incluindo P5 search_path, P6 user_metadata vs app_metadata, P7 USING+WITH CHECK em UPDATE), veja `references/02-operational-principles.md` na skill.
+Para os 14 princípios completos (incluindo search_path, user_metadata vs app_metadata, USING + WITH CHECK em UPDATE), veja `references/08-mental-model-e-principios.md` (seção 4) na skill.
 
 ---
 
@@ -63,15 +65,6 @@ Tabela tem dados por user com user_id?
 ├── Não, é multi-tenant (SaaS B2B)             → P6 (requer P7)
 └── Misturei                                    → decomponha
 ```
-Tabela tem dados por user com user_id?
-├── Sim, sem compartilhamento                  → P1
-├── Sim, com publicado/rascunho                → P2
-├── Sim, com admin que vê tudo                 → P3
-├── Não, permissões por documento              → P4
-├── Não, é por time/equipe                     → P5
-├── Não, é multi-tenant                        → P6 (ver skill)
-└── Misturei                                    → decomponha
-```
 
 ---
 
@@ -109,7 +102,7 @@ create policy policy_delete_own_notes on public.notes
   using ((select auth.uid()) = user_id);
 
 -- 3. Índice em user_id (CRÍTICO)
-create index notes_user_id_idx on public.notes (user_id);
+create index idx_notes_user_id on public.notes (user_id);
 ```
 
 ---
@@ -124,7 +117,7 @@ create index notes_user_id_idx on public.notes (user_id);
 
 ---
 
-## 6. Gotcha G-001 (canônico)
+## 6. Gotcha G-001 (canônico — fonte única; as outras bases apontam para cá)
 
 > **Supabase retorna lista vazia sem erro quando RLS bloqueia.**
 > - **EVITE:** tratar `data: []` como "não existem registros" sem verificar política RLS
@@ -143,7 +136,7 @@ create index notes_user_id_idx on public.notes (user_id);
 | Multi-tenancy (P6, P7) | skill `references/03-padroes-avancados.md` (sessão 4.2) |
 | Storage / Realtime / RPC com RLS | skill `references/05-casos-especiais.md` (sessão 4.3) |
 | Performance de policy (EXPLAIN) | skill `references/06-auditoria-e-performance.md` (sessão 4.4) |
-| Migrar RLS em produção | skill `references/09-migration-strategies.md` (sessão 4.4) |
+| Migrar RLS em produção | skill `references/05-casos-especiais.md` (seção 5, "Migrations que mudam RLS") |
 
 ---
 
