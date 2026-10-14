@@ -6,6 +6,7 @@
 > qualquer agente que perdeu mais de 30 min numa armadilha não documentada.
 
 ## G-001: Supabase retorna lista vazia sem erro quando RLS bloqueia
+> Semente do projeto. Fonte canônica desta lição: `.delta-11/conhecimento/supabase-rls-patterns.md` seção 6.
 - **Data:** 2026-07-07 · **Registrado por:** exemplo · **Zona:** API
 - **EVITE:** tratar `data: []` como "não existem registros" sem verificar política RLS
 - **PORQUE:** query com RLS ativo e política ausente retorna vazio SILENCIOSAMENTE — parece bug de dados, é permissão

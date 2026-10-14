@@ -6,7 +6,7 @@
 > 1 schema Zod por formulário, compartilhado com o servidor · mensagens de validação em português, nomes de campos em inglês.
 
 
-Referencia pratica para o agente FORM da Formacao Delta-11.
+Referencia pratica para o agente FORM da Formacao Delta-11 (base OFICIAL do FORM — `perfis/FORM.json`; complemento: `react-next-overview.md`). v6.3: identificadores em ingles (regra §9), toda string com `.max()` e senha com `.max(128)` (regra §2), erro da API no formato unico D13.
 Foco: React Hook Form, Zod, validacao, multi-step, upload, acessibilidade.
 
 ---
@@ -19,41 +19,47 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 
-const esquemaDeCadastro = z.object({
-  nome: z.string().min(2, "Nome precisa ter pelo menos 2 letras"),
-  email: z.string().email("Email invalido"),
-  senha: z.string().min(8, "Senha precisa ter pelo menos 8 caracteres"),
-  confirmarSenha: z.string(),
-}).refine((dados) => dados.senha === dados.confirmarSenha, {
+const signUpSchema = z.object({
+  name: z.string().trim().min(2, "Nome precisa ter pelo menos 2 letras").max(100, "Nome pode ter no maximo 100 letras"),
+  email: z.string().trim().toLowerCase().email("Email invalido").max(254, "Email muito longo"),
+  password: z.string().min(8, "Senha precisa ter pelo menos 8 caracteres").max(128, "Senha pode ter no maximo 128 caracteres"),
+  confirmPassword: z.string().max(128),
+}).refine((formData) => formData.password === formData.confirmPassword, {
   message: "As senhas nao conferem",
-  path: ["confirmarSenha"],
+  path: ["confirmPassword"],
 })
 
-type DadosDeCadastro = z.infer<typeof esquemaDeCadastro>
+type SignUpFormData = z.infer<typeof signUpSchema>
 
-function FormularioDeCadastro() {
+function SignUpForm() {
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<DadosDeCadastro>({
-    resolver: zodResolver(esquemaDeCadastro),
+  } = useForm<SignUpFormData>({
+    resolver: zodResolver(signUpSchema),
   })
 
-  async function onSubmit(dados: DadosDeCadastro) {
-    await fetch("/api/cadastro", {
+  async function onSubmit(formData: SignUpFormData) {
+    const response = await fetch("/api/auth/register", {
       method: "POST",
-      body: JSON.stringify(dados),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
     })
+    if (!response.ok) {
+      // formato unico de erro da API (D13): { error: { code, message, details } }
+      const { error } = await response.json()
+      throw new Error(error?.message ?? "Erro ao criar conta")
+    }
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <CampoDeTexto label="Nome" erro={errors.nome?.message} {...register("nome")} />
-      <CampoDeTexto label="Email" tipo="email" erro={errors.email?.message} {...register("email")} />
-      <CampoDeTexto label="Senha" tipo="password" erro={errors.senha?.message} {...register("senha")} />
-      <CampoDeTexto label="Confirmar Senha" tipo="password"
-        erro={errors.confirmarSenha?.message} {...register("confirmarSenha")} />
+      <TextField label="Nome" error={errors.name?.message} {...register("name")} />
+      <TextField label="Email" type="email" error={errors.email?.message} {...register("email")} />
+      <TextField label="Senha" type="password" error={errors.password?.message} {...register("password")} />
+      <TextField label="Confirmar Senha" type="password"
+        error={errors.confirmPassword?.message} {...register("confirmPassword")} />
       <button type="submit" disabled={isSubmitting}
         className="w-full bg-blue-600 text-white py-3 rounded-lg disabled:opacity-50">
         {isSubmitting ? "Cadastrando..." : "Criar Conta"}
@@ -70,46 +76,46 @@ function FormularioDeCadastro() {
 ```tsx
 import { forwardRef, InputHTMLAttributes } from "react"
 
-type PropsDoCampo = InputHTMLAttributes<HTMLInputElement> & {
+type TextFieldProps = InputHTMLAttributes<HTMLInputElement> & {
   label: string
-  erro?: string
-  tipo?: string
+  error?: string
+  type?: string
 }
 
-const CampoDeTexto = forwardRef<HTMLInputElement, PropsDoCampo>(
-  ({ label, erro, tipo = "text", id, ...props }, ref) => {
-    const campoId = id || label.toLowerCase().replace(/\s+/g, "-")
+const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
+  ({ label, error, type = "text", id, ...props }, ref) => {
+    const fieldId = id || label.toLowerCase().replace(/\s+/g, "-")
     return (
       <div className="space-y-1">
-        <label htmlFor={campoId} className="block text-sm font-medium text-gray-700">
+        <label htmlFor={fieldId} className="block text-sm font-medium text-gray-700">
           {label}
         </label>
         <input
           ref={ref}
-          id={campoId}
-          type={tipo}
-          aria-invalid={!!erro}
-          aria-describedby={erro ? `${campoId}-erro` : undefined}
+          id={fieldId}
+          type={type}
+          aria-invalid={!!error}
+          aria-describedby={error ? `${fieldId}-erro` : undefined}
           className={`
             w-full px-4 py-2 border rounded-lg transition-colors
             focus:outline-none focus:ring-2 focus:ring-offset-1
-            ${erro
+            ${error
               ? "border-red-500 focus:ring-red-300"
               : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"
             }
           `}
           {...props}
         />
-        {erro && (
-          <p id={`${campoId}-erro`} role="alert" className="text-sm text-red-600 mt-1">
-            {erro}
+        {error && (
+          <p id={`${fieldId}-erro`} role="alert" className="text-sm text-red-600 mt-1">
+            {error}
           </p>
         )}
       </div>
     )
   }
 )
-CampoDeTexto.displayName = "CampoDeTexto"
+TextField.displayName = "TextField"
 ```
 
 ---
@@ -120,21 +126,21 @@ CampoDeTexto.displayName = "CampoDeTexto"
 import { Controller, useForm } from "react-hook-form"
 
 // Quando o componente NAO aceita ref (ex: select customizado, date picker)
-function FormularioComSelect() {
+function CategorySelectForm() {
   const { control, handleSubmit } = useForm()
 
   return (
     <form onSubmit={handleSubmit(console.log)}>
       <Controller
-        name="categoria"
+        name="category"
         control={control}
         rules={{ required: "Selecione uma categoria" }}
         render={({ field, fieldState }) => (
           <div>
-            <SelectCustomizado
-              valor={field.value}
-              aoMudar={field.onChange}
-              opcoes={["Eletronicos", "Roupas", "Casa"]}
+            <CustomSelect
+              value={field.value}
+              onValueChange={field.onChange}
+              options={["Eletronicos", "Roupas", "Casa"]}
             />
             {fieldState.error && (
               <p className="text-sm text-red-600">{fieldState.error.message}</p>
@@ -152,32 +158,32 @@ function FormularioComSelect() {
 ## 4. Validacao em Tempo Real
 
 ```tsx
-const { register, watch, formState: { errors } } = useForm<DadosDeCadastro>({
-  resolver: zodResolver(esquemaDeCadastro),
+const { register, watch, formState: { errors } } = useForm<SignUpFormData>({
+  resolver: zodResolver(signUpSchema),
   mode: "onChange",        // valida ao digitar
   // mode: "onBlur",      // valida ao sair do campo
   // mode: "onTouched",   // valida ao sair do campo, mas so depois do primeiro toque
 })
 
 // Indicador de forca de senha
-const senha = watch("senha", "")
+const password = watch("password", "")
 
-function IndicadorDeForcaDeSenha({ senha }: { senha: string }) {
-  const forca = calcularForca(senha) // 0-4
+function PasswordStrengthIndicator({ password }: { password: string }) {
+  const strength = calculatePasswordStrength(password) // 0-4
 
-  const cores = ["bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-lime-500", "bg-green-500"]
-  const textos = ["Muito fraca", "Fraca", "Media", "Forte", "Muito forte"]
+  const colors = ["bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-lime-500", "bg-green-500"]
+  const labels = ["Muito fraca", "Fraca", "Media", "Forte", "Muito forte"]
 
   return (
     <div className="space-y-1">
       <div className="flex gap-1">
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} className={`h-1.5 flex-1 rounded-full transition-colors ${
-            i <= forca ? cores[forca] : "bg-gray-200"
+        {[0, 1, 2, 3].map((barIndex) => (
+          <div key={barIndex} className={`h-1.5 flex-1 rounded-full transition-colors ${
+            barIndex <= strength ? colors[strength] : "bg-gray-200"
           }`} />
         ))}
       </div>
-      {senha && <p className="text-xs text-gray-500">{textos[forca]}</p>}
+      {password && <p className="text-xs text-gray-500">{labels[strength]}</p>}
     </div>
   )
 }
@@ -194,62 +200,69 @@ import { useForm, FormProvider } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
 // Esquemas por etapa
-const esquemaEtapa1 = z.object({ nome: z.string().min(2), email: z.string().email() })
-const esquemaEtapa2 = z.object({ endereco: z.string().min(5), cidade: z.string().min(2) })
-const esquemaEtapa3 = z.object({ cartao: z.string().min(16) })
+const personalDataStepSchema = z.object({
+  name: z.string().trim().min(2).max(100),
+  email: z.string().trim().email().max(254),
+})
+const addressStepSchema = z.object({
+  address: z.string().trim().min(5).max(200),
+  city: z.string().trim().min(2).max(100),
+})
+// Cartao: na pratica use o componente do gateway (Stripe Elements) — o numero nunca passa pelo seu servidor
+const paymentStepSchema = z.object({ cardNumber: z.string().regex(/^\d{13,19}$/, "Numero de cartao invalido") })
 
-const esquemas = [esquemaEtapa1, esquemaEtapa2, esquemaEtapa3]
-const totalDeEtapas = esquemas.length
+const stepSchemas = [personalDataStepSchema, addressStepSchema, paymentStepSchema]
+const totalSteps = stepSchemas.length
 
-function FormularioMultiEtapas() {
-  const [etapaAtual, setEtapaAtual] = useState(0)
+function MultiStepForm() {
+  const [currentStep, setCurrentStep] = useState(0)
 
-  const metodos = useForm({
-    resolver: zodResolver(esquemas[etapaAtual]),
+  const formMethods = useForm({
+    resolver: zodResolver(stepSchemas[currentStep]),
     mode: "onBlur",
   })
 
-  async function avancar() {
-    const valido = await metodos.trigger()
-    if (!valido) return
-    if (etapaAtual < totalDeEtapas - 1) {
-      setEtapaAtual(etapaAtual + 1)
+  async function goToNextStep() {
+    const isStepValid = await formMethods.trigger()
+    if (!isStepValid) return
+    if (currentStep < totalSteps - 1) {
+      setCurrentStep(currentStep + 1)
     } else {
       // Ultima etapa — enviar
-      metodos.handleSubmit(enviarFormulario)()
+      formMethods.handleSubmit(submitForm)()
     }
   }
 
-  function voltar() {
-    if (etapaAtual > 0) setEtapaAtual(etapaAtual - 1)
+  function goToPreviousStep() {
+    if (currentStep > 0) setCurrentStep(currentStep - 1)
   }
 
   return (
-    <FormProvider {...metodos}>
+    <FormProvider {...formMethods}>
       {/* Indicador de progresso */}
       <div className="flex gap-2 mb-6">
-        {esquemas.map((_, i) => (
-          <div key={i} className={`h-2 flex-1 rounded-full transition-colors ${
-            i <= etapaAtual ? "bg-blue-600" : "bg-gray-200"
+        {stepSchemas.map((_, stepIndex) => (
+          <div key={stepIndex} className={`h-2 flex-1 rounded-full transition-colors ${
+            stepIndex <= currentStep ? "bg-blue-600" : "bg-gray-200"
           }`} />
         ))}
       </div>
 
-      <form onSubmit={(e) => e.preventDefault()}>
-        {etapaAtual === 0 && <EtapaDadosPessoais />}
-        {etapaAtual === 1 && <EtapaEndereco />}
-        {etapaAtual === 2 && <EtapaPagamento />}
+      <form onSubmit={(event) => event.preventDefault()}>
+        {currentStep === 0 && <PersonalDataStep />}
+        {currentStep === 1 && <AddressStep />}
+        {currentStep === 2 && <PaymentStep />}
 
         <div className="flex justify-between mt-6">
-          {etapaAtual > 0 && (
-            <button type="button" onClick={voltar}
+          {currentStep > 0 && (
+            <button type="button" onClick={goToPreviousStep}
               className="px-4 py-2 text-gray-600 hover:text-gray-800">
               Voltar
             </button>
           )}
-          <button type="button" onClick={avancar}
+          <button type="button" onClick={goToNextStep}
             className="ml-auto px-6 py-2 bg-blue-600 text-white rounded-lg">
-            {etapaAtual === totalDeEtapas - 1 ? "Finalizar" : "Proximo"}
+            {currentStep === totalSteps - 1 ? "Finalizar" : "Proximo"}
           </button>
         </div>
       </form>
@@ -263,24 +276,24 @@ function FormularioMultiEtapas() {
 ## 6. File Upload
 
 ```tsx
-const esquemaDeUpload = z.object({
-  arquivo: z
+const uploadSchema = z.object({
+  file: z
     .instanceof(FileList)
-    .refine((lista) => lista.length > 0, "Selecione um arquivo")
-    .refine((lista) => lista[0]?.size <= 5_000_000, "Arquivo deve ter no maximo 5MB")
+    .refine((fileList) => fileList.length > 0, "Selecione um arquivo")
+    .refine((fileList) => fileList[0]?.size <= 5_000_000, "Arquivo deve ter no maximo 5MB")
     .refine(
-      (lista) => ["image/jpeg", "image/png", "image/webp"].includes(lista[0]?.type),
+      (fileList) => ["image/jpeg", "image/png", "image/webp"].includes(fileList[0]?.type),
       "Formato aceito: JPG, PNG ou WebP"
     ),
 })
 
-function CampoDeUpload() {
+function ImageUploadField() {
   const { register, watch, formState: { errors } } = useForm({
-    resolver: zodResolver(esquemaDeUpload),
+    resolver: zodResolver(uploadSchema),
   })
 
-  const arquivo = watch("arquivo")
-  const previa = arquivo?.[0] ? URL.createObjectURL(arquivo[0]) : null
+  const file = watch("file")
+  const previewUrl = file?.[0] ? URL.createObjectURL(file[0]) : null
 
   return (
     <div>
@@ -290,8 +303,8 @@ function CampoDeUpload() {
         cursor-pointer hover:border-blue-500 hover:bg-blue-50
         transition-colors
       ">
-        {previa ? (
-          <img src={previa} alt="Previa" className="h-full object-contain rounded" />
+        {previewUrl ? (
+          <img src={previewUrl} alt="Previa" className="h-full object-contain rounded" />
         ) : (
           <>
             <UploadIcon className="h-10 w-10 text-gray-400" />
@@ -299,10 +312,10 @@ function CampoDeUpload() {
             <p className="text-xs text-gray-400">JPG, PNG ou WebP (max 5MB)</p>
           </>
         )}
-        <input type="file" accept="image/*" className="hidden" {...register("arquivo")} />
+        <input type="file" accept="image/*" className="hidden" {...register("file")} />
       </label>
-      {errors.arquivo && (
-        <p className="text-sm text-red-600 mt-1">{errors.arquivo.message as string}</p>
+      {errors.file && (
+        <p className="text-sm text-red-600 mt-1">{errors.file.message as string}</p>
       )}
     </div>
   )
@@ -315,14 +328,24 @@ function CampoDeUpload() {
 
 ```tsx
 // INLINE — ao lado do campo (melhor para formularios curtos)
-<CampoDeTexto label="Email" erro={errors.email?.message} {...register("email")} />
+<TextField label="Email" error={errors.email?.message} {...register("email")} />
 
 // TOAST — notificacao flutuante (melhor para erros de servidor)
 import { toast } from "sonner" // ou react-hot-toast
 
-async function onSubmit(dados: DadosDeCadastro) {
+async function onSubmit(formData: SignUpFormData) {
   try {
-    await fetch("/api/cadastro", { method: "POST", body: JSON.stringify(dados) })
+    const response = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    })
+    // fetch NAO lanca erro em 4xx/5xx — conferir response.ok e ler o formato unico (D13)
+    if (!response.ok) {
+      const { error } = await response.json()
+      toast.error(error?.message ?? "Erro ao criar conta. Tente novamente.")
+      return
+    }
     toast.success("Conta criada com sucesso!")
   } catch {
     toast.error("Erro ao criar conta. Tente novamente.")
@@ -330,16 +353,16 @@ async function onSubmit(dados: DadosDeCadastro) {
 }
 
 // SUMMARY — resumo no topo do form (melhor para formularios longos)
-function ResumoDeErros({ errors }: { errors: Record<string, { message?: string }> }) {
-  const listaDeErros = Object.entries(errors).filter(([, v]) => v.message)
-  if (listaDeErros.length === 0) return null
+function ErrorSummary({ errors }: { errors: Record<string, { message?: string }> }) {
+  const errorList = Object.entries(errors).filter(([, fieldError]) => fieldError.message)
+  if (errorList.length === 0) return null
 
   return (
     <div role="alert" className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
       <p className="font-medium text-red-800">Corrija os erros abaixo:</p>
       <ul className="mt-2 list-disc list-inside text-sm text-red-600">
-        {listaDeErros.map(([campo, erro]) => (
-          <li key={campo}>{erro.message}</li>
+        {errorList.map(([fieldName, error]) => (
+          <li key={fieldName}>{error.message}</li>
         ))}
       </ul>
     </div>
@@ -367,10 +390,10 @@ function useFocusOnFirstError(errors: Record<string, unknown>) {
 
   useEffect(() => {
     if (Object.keys(errors).length > 0 && formRef.current) {
-      const primeiroCampoComErro = formRef.current.querySelector<HTMLInputElement>(
+      const firstInvalidField = formRef.current.querySelector<HTMLInputElement>(
         '[aria-invalid="true"]'
       )
-      primeiroCampoComErro?.focus()
+      firstInvalidField?.focus()
     }
   }, [errors])
 
@@ -378,19 +401,19 @@ function useFocusOnFirstError(errors: Record<string, unknown>) {
 }
 
 // Campo acessivel completo
-<div role="group" aria-labelledby="grupo-contato">
-  <h3 id="grupo-contato" className="text-lg font-semibold mb-2">Dados de Contato</h3>
+<div role="group" aria-labelledby="contact-group">
+  <h3 id="contact-group" className="text-lg font-semibold mb-2">Dados de Contato</h3>
   <input
     id="email"
     type="email"
     aria-label="Endereco de email"
     aria-required="true"
     aria-invalid={!!errors.email}
-    aria-describedby={errors.email ? "email-erro" : "email-ajuda"}
+    aria-describedby={errors.email ? "email-error" : "email-help"}
     {...register("email")}
   />
-  <p id="email-ajuda" className="text-xs text-gray-500">Usaremos para enviar a confirmacao</p>
-  {errors.email && <p id="email-erro" role="alert" className="text-sm text-red-600">{errors.email.message}</p>}
+  <p id="email-help" className="text-xs text-gray-500">Usaremos para enviar a confirmacao</p>
+  {errors.email && <p id="email-error" role="alert" className="text-sm text-red-600">{errors.email.message}</p>}
 </div>
 ```
 
@@ -402,38 +425,38 @@ function useFocusOnFirstError(errors: Record<string, unknown>) {
 "use client"
 import { useState } from "react"
 
-function FormularioDeComentario({ publicacaoId }: { publicacaoId: string }) {
-  const [comentarios, setComentarios] = useState<Comentario[]>([])
+function CommentForm({ postId }: { postId: string }) {
+  const [comments, setComments] = useState<Comment[]>([])
   const { register, handleSubmit, reset } = useForm()
 
-  async function onSubmit(dados: { texto: string }) {
+  async function onSubmit(formData: { text: string }) {
     // 1. Adiciona IMEDIATAMENTE na lista (otimista)
-    const comentarioTemporario: Comentario = {
+    const temporaryComment: Comment = {
       id: `temp-${Date.now()}`,
-      texto: dados.texto,
-      autor: "Voce",
-      status: "enviando",
+      text: formData.text,
+      author: "Voce",
+      status: "sending",
     }
-    setComentarios((prev) => [...prev, comentarioTemporario])
+    setComments((previousComments) => [...previousComments, temporaryComment])
     reset()
 
     try {
       // 2. Envia para o servidor
-      const resposta = await fetch("/api/comentarios", {
+      const response = await fetch("/api/comments", {
         method: "POST",
-        body: JSON.stringify({ publicacaoId, texto: dados.texto }),
+        body: JSON.stringify({ postId, text: formData.text }),
       })
-      const comentarioReal = await resposta.json()
+      const savedComment = await response.json()
 
       // 3. Substitui o temporario pelo real
-      setComentarios((prev) =>
-        prev.map((c) => (c.id === comentarioTemporario.id ? comentarioReal : c))
+      setComments((previousComments) =>
+        previousComments.map((comment) => (comment.id === temporaryComment.id ? savedComment : comment))
       )
     } catch {
       // 4. Se falhou, marca como erro (usuario pode tentar de novo)
-      setComentarios((prev) =>
-        prev.map((c) =>
-          c.id === comentarioTemporario.id ? { ...c, status: "erro" } : c
+      setComments((previousComments) =>
+        previousComments.map((comment) =>
+          comment.id === temporaryComment.id ? { ...comment, status: "error" } : comment
         )
       )
     }
@@ -442,17 +465,17 @@ function FormularioDeComentario({ publicacaoId }: { publicacaoId: string }) {
   return (
     <div>
       <ul className="space-y-2 mb-4">
-        {comentarios.map((c) => (
-          <li key={c.id} className={c.status === "enviando" ? "opacity-50" : ""}>
-            <span>{c.texto}</span>
-            {c.status === "erro" && (
+        {comments.map((comment) => (
+          <li key={comment.id} className={comment.status === "sending" ? "opacity-50" : ""}>
+            <span>{comment.text}</span>
+            {comment.status === "error" && (
               <button className="text-red-500 text-xs ml-2">Tentar novamente</button>
             )}
           </li>
         ))}
       </ul>
       <form onSubmit={handleSubmit(onSubmit)} className="flex gap-2">
-        <input {...register("texto")} placeholder="Escreva um comentario..."
+        <input {...register("text")} placeholder="Escreva um comentario..."
           className="flex-1 px-4 py-2 border rounded-lg" />
         <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg">
           Enviar

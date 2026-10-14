@@ -6,7 +6,7 @@
 > Componente ≤ 150 linhas e ≤ 5 props · 1 componente exportado por arquivo · ao revisar PIXEL/FORM, violação de limite = reprovação.
 
 
-Referencia pratica para o agente FRONT da Formacao Delta-11.
+Referencia pratica para o agente FRONT da Formacao Delta-11 (base OFICIAL do FRONT — `perfis/FRONT.json`; complemento: `react-next-overview.md`). v6.3: identificadores dos exemplos em ingles (regra §9).
 Foco: Next.js App Router, composicao de componentes, estado, navegacao.
 
 ---
@@ -16,11 +16,11 @@ Foco: Next.js App Router, composicao de componentes, estado, navegacao.
 ```tsx
 // SERVER COMPONENT (padrao no App Router — roda no servidor)
 // Pode acessar banco, filesystem, secrets. NAO usa hooks.
-async function ListaDeProdutos() {
-  const produtos = await buscarProdutos() // acesso direto ao banco
+async function ProductList() {
+  const products = await fetchProducts() // acesso direto ao banco
   return (
     <ul>
-      {produtos.map(p => <li key={p.id}>{p.nome}</li>)}
+      {products.map(product => <li key={product.id}>{product.name}</li>)}
     </ul>
   )
 }
@@ -30,11 +30,11 @@ async function ListaDeProdutos() {
 "use client"
 import { useState } from "react"
 
-function ContadorDeItens() {
-  const [quantidade, setQuantidade] = useState(0)
+function ItemCounter() {
+  const [count, setCount] = useState(0)
   return (
-    <button onClick={() => setQuantidade(q => q + 1)}>
-      {quantidade} itens
+    <button onClick={() => setCount(previousCount => previousCount + 1)}>
+      {count} itens
     </button>
   )
 }
@@ -49,28 +49,28 @@ function ContadorDeItens() {
 ### React Context (estado global simples)
 
 ```tsx
-// contexto-do-usuario.tsx
+// user-context.tsx
 "use client"
 import { createContext, useContext, useState, ReactNode } from "react"
 
-type Usuario = { nome: string; email: string } | null
+type User = { name: string; email: string } | null
 
-const ContextoUsuario = createContext<{
-  usuario: Usuario
-  definirUsuario: (u: Usuario) => void
-}>({ usuario: null, definirUsuario: () => {} })
+const UserContext = createContext<{
+  user: User
+  setUser: (nextUser: User) => void
+}>({ user: null, setUser: () => {} })
 
-export function ProvedorDeUsuario({ children }: { children: ReactNode }) {
-  const [usuario, definirUsuario] = useState<Usuario>(null)
+export function UserProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User>(null)
   return (
-    <ContextoUsuario.Provider value={{ usuario, definirUsuario }}>
+    <UserContext.Provider value={{ user, setUser }}>
       {children}
-    </ContextoUsuario.Provider>
+    </UserContext.Provider>
   )
 }
 
 export function useUser() {
-  return useContext(ContextoUsuario)
+  return useContext(UserContext)
 }
 ```
 
@@ -79,18 +79,18 @@ export function useUser() {
 ```tsx
 import { create } from "zustand"
 
-type EstadoDoCarrinho = {
-  itens: Array<{ id: string; nome: string; preco: number }>
-  adicionarItem: (item: { id: string; nome: string; preco: number }) => void
-  removerItem: (id: string) => void
-  totalDeItens: () => number
+type CartState = {
+  items: Array<{ id: string; name: string; price: number }>
+  addItem: (item: { id: string; name: string; price: number }) => void
+  removeItem: (id: string) => void
+  getItemCount: () => number
 }
 
-export const useCarrinho = create<EstadoDoCarrinho>((set, get) => ({
-  itens: [],
-  adicionarItem: (item) => set((estado) => ({ itens: [...estado.itens, item] })),
-  removerItem: (id) => set((estado) => ({ itens: estado.itens.filter(i => i.id !== id) })),
-  totalDeItens: () => get().itens.length,
+export const useCart = create<CartState>((set, get) => ({
+  items: [],
+  addItem: (item) => set((state) => ({ items: [...state.items, item] })),
+  removeItem: (id) => set((state) => ({ items: state.items.filter(item => item.id !== id) })),
+  getItemCount: () => get().items.length,
 }))
 ```
 
@@ -100,24 +100,24 @@ export const useCarrinho = create<EstadoDoCarrinho>((set, get) => ({
 "use client"
 import { useSearchParams, useRouter, usePathname } from "next/navigation"
 
-function FiltrosDeBusca() {
-  const parametros = useSearchParams()
-  const roteador = useRouter()
-  const caminho = usePathname()
+function SearchFilters() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
 
-  const filtroAtual = parametros.get("categoria") || "todos"
+  const currentFilter = searchParams.get("category") || "all"
 
-  function applyFilter(categoria: string) {
-    const novosParametros = new URLSearchParams(parametros)
-    novosParametros.set("categoria", categoria)
-    roteador.push(`${caminho}?${novosParametros.toString()}`)
+  function applyFilter(category: string) {
+    const nextSearchParams = new URLSearchParams(searchParams)
+    nextSearchParams.set("category", category)
+    router.push(`${pathname}?${nextSearchParams.toString()}`)
   }
 
   return (
-    <select value={filtroAtual} onChange={(e) => applyFilter(e.target.value)}>
-      <option value="todos">Todos</option>
-      <option value="eletronicos">Eletronicos</option>
-      <option value="roupas">Roupas</option>
+    <select value={currentFilter} onChange={(event) => applyFilter(event.target.value)}>
+      <option value="all">Todos</option>
+      <option value="electronics">Eletronicos</option>
+      <option value="clothing">Roupas</option>
     </select>
   )
 }
@@ -132,16 +132,16 @@ function FiltrosDeBusca() {
 ```
 src/app/layout.tsx              → Layout raiz (HTML, body, providers)
 src/app/(app)/layout.tsx        → Layout da area logada (sidebar, navbar)
-src/app/(app)/painel/page.tsx   → Pagina do painel (herda ambos layouts)
+src/app/(app)/dashboard/page.tsx   → Pagina do dashboard (herda ambos layouts)
 src/app/(admin)/layout.tsx      → Layout do admin (diferente do app)
 ```
 
 ```tsx
 // src/app/(app)/layout.tsx
-export default function LayoutAreaLogada({ children }: { children: React.ReactNode }) {
+export default function AuthenticatedAreaLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen">
-      <BarraLateral />
+      <Sidebar />
       <main className="flex-1 p-6">{children}</main>
     </div>
   )
@@ -165,30 +165,31 @@ Route groups `(nome)` NAO afetam a URL. Servem apenas para organizar layouts.
 ```tsx
 // Link estatico
 import Link from "next/link"
-<Link href="/produtos">Ver Produtos</Link>
+<Link href="/products">Ver Produtos</Link>
 
 // Link dinamico
-<Link href={`/produtos/${produto.id}`}>Detalhes</Link>
+<Link href={`/products/${product.id}`}>Detalhes</Link>
 
 // Navegacao programatica (client component)
 "use client"
 import { useRouter } from "next/navigation"
 
-function BotaoDeLogout() {
-  const roteador = useRouter()
-  async function sair() {
-    await fazerLogout()
-    roteador.push("/login")
+function LogoutButton() {
+  const router = useRouter()
+  async function handleSignOut() {
+    await signOut()
+    router.push("/login")
   }
-  return <button onClick={sair}>Sair</button>
+  return <button onClick={handleSignOut}>Sair</button>
 }
 
 // Redirect no servidor (server component ou middleware)
 import { redirect } from "next/navigation"
 
-async function PaginaProtegida() {
-  const sessao = await verificarSessao()
-  if (!sessao) redirect("/login")
+async function ProtectedPage() {
+  const supabase = await createSupabaseClient() // @supabase/ssr — ver nextjs-api-patterns.md seção 7
+  const { data: { user } } = await supabase.auth.getUser() // getUser(), nunca getSession() no servidor
+  if (!user) redirect("/login")
   return <div>Conteudo protegido</div>
 }
 ```
@@ -198,7 +199,7 @@ async function PaginaProtegida() {
 ## 5. Loading e Error Boundaries
 
 ```
-src/app/(app)/painel/
+src/app/(app)/dashboard/
 ├── page.tsx          → Conteudo da pagina
 ├── loading.tsx       → Mostrado enquanto page.tsx carrega
 └── error.tsx         → Mostrado se page.tsx da erro
@@ -206,7 +207,7 @@ src/app/(app)/painel/
 
 ```tsx
 // loading.tsx — skeleton automatico
-export default function Carregando() {
+export default function Loading() {
   return (
     <div className="animate-pulse space-y-4">
       <div className="h-8 bg-gray-200 rounded w-1/3" />
@@ -218,7 +219,7 @@ export default function Carregando() {
 
 // error.tsx — DEVE ser client component
 "use client"
-export default function Erro({ error, reset }: { error: Error; reset: () => void }) {
+export default function ErrorBoundaryPage({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="text-center p-8">
       <h2 className="text-xl font-bold text-red-600">Algo deu errado</h2>
@@ -238,12 +239,12 @@ export default function Erro({ error, reset }: { error: Error; reset: () => void
 ### Server Component (recomendado — sem estado de loading manual)
 
 ```tsx
-async function PaginaDeProdutos() {
-  const produtos = await fetch("https://api.exemplo.com/produtos", {
+async function ProductsPage() {
+  const products = await fetch("https://api.example.com/products", {
     next: { revalidate: 60 }, // revalida cache a cada 60 segundos
-  }).then(r => r.json())
+  }).then(response => response.json())
 
-  return <ListaDeProdutos produtos={produtos} />
+  return <ProductList products={products} />
 }
 ```
 
@@ -253,16 +254,16 @@ async function PaginaDeProdutos() {
 "use client"
 import useSWR from "swr"
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
+const fetcher = (url: string) => fetch(url).then(response => response.json())
 
-function PainelDeNotificacoes() {
-  const { data, error, isLoading } = useSWR("/api/notificacoes", fetcher, {
+function NotificationsPanel() {
+  const { data, error, isLoading } = useSWR("/api/notifications", fetcher, {
     refreshInterval: 30000, // atualiza a cada 30 segundos
   })
 
-  if (isLoading) return <Esqueleto />
-  if (error) return <MensagemDeErro />
-  return <Lista itens={data} />
+  if (isLoading) return <Skeleton />
+  if (error) return <ErrorMessage />
+  return <List items={data} />
 }
 ```
 
@@ -277,48 +278,48 @@ function Card({ children }: { children: React.ReactNode }) {
   return <div className="rounded-lg border p-4 shadow-sm">{children}</div>
 }
 
-Card.Cabecalho = function Cabecalho({ children }: { children: React.ReactNode }) {
+Card.Header = function Header({ children }: { children: React.ReactNode }) {
   return <div className="border-b pb-2 mb-3 font-semibold">{children}</div>
 }
 
-Card.Corpo = function Corpo({ children }: { children: React.ReactNode }) {
+Card.Body = function Body({ children }: { children: React.ReactNode }) {
   return <div className="text-gray-600">{children}</div>
 }
 
 // Uso:
 <Card>
-  <Card.Cabecalho>Titulo do Card</Card.Cabecalho>
-  <Card.Corpo>Conteudo aqui dentro</Card.Corpo>
+  <Card.Header>Titulo do Card</Card.Header>
+  <Card.Body>Conteudo aqui dentro</Card.Body>
 </Card>
 ```
 
 ### Render Props / Children as Function
 
 ```tsx
-function ListaComBusca<T extends { id: string }>({
-  itens,
-  campoDeBusca,
-  renderizarItem,
+function SearchableList<T extends { id: string }>({
+  items,
+  searchField,
+  renderItem,
 }: {
-  itens: T[]
-  campoDeBusca: keyof T
-  renderizarItem: (item: T) => React.ReactNode
+  items: T[]
+  searchField: keyof T
+  renderItem: (item: T) => React.ReactNode
 }) {
-  const [busca, setBusca] = useState("")
-  const filtrados = itens.filter(item =>
-    String(item[campoDeBusca]).toLowerCase().includes(busca.toLowerCase())
+  const [query, setQuery] = useState("")
+  const filteredItems = items.filter(item =>
+    String(item[searchField]).toLowerCase().includes(query.toLowerCase())
   )
 
   return (
     <div>
       <input
         type="text"
-        value={busca}
-        onChange={(e) => setBusca(e.target.value)}
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
         placeholder="Buscar..."
         className="w-full p-2 border rounded mb-4"
       />
-      <div className="space-y-2">{filtrados.map(renderizarItem)}</div>
+      <div className="space-y-2">{filteredItems.map(renderItem)}</div>
     </div>
   )
 }

@@ -33,7 +33,7 @@ Estes já estão nas outras bases de conhecimento — aqui ganham o nome oficial
 
 | O que o Δ-11 já faz | Nome do padrão | Onde está documentado |
 |---|---|---|
-| `getStripe()` — serviço externo inicializado sob demanda dentro de função, com cache da instância | **Factory** (com lazy initialization) | nextjs-api-patterns §8, backend-integracao §5 |
+| `getStripe()` — serviço externo inicializado sob demanda dentro de função, com cache da instância | **Factory** (com lazy initialization) | backend-integracao §5 (fonte única) |
 | Timeout + retry com backoff + pausa após 5 falhas | **Circuit Breaker** (padrão de resiliência) | regras-codigo §3 |
 | Integração externa atrás de pasta nomeada pela FUNÇÃO (`observabilidade/monitoramento-de-erros/`), vendor trocável | **Adapter** | Regra Inviolável 15 |
 | Funções de `src/lib/` que escondem subsistema complexo atrás de chamada simples | **Facade** | estrutura padrão do projeto |
