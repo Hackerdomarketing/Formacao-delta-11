@@ -8,6 +8,7 @@
 > - Base conceitual: `.delta-11/conhecimento/metodologia-genesis-camadas.md` → Dia 7
 > - Template dos 10 entregáveis: `.delta-11/templates/fase-descanso-template.md`
 > - Hook bloqueante: `.delta-11/hooks/fase-descanso-checker.py`
+> - Quem faz cada entregável: `fluxo-zero-ao-lancamento.md` → tabela "PAPEL DE CADA AGENTE NAS FASES 3.5, 4.5 E 7"
 > - Skill global de runbooks IR: `~/.claude/skills/owasp-top10/references/07-incident-response.md`
 
 ## O que é o Dia 7 — em linguagem da Metodologia Gênesis
@@ -33,7 +34,7 @@ Significado: depois de criar todas as camadas, Deus **consagra o sistema** — d
 | Fase 6 (Provisório) | Fase 7 (Definitivo) |
 |----------------------|----------------------|
 | Deploy em produção | Operação autônoma comprovada |
-| Sentry + verify-app funcionando | 2+ semanas de operação estável |
+| Sentry + verify-app funcionando | 2 semanas de operação estável |
 | Funcionalidades entregues | Runbooks específicos do projeto |
 | Acessos monitorados | Alertas com donos designados |
 | Cada alerta tratado manualmente | Alertas resolvem-se sozinhos |
@@ -54,11 +55,11 @@ Se NÃO → o sistema **não consagra**. Voltar e consertar o que falta. Em orde
 4. Deploy manual (saiu cedo do trabalho pra deploy)
 5. Onboarding quebrado (novo dev não consegue mexer no sistema sem o criador explicar)
 
-2 semanas é o mínimo. Projetos críticos (saúde, financeiro) podem exigir 4-8 semanas. Mas 2 semanas é o piso universal.
+O prazo é **2 semanas**, o mesmo em todo o sistema (fluxo, metodologia, monitor e hook). Um projeto crítico (saúde, financeiro) pode continuar sendo observado depois do selo, mas o selo do Dia 7 sai com 2 semanas.
 
 ## Os 10 entregáveis do Dia 7 — declaração completa
 
-Cada entregável vira um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-descanso-<N>-<slug>.md` (template em `fase-descanso-template.md`). Cada um tem: descrição, escolha, justificativa, link, **evidência de execução**.
+Cada entregável vira um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-descanso-<NN>-<slug>.md` (`<NN>` de 01 a 10; modelo em `fase-descanso-template.md`). Cada um tem: descrição, escolha, justificativa, link, **evidência de execução**.
 
 ### Entregável 1 — Documentação técnica consumada
 
@@ -99,7 +100,7 @@ Cada entregável vira um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-descanso
 
 **Critério de consagração:**
 - CI roda lint + typecheck + testes + build + deploy em staging
-- Aprovação manual do Comandante (via Claude Code `aprovar`) dispara deploy em produção
+- O deploy em produção só sai com o aval do comandante (é publicação externa — Regra 10); depois do aval, o pipeline faz o resto sozinho
 - Rollback automático em caso de falha de smoke test pós-deploy
 
 **Verificação prática:** pegar um PR, mergear, ver staging atualizar em < 30 min sem ninguém fazer nada.
@@ -111,7 +112,7 @@ Cada entregável vira um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-descanso
 **Critério de consagração:**
 - 5 runbooks no mínimo
 - Cada runbook tem: sintoma, causa provável, comando de diagnóstico, ação de mitigação, escalonamento
-- Cada runbook é **testado** (simulação tabletop com a equipe)
+- Cada runbook é **testado** (teste de mesa: o SCOUT simula o incidente e o dono segue o runbook)
 - Cada runbook tem **dono** claro (quem é chamado se acontecer)
 
 **Onde pegar material:** a skill global `owasp-top10` tem 10 runbooks genéricos de Incident Response (A01 a A10). Para cada runbook do projeto, comece do genérico e adapte ao domínio do seu produto.
@@ -123,7 +124,7 @@ Cada entregável vira um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-descanso
 4. **Mitigação:** ativar modo degradado (retornar cache), postar aviso no status público
 5. **Escalonamento:** se > 1 hora, ligar para contato comercial X (telefone no runbook)
 
-**Diferença entre Fase 7.5 (Incidente) e runbook genérico:** runbook genérico é "se você ver X, faça Y". Runbook específico é "se a métrica M cair abaixo de T, faça Y, em até 30 min, e avise P". **Específico = operacional**.
+**Diferença entre runbook genérico e runbook específico:** runbook genérico é "se você ver X, faça Y". Runbook específico é "se a métrica M cair abaixo de T, faça Y, em até 30 min, e avise P". **Específico = operacional**.
 
 ### Entregável 6 — Monitoramento com dashboards + alertas ativos
 
@@ -191,40 +192,57 @@ Cada entregável vira um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-descanso
 
 Os 10 entregáveis acima são os **pré-requisitos** para o teste supremo rodar. Mas o teste supremo em si é **um entregável também**:
 
-- 2 semanas de operação estável em produção sem intervenção do criador
-- O criador registra formalmente: "Resultado do teste supremo: [SIM / NÃO]"
+- 2 semanas de operação estável em produção sem intervenção do criador (o período de observação começa quando o CRONOS confirma os 10 entregáveis)
+- O comandante registra: "Resultado do teste supremo: [SIM / NÃO]" (o CRONOS faz a pergunta, em linguagem simples, ao fim das 2 semanas)
 - Se SIM → Dia 7 selado
 - Se NÃO → volta para Fases anteriores conforme o que falhou
 
-## Quem sella
+## Incidente durante o período de observação
 
-A Fase 7 consagra com a presença de:
-- **Comandante** (teste supremo — responde SIM/NÃO formalmente)
-- **Líder técnico** (entregáveis verificados)
-- **Time de produto** (onboarding testado)
+Não existe "Fase 7.5". Incidente é um **acontecimento**, não uma camada da Criação: ele pode surgir a qualquer momento das 2 semanas (e depois delas), por isso é tratado DENTRO da Fase 7, assim:
 
-Sem TODOS, a Fase 7 NÃO consagra.
+1. **Quem detecta** (alerta do entregável 6, Sentry, monitor ou o comandante) avisa o CRONOS.
+2. **O runbook manda.** O dono segue o runbook específico daquele sintoma (entregável 5). Correção de código passa pelo fluxo normal de `correcao-de-erros.md` (o CRONOS dispara SCOUT/ATLAS; o SHIELD revisa; deploy só com o aval do comandante).
+3. **Sem runbook para o sintoma?** Isso é falha do entregável 5: o CRONOS cria a tarefa para escrever o runbook que faltou.
+4. **O incidente exigiu o criador?** Se o comandante precisou intervir, o teste supremo falhou nesse ciclo: o período de observação de 2 semanas **recomeça do zero** depois da correção.
+5. **Registro:** o CRONOS registra o incidente e a lição em `.delta-11/memoria/decisoes/AAAA-MM-DD-descanso-incidente-<slug>.md` e acrescenta a lição em `~/.delta-11/aprendizados-entre-projetos.md` se ela valer para outros projetos.
+
+## Quem faz e quem sela
+
+- **SHIELD** — entregáveis 3 (E2E em CI), 4 (pipeline com volta atrás), 5 (runbooks), 6 (painéis e alertas) e 7 (tag de release); confere os 10
+- **VAULT** — entregáveis 8 (backup com restauração testada) e 9 (recuperação de desastre do banco)
+- **BACK/ENGINE** — documentação técnica do servidor (parte do 1) e runbooks das integrações externas (parte do 5)
+- **FRONT** (com PIXEL e FORM) — documentação da interface (parte do 1) e o roteiro de onboarding (10)
+- **ATLAS** — documentação de domínio (2), disparado pelo CRONOS
+- **SCOUT** — simula os incidentes para testar os runbooks
+- **CRONOS** — orquestra, abre e fecha o período de observação, registra as lições entre projetos
+- **Comandante** — responde ao teste supremo e escolhe a pessoa nova do onboarding (só ele conhece as pessoas)
+
+A Fase 7 consagra com: os 10 entregáveis conferidos pelo SHIELD + o SIM do comandante no teste supremo. Sem os dois, a Fase 7 NÃO consagra.
+
+## Memória entre projetos
+
+Ao selar a Fase 7, o CRONOS acrescenta de 3 a 5 lições do projeto a `~/.delta-11/aprendizados-entre-projetos.md`, com o nome do projeto e a data (formato em `sub-agentes.md`, caso de uso 10 do code-architect). O ATLAS lê esse arquivo nas Fases 0 e 2 do próximo projeto.
 
 ## Relação com Skills Globais
 
 A skill `owasp-top10` (referência `07-incident-response.md`, 449 linhas, v5.4 Estágio 5) tem 10 runbooks genéricos de IR. **Use-os como ponto de partida**, mas **crie runbooks específicos do seu produto** — runbook genérico é exemplo, não produto.
 
 **NÃO duplique** o conteúdo da skill no projeto. Em vez disso:
-- Adicione 1 linha em `src/lib/observabilidade/runbooks/README.md`: "Esta pasta herda runbooks genéricos de `~/.claude/skills/owasp-top10/references/07-incident-response.md` e os especializa para este produto"
+- Adicione 1 linha em `.delta-11/memoria/runbooks/README.md`: "Esta pasta herda runbooks genéricos de `~/.claude/skills/owasp-top10/references/07-incident-response.md` e os especializa para este produto"
 - Cada runbook específico herda do genérico e adiciona: dados concretos do produto, telefones de vendors, comandos exatos
 
 ## Integração com monitor-delta11.sh
 
 O script `monitor-delta11.sh` detecta agentes travados. Para a Fase 7, ele é **estendido** com detecção de operação autônoma:
 - A cada verificação (5 min), comparar timestamp da última intervenção humana no projeto
-- Se for > 2 semanas → flag `OPERACAO_AUTONOMA_DETECTADA`
-- Comando `vigilante` mostra essa flag no painel
-
-**Atualização em:** `monitor-delta11.sh` — ver Etapa 7C.
+- Se for > 2 semanas → sinal `OPERACAO_AUTONOMA_DETECTADA`
+- O comando `vigilante` e o painel mostram esse sinal
+- Atenção: silêncio por abandono (agente órfão, alerta aberto sem dono) não é consagração — o CRONOS confere isso antes de aceitar o sinal
 
 ## Endereço canônico dos entregáveis
 
-Cada um dos 10 entregáveis + o teste supremo vira um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-descanso-<N>-<slug>.md`. Runbooks específicos vão em `.delta-11/memoria/runbooks/`.
+Cada um dos 10 entregáveis + o teste supremo vira um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-descanso-<NN>-<slug>.md` (`<NN>` com dois dígitos; o hook `fase-descanso-checker.py` conta os arquivos por esse nome). Runbooks específicos vão em `.delta-11/memoria/runbooks/`.
 
 ## Manutenção
 
@@ -234,8 +252,8 @@ Este protocolo evolui conforme o sistema amadurece. Mudanças aqui passam por:
 3. Decisão via ADR
 4. Atualização deste arquivo + template + hook + monitor-delta11.sh
 
-**Versão do protocolo:** v6.0.0 (2026-07-12)
+**Versão do protocolo:** v6.3 (2026-10-14) — Correção Geral. Criado na v6.0.0 (2026-07-12).
 **Manutenção:** manter sincronizado com `metodologia-genesis-camadas.md` (Dia 7) e `fase-descanso-template.md`.
 
 ---
-*Este documento é IMUTÁVEL após publicação. Correções em ADIÇÕES POSTERIORES no CHANGELOG.*
+*Mudanças neste protocolo são registradas no CHANGELOG (última: v6.3).*

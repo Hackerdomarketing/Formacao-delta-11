@@ -1,55 +1,64 @@
-# PROTOCOLO DE CORREÇÃO DE ERROS — FORMAÇÃO Δ-11
+# PROTOCOLO DE CORREÇÃO DE ERROS — FORMAÇÃO Δ-11 (v6.3)
 
 ## FLUXO
 
 ```
 Erro detectado (SHIELD, comandante, ou qualquer agente)
     ↓
-O agente que detectou classifica o erro (A, B ou C)
+O agente que detectou tenta resolver sozinho (máximo 3 tentativas)
     ↓
-Categoria A (visual): o próprio agente tenta corrigir (max 3 tentativas)
-Categoria B (dados): escala SCOUT via SendMessage ao CRONOS
-Categoria C (estrutural): escala ATLAS via SendMessage ao CRONOS
+Não resolveu? Classifica o erro (A, B ou C) e avisa o CRONOS por SendMessage
     ↓
-SCOUT/ATLAS lê: project-core.md + estados dos agentes envolvidos
+Categoria A (visual): CRONOS dispara o FRONT ou o PIXEL
+Categoria B (dados):  CRONOS dispara o SCOUT
+Categoria C (estrutural): CRONOS dispara o ATLAS
     ↓
-SCOUT/ATLAS gera duas análises: conservadora e abrangente
+O agente de diagnóstico lê: as fatias do project-core / o project-core (SCOUT e ATLAS podem ler o inteiro)
+                            + o -produto.md dos agentes envolvidos
     ↓
-SCOUT/ATLAS executa a correção mais adequada
+Gera duas análises: conservadora e abrangente → executa a mais adequada
     ↓
-SHIELD testa a correção (se SHIELD não está ativo, o próprio agente testa)
+Passa pela rotina de finalização (build-validator → contract-tester → SendMessage ao CRONOS)
     ↓
-Passou? → Concluído. SCOUT/ATLAS atualiza kanban e estado.
-Falhou? → Segunda tentativa (máximo 3)
+O CRONOS dispara o SHIELD para revisar a correção
     ↓
-3 falhas do SCOUT? → Comandante reinicia janela do SCOUT
+APROVADO? → o CRONOS atualiza o kanban. Fim.
+REPROVADO? → nova tentativa (o SCOUT tem no máximo 3)
     ↓
-Mais 3 falhas (6 total)? → Escalar para ATLAS
+3 falhas do SCOUT → o SCOUT PARA e avisa o CRONOS
+    ↓
+O CRONOS dispara um NOVO SCOUT com contexto limpo (só o resumo do problema e o que já foi tentado)
+    ↓
+6 falhas no total → o CRONOS dispara o ATLAS (o problema é estrutural)
+    ↓
+Se nem o ATLAS resolver, ou se a saída exigir decisão de negócio → o CRONOS avisa o comandante
 ```
 
-## ESCALAÇÃO DE ERROS (v4.0 — via CRONOS)
+## ESCALAÇÃO DE ERROS (sempre via CRONOS)
 
-Qualquer agente que encontrar um erro que NÃO consegue resolver sozinho escala para o CRONOS — nenhum agente dispara outro agente por conta própria. O procedimento completo está no CLAUDE.md, seção "DISPATCH DE ERROS" dentro do PROTOCOLO DE DISPATCH DE AGENTES.
+Nenhum agente dispara outro agente por conta própria. Quem dispara o agente de resgate é sempre o CRONOS.
 
-**Resumo rápido:**
-1. Tente resolver sozinho (máximo 3 tentativas)
-2. Classifique o erro (A/B/C)
-3. Envie `SendMessage` ao CRONOS descrevendo o erro, a categoria e o contexto completo
-4. Salve o contexto em `.delta-11/ativacoes/erro-[DESTINO].txt` (registro histórico e retomada)
-5. O CRONOS decide quem disparar (SCOUT, ATLAS ou FRONT/PIXEL) via Agent tool nativo
-6. Continue trabalhando em outras tarefas enquanto o agente de diagnóstico resolve
+**Resumo rápido para quem encontrou o erro:**
+1. Tente resolver sozinho (máximo 3 tentativas).
+2. Classifique o erro (A/B/C).
+3. Envie `SendMessage` ao CRONOS com o erro, a categoria e o contexto completo.
+4. Salve o mesmo contexto em `.delta-11/ativacoes/erro-[DESTINO].txt` (registro e retomada — o arquivo é a fonte de verdade; a mensagem é só o aviso).
+5. O CRONOS decide quem disparar (FRONT/PIXEL, SCOUT ou ATLAS) e com qual prompt.
+6. Continue trabalhando em outras tarefas enquanto o agente de diagnóstico resolve.
 
 ## CATEGORIAS DE ALTERAÇÃO
 
 | Categoria | O que é | Quem resolve | Quem aprova |
 |-----------|---------|--------------|-------------|
-| A — Apenas visual | Muda interface sem afetar dados | O próprio agente ou FRONT/PIXEL | FRONT autoriza |
-| B — Envolve dados | Muda formato de dados entre interface e servidor | SCOUT diagnostica e corrige | ATLAS atualiza contrato se necessário |
-| C — Estrutural | Muda banco, autenticação ou módulos | ATLAS obrigatoriamente | ATLAS + Comandante |
+| A — Apenas visual | Muda interface sem afetar dados | O próprio agente ou FRONT/PIXEL | FRONT autoriza; SHIELD revisa |
+| B — Envolve dados | Muda formato de dados entre interface e servidor | SCOUT diagnostica e corrige | ATLAS atualiza o contrato se necessário; SHIELD revisa |
+| C — Estrutural | Muda banco, autenticação ou módulos | ATLAS obrigatoriamente | ATLAS; o comandante só se for decisão de negócio ou houver risco de perda de dados |
 
 ## REGRAS
 
-- Máximo 3 tentativas por agente antes de escalar
-- SCOUT nunca escala para SCOUT (informa o comandante)
-- Erros em código que outro agente escreveu: NÃO altere sem antes ler o estado daquele agente
-- Sempre documente o erro e a correção no arquivo de estado
+- Máximo 3 tentativas por agente antes de escalar.
+- **SCOUT nunca dispara SCOUT.** Depois de 3 falhas, ele para e avisa o CRONOS; é o CRONOS quem dispara um novo SCOUT com contexto limpo. Depois de 6 falhas no total, o CRONOS dispara o ATLAS.
+- Erro no código que outro agente escreveu: NÃO altere sem antes ler o `-produto.md` daquele agente.
+- Documente o erro e a correção no seu `-produto.md` (o que existe agora) e no seu `-historia.md` (o que foi tentado).
+- O kanban é escrito só pelo CRONOS: você informa, ele registra.
+- Toda reprovação do SHIELD também é gravada em `.delta-11/logs/sub-agentes/shield-falhas.log`, uma linha por falha: `[AAAA-MM-DDTHH:MM:SSZ] [AGENTE-AVALIADO] FAIL T-XXX motivo`. Com 3 reprovações do mesmo agente em 4 horas, o hook `3-tentativas-shield.py` trava novos disparos desse agente; o CRONOS aplica a mesma escada acima (novo SCOUT com contexto limpo; ATLAS depois de 6).

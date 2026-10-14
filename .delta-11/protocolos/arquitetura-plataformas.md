@@ -49,7 +49,7 @@ MeuApp/
 │   │   └── ExternalServices/
 │   └── MeuApp.UI/                      ← Interface (WPF/WinUI)
 │       ├── App.xaml
-│       ├── Views/                      ← Telas/janelas (.xaml)
+│       ├── Views/                      ← Telas (.xaml)
 │       ├── ViewModels/                 ← Lógica da UI (binding)
 │       ├── Converters/
 │       ├── Resources/
@@ -304,7 +304,7 @@ minha-extensao/
 │   ├── content/                        ← Injetado nas páginas web
 │   │   ├── index.ts
 │   │   └── styles.css
-│   ├── popup/                          ← Janela do ícone
+│   ├── popup/                          ← Pop-up aberto pelo ícone da extensão
 │   │   ├── index.html
 │   │   └── Popup.tsx
 │   ├── options/                        ← Página de configurações

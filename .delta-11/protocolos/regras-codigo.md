@@ -1,4 +1,4 @@
-# REGRAS DE QUALIDADE DE CÓDIGO — Formação Δ-11
+# REGRAS DE QUALIDADE DE CÓDIGO — Formação Δ-11 (v6.3)
 
 > **Este protocolo é OBRIGATÓRIO para todos os agentes que escrevem código:** ENGINE, BACK, FRONT, PIXEL, FORM, VAULT, SCOUT.
 > Leia esta seção inteira antes de codificar qualquer funcionalidade nova.
@@ -55,11 +55,29 @@ Ao REMOVER qualquer funcionalidade, verifique se existem:
 ### Validação de dados
 
 - **SEMPRE valide no servidor.** Validação client-side é UX, não segurança.
+- Validação falhou ou campo faltando = HTTP **400**, sempre no formato único de erro (ver abaixo).
 - Todo campo `string` recebe `.max()` — previne DoS por payload gigante.
 - Campos de senha recebem `.max(128)` — previne DoS por hash lento.
 - URLs rejeitam protocolos perigosos: `javascript:`, `data:`, `file:`, `ftp:`.
 - Uploads de arquivo: whitelist de tipos MIME + tamanho máximo + sanitização do nome.
 - Formulários: desabilitar botão de submit após clique. Usar chave de idempotência.
+
+### Formato único de erro da API
+
+Todo erro de API usa este formato, e só ele (bases, modelos, contract-tester e exemplos seguem igual):
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "texto para humano, em português",
+    "details": [{ "field": "email", "message": "Email inválido" }]
+  }
+}
+```
+
+- Validação falhou ou campo faltando → **400** com `code: "VALIDATION_ERROR"` (nunca 422).
+- Os outros códigos usam o mesmo envelope `{ "error": { "code", "message", "details" } }` (ex.: `UNAUTHORIZED` com 401, `FORBIDDEN` com 403, `NOT_FOUND` com 404).
 
 ### Autenticação e sessões
 
@@ -78,19 +96,27 @@ Obrigatório em rotas públicas que podem ser abusadas:
 
 ## 3. RESILIÊNCIA (não travar quando serviço externo cai)
 
-### Timeout + retry obrigatórios em APIs externas
+### Tabela única de tempos-limite (vale para todo o sistema)
+
+Esta é a **única** tabela de tempos-limite do Δ-11. Bases de conhecimento, protocolos de fase (Fase 3.5, artefato 5) e mini-planos apontam para cá — não repetem outros números.
+
+| Operação | Tempo-limite |
+|---|---|
+| Banco de dados (consulta) | **5 s** |
+| API externa (Stripe, Resend, IA, qualquer serviço de fora) | **10 s** |
+| Chamada interna (entre serviços do próprio sistema) | **3 s** |
+| Novas tentativas | **3**, com espera crescente (1 s, 2 s, 4 s) |
+| Circuit breaker | abre após **5 falhas** seguidas; fecha após **60 s** |
+
+Nunca deixe uma chamada sem tempo-limite.
 
 ```typescript
 // Padrão obrigatório para Stripe, Resend, qualquer API externa
-const resultado = await retryComBackoff(
+const result = await retryWithBackoff(
   () => stripe.charges.create(payload),
-  { tentativas: 3, timeoutMs: 5000 }
+  { attempts: 3, timeoutMs: 10000 }
 )
 ```
-
-- **Timeout:** 5 segundos por chamada. Nunca deixar request travar indefinidamente.
-- **Retry:** máximo 3 tentativas com backoff exponencial (1s, 2s, 4s).
-- **Circuit breaker:** se uma API externa falhar 5x seguidas, pare de chamar por 60s.
 
 ### Graceful degradation (degradação graciosa)
 
@@ -112,13 +138,13 @@ Webhooks e retries automáticos DEVEM ser idempotentes:
 // Em toda falha significativa:
 console.error('[ENGINE] falha ao processar pagamento', {
   userId,
-  operacao: 'criar_assinatura',
-  erro: error.message,
+  operation: 'create_subscription',
+  errorMessage: error.message,
   // NUNCA logar: senha, token, cartão, dados pessoais sensíveis
 })
 
 // Em eventos críticos de negócio:
-console.info('[ENGINE] assinatura criada', { userId, planoId })
+console.info('[ENGINE] assinatura criada', { userId, planId })
 ```
 
 ---
@@ -173,12 +199,12 @@ Todo `useEffect` que registra listeners, timers ou subscriptions DEVE ter cleanu
 
 ```typescript
 useEffect(() => {
-  const subscription = socket.on('mensagem', handleMensagem)
+  const subscription = socket.on('message', handleMessage)
   const timer = setInterval(tick, 1000)
   const controller = new AbortController()
 
   return () => {
-    subscription.off('mensagem', handleMensagem)  // cleanup obrigatório
+    subscription.off('message', handleMessage)  // cleanup obrigatório
     clearInterval(timer)
     controller.abort()
   }
@@ -258,7 +284,7 @@ Para cada feature, criar ao menos:
 
 ## 8. LIMITES ESTRUTURAIS DE CÓDIGO (obrigatório para todo código novo)
 
-Estes limites existem por dois motivos: (1) são o padrão de equipes sênior da indústria (defaults do ESLint e SonarQube, Clean Code, guias Google/Airbnb); (2) código dentro destes limites cabe inteiro na janela de atenção de uma IA — arquivo gigante é onde agente trunca, se perde e alucina.
+Estes limites existem por dois motivos: (1) são o padrão de equipes sênior da indústria (defaults do ESLint e SonarQube, Clean Code, guias Google/Airbnb); (2) código dentro destes limites cabe inteiro no contexto de atenção de uma IA — arquivo gigante é onde agente trunca, se perde e alucina.
 
 | Limite | Valor | Se estourar |
 |---|---|---|
@@ -287,7 +313,7 @@ Em INGLÊS (o esqueleto do código — padrão da indústria):
 - Nomes de variáveis, funções, classes, tipos e interfaces: `calculateCartTotal`, `getUserProfile`
 - Nomes de arquivos de código: `shipping-calculator.ts`
 - Tabelas e colunas do banco: `users.created_at`
-- Rotas de API e NOMES de campos JSON: `POST /api/orders`, `{ error: true, message: "..." }`
+- Rotas de API e NOMES de campos JSON: `POST /api/orders`, `{ "error": { "code": "VALIDATION_ERROR", "message": "..." } }`
 - Branches do git: `delta-11/engine-onda-2`
 
 Em PORTUGUÊS (tudo que um humano lê):

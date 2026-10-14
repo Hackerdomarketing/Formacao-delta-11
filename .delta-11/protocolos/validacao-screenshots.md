@@ -1,7 +1,7 @@
 # PROTOCOLO DE VALIDAÇÃO DE SCREENSHOTS
 
-> **Aplicável a:** PIXEL, FRONT, FORM (qualquer agente que gere screenshots)
-> **Criado em:** 2026-02-10
+> **Aplicável a:** PIXEL, FRONT, FORM e qualquer agente ou sub-agente que gere screenshots (inclusive verify-app, fresh-reviewer e qa-ui-tandem)
+> **Criado em:** 2026-02-10 · **Atualizado em:** 2026-10-14 (v6.3)
 > **Origem:** Erro crítico em tarefa de validação visual de projeto real
 
 ---
@@ -28,8 +28,10 @@ Quando gerar screenshots automaticamente para qualquer finalidade (Chrome Web St
 node auto-screenshots.js
 # ✅ 5 arquivos PNG gerados
 # ✅ Dimensões verificadas: 1280x800px
-# ✅ Arquivos salvos em store-assets/screenshots/
+# ✅ Arquivos salvos em .delta-11/evidencias/screenshots/AAAA-MM-DD/
 ```
+
+**Onde salvar (Regra 16):** toda screenshot de evidência vai para `.delta-11/evidencias/screenshots/AAAA-MM-DD/` (a data do dia da captura). Se a tarefa for gerar imagens para uma loja (Chrome Web Store, App Store), a versão final aprovada é copiada depois para a pasta que a loja exige no projeto; a evidência continua em `evidencias/`.
 
 ### Passo 2: **VALIDAÇÃO VISUAL OBRIGATÓRIA**
 
@@ -57,8 +59,8 @@ node auto-screenshots.js
 4. **Repita Passo 2** (validação visual)
 
 **SE todos os screenshots estiverem corretos:**
-1. Documente no arquivo de estado: "Screenshots validados visualmente"
-2. ENTÃO marque tarefa como concluída
+1. Registre no seu `-produto.md`: "Screenshots validados visualmente" + o caminho da pasta em `evidencias/screenshots/AAAA-MM-DD/`
+2. ENTÃO siga a finalização (build-validator, contract-tester, aviso ao CRONOS)
 
 ---
 
@@ -162,57 +164,62 @@ Contexto:
 
 ```javascript
 // Gera screenshots
-await page.screenshot({ path: 'screenshot.png' });
+await page.screenshot({ path: '.delta-11/evidencias/screenshots/2026-10-14/home.png' });
 
-// Marca como concluído imediatamente
+// Marca como concluído imediatamente, sem olhar a imagem
 console.log('✅ Screenshot gerado!');
 ```
 
 ### ✅ CORRETO (o que fazer)
 
 ```javascript
-// Gera screenshots
-await page.screenshot({ path: 'screenshot.png' });
+// Gera screenshots na pasta de evidências do dia
+const screenshotPath = '.delta-11/evidencias/screenshots/2026-10-14/home.png';
+await page.screenshot({ path: screenshotPath });
 
-// Validação visual OBRIGATÓRIA
-console.log('\n⚠️  VALIDAÇÃO VISUAL NECESSÁRIA');
-console.log('ANTES de marcar como concluído:');
-console.log('1. Abra: screenshot.png');
-console.log('2. Verifique visualmente o conteúdo');
-console.log('3. Confirme que tudo está correto\n');
+// O script NÃO pausa nem espera humano: ele só lista o que precisa ser olhado
+console.log(`VALIDAÇÃO VISUAL NECESSÁRIA: ${screenshotPath}`);
 
-// Pausa para inspeção (em modo interativo)
-await page.pause(); // Ou aguardar confirmação manual
+// Em seguida, o PRÓPRIO AGENTE abre cada imagem com a ferramenta Read,
+// confere o checklist acima e só então segue para a finalização.
 ```
 
 ---
 
 ## INTEGRAÇÃO COM PROTOCOLO DE FINALIZAÇÃO
 
-Quando a tarefa envolve screenshots, adicione ao Passo 3.5 (após validação de build, antes de marcar concluída):
+Quando a tarefa envolve screenshots, o Passo 3.5.1 entra logo depois do build-validator. A sequência completa da finalização fica assim:
 
 ```
-3.5 — Validação de build (obrigatório para agentes que escrevem código)
-3.5.1 — Validação visual de screenshots (obrigatório quando tarefa gera screenshots)
-      Use Read tool para visualizar cada imagem
-      Valide conteúdo, dados populados, renderização completa
-      Só prossiga se TODOS os screenshots estiverem corretos
-4 — Verifique se sua tarefa desbloqueia outro agente
-...
+1a    — Atualizar [NOME]-produto.md (com a linha "autocritica: <caminho>")
+1b    — Acrescentar ao [NOME]-historia.md
+3.4   — Autocrítica (2 paradas) em .delta-11/logs/autocritica/
+3.5   — build-validator
+3.5.1 — Validação visual de screenshots (obrigatório quando a tarefa gera screenshots)
+        Use a ferramenta Read para ver cada imagem em .delta-11/evidencias/screenshots/AAAA-MM-DD/
+        Valide conteúdo, dados populados, renderização completa
+        Só prossiga se TODAS as screenshots estiverem corretas
+3.7   — contract-tester (gera E roda os testes de contrato do que mudou)
+3.8   — SendMessage ao CRONOS pedindo a revisão do SHIELD
+3.9   — Liberar as travas
 ```
 
 ---
 
-## PADRÃO NO SISTEMA DE INTELIGÊNCIA PROGRESSIVA
+## LIÇÃO ENTRE PROJETOS
 
-Este protocolo foi capturado como padrão permanente:
+Esta é uma lição que vale para qualquer projeto. A partir da v6.3, lições assim ficam em `~/.delta-11/aprendizados-entre-projetos.md` (escrito pelo CRONOS, lido pelo ATLAS nas Fases 0 e 2):
 
-**ID:** `gestao-projeto-ia_valida_o_visual_obrigat_ria_ap_s_captura_automatiz`
-**Domínio:** gestao-projeto-ia
-**Tipo:** situação
-**Localização:** `~/.claude/inteligencia/dominios/gestao-projeto-ia/situacoes/`
+```markdown
+## [2026-02-10] [projeto de extensão do Chrome] — Validação visual obrigatória após captura automatizada
+- Situação: screenshots geradas por script (Puppeteer, Playwright, Selenium)
+- Faça: abrir cada imagem com a ferramenta Read e conferir o checklist deste protocolo
+- Nunca faça: aprovar só por dimensão, formato ou tamanho do arquivo
+- Por quê: o script roda sem erro e a imagem sai vazia ou errada
+- Origem: protocolo validacao-screenshots.md
+```
 
 ---
 
-**Formação Δ-11 — Versão 3.2**
+**Formação Δ-11 — v6.3 (2026-10-14)**
 **Protocolo adicionado em:** 2026-02-10
