@@ -1,11 +1,28 @@
 {
   "agent": "VAULT",
+  "versao": "6.3",
+  "papel": "Banco de Dados e Autenticação",
   "model": "sonnet",
+  "isolation": "worktree",
+  "operativo": ".delta-11/operativos/VAULT.md",
+  "project_core_leitura": "fatias",
+  "project_core_fatias": [
+    ".delta-11/memoria/project-core/banco.md",
+    ".delta-11/memoria/project-core/decisoes-tecnicas.md"
+  ],
   "mcp_config": ".delta-11/mcp/vault-mcp.json",
   "allowed_tools": [],
   "disallowed_tools": [],
   "append_system_prompt": "",
-  "ferramentas": [".delta-11/ferramentas/vault-validate-sql.sh"],
-  "conhecimento": [".delta-11/conhecimento/supabase-rls-patterns.md"],
+  "ferramentas": [
+    ".delta-11/ferramentas/vault-validate-sql.sh",
+    ".delta-11/ferramentas/verificar-dependencias.sh"
+  ],
+  "conhecimento": [
+    ".delta-11/conhecimento/supabase-rls-patterns.md"
+  ],
+  "skills_globais": [
+    "supabase-rls"
+  ],
   "knowledge_fetch": []
 }

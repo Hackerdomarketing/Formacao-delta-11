@@ -1,11 +1,29 @@
 {
   "agent": "SHIELD",
+  "versao": "6.3",
+  "papel": "Qualidade, Testes, Segurança e Infraestrutura",
   "model": "opus",
+  "isolation": "none",
+  "operativo": ".delta-11/operativos/SHIELD.md",
+  "project_core_leitura": "inteiro",
+  "project_core_fatias": [],
   "mcp_config": "",
   "allowed_tools": [],
   "disallowed_tools": [],
   "append_system_prompt": "",
-  "ferramentas": [".delta-11/ferramentas/shield-scan.sh"],
-  "conhecimento": [".delta-11/conhecimento/owasp-top10-resumo.md"],
-  "knowledge_fetch": []
+  "ferramentas": [
+    ".delta-11/ferramentas/shield-scan.sh",
+    ".delta-11/ferramentas/verificar-dependencias.sh"
+  ],
+  "conhecimento": [
+    ".delta-11/conhecimento/owasp-top10-resumo.md",
+    ".delta-11/conhecimento/owasp-top10-overview.md",
+    ".delta-11/conhecimento/design-patterns-praticos.md"
+  ],
+  "skills_globais": [
+    "owasp-top10"
+  ],
+  "knowledge_fetch": [],
+  "isolation_quando_escreve_codigo": "worktree",
+  "nota_despacho": "Revisor: sem worktree (lê as worktrees por caminho absoluto). Quando o CRONOS o dispara para ESCREVER infraestrutura (CI/CD, observabilidade, backup, DR), usa isolation_quando_escreve_codigo."
 }

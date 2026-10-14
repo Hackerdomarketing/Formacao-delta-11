@@ -1,11 +1,26 @@
 {
   "agent": "ENGINE",
+  "versao": "6.3",
+  "papel": "Programador de Servidor",
   "model": "sonnet",
+  "isolation": "worktree",
+  "operativo": ".delta-11/operativos/ENGINE.md",
+  "project_core_leitura": "fatias",
+  "project_core_fatias": [
+    ".delta-11/memoria/project-core/contratos.md",
+    ".delta-11/memoria/project-core/decisoes-tecnicas.md"
+  ],
   "mcp_config": ".delta-11/mcp/engine-mcp.json",
   "allowed_tools": [],
   "disallowed_tools": [],
   "append_system_prompt": "",
-  "ferramentas": [".delta-11/ferramentas/engine-test-api.sh"],
-  "conhecimento": [".delta-11/conhecimento/nextjs-api-patterns.md"],
+  "ferramentas": [
+    ".delta-11/ferramentas/engine-test-api.sh",
+    ".delta-11/ferramentas/verificar-dependencias.sh"
+  ],
+  "conhecimento": [
+    ".delta-11/conhecimento/nextjs-api-patterns.md"
+  ],
+  "skills_globais": [],
   "knowledge_fetch": []
 }
