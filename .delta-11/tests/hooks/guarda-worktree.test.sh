@@ -33,6 +33,14 @@ espera 2 "CASO C: na worktree, codigo da main por caminho absoluto: bloqueia" "$
 log_contem "\[guarda-worktree\] \[MAIN\] BLOQUEIO: CASO C"
 if [ -f "$WT/.delta-11/activity-log.md" ] && grep -q "guarda-worktree" "$WT/.delta-11/activity-log.md"; then err "log foi para a copia da worktree (C-006)"; else ok "log vai para a pasta principal, nao para a worktree (C-006)"; fi
 
+# Caso real do Claude Code: a worktree fica DENTRO do repo principal (.claude/worktrees/agent-x/).
+# Achado no teste ao vivo da v6.3: o vigia tratava o arquivo da propria copia como "codigo da main".
+WT_DENTRO="$PRINCIPAL/.claude/worktrees/agent-teste"
+git worktree add -q "$WT_DENTRO" -b agent-teste
+espera 0 "worktree dentro de .claude/worktrees: editar o proprio codigo por caminho ABSOLUTO passa" "$(edita "$WT_DENTRO" "$WT_DENTRO/src/a.ts")"
+espera 2 "worktree dentro de .claude/worktrees: codigo da main por caminho absoluto continua bloqueado" "$(edita "$WT_DENTRO" "$PRINCIPAL/src/a.ts")"
+
+git worktree remove --force "$WT_DENTRO" 2>/dev/null
 git worktree remove --force "$WT" 2>/dev/null
 [ -n "$WT" ] && [ -d "$WT" ] && rm -rf "$WT"
 fim

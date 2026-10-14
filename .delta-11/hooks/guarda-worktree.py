@@ -111,6 +111,10 @@ def main() -> int:
                     "-produto.md e avisa o CRONOS por SendMessage.",
                     f"CASO B — compartilhado pela copia da worktree: {dentro}",
                 )
+        # Arquivo da PROPRIA worktree: sempre permitido. O Claude Code cria as worktrees DENTRO do repo principal
+        # (.claude/worktrees/agent-x/), entao o caminho da propria copia tambem comeca pelo repo principal.
+        if alvo == raiz_real or alvo.startswith(raiz_real + os.sep):
+            return 0
         delta_do_principal = os.path.join(repo_principal, ".delta-11")
         if alvo.startswith(repo_principal + os.sep) and not alvo.startswith(delta_do_principal + os.sep):
             return comum.block(
