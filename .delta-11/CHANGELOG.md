@@ -214,10 +214,27 @@ bash .delta-11/tests/templates/changelog.test.sh
 bash .delta-11/tests/protocolos/zero-copiar-colar-d3.test.sh
 ```
 
+Resultado na integração final: **74/74 OK**.
+
+### Teste ao vivo no Claude Code (2.1.299, 2026-10-14)
+
+Projeto descartável criado com o `novo-projeto.sh` da v6.3; `claude -p` de verdade dentro dele:
+
+1. **Bloqueio real:** pedir a criação de `docs/configuracao-servico-teste.md` → o `pre-criacao-arquivo.py` BLOQUEOU,
+   o arquivo não foi criado, e o activity-log registrou no formato único. (Na v6.2 isso passava, por causa do `|| python`.)
+2. **Achado e corrigido — `guarda-worktree.py` (caso C):** o Claude Code cria as worktrees DENTRO do repo principal
+   (`.claude/worktrees/agent-x/`); o vigia tratava o arquivo da própria cópia como "código da main" e bloqueava o
+   executor. Corrigido e coberto por teste novo (o teste falha com o vigia antigo).
+3. **Achado e incorporado — regra do Claude Code:** um sub-agente com `isolation: "worktree"` NÃO consegue usar
+   Write/Edit fora da própria worktree ("This agent is isolated in the worktree…"). Por isso os executores gravam ACK,
+   travas, `-produto.md`, `-historia.md`, autocrítica e logs da pasta principal **pelo Bash com caminho absoluto**
+   (regra no CLAUDE.md e no prompt de disparo do CRONOS).
+4. **Sinais das worktrees (N-002):** com o ACK gravado pelo Bash, o `heartbeat.sh` registrou o pulso do FRONT na pasta
+   principal com o caminho da worktree; o `fim-subagente.sh` gravou o log do SubagentStop e limpou o sinal ao terminar.
+
 ### Pendências conhecidas (ficam para depois da v6.3)
 
-- **Teste ao vivo no Claude Code:** a suíte confere arquivos e vigias isolados. Falta ver, num projeto real, um vigia
-  bloqueando de verdade uma ação de agente e o `SendMessage` funcionando entre sub-agentes nomeados.
+- **SendMessage entre sub-agentes nomeados:** não testado ao vivo (exige uma sessão longa com o CRONOS ativo).
 - **N-004 — velocidade:** recuperar a velocidade e a visibilidade da versão antiga sem perder qualidade.
 - **N-011 — agentes visíveis:** piloto com recursos oficiais do Claude Code para o comandante ver cada agente
   trabalhando.
