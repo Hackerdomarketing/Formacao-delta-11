@@ -88,7 +88,7 @@ Três skills foram instaladas globalmente em `~/.claude/skills/` para auto-detec
 | Skill | Quando ativar | Base curta D-11 |
 |---|---|---|
 | `supabase-rls` | RLS bypass, IDOR, multi-tenancy, debugging de "query retorna vazio" | `.delta-11/conhecimento/supabase-rls-patterns.md` |
-| `owasp-top10` | Security review, CVE-2024-34351, CVE-2025-29927, audit pré-deploy | `.delta-11/conhecimento/owasp-top10-overview.md` |
+| `owasp-top10` | Security review, CVE-2024-34351, CVE-2025-29927, audit pré-deploy | `.delta-11/conhecimento/owasp-top10-resumo.md` (base oficial do SHIELD; apêndice curto: `owasp-top10-overview.md`) |
 | `react-next` | Hydration mismatch, infinite loop, Server Action sem revalidate, performance | `.delta-11/conhecimento/react-next-overview.md` |
 
 **Índice central:** `.delta-11/conhecimento/skills-globais-v5-4.md` (sintomas → skill).
@@ -258,10 +258,10 @@ projeto é montado a partir dele. Se esta tabela e o template divergirem, vale o
 | 25 | `pre-criacao-arquivo.py` | PreToolUse (Write) | Bloqueia arquivo novo fora do zoneamento (Regras 14–16) |
 | 26 | `gc-locks.py` | SessionStart | Limpa travas acima de `lock_horas`, `scratch/` acima de 7 dias e logs acima de 30 dias |
 | 27 | `worktree-prune.py` | SessionStart | Roda `git worktree prune` (limpa worktrees órfãs) |
-| 28 | `3-tentativas-shield.py` | SessionStart | Lê `logs/sub-agentes/shield-falhas.log`; agente com ≥ 3 falhas em 4 h → aviso (o CRONOS troca o executor, D23) |
+| 28 | `3-tentativas-shield.py` | SessionStart + PreToolUse `Agent\|Task` | Lê `logs/sub-agentes/shield-falhas.log`; agente com ≥ 3 falhas em 4 h → no SessionStart avisa; no disparo de agente bloqueia redisparar o mesmo executor (o CRONOS troca o executor, D23) |
 | 29 | `abrir-painel.sh` | SessionStart | **v6.3.** Abre o painel da pasta principal no máximo 1 vez a cada 8 h (`ativacoes/.painel-aberto`); nunca falha a sessão |
 | 30 | `validar-deploy.py` | UserPromptSubmit | Pedido de deploy do comandante → roda os testes de contrato e bloqueia se falharem (até 120 s) |
-| 31 | `pre-compact.sh` | PreCompact | Antes da compactação automática, marca o pulso como `contexto_critico` (o painel e o CRONOS veem) |
+| 31 | `pre-compact.sh` | PreCompact + SessionStart `compact` | Antes da compactação automática, marca o pulso como `contexto_critico` (o painel e o CRONOS veem) |
 | 32 | `on-stop.sh` | Stop | Grava o registro de fim de sessão (`morte-[AGENTE].json`) para o monitor |
 | 33 | `release-locks.js` | Stop | Libera as travas criadas pela sessão |
 | 34 | `fim-subagente.sh` | SubagentStop | **v6.3.** Grava `logs/sub-agentes/AAAAMMDDTHHMMSSZ-[agent_type].log` (agent_id + última mensagem): é a prova que o `forca-despacho.py` aceita |
@@ -378,6 +378,9 @@ Se `CURRENT_TOP` ≠ repo principal → siga normal, você está numa worktree.
 Se o bloco de ativação contém a palavra "retomar" ou "retomada", uma sessão anterior sua encheu de contexto. Leia
 primeiro o arquivo indicado no bloco (`ativacoes/retomada-[SEU-NOME].txt`) e o seu `-produto.md`: eles contêm
 EXATAMENTE onde você parou. Não repita trabalho já registrado.
+
+Se você é o CRONOS: leia também `.delta-11/ativacoes/aviso-vigilante.txt`, se existir. É o aviso do vigilante sobre
+agente parado, tarefa órfã ou bloqueio. Resolva pelo Agent tool e apague o aviso depois de resolver.
 
 ---
 
@@ -578,7 +581,7 @@ if mkdir "$LOCK_DIR" 2>/dev/null; then
   cat > "$LOCK_DIR/meta" << EOF
 AGENTE: [SEU-NOME]
 TAREFA: [T-XXX]
-SESSION: [session_id se disponível]
+SESSION: [agent_id do sub-agente, ou session_id da sessão principal]
 INICIOU: $(date -u +%Y-%m-%dT%H:%M:%SZ)
 FAZENDO: [descrição curta]
 ARQUIVOS: [lista de arquivos]
@@ -1243,7 +1246,7 @@ Opções do sincronizar.sh:
 
 Arquivo que lista TODOS os projetos com D-11 instalado.
 
-**IMPORTANTE (desde a v5):** a lista `projects[]` é apenas INFORMATIVA — o `sincronizar.sh` NÃO usa essa lista para decidir quem atualizar. Ele varre `~/Documents/VSCODE`, `~/projetos` e `~/Downloads` automaticamente e sincroniza todo projeto com pasta `.delta-11/` que encontrar. A cada sincronização, a lista `projects[]` é reescrita com o resultado real da varredura. Um projeto fora da lista NÃO fica sem atualização — basta estar em um dos 3 diretórios de busca.
+**Como o `sincronizar.sh` escolhe os projetos (v6.3):** ele junta a lista `projects[]` do registro com uma varredura de `~/Documents/VSCODE`, `~/projetos` e `~/Downloads` (ou das pastas em `DELTA11_SEARCH_PATHS`) e reescreve `projects[]` com o resultado real. NUNCA trata como projeto as cópias do próprio sistema (a fonte, o backup, worktrees, pastas com `boilerplate-delta-11-nextjs/`, com `.delta-11/CHANGELOG.md` + `sincronizar.sh` na raiz, com a marca `.delta-11/.e-copia-do-sistema`, ou `construcao-delta-11/sistema-atual`). Arquivos que saíram do sistema são apagados dos projetos pela lista `.delta-11/removidos.txt`: ao tirar um arquivo de sistema da fonte, acrescente o caminho nessa lista. Use `--dry-run` para ver tudo antes (ele não grava nada).
 
 ```json
 {

@@ -13,7 +13,7 @@
 npx create-next-app@latest nome-do-projeto
 
 # 2. Aplicar o overlay Δ-11
-~/projetos/Formacao-delta-11/boilerplate-delta-11-nextjs/aplicar-boilerplate.sh /caminho/do/nome-do-projeto
+<pasta da fonte oficial, ex.: ~/Documents/VSCODE/Formacao-delta-11>/boilerplate-delta-11-nextjs/aplicar-boilerplate.sh /caminho/do/nome-do-projeto
 
 # 3. Seguir os "PRÓXIMOS PASSOS" que o script imprime (ligar o config do ESLint, ~2 min)
 

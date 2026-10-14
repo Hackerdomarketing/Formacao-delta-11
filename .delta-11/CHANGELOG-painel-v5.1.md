@@ -198,7 +198,7 @@ Também existe backup completo da v4.0.5 em:
 ## Backups criados nesta sessão
 
 - `~/Downloads/Formacao-delta-11-v4.0.5-backup-20260701-212024/` — snapshot completo da v4.0.5 antes da v5 chegar
-- `~/projetos/Formacao-delta-11/.delta-11/painel-v4.html.backup` — versão anterior do painel
+- `painel-v4.html.backup` — versão anterior do painel (removido da distribuição na v6.3; recupere pelo histórico do git: `git show 4fa10cc~1:.delta-11/painel.html`)
 
 ---
 

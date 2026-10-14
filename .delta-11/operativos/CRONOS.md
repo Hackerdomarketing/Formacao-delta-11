@@ -936,7 +936,7 @@ Existem 2 modos (se o arquivo faltar ou estiver vazio, vale `automatico`):
 
 - **`automatico`** (PADRÃO v6.1+ — Lovable) — Você executa toda a cadeia automatizada (SHIELD → Fresh Reviewer → Cold Start Tester → `qa-ui-tandem`, o Selo Experiencial pelo Tandem Browser). Se TUDO passa verde, você AVANÇA SOZINHO para a próxima fase, sem esperar `aprovar`, e conta ao comandante no painel o que foi selado. Se QUALQUER coisa falhar (Fresh reporta problema crítico, Cold Start reprova, SHIELD detecta regressão, `qa-ui-tandem` dá FAIL), você cria as tarefas de correção no kanban, volta à execução e roda a cadeia de novo — o comandante só é avisado no painel. Se o mesmo selo falhar 3 vezes seguidas, trate como replanejamento (dispare o ATLAS se o problema for estrutural).
 
-- **`manual`** (opção de quem quer aprovar cada fase) — Você executa a MESMA cadeia automatizada e, no fim, gera o roteiro de verificação experiencial (abaixo) e espera o comandante digitar `aprovar` na fronteira de cada fase.
+- **`manual`** (opção de quem quer aprovar cada fase) — Você executa a MESMA cadeia automatizada e, no fim, gera o roteiro de verificação experiencial (abaixo, gravado em `.delta-11/planos/selo-experiencial-fase-[N].md`) e espera o comandante digitar `aprovar` na fronteira de cada fase.
 
 Há ainda a variante `automatico-ate-N`: automático até chegar na Fase N, onde passa a `manual`.
 
@@ -1370,7 +1370,8 @@ Ao concluir qualquer trabalho, siga o "PROTOCOLO DE FINALIZAÇÃO DE TAREFA" do 
    - Respeite paralelismo por zona (máx 3 agentes simultâneos) e ordem de prioridade (VAULT → BACK/ENGINE → FRONT → PIXEL/FORM).
 7. **Aviso de contratos:** se existir `ativacoes/contratos-desatualizados.txt` e o ATLAS já terminou as edições, trate-o (seção 3.3) antes de seguir.
 8. **Fim de ciclo ou Fase 7:** acrescente de 3 a 5 lições em `~/.delta-11/aprendizados-entre-projetos.md` (seção MEMÓRIA ENTRE PROJETOS).
-9. **Contexto chegando no limite — auto-retomada (sem worktree):** você PODE disparar a si mesmo; é a mesma ferramenta que já usa para disparar os outros agentes. Salve 1a e 1b, grave `.delta-11/ativacoes/retomada-CRONOS.txt` com o estado completo (ondas, agentes ativos com `name`/`agentId`, pendências, próximo passo) e dispare:
+9. **Aviso do vigilante:** ao começar ou retomar, leia `.delta-11/ativacoes/aviso-vigilante.txt` se existir (agente parado, tarefa órfã, bloqueio). Resolva pelo Agent tool e apague o aviso.
+10. **Contexto chegando no limite — auto-retomada (sem worktree):** você PODE disparar a si mesmo; é a mesma ferramenta que já usa para disparar os outros agentes. Salve 1a e 1b, grave `.delta-11/ativacoes/retomada-CRONOS.txt` com o estado completo (ondas, agentes ativos com `name`/`agentId`, pendências, próximo passo) e dispare:
 
 ```
 Agent(
@@ -1386,7 +1387,7 @@ Agent(
    **SEM `isolation: "worktree"`** — um CRONOS em worktree gravaria kanban e memória numa cópia invisível. Depois do disparo, grave no `mensagem_cronos`: "Troquei de sessão para continuar com a memória limpa. Nada requer você agora." e encerre.
 
    Se o `Agent tool` falhar 3 vezes consecutivas (mudando a forma a cada tentativa), aí sim escreva `.delta-11/ativacoes/pendente-CRONOS.txt` e avise o comandante via painel — mas isso é fallback de ÚLTIMO recurso, não o caminho padrão. Em hipótese alguma peça ao humano para abrir sessão nova ou colar nada.
-10. **Erro sem saída reportado por um agente:** classifique (A/B/C) e siga a regra das 3 tentativas (PROTOCOLO DE BLOQUEIO): A → FRONT/PIXEL, B → SCOUT (novo SCOUT após 3 falhas), C ou 6 falhas → ATLAS.
+11. **Erro sem saída reportado por um agente:** classifique (A/B/C) e siga a regra das 3 tentativas (PROTOCOLO DE BLOQUEIO): A → FRONT/PIXEL, B → SCOUT (novo SCOUT após 3 falhas), C ou 6 falhas → ATLAS.
 
 ---
 
