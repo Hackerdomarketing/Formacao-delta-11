@@ -11,7 +11,9 @@
 # Para cada projeto com Δ-11 (registro central + varredura de pastas):
 #   1. "morte-*.json"  → avisa UMA vez e arquiva em .delta-11/logs/mortes/ (C-064)
 #   2. pulso velho     → agente ativo sem sinal há mais de 15 min = travado
-#                        (avisa uma vez por pulso, não a cada 5 min)
+#                        (avisa uma vez por pulso, não a cada 5 min). Pulso com
+#                        "status":"aguardando" (esperando sub-agentes) NÃO é travado.
+#   (o morte-*.json só nasce numa saída real, no SessionEnd)
 #   3. tarefa órfã     → tarefa em FAZENDO sem ACK e sem pulso recente
 #   4. operação autônoma (Dia 7 / Fase 7 da Metodologia Genesis, Teste
 #      Supremo de 2 semanas): THRESHOLD_DIAS=14 dias sem atividade, ZERO
@@ -238,14 +240,17 @@ for projeto in projetos:
     # 2. Pulsos e ACKs
     fazendo = tarefas_fazendo_por_agente(ler_texto(os.path.join(delta, "kanban.md")))
     total_fazendo = sum(fazendo.values())        # soma de TODOS os agentes (C-064)
-    pulsos = {}
+    pulsos, status_pulso = {}, {}
     for pulso in glob.glob(os.path.join(ativacoes, "pulso-*.json")):
         dados = ler_json(pulso)
         agente = str((dados or {}).get("agente") or os.path.basename(pulso)[6:-5]).upper()
         pulsos[agente] = epoch_do_pulso(pulso, dados)
+        status_pulso[agente] = str((dados or {}).get("status") or "").lower()
     for agente, epoch in sorted(pulsos.items()):
         if epoch is None:
             continue
+        if status_pulso.get(agente) == "aguardando":
+            continue      # parado entre respostas, esperando sub-agentes: não é travamento
         silencio = AGORA - epoch
         ativo = os.path.exists(os.path.join(ativacoes, "ack-%s.txt" % agente)) or fazendo.get(agente, 0) > 0
         if silencio > LIMITE_SILENCIO and ativo:

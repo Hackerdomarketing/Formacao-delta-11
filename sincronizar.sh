@@ -49,7 +49,8 @@
 #   - .delta-11/ativacoes/**, locks, logs, planos/, scratch
 #   (a imagem e os sprites antigos do painel saíram da fonte e são
 #    retirados dos projetos pela lista removidos.txt — C-056)
-#   - .delta-11/.dispatch-mode
+#   - .delta-11/.dispatch-mode, .delta-11/.nao-abrir-painel
+#   - .delta-11/ativacoes/agentes-sessao.json (vínculos de sessão, tempo de execução)
 #
 # Como usar:
 #   ./sincronizar.sh                    # sincroniza tudo

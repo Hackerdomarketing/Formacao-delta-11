@@ -15,6 +15,7 @@
 #   E. morte-*.json é avisada e arquivada (não repete a cada 5 min — C-064)
 #   F. cada projeto recebe SÓ o próprio status, também em monitor-data.js (C-149, D28)
 #   H. com alerta pendente (morte/órfã/travado) nunca é operação autônoma
+#   I. pulso com status "aguardando" não vira alerta de travado
 #   G. pasta inexistente no registro e cópia do sistema são ignoradas (C-065, C-057)
 # ════════════════════════════════════════════════════════════════
 
@@ -80,6 +81,14 @@ criar_projeto proj-e "Fase 7 — Dia 7 (operação)" "" 1
 # E. morte no projeto D
 echo '{"agente":"ENGINE","morreu_em":"2026-10-14T10:00:00Z","motivo":"teste"}' > "$DELTA11_SEARCH_PATHS/proj-d/.delta-11/ativacoes/morte-ENGINE.json"
 
+# I. pulso velho "aguardando" (esperando sub-agentes) no proj-d: NÃO é travado;
+#    pulso velho comum de agente com ACK: é travado
+VELHO=$(( $(date +%s) - 3600 ))
+echo "{\"agente\":\"CRONOS\",\"epoch\":$VELHO,\"status\":\"aguardando\"}" > "$DELTA11_SEARCH_PATHS/proj-d/.delta-11/ativacoes/pulso-CRONOS.json"
+echo "ack" > "$DELTA11_SEARCH_PATHS/proj-d/.delta-11/ativacoes/ack-CRONOS.txt"
+echo "{\"agente\":\"BACK\",\"epoch\":$VELHO}" > "$DELTA11_SEARCH_PATHS/proj-d/.delta-11/ativacoes/pulso-BACK.json"
+echo "ack" > "$DELTA11_SEARCH_PATHS/proj-d/.delta-11/ativacoes/ack-BACK.txt"
+
 # H. Fase 7, 20 dias parado, sem FAZENDO, mas com morte registrada (alerta pendente)
 echo '{"agente":"SHIELD","morreu_em":"2026-09-20T10:00:00Z","motivo":"teste"}' > "$DELTA11_SEARCH_PATHS/proj-e/.delta-11/ativacoes/morte-SHIELD.json"
 touch -t "$VINTE_DIAS" "$DELTA11_SEARCH_PATHS/proj-e/.delta-11/ativacoes/morte-SHIELD.json"
@@ -128,6 +137,10 @@ if [ -f "$DADOS_JS" ] && grep -q "^window.D11_MONITOR = {" "$DADOS_JS"; then
 else
     err "F: monitor-data.js não foi gerado"
 fi
+
+# I. aguardando × travado
+python3 -c "import json,sys; a=json.load(open(sys.argv[1]))['alertas']; t=[x['agente'] for x in a if x['tipo']=='travado']; sys.exit(0 if t==['BACK'] else 1)" "$(ST proj-d)" \
+    && ok "I: pulso 'aguardando' não vira travado; pulso velho comum vira" || err "I: alertas de travado errados: $(grep -o '"travado"[^}]*' "$(ST proj-d)")"
 
 # G. ignorados
 [ -e "$DELTA11_SEARCH_PATHS/clone-do-sistema/.delta-11/monitor-status.json" ] && err "G: a cópia do sistema foi tratada como projeto" || ok "G: cópia do sistema ignorada"
