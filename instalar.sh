@@ -8,7 +8,7 @@
 # oficial: onde ficam CLAUDE.md, .delta-11/ e este arquivo).
 #
 # O que ele faz, nesta ordem:
-# 1. Confere se você tem o que precisa (git, python3, jq; gh e VS Code são opcionais)
+# 1. Confere se você tem o que precisa (git, python3, node, jq; gh e VS Code são opcionais)
 # 2. Confere se os arquivos da Formação Δ-11 estão nesta pasta
 # 3. Protege o .gitignore (acrescenta — NUNCA apaga o que você já tem):
 #    senhas (.env), chaves (*.pem, *.key), credentials.json e o estado de execução
@@ -77,6 +77,13 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 echo -e "  ${GREEN}✓${NC} $(python3 --version)"
+
+if ! command -v node &> /dev/null; then
+    echo -e "${RED}✗ node não encontrado (os vigias de trava e de diário são em JavaScript).${NC}"
+    echo "  Instale com: brew install node   (ou baixe em https://nodejs.org)"
+    exit 1
+fi
+echo -e "  ${GREEN}✓${NC} node: $(node --version)"
 
 if command -v jq &> /dev/null; then
     echo -e "  ${GREEN}✓${NC} jq: $(jq --version)"
