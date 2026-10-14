@@ -472,7 +472,7 @@ O comandante pode enviar estes comandos curtos durante o trabalho:
 | `status` | Diga: o que está sendo feito, percentual da tarefa atual, próxima tarefa |
 | `avançar` | Finalize a tarefa atual e puxe a próxima do kanban |
 | `pausar` | Salve TUDO no seu `-produto.md` e `-historia.md` e avise o CRONOS (ele atualiza o kanban). Nada para o comandante fazer |
-| `vigilante` | Verifique o status do monitoramento: leia `.delta-11/monitor-status.json` e informe ao comandante se há alertas (agentes mortos, travados, ou tarefas órfãs) |
+| `vigilante` | Verifique o status do monitoramento: leia `.delta-11/monitor-status.json` (o painel lê a mesma informação em `.delta-11/monitor-data.js`) e informe ao comandante se há alertas (agentes mortos, travados, ou tarefas órfãs) |
 | `retomar` | Leia seu `-produto.md` (e `ativacoes/retomada-[SEU-NOME].txt`, se existir) e continue de onde parou |
 | `aprovar` | O comandante aprovou o que você apresentou |
 | `modo automatico` | **(PADRÃO.)** Grave `automatico` em `.delta-11/.modo-selo`. O CRONOS avança sozinho de fase SE a cadeia de selo (SHIELD + Fresh Reviewer + Cold Start Tester + qa-ui-tandem) ficar verde. Se algo falhar, o CRONOS dispara as correções e roda a cadeia de novo; o comandante só é chamado nas 3 situações. |
@@ -787,7 +787,8 @@ vez a cada 8 h). Ele carrega três arquivos por `<script src>` (funciona abrindo
 | `.delta-11/monitor-data.js` (`window.D11_MONITOR`) | o monitor externo (a cada 5 min), só do próprio projeto | agentes mortos, travados, tarefas órfãs |
 
 **O que o CRONOS grava no `kanban-data.js`:**
-- **`resumo_humano`** de cada tarefa: vem da `SendMessage` do executor. Uma frase em português de gente, sem jargão,
+- **`resumo_humano`** de cada tarefa: o executor manda ao CRONOS (na `SendMessage` ou no `-produto.md`) e o CRONOS
+  grava no kanban (D10). Uma frase em português de gente, sem jargão,
   no máximo 15 palavras, primeira pessoa do agente; gerúndio em execução ("Criando…"), passado quando concluída
   ("Criei…"). Nada de ID de tarefa, caminho de arquivo, "worktree" ou "contract test".
 - **`inicio`** e **`ultima_atualizacao`**: data e hora completas em ISO, com fuso. Ex.:
@@ -798,12 +799,12 @@ vez a cada 8 h). Ele carrega três arquivos por `<script src>` (funciona abrindo
   ("Nada requer você agora", "Preciso de você em X"). Atualize quando uma onda começa ou termina, quando a fase muda,
   quando um bloqueio é resolvido ou quando há aviso importante.
 
-**Sinal de vida (automático):** ninguém grava `heartbeats` à mão; o antigo campo `heartbeats` do `kanban-data.js` é
-legado. Cor de cada agente pela idade do último sinal: verde até 2 min, amarelo até 10 min, vermelho acima.
+**Sinal de vida (automático):** ninguém grava à mão. O vigia `heartbeat.sh` grava `.delta-11/pulsos-data.js` sozinho,
+inclusive para quem trabalha numa worktree. O campo `heartbeats` do `kanban-data.js` é só compatibilidade com quadros
+antigos. Cor de cada agente pela idade do último sinal: verde até 2 min, amarelo até 10 min, vermelho acima.
 
-**Sem sinal não é "tudo bem":** se `pulsos-data.js` não existe ou não tem nenhum sinal recente, o painel mostra
-**amarelo "monitoramento parcial — sem sinal dos agentes"** e nunca "Seguro fechar". "Seguro fechar" só aparece com
-sinais recentes e nenhuma tarefa em andamento.
+**Sem sinal não é "tudo bem":** se um agente com tarefa em andamento não tem sinal (nem em `pulsos-data.js` nem em
+`heartbeats`), o painel mostra o selo amarelo **"Monitoramento parcial"** e nunca "Seguro fechar".
 
 ---
 
