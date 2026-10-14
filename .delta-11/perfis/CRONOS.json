@@ -1,11 +1,25 @@
 {
   "agent": "CRONOS",
+  "versao": "6.3",
+  "papel": "Gerente de Projeto e Orquestrador",
   "model": "opus",
+  "isolation": "none",
+  "operativo": ".delta-11/operativos/CRONOS.md",
+  "project_core_leitura": "inteiro",
+  "project_core_fatias": [],
   "mcp_config": "",
   "allowed_tools": [],
   "disallowed_tools": [],
   "append_system_prompt": "",
-  "ferramentas": [".delta-11/ferramentas/cronos-status.sh"],
-  "conhecimento": [".delta-11/conhecimento/coordenacao-projeto-patterns.md"],
-  "knowledge_fetch": []
+  "ferramentas": [
+    ".delta-11/ferramentas/cronos-status.sh",
+    ".delta-11/ferramentas/verificar-dependencias.sh"
+  ],
+  "conhecimento": [
+    ".delta-11/conhecimento/coordenacao-projeto-patterns.md",
+    ".delta-11/conhecimento/metodologia-genesis-camadas.md"
+  ],
+  "skills_globais": [],
+  "knowledge_fetch": [],
+  "nota_despacho": "Sempre sem worktree, name \"cronos\", NASCEU_EM_WORKTREE: nao (também na auto-retomada)."
 }
