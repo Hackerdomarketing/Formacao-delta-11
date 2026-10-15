@@ -46,4 +46,9 @@ kanban "$BASE"
 printf '## Build Validation Report\nAgente: PIXEL\nReady for Deploy: YES\n' > "$LOGS/$STAMP-general-purpose.log"
 espera 0 "relatorio 'Build Validation Report' citando PIXEL: passa" "$(conclui '- [x] T-013 tela [PIXEL]')"
 espera 0 "ATLAS e isento" "$(conclui '**T-090** — arquitetura | Por: ATLAS')"
+# Trilho leve (v6.4.1): [AJUSTE] nao exige validadores
+rm -f "$LOGS"/*  # sem nenhum log de sub-agente daqui em diante
+espera 0 "[AJUSTE] de PIXEL sem log de validador: isento" "$(conclui '**T-290** — [AJUSTE] cor do selo | Por: PIXEL')"
+log_contem "forca-despacho.*ISENTO.*trilho leve"
+espera 2 "a mesma tarefa SEM [AJUSTE]: continua exigindo o validador" "$(conclui '**T-291** — cor do selo | Por: PIXEL')"
 fim

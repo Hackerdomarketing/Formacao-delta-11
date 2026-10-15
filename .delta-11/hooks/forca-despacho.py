@@ -11,7 +11,8 @@ Quando age (PreToolUse em Edit|Write do `.delta-11/kanban.md`):
   - O dono da tarefa sai da propria linha: "Por: BACK", "Agente: BACK", "[BACK]"
     ou "| BACK |". Linha de tarefa (com ID T-XXX ou **[ID]**) sem dono BLOQUEIA:
     nao da mais para escapar tirando a etiqueta (C-029).
-  - ATLAS e CRONOS sao isentos.
+  - ATLAS e CRONOS sao isentos. Tarefa do trilho leve (`[AJUSTE]`, v6.4.1) tambem:
+    so ajuste visual; quem garante e o vigia trilho-leve.py + a aprovacao do comandante.
 
 Sub-agentes obrigatorios por dono:
   BACK, ENGINE, VAULT -> build-validator E contract-tester
@@ -196,6 +197,11 @@ def main() -> int:
     for linha in novas:
         agente = comum.line_agent(linha)
         if not agente or agente in ISENTOS or agente not in OBRIGATORIOS:
+            continue
+        if comum.is_light_track(linha):
+            # Trilho leve (v6.4.1): ajuste so visual, sem validadores; o executor compila uma vez
+            # e o comandante confere o resultado (protocolos/trilho-leve.md).
+            comum.log(HOOK, f"ISENTO: {comum.task_id(linha) or 'tarefa'} de {agente} no trilho leve ([AJUSTE])")
             continue
         if logs is None:
             logs = recent_logs()

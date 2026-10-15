@@ -1087,3 +1087,13 @@ estava escrito antes fica registrado abaixo.
   1 milhão. Fica no vigia (automático), e não no `.config-limites.json`, porque esse arquivo vale para o projeto
   inteiro: baixar o número para 200 mil travaria de novo os agentes em Opus e Sonnet. Aviso também em CLAUDE.md
   ("Modelo por papel") e em `protocolos/comunicacao.md`.
+- **v6.4.1 (2026-10-15) — TRILHO LEVE para ajustes só visuais (decisão do comandante).** Origem: no Selo do salvahacks
+  uma troca de 3 linhas de estilo levou ~30 min e 6 sessões de agente (worktree, autocrítica, 2 validadores, SHIELD
+  recompilando e rodando ~850 testes, QA). Agora: tarefa marcada `[AJUSTE]` (lote da mesma área) vai com UM executor,
+  que compila uma vez e fotografa as telas principais antes/depois nos 2 temas; sem validadores, sem SHIELD, sem QA;
+  quem aprova é o comandante ao ver o resultado (`[COMANDANTE] APROVADO T-XXX`). Proteção: vigia novo `trilho-leve.py`
+  — no merge com `[AJUSTE]` na mensagem, só libera se a branch muda SÓ arquivos visuais (estilos, imagens, fontes, HTML
+  sem script/on...=) e grava `VISUAL-OK T-XXX`; senão bloqueia e a tarefa volta ao trilho completo. `shield-aprovado.py`
+  aceita `[AJUSTE]` com `VISUAL-OK` + `[COMANDANTE] APROVADO`; `forca-despacho.py` não exige validadores para `[AJUSTE]`.
+  Protocolo `protocolos/trilho-leve.md`; resumo em CLAUDE.md, CRONOS.md e ATLAS.md. Testes: `tests/hooks/trilho-leve.test.sh`
+  e casos novos em `shield-aprovado` e `forca-despacho`. Total: 37 vigias.

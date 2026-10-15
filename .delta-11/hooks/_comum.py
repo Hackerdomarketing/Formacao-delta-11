@@ -550,6 +550,40 @@ def task_id(linha: str) -> str | None:
     return achado.group(1).upper() if achado else None
 
 
+# ─── Trilho leve (v6.4.1 — protocolos/trilho-leve.md) ───────────────────────
+AJUSTE_MARCA_RE = re.compile(r"\[AJUSTE\]", re.IGNORECASE)
+COMANDANTE_DECISAO_RE = re.compile(r"\[COMANDANTE\]\s+(APROVADO|REPROVADO)\s+([A-Za-z][\w.]*-[\w.-]+)", re.IGNORECASE)
+
+
+def is_light_track(linha: str) -> bool:
+    """Tarefa do trilho leve: a linha do kanban traz [AJUSTE]."""
+    return bool(AJUSTE_MARCA_RE.search(linha or ""))
+
+
+def light_track_proof(tarefa: str | None) -> tuple[bool, str | None]:
+    """
+    Provas do trilho leve no activity-log, dentro da janela:
+      (o vigia trilho-leve gravou "VISUAL-OK <tarefa>", ultima decisao do COMANDANTE para a tarefa).
+    """
+    if not tarefa:
+        return False, None
+    texto = read_text(delta_dir() / "activity-log.md")
+    agora = now_utc()
+    janela = window_seconds()
+    visual_ok, decisao = False, None
+    visual_re = re.compile(rf"\[trilho-leve\].*\bVISUAL-OK\s+{re.escape(tarefa)}\b", re.IGNORECASE)
+    for linha in texto.splitlines():
+        quando = line_timestamp(linha)
+        if quando is None or (agora - quando).total_seconds() > janela:
+            continue
+        if visual_re.search(linha):
+            visual_ok = True
+        achado = COMANDANTE_DECISAO_RE.search(linha)
+        if achado and achado.group(2).upper() == tarefa.upper():
+            decisao = achado.group(1).upper()
+    return visual_ok, decisao
+
+
 def line_agent(linha: str) -> str | None:
     """Dono da tarefa: 'Por: X' > 'Agente: X' > '[X]' > '| X |'."""
     for padrao in (AGENTE_POR_RE, AGENTE_CAMPO_RE, AGENTE_ETIQUETA_RE, AGENTE_COLUNA_RE):

@@ -88,7 +88,7 @@ sincronizar.sh           ← leva atualizações a todos os projetos
 ├── operativos/          ← identidade dos 10 agentes
 ├── protocolos/          ← regras e procedimentos (13 fases)
 ├── sub-agentes/         ← ajudantes chamados pelo CRONOS e pelo SHIELD
-├── hooks/               ← os 36 vigias automáticos
+├── hooks/               ← os 37 vigias automáticos
 ├── conhecimento/        ← bases de conhecimento por papel
 ├── templates/           ← modelos de documentos
 ├── tests/               ← testes do próprio sistema

@@ -789,6 +789,13 @@ Passe as tarefas para o kanban e dispare o SHIELD para revisar os contratos. Nã
 
 **REGRA DE TAMANHO DE TAREFAS:** Nenhuma tarefa individual deve exigir mais do que 20 interações para ser concluída. Se uma tarefa é grande demais, divida em sub-tarefas. Isso garante que cada tarefa cabe em uma sessão de contexto.
 
+## ACHADOS VISUAIS DO COMANDANTE — TRILHO LEVE (v6.4.1)
+
+Quando o comandante aponta retoques **só visuais** (no Selo ou fora dele), não mande cada um pelo trilho completo:
+peça ao CRONOS um lote `[AJUSTE]` por área (`protocolos/trilho-leve.md`). Depois do merge, mostre a ele o resultado e as
+fotos das outras telas; quando ele disser que aprovou (ou o que quer mudar), grave no activity-log
+`- [ISO] [COMANDANTE] APROVADO T-XXX` (ou `REPROVADO T-XXX <pedido>`). Nunca grave a aprovação sem a palavra dele.
+
 ## SUB-AGENTES
 
 ### code-architect (ao final da Fase 4)

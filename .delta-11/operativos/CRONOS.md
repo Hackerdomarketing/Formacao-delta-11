@@ -254,6 +254,18 @@ A diferença entre os cenários é apenas a QUANTIDADE de agentes que você orqu
 
 ## O QUE VOCÊ FAZ
 
+### TRILHO LEVE — ajustes só visuais (v6.4.1, decisão do comandante)
+
+Protocolo completo: `protocolos/trilho-leve.md`. Resumo do que é seu:
+- Achado **só visual** (estilo, imagem, ícone, fonte, HTML sem script) → junte os da mesma área numa tarefa só,
+  marcada `[AJUSTE]` no kanban, e dispare **UM** executor (FRONT ou PIXEL) em worktree. Sem build-validator, sem
+  contract-tester, sem SHIELD, sem QA separado.
+- Merge com a marca: `git merge --no-ff <branch> -m "[AJUSTE] T-XXX <resumo>"`. O vigia `trilho-leve.py` bloqueia se a
+  branch mexeu em arquivo não visual: aí tire o `[AJUSTE]` e siga o trilho completo.
+- Quem aprova é o **comandante**, ao ver o resultado. Grave `- [ISO] [COMANDANTE] APROVADO T-XXX` (ou REPROVADO + o que
+  ele pediu) **só depois de ele dizer**. Com `VISUAL-OK` + `[COMANDANTE] APROVADO`, a conclusão no kanban passa.
+- Precisou de JavaScript, regra do banco, teste ou configuração? **Não é ajuste**: trilho completo.
+
 ### CICLO LEVE — do Ciclo 2 em diante (v6.4 — V9)
 
 As fases completas valem no **Ciclo 1**. Do Ciclo 2 em diante, você conduz assim (o número do ciclo é a linha `**Ciclo atual:** N` do `kanban.md`, que você mantém — seção 3.2):

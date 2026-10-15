@@ -22,6 +22,11 @@ com horario gravada pelo SHIELD:
 Quando age (PreToolUse em Edit|Write do `.delta-11/kanban.md`): so para tarefas
 que PASSAM a ficar concluidas nesta edicao (compara antes e depois — C-036).
 
+Trilho leve (v6.4.1): tarefa marcada `[AJUSTE]` pode ser concluida SEM o SHIELD se
+o activity-log tiver as duas provas, dentro da janela: "VISUAL-OK T-XXX" (gravada
+pelo vigia trilho-leve.py no merge) e "[COMANDANTE] APROVADO T-XXX" (a ultima
+decisao do comandante). Uma aprovacao do SHIELD tambem continua valendo.
+
 Erro interno: libera a acao, registra ERRO-INTERNO no activity-log e avisa no
 stderr (exit 1) — ver _comum.run.
 """
@@ -67,6 +72,27 @@ def latest_decision(decisoes: list[tuple], agente: str, tarefa: str | None) -> s
     return escolhidas[-1][1] if escolhidas else None
 
 
+def light_track_message(linha: str, tarefa: str | None, visual_ok: bool, decisao: str | None) -> str:
+    id_texto = tarefa or "T-XXX"
+    faltas = []
+    if not visual_ok:
+        faltas.append(f"  - o merge com [AJUSTE] na mensagem (o vigia trilho-leve grava VISUAL-OK {id_texto})")
+    if decisao != "APROVADO":
+        faltas.append(
+            f"  - a aprovacao do comandante: - [AAAA-MM-DDTHH:MM:SSZ] [COMANDANTE] APROVADO {id_texto}"
+            + (" (a ultima decisao dele foi REPROVADO)" if decisao == "REPROVADO" else "")
+        )
+    return (
+        f"[{HOOK}] BLOQUEIO {comum.VERSAO} — [AJUSTE] {id_texto} (trilho leve) ainda nao pode ser concluido\n"
+        f"\n"
+        f"Tarefa: {linha[:160]}\n"
+        f"Falta:\n" + "\n".join(faltas) + "\n"
+        f"\n"
+        f"Trilho leve: so ajuste visual, aprovado pelo comandante ao ver o resultado\n"
+        f"(protocolos/trilho-leve.md). Ou siga o trilho completo com o SHIELD.\n"
+    )
+
+
 def message(agente: str, linha: str, tarefa: str | None, decisao: str | None) -> str:
     horas = comum.limits()["janela_horas"]
     id_texto = tarefa or "T-XXX"
@@ -105,6 +131,16 @@ def main() -> int:
             decisoes = shield_decisions()
         tarefa = comum.task_id(linha)
         decisao = latest_decision(decisoes, agente, tarefa)
+        if decisao != "APROVADO" and comum.is_light_track(linha):
+            # Trilho leve (v6.4.1): ajuste SO VISUAL aprovado pelo COMANDANTE, sem SHIELD.
+            visual_ok, do_comandante = comum.light_track_proof(tarefa)
+            if visual_ok and do_comandante == "APROVADO":
+                comum.log(HOOK, f"OK: {tarefa} de {agente} no trilho leve (VISUAL-OK + aprovado pelo comandante)")
+                continue
+            return comum.block(
+                HOOK, light_track_message(linha, tarefa, visual_ok, do_comandante),
+                f"[AJUSTE] {tarefa or 'tarefa'} de {agente} sem VISUAL-OK e/ou sem aprovacao do comandante",
+            )
         if decisao != "APROVADO":
             return comum.block(
                 HOOK, message(agente, linha, tarefa, decisao),
