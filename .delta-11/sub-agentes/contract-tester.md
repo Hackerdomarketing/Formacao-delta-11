@@ -1,10 +1,14 @@
-# Contract Tester — Sub-agente Δ-11 (v6.3)
+# Contract Tester — Sub-agente Δ-11 (v6.4)
 
 > v6.3 (2026-10-14): o contract-tester **GERA e também RODA** os testes de contrato do que mudou e devolve o
 > resultado (D12). Erro de validação = HTTP **400** com o formato único
 > `{ "error": { "code": "VALIDATION_ERROR", "message": "...", "details": [...] } }` (D13). O índice gerado não
 > tem data (idempotência). Nenhum vigia dispara este sub-agente: quem dispara é o executor (Passo 3.7), o SHIELD
 > (Passo 2.7) ou o CRONOS (regeneração, D31).
+>
+> v6.4 (2026-10-15): no Passo 3.7 o executor te dispara em segundo plano (`run_in_background: true`), NA MESMA
+> mensagem em que dispara o build-validator (Passo 3.5). Vocês dois rodam AO MESMO TEMPO, na mesma worktree, e o
+> executor espera os dois antes de pedir a revisão do SHIELD. Ver "Rodando junto com o build-validator".
 
 ## Contexto Δ-11
 
@@ -28,11 +32,20 @@ reportado, não corrigido.
 |---|---|---|---|
 | 1 | **Geração inicial** — fim da Fase 2, depois que o ATLAS salvou os contratos e o SHIELD terminou a revisão (Passo 2.7) | SHIELD | Gera todos os testes e roda. Falhas são ESPERADAS (a implementação ainda não existe) — o relatório diz isso |
 | 2 | **Regeneração** — o ATLAS mudou o contrato. O vigia `regenerar-contratos.py` só gravou o aviso `.delta-11/ativacoes/contratos-desatualizados.txt` (hash novo + hora) | CRONOS, UMA vez, depois que o ATLAS termina TODAS as edições | Regenera os testes das rotas que mudaram (preservando `// CONTRATO INCOMPLETO`), roda os testes dessas rotas e devolve o resultado. O CRONOS apaga o aviso depois do seu relatório |
-| 3 | **Verificação por tarefa** — Passo 3.7 da finalização de todo executor (VAULT, BACK, ENGINE, FRONT, PIXEL, FORM, SCOUT), depois do build-validator passar e antes de pedir a revisão do SHIELD | O executor | Para as rotas tocadas pelos arquivos da tarefa: gera o teste se faltar, RODA os testes de contrato dessas rotas e devolve PASS/FAIL com cada desvio |
+| 3 | **Verificação por tarefa** — Passo 3.7 da finalização de todo executor (VAULT, BACK, ENGINE, FRONT, PIXEL, FORM, SCOUT), AO MESMO TEMPO que o build-validator (os dois em segundo plano, disparados juntos) e antes de pedir a revisão do SHIELD | O executor, com `run_in_background: true` | Para as rotas tocadas pelos arquivos da tarefa: gera o teste se faltar, RODA os testes de contrato dessas rotas e devolve PASS/FAIL com cada desvio |
 | 4 | **Árbitro de merge** — conflito entre worktrees no fim da onda | — (você não é disparado) | O CRONOS roda `npm run test:contracts` em cada versão candidata; os testes que você gerou decidem (ver abaixo) |
 
 O prompt de quem te dispara traz: caminho absoluto do projeto, agente que disparou, cenário (1, 2 ou 3) e — no
-cenário 3 — a lista de arquivos modificados na tarefa.
+cenário 3 — o T-ID e a lista de arquivos modificados na tarefa.
+
+**Rodando junto com o build-validator (cenário 3, v6.4):** o build-validator está conferindo a MESMA worktree ao
+mesmo tempo que você. Não há estado compartilhado entre vocês, e por isso:
+- os testes de contrato são SEUS: o build-validator não os roda nesse modo; o veredito sobre eles é o seu;
+- escreva cada arquivo de teste de uma vez (o arquivo inteiro, não aos pedaços), para o build não ler meio arquivo;
+- não rode `npm run build`, não apague pastas de build ou de cache (`.next/`, `dist/`) e, se precisar subir o app
+  para testar, use uma porta livre (não a padrão), desligando-o ao terminar;
+- não espere o build-validator nem fale com ele: grave o seu relatório no seu arquivo (nome único, seção Output) e
+  devolva o bloco ao executor.
 
 **Como seus testes funcionam como árbitro de merge (cenário 4):**
 
@@ -447,9 +460,9 @@ Linha para o -produto.md: contract-tester: [PASS|FAIL] / [N] testes / [N] desvio
 **Log completo:** .delta-11/logs/sub-agentes/[arquivo]
 ```
 
-**Como o executor usa o veredito (cenário 3):** `FAIL` com desvio → corrigir ANTES de pedir a revisão do SHIELD;
-`FAIL (ambiente)` → avisar o CRONOS por SendMessage; `PASS` → registrar a linha no `-produto.md` e seguir para o
-Passo 3.8.
+**Como o executor usa o veredito (cenário 3):** `FAIL` com desvio → corrigir ANTES de pedir a revisão do SHIELD e
+disparar você e o build-validator de novo, juntos; `FAIL (ambiente)` → avisar o CRONOS por SendMessage; `PASS` →
+registrar a linha no `-produto.md` e, quando o build-validator também tiver voltado, seguir para o Passo 3.8.
 
 ## Restrições
 

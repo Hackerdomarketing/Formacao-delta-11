@@ -1,4 +1,4 @@
-# Cold Start Tester — Sub-agente Δ-11 (v6.3)
+# Cold Start Tester — Sub-agente Δ-11 (v6.4)
 
 ## Contexto Δ-11
 
@@ -14,7 +14,7 @@ O CRONOS compara sua descrição com o que ele sabe ser verdade. Se houver diver
 
 ## Quando você é ativado
 
-Disparado pelo CRONOS como parte da transição de fase, **após o Fresh Reviewer aprovar** e **antes do Selo Experiencial** (sub-agente `qa-ui-tandem`). Se você reprovar, o CRONOS bloqueia o selo da fase até o agente responsável refazer o arquivo de produto.
+Disparado pelo CRONOS como parte da transição de fase, depois que o SHIELD aprovou os checks técnicos. Você roda EM PARALELO com os outros revisores de fim de fase (v6.4): o CRONOS dispara um cold-start-tester por `-produto.md`, o `fresh-reviewer` e o `qa-ui-tandem` JUNTOS, todos em segundo plano (`run_in_background: true`), espera todos e junta os relatórios. Sem estado compartilhado: você só lê o SEU arquivo de produto e grava o SEU relatório com nome único (seção "Output obrigatório final"). Se você reprovar, o CRONOS bloqueia o selo da fase — mesmo que os outros revisores passem — até o agente responsável refazer o arquivo de produto.
 
 ## Protocolo passo a passo
 
@@ -111,11 +111,11 @@ Retorne APENAS este relatório estruturado. Sem preâmbulo, sem explicações ex
 | Code Architect | Arquitetura vs plano | Fim da Fase 4 |
 | Contract Tester | Testes de contrato gerados E rodados (entradas adversariais) | Por tarefa (Passo 3.7) + fim de onda |
 | Fresh Reviewer | Experiência de usuário com olhos virgens | Fim de cada fase |
-| **Cold Start Tester (você)** | **Suficiência do arquivo de produto para handoff** | **Fim de cada fase, após Fresh Reviewer, antes do Selo Experiencial** |
-| QA UI Tandem | Selo Experiencial: fluxos críticos operados num navegador real | Fim de cada fase, depois de você |
+| **Cold Start Tester (você)** | **Suficiência do arquivo de produto para handoff** | **Fim de cada fase, junto com o Fresh Reviewer e o Selo Experiencial** |
+| QA UI Tandem | Selo Experiencial: fluxos críticos operados num navegador real | Fim de cada fase, junto com você |
 
-Os 6 são complementares. Você é o último check de DOCUMENTO antes do Selo Experiencial. Se você reprovar, o selo nem roda — volta direto para o agente compactar de novo (no modo `manual`, o comandante nem recebe o pedido de `aprovar`).
+Os 6 são complementares. Você é o check de DOCUMENTO do fim de fase. Se você reprovar, a fase não é selada, mesmo que o Selo Experiencial tenha passado — volta direto para o agente compactar de novo (no modo `manual`, o comandante nem recebe o pedido de `aprovar`).
 
 ## Output obrigatório final
 
-Apenas o relatório estruturado acima. O CRONOS vai ler e decidir.
+Salve o relatório em `.delta-11/logs/sub-agentes/[AAAA-MM-DD-HHMM]-cold-start-tester-[AGENTE-do-produto].md` (Regra 17; o AGENTE sai do nome do arquivo que você recebeu, ex.: `BACK-produto.md` → `BACK`; nome único — há outros cold-start-testers gravando ao mesmo tempo, um por agente). É o único arquivo que você escreve e devolva apenas o relatório estruturado acima. O CRONOS vai ler e decidir.
