@@ -1,168 +1,190 @@
 #!/usr/bin/env node
 // ═══════════════════════════════════════════════════════════════
-// DELTA-11 — Hook PostToolUse: Logar Atividade em Tempo Real
+// DELTA-11 v6.3 — Hook PostToolUse: registrar atividade
 // ═══════════════════════════════════════════════════════════════
-// Dispara APÓS cada Write/Edit/Bash. Registra automaticamente
-// o que foi feito no activity-log.md para visibilidade de todos
-// os agentes trabalhando em paralelo.
+// Registro (templates/settings-hooks.json):
+//   PostToolUse  matcher "Write|Edit|Bash"  →  node "$CLAUDE_PROJECT_DIR/.delta-11/hooks/log-activity.js"
+//
+// Dispara DEPOIS de cada Write/Edit/Bash e acrescenta UMA linha no
+// `.delta-11/activity-log.md` da PASTA PRINCIPAL do projeto (D25:
+// pai do `git rev-parse --git-common-dir`; senão CLAUDE_PROJECT_DIR;
+// senão o cwd) — também quando o agente trabalha numa worktree.
+//
+// Formato único (D25, C-032), hora sempre em UTC:
+//   - [AAAA-MM-DDTHH:MM:SSZ] [log-activity] [AGENTE] Edit src/a.ts (T-012) — "trecho..."
+// (antes: tabela markdown com hora local e data UTC, misturada com as
+// linhas soltas dos outros vigias.)
+//
+// AGENTE: nome Delta-11 pelo vínculo agent_id/session_id gravado pelo
+// heartbeat (`ativacoes/agentes-sessao.json`) ou pelo agent_type;
+// senão "PRINCIPAL" (sessão principal) ou "SUBAGENTE-<agent_type>".
+//
+// Nunca bloqueia (sai com 0). Erro interno vira linha "ERRO INTERNO".
 // ═══════════════════════════════════════════════════════════════
 
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 
-async function main() {
-  let input = '';
-  for await (const chunk of process.stdin) {
-    input += chunk;
+const NOME_DO_HOOK = 'log-activity';
+const NOMES_DELTA11 = new Set(['ATLAS', 'CRONOS', 'FRONT', 'PIXEL', 'FORM', 'BACK',
+  'ENGINE', 'VAULT', 'SHIELD', 'SCOUT']);
+const CABECALHO =
+  '# Activity Log — Delta-11\n\n' +
+  '> Gerado automaticamente pelos vigias (hooks). Não editar à mão.\n' +
+  '> Formato de cada linha (v6.3): `- [AAAA-MM-DDTHH:MM:SSZ] [nome-do-hook] [AGENTE] mensagem` — hora em UTC.\n\n';
+
+function git(pasta, args) {
+  try {
+    return execFileSync('git', ['-C', pasta, ...args], {
+      encoding: 'utf-8', timeout: 3000, stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch {
+    return '';
   }
+}
 
-  const data = JSON.parse(input);
-  const toolName = data.tool_name;
-  const toolInput = data.tool_input || {};
-  const cwd = data.cwd || process.cwd();
-
-  // Só logar operações relevantes (Write, Edit, Bash)
-  const toolsParaLogar = ['Write', 'Edit', 'Bash'];
-  if (!toolsParaLogar.includes(toolName)) {
-    process.exit(0);
+function caminhoReal(p) {
+  const absoluto = path.resolve(p);
+  let existente = absoluto;
+  const resto = [];
+  while (!fs.existsSync(existente)) {
+    const pai = path.dirname(existente);
+    if (pai === existente) return absoluto;
+    resto.unshift(path.basename(existente));
+    existente = pai;
   }
-
-  // Extrair informações relevantes
-  let arquivo = '';
-  let descricao = '';
-
-  if (toolName === 'Write' || toolName === 'Edit') {
-    const filePath = toolInput.file_path || '';
-    arquivo = path.relative(cwd, filePath);
-
-    if (toolName === 'Edit') {
-      const oldStr = (toolInput.old_string || '').substring(0, 50);
-      descricao = `Edit: "${oldStr}..."`;
-    } else {
-      descricao = 'Write: arquivo criado/reescrito';
-    }
-  } else if (toolName === 'Bash') {
-    const cmd = (toolInput.command || '').substring(0, 80);
-    arquivo = '(terminal)';
-    descricao = `Bash: ${cmd}`;
+  try {
+    return path.join(fs.realpathSync(existente), ...resto);
+  } catch {
+    return absoluto;
   }
+}
 
-  // Determinar agente (agent_type ou session_id como fallback)
-  const agente = data.agent_type || data.session_id?.substring(0, 8) || 'MAIN';
+function raizPrincipal(cwd) {
+  const candidatos = [];
+  const comum = git(cwd, ['rev-parse', '--path-format=absolute', '--git-common-dir']);
+  if (comum) candidatos.push(path.dirname(path.normalize(comum)));
+  if (process.env.CLAUDE_PROJECT_DIR) candidatos.push(process.env.CLAUDE_PROJECT_DIR);
+  candidatos.push(cwd);
+  for (const c of candidatos) {
+    if (c && fs.existsSync(path.join(c, '.delta-11'))) return caminhoReal(c);
+  }
+  return null;
+}
 
-  // Montar linha de log
-  const agora = new Date();
-  const hora = agora.toTimeString().substring(0, 5);
-  const dataStr = agora.toISOString().substring(0, 10);
+function lerVinculos(raiz) {
+  try {
+    const dados = JSON.parse(fs.readFileSync(
+      path.join(raiz, '.delta-11', 'ativacoes', 'agentes-sessao.json'), 'utf-8'));
+    return (dados && typeof dados.chaves === 'object' && dados.chaves) || {};
+  } catch {
+    return {};
+  }
+}
 
-  // Ler lock ativo para extrair tarefa (se existir)
-  // v4.0.1: suporta lock-diretório (novo) e lock-arquivo (legado)
-  let tarefa = '—';
-  const locksDir = path.join(cwd, '.delta-11', 'locks');
-  if (fs.existsSync(locksDir)) {
+function chaveDoEvento(ev) {
+  return ev.agent_id ? `agente:${ev.agent_id}` : `principal:${ev.session_id || 'desconhecida'}`;
+}
+
+function identificarAgente(ev, raiz) {
+  const tipo = String(ev.agent_type || '').trim().toUpperCase();
+  if (NOMES_DELTA11.has(tipo)) return tipo;
+  const vinculo = lerVinculos(raiz)[chaveDoEvento(ev)];
+  return (vinculo && vinculo.agente) || '';
+}
+
+function agoraIso() {
+  return new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
+}
+
+function umaLinha(texto, limite) {
+  const limpo = String(texto || '').replace(/\s+/g, ' ').trim();
+  return limpo.length > limite ? limpo.substring(0, limite) + '…' : limpo;
+}
+
+function acrescentarNoLog(raiz, agente, mensagem) {
+  const caminho = path.join(raiz, '.delta-11', 'activity-log.md');
+  try {
+    fs.writeFileSync(caminho, CABECALHO, { encoding: 'utf-8', flag: 'wx' }); // só se não existe
+  } catch {
+    // já existe (ou outro vigia criou ao mesmo tempo)
+  }
+  // Uma linha pequena com O_APPEND: não se mistura com linhas de outros vigias.
+  fs.appendFileSync(caminho, `- [${agoraIso()}] [${NOME_DO_HOOK}] [${agente}] ${umaLinha(mensagem, 400)}\n`, 'utf-8');
+}
+
+function tarefaDoAgente(raiz, agente) {
+  if (!agente) return '';
+  const pasta = path.join(raiz, '.delta-11', 'locks');
+  let entradas = [];
+  try {
+    entradas = fs.readdirSync(pasta).filter((f) => f.endsWith('.lock'));
+  } catch {
+    return '';
+  }
+  for (const entrada of entradas) {
+    const caminho = path.join(pasta, entrada);
     try {
-      const lockEntries = fs.readdirSync(locksDir).filter(f => f.endsWith('.lock'));
-      for (const lockEntry of lockEntries) {
-        const lockPath = path.join(locksDir, lockEntry);
-        let lockContent;
-        try {
-          const st = fs.statSync(lockPath);
-          if (st.isDirectory()) {
-            const metaPath = path.join(lockPath, 'meta');
-            lockContent = fs.existsSync(metaPath) ? fs.readFileSync(metaPath, 'utf-8') : '';
-          } else {
-            lockContent = fs.readFileSync(lockPath, 'utf-8');
-          }
-        } catch {
-          continue;
-        }
-        const agentMatch = lockContent.match(/^AGENTE:\s*(.+)$/m);
-        if (agentMatch && agentMatch[1].trim() === agente) {
-          const tarefaMatch = lockContent.match(/^TAREFA:\s*(.+)$/m);
-          if (tarefaMatch) {
-            tarefa = tarefaMatch[1].trim();
-          }
-          break;
-        }
+      const stats = fs.statSync(caminho);
+      const meta = stats.isDirectory()
+        ? (fs.existsSync(path.join(caminho, 'meta')) ? fs.readFileSync(path.join(caminho, 'meta'), 'utf-8') : '')
+        : fs.readFileSync(caminho, 'utf-8');
+      const dono = (meta.match(/^AGENTE:\s*(.+)$/m) || [])[1];
+      if (dono && dono.trim() === agente) {
+        const tarefa = (meta.match(/^TAREFA:\s*(.+)$/m) || [])[1];
+        if (tarefa) return tarefa.trim();
       }
     } catch {
-      // Ignorar erros de leitura de lock
+      // trava sumiu ou ilegível: ignorar
     }
   }
+  return '';
+}
 
-  // Caminho do activity-log
-  const logPath = path.join(cwd, '.delta-11', 'activity-log.md');
-
-  // v4.0.1: mutex atômico (mkdir) para proteger bloco
-  // "verificar cabeçalho do dia + append de linha".
-  // Sem isso, dois agentes podem ver o marcador ausente e ambos
-  // adicionarem o cabeçalho, causando duplicação.
-  const mutexPath = path.join(cwd, '.delta-11', 'locks', 'activity-log.mutex');
-
-  // Tentar adquirir mutex (retry com backoff — máximo 10 tentativas = ~1s)
-  let mutexAdquirido = false;
-  for (let tentativa = 0; tentativa < 10; tentativa++) {
-    try {
-      fs.mkdirSync(mutexPath);
-      mutexAdquirido = true;
-      break;
-    } catch (err) {
-      if (err.code === 'EEXIST') {
-        // Backoff de 100ms entre tentativas
-        const delay = Date.now() + 100;
-        while (Date.now() < delay) { /* busy wait curto */ }
-      } else {
-        break; // erro real, desistir
-      }
-    }
+async function main() {
+  let entrada = '';
+  for await (const pedaco of process.stdin) entrada += pedaco;
+  let ev;
+  try {
+    ev = JSON.parse(entrada);
+  } catch {
+    process.exit(0); // sem evento legível não há o que registrar
   }
+  if (!ev || !['Write', 'Edit', 'Bash'].includes(ev.tool_name)) process.exit(0);
+
+  const cwd = caminhoReal(ev.cwd || process.cwd());
+  const raiz = raizPrincipal(cwd);
+  if (!raiz) process.exit(0);
 
   try {
-    // Criar arquivo se não existir
-    if (!fs.existsSync(logPath)) {
-      const header =
-        `# Activity Log — Delta-11\n\n` +
-        `> Gerado automaticamente por hooks. Não editar manualmente.\n\n`;
-      fs.writeFileSync(logPath, header, 'utf-8');
+    const agente = identificarAgente(ev, raiz) ||
+      (ev.agent_id ? `SUBAGENTE-${ev.agent_type || ev.agent_id.substring(0, 8)}` : 'PRINCIPAL');
+    const entradaFerramenta = ev.tool_input || {};
+    const tarefa = tarefaDoAgente(raiz, agente);
+    const sufixoTarefa = tarefa ? ` (${tarefa})` : '';
+
+    let mensagem;
+    if (ev.tool_name === 'Bash') {
+      mensagem = `Bash${sufixoTarefa}: ${umaLinha(entradaFerramenta.command, 160)}`;
+    } else {
+      const alvo = caminhoReal(path.resolve(cwd, entradaFerramenta.file_path || ''));
+      let exibido = path.relative(cwd, alvo);
+      if (exibido.startsWith('..')) exibido = path.relative(raiz, alvo);
+      if (exibido.startsWith('..')) exibido = alvo;
+      mensagem = ev.tool_name === 'Edit'
+        ? `Edit ${exibido}${sufixoTarefa} — "${umaLinha(entradaFerramenta.old_string, 50)}"`
+        : `Write ${exibido}${sufixoTarefa} — arquivo criado/reescrito`;
     }
-
-    // Verificar se precisa adicionar cabeçalho do dia
-    const conteudo = fs.readFileSync(logPath, 'utf-8');
-    const marcadorDia = `## ${dataStr}`;
-
-    let linhaParaAdicionar = '';
-
-    if (!conteudo.includes(marcadorDia)) {
-      linhaParaAdicionar +=
-        `\n${marcadorDia}\n\n` +
-        `| Hora  | Agente | Tarefa | Arquivo | Ação | Descrição |\n` +
-        `|-------|--------|--------|---------|------|-----------|\n`;
-    }
-
-    // Escapar pipes no conteúdo da descrição
-    const descricaoSafe = descricao.replace(/\|/g, '\\|');
-    const arquivoSafe = arquivo.replace(/\|/g, '\\|');
-
-    linhaParaAdicionar += `| ${hora} | ${agente} | ${tarefa} | ${arquivoSafe} | ${toolName} | ${descricaoSafe} |\n`;
-
-    // Append atômico (O_APPEND garante atomicidade para writes pequenos no POSIX)
-    fs.appendFileSync(logPath, linhaParaAdicionar, 'utf-8');
-  } finally {
-    // Liberar mutex SEMPRE, mesmo em erro
-    if (mutexAdquirido) {
-      try {
-        fs.rmSync(mutexPath, { recursive: true, force: true });
-      } catch {
-        // Se falhar ao liberar, não bloqueia — release-locks vai pegar depois
-      }
+    acrescentarNoLog(raiz, agente, mensagem);
+  } catch (erro) {
+    try {
+      acrescentarNoLog(raiz, 'SISTEMA', `ERRO INTERNO (${erro.name}): ${erro.message}`);
+    } catch {
+      // sem como registrar
     }
   }
-
   process.exit(0);
 }
 
-main().catch((err) => {
-  // Erros de logging não devem bloquear execução
-  process.stderr.write(`Aviso hook log-activity: ${err.message}`);
-  process.exit(1);
-});
+main().catch(() => process.exit(0));

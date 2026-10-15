@@ -1,66 +1,32 @@
 #!/usr/bin/env bash
-# Teste do hook topologia-deploy.py (Hook 9 do v6.2)
-set -euo pipefail
-GREEN='\033[0;32m'; RED='\033[0;31m'; NC='\033[0m'
+# Teste do vigia topologia-deploy.py (v6.3 — C-040)
+source "$(dirname "$0")/_ajudante-hooks-python.sh" topologia-deploy
+checagens_basicas
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-HOOKS_DIR="$(cd "$SCRIPT_DIR/../../hooks" && pwd)"
-HOOK="$HOOKS_DIR/topologia-deploy.py"
-SETTINGS="$SCRIPT_DIR/../../templates/settings-hooks.json"
+novo_projeto
+bash_ev() { evento tool_name=Bash "tool_input.command=$1"; }
+TOPO="$TEST_DIR/.delta-11/memoria/topologia.json"
 
-falhou=0
-ok() { echo -e "  ${GREEN}[OK]${NC}   $1"; }
-err() { echo -e "  ${RED}[FALTA]${NC} $1"; falhou=$((falhou + 1)); }
+espera 2 "wrangler deploy sem topologia: bloqueia" "$(bash_ev 'npm run build && npx wrangler deploy')"
+stderr_contem "topologia.json"
+espera 2 "vercel --prod sem topologia: bloqueia" "$(bash_ev 'vercel --prod')"
+espera 2 "npm run deploy sem topologia: bloqueia" "$(bash_ev 'CI=1 npm run deploy')"
+espera 0 "--dry-run nao e deploy" "$(bash_ev 'wrangler deploy --dry-run')"
+espera 0 "git commit com a palavra deploy nao e deploy" "$(bash_ev "git commit -m 'ajusta deploy do worker'")"
+espera 0 "grep deploy nao e deploy" "$(bash_ev 'grep -rn deploy docs/')"
+espera 0 "echo de texto com deploy nao e deploy" "$(bash_ev 'echo "rode wrangler deploy depois"')"
 
-if [ -f "$HOOK" ]; then ok "hook existe"; else err "hook AUSENTE"; exit 1; fi
-if [ -x "$HOOK" ]; then ok "hook executavel"; else err "hook NAO executavel"; fi
-if grep -qE "deploy|wrangler|subir.*producao" "$HOOK"; then ok "hook detecta keywords deploy"; else err "sem keywords"; fi
-if grep -qE "topologia\.json" "$HOOK"; then ok "hook verifica topologia.json"; else err "sem topologia.json"; fi
-if grep -qE "sys\.exit\(2\)|return 2" "$HOOK"; then ok "exit 2"; else err "sem exit 2"; fi
-if head -1 "$HOOK" | grep -q "python"; then ok "Python"; else err "NAO Python"; fi
-if [ -f "$SETTINGS" ] && grep -q "topologia-deploy" "$SETTINGS"; then ok "registrado em settings"; else err "NAO em settings"; fi
-if head -10 "$HOOK" | grep -qE '"""'; then ok "docstring"; else err "sem docstring"; fi
-if grep -qE "sys\.exit\(0\)" "$HOOK"; then ok "exit 0"; else err "sem exit 0"; fi
+# Texto com a palavra deploy em documento/kanban NAO bloqueia mais (N-005)
+espera 0 "Write de doc com 'deploy': passa" "$(evento tool_name=Write tool_input.file_path=$TEST_DIR/docs/deploy.md 'tool_input.content=# Como fazer o deploy')"
+espera 0 "Edit do kanban com 'deploy': passa" "$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md tool_input.old_string=a 'tool_input.new_string=T-9 deploy automatico')"
+espera 0 "artefato descanso-04-deploy-auto: passa" "$(evento tool_name=Write tool_input.file_path=$TEST_DIR/.delta-11/memoria/decisoes/2026-10-14-descanso-04-deploy-auto.md 'tool_input.content=deploy auto')"
 
-# Testes funcionais
-TEST_DIR=$(mktemp -d)
-cd "$TEST_DIR"
-mkdir -p .delta-11/memoria
-
-# Cenario A: sem topologia.json = BLOQUEIA
-EVENT=$(python3 -c "
-import json
-print(json.dumps({
-    'tool_name': 'Write',
-    'tool_input': {
-        'file_path': 'test.md',
-        'content': 'wrangler deploy'
-    }
-}))
-")
-EXIT=$(echo "$EVENT" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?" | grep -oE '[0-9]+' | tail -1)
-if [ "$EXIT" = "2" ]; then ok "BLOQUEIA sem topologia.json"; else err "NAO bloqueia sem topologia (exit=$EXIT)"; fi
-
-# Cenario B: com topologia.json completa = PASSA
-echo '{"worker_url": "https://api.x.com", "pages_url": "https://admin.x.com"}' > .delta-11/memoria/topologia.json
-EXIT=$(echo "$EVENT" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?" | grep -oE '[0-9]+' | tail -1)
-if [ "$EXIT" = "0" ]; then ok "PASSA com topologia valida"; else err "NAO passa com topologia (exit=$EXIT)"; fi
-
-# Cenario C: sem keyword deploy = PASSA sempre
-EVENT=$(python3 -c "
-import json
-print(json.dumps({
-    'tool_name': 'Write',
-    'tool_input': {
-        'file_path': 'test.md',
-        'content': 'apenas atualizando documentacao'
-    }
-}))
-")
-EXIT=$(echo "$EVENT" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?" | grep -oE '[0-9]+' | tail -1)
-if [ "$EXIT" = "0" ]; then ok "PASSA sem keyword deploy"; else err "NAO passa sem keyword (exit=$EXIT)"; fi
-
-cd / && rm -rf "$TEST_DIR"
-
-echo ""
-if [ "$falhou" -eq 0 ]; then echo -e "${GREEN}OK — Hook 9 topologia-deploy.py${NC}"; exit 0; else echo -e "${RED}FALTA $falhou item(ns)${NC}"; exit 1; fi
+echo '{"app_url": "https://app.exemplo.com"}' > "$TOPO"
+espera 0 "topologia com UMA url (app de uma parte so): passa" "$(bash_ev 'npx wrangler deploy')"
+echo '{"worker_url": "https://api.exemplo.com", "pages_url": "https://admin.exemplo.com"}' > "$TOPO"
+espera 0 "topologia worker + pages: passa" "$(bash_ev 'wrangler pages deploy dist')"
+echo '{"tipo": "worker"}' > "$TOPO"
+espera 2 "topologia sem nenhuma url: bloqueia" "$(bash_ev 'wrangler deploy')"
+echo 'quebrado' > "$TOPO"
+espera 2 "topologia.json invalido: bloqueia" "$(bash_ev 'firebase deploy')"
+fim

@@ -5,12 +5,27 @@
 Voce e um sub-agente da Formacao Δ-11. Sua funcao e validar o build do projeto e retornar um relatorio estruturado ao agente que te disparou.
 
 **ANTES de rodar qualquer comando:**
-1. Leia `.delta-11/memoria/project-core.md` para entender o stack do projeto
+1. Leia `.delta-11/memoria/project-core/decisoes-tecnicas.md` (ou, se as fatias ainda não existirem, a seção de stack do `.delta-11/memoria/project-core.md`) para entender o stack do projeto. Sub-agentes podem ler o project-core inteiro, mas só leem o necessário e NUNCA escrevem nele (só o ATLAS escreve).
 2. Detecte o tipo de projeto (veja secao DETECCAO abaixo)
 3. Execute APENAS os checks aplicaveis ao tipo detectado
 
 **APOS rodar os comandos:**
 Retorne APENAS o relatorio estruturado no formato definido abaixo. Sem explicacoes extras, sem sugestoes de melhoria. Apenas PASS/FAIL + detalhes dos problemas.
+
+---
+
+## Como voce e chamado (v6.4)
+
+| Quem dispara | Quando | Como |
+|---|---|---|
+| Cada executor (VAULT, BACK, ENGINE, FRONT, PIXEL, FORM, SCOUT) | Passo 3.5 de toda tarefa de codigo | Em segundo plano (`run_in_background: true`), NA MESMA mensagem em que dispara o contract-tester (Passo 3.7). Voces dois rodam AO MESMO TEMPO, na mesma worktree, e o executor espera os dois antes de pedir a revisao do SHIELD |
+| SHIELD | Fase 6 (pre-deploy) ou para conferir o build depois de varias worktrees juntadas | Sozinho: rode todos os checks como descritos abaixo |
+
+**Quando o prompt disser "em paralelo com o contract-tester" (Passo 3.5):**
+1. NAO rode os testes de contrato (`npm run test:contracts`, `pytest tests/contracts` etc.): quem gera e roda esses testes AGORA e o contract-tester. Na linha "Testes de Contrato" do relatorio escreva `N/A (rodados pelo contract-tester, em paralelo)`.
+2. Erro de typecheck, lint ou teste que aparece SO em arquivos de `tests/contracts/` vira **WARNING** com a nota "arquivo possivelmente em geracao pelo contract-tester" — nao e BLOCKER. O executor confere de novo depois que os dois terminarem. Se o comando de testes unitarios tambem roda `tests/contracts/`, trate as falhas dali do mesmo jeito.
+3. Nao escreva em `tests/contracts/`, nao apague pastas de build ou de cache (`.next/`, `dist/`, `node_modules/.cache`) e nao ligue servidor fixo numa porta: o outro sub-agente pode estar usando a mesma worktree.
+4. Nao espere o contract-tester nem fale com ele. Nao ha estado compartilhado: o executor salva o seu relatorio em `.delta-11/logs/sub-agentes/[AAAA-MM-DD]-build-validator-[AGENTE]-[T-XXX].md` (nome unico por agente e tarefa).
 
 ---
 
@@ -29,7 +44,7 @@ SE existe package.json → TIPO: NODE
 SE existe manifest.json com "manifest_version" → TIPO: CHROME_EXTENSION
 SE existe Cargo.toml → TIPO: RUST
 SE existe requirements.txt ou pyproject.toml → TIPO: PYTHON
-SE existe pasta migrations/ OU arquivos *.sql na raiz → TIPO: SQL_MIGRATIONS
+SE existe pasta supabase/migrations/ OU migrations/ OU arquivos *.sql na raiz → TIPO: SQL_MIGRATIONS
 SENAO → TIPO: GENERICO (apenas checks de seguranca)
 ```
 
@@ -65,7 +80,7 @@ else
 fi
 ```
 
-**REGRA:** Se `tests/contracts/` existe e os testes FALHAM → **BLOCKER** (nao pode marcar tarefa como concluida).
+**REGRA:** Se `tests/contracts/` existe e os testes FALHAM → **BLOCKER** (nao pode marcar tarefa como concluida). Excecao: no Passo 3.5 em paralelo com o contract-tester voce NAO roda este bloco (ver "Como voce e chamado").
 Se `tests/contracts/` nao existe → **WARNING** (reportar, mas nao bloquear — pode ser projeto legado ou sem Contract-First).
 
 #### 3. Testes Unitarios e de Integracao
@@ -78,7 +93,7 @@ npm test 2>&1 || echo "UNIT TESTS FAILED"
 npm run test:integration 2>&1 || echo "INTEGRATION TESTS FAILED"
 ```
 
-#### 3. Auditoria de Dependencias
+#### 4. Auditoria de Dependencias
 
 ```bash
 npm audit 2>&1 || echo "AUDIT FAILED"
@@ -114,7 +129,8 @@ done
 #### 3. Validacao de JSON
 
 ```bash
-# Verificar se todos os JSONs sao parseaveispython3 -c "
+# Verificar se todos os JSONs sao parseaveis
+python3 -c "
 import json, glob, sys
 errors = []
 for f in glob.glob('src/**/*.json', recursive=True):
@@ -149,18 +165,86 @@ Leia os arquivos que enviam e recebem mensagens (`chrome.runtime.sendMessage`, `
 - [ ] O service worker trata TODOS os tipos de mensagem que a sidebar envia
 - [ ] Respostas usam `sendResponse()` ou retornam `true` para resposta assincrona
 
-#### 6. Validacao de Dados (modelos JSON)
+#### 6. Validacao de Dados (arquivos JSON de dados)
 
-Se o projeto usa arquivos de dados JSON (ex: modelos de negocio):
+Se o projeto usa arquivos de dados JSON empacotados com a extensao:
 
-- [ ] Todos os modelos referenciados no indice (models.json) existem como arquivo
-- [ ] O campo `totalFolders` de cada modelo bate com a contagem real da arvore
-- [ ] Nenhum nodo da arvore tem `name` vazio ou nulo
-- [ ] Estrutura recursiva e consistente (todo nodo tem `name` e `children`)
+- [ ] Todo arquivo referenciado em um indice (ex: `index.json`) existe no disco
+- [ ] Campos de contagem ou resumo declarados no arquivo (ex: `total`, `count`) batem com os dados reais
+- [ ] Nenhum item obrigatorio tem campo-chave vazio ou nulo
+- [ ] O formato bate com o esquema documentado em `project-core/decisoes-tecnicas.md` (se houver)
 
 ---
 
-### TIPO: SQL_MIGRATIONS (pasta migrations/ ou *.sql na raiz)
+### TIPO: RUST (Cargo.toml existe)
+
+#### 1. Integridade do Codigo
+
+```bash
+cargo check --all-targets 2>&1 || echo "CHECK FAILED"
+cargo fmt --all -- --check 2>&1 || echo "FORMAT FAILED"
+cargo clippy --all-targets -- -D warnings 2>&1 || echo "CLIPPY FAILED"
+cargo build --release 2>&1 || echo "BUILD FAILED"
+```
+
+#### 2. Testes
+
+```bash
+cargo test 2>&1 || echo "TESTS FAILED"
+```
+
+Se existir `tests/contracts/`, os testes de contrato rodam aqui e falha e **BLOCKER** (mesma regra do NODE, com a mesma excecao do Passo 3.5 em paralelo).
+
+#### 3. Auditoria de Dependencias
+
+```bash
+# So se cargo-audit estiver instalado; se nao estiver, reportar WARNING (nao instalar sozinho)
+command -v cargo-audit >/dev/null 2>&1 && cargo audit 2>&1 || echo "AUDIT WARNING: cargo-audit nao instalado"
+```
+
+- [ ] Nenhum `unsafe` novo sem comentario `// SAFETY:` explicando por que e seguro
+- [ ] Nenhum `.unwrap()` ou `.expect()` novo em caminho de producao que recebe dado externo (use `?` e erro tratado)
+
+---
+
+### TIPO: PYTHON (requirements.txt ou pyproject.toml existe)
+
+#### 1. Integridade do Codigo
+
+```bash
+# Sintaxe de todos os .py (ignora ambientes virtuais)
+python3 -m compileall -q $(git ls-files '*.py' 2>/dev/null) 2>&1 || echo "SYNTAX FAILED"
+
+# Lint, se a ferramenta estiver configurada no projeto (ruff preferido; flake8 como alternativa)
+if command -v ruff >/dev/null 2>&1; then ruff check . 2>&1 || echo "LINT FAILED"; \
+elif command -v flake8 >/dev/null 2>&1; then flake8 . 2>&1 || echo "LINT FAILED"; fi
+
+# Tipos, se mypy estiver configurado (pyproject.toml com [tool.mypy] ou mypy.ini)
+if [ -f mypy.ini ] || grep -q "tool.mypy" pyproject.toml 2>/dev/null; then mypy . 2>&1 || echo "TYPECHECK FAILED"; fi
+```
+
+#### 2. Testes
+
+```bash
+python3 -m pytest -q 2>&1 || echo "TESTS FAILED"
+```
+
+Se existir `tests/contracts/`, os testes de contrato rodam aqui e falha e **BLOCKER** (mesma regra do NODE, com a mesma excecao do Passo 3.5 em paralelo).
+
+#### 3. Auditoria de Dependencias
+
+```bash
+# So se pip-audit estiver instalado; se nao estiver, reportar WARNING (nao instalar sozinho)
+command -v pip-audit >/dev/null 2>&1 && pip-audit 2>&1 || echo "AUDIT WARNING: pip-audit nao instalado"
+```
+
+- [ ] Dependencias com versao fixa (`==` ou lockfile como `poetry.lock`/`uv.lock`)
+- [ ] Nenhum `eval()`, `exec()` ou `pickle.loads()` sobre dado externo
+- [ ] Nenhuma consulta SQL montada com f-string ou `%` (use parametros)
+
+---
+
+### TIPO: SQL_MIGRATIONS (pasta supabase/migrations/, migrations/ ou *.sql na raiz)
 
 #### 1. Sintaxe Basica
 
@@ -175,11 +259,11 @@ Leia cada arquivo `.sql` e verifique:
 
 ```bash
 # Listar migrations em ordem e verificar se ha gaps
-ls migrations/*.sql 2>/dev/null | sort | cat -n
+ls supabase/migrations/*.sql migrations/*.sql 2>/dev/null | sort | cat -n
 ```
 
 Verificar manualmente:
-- [ ] Migrations numeradas sequencialmente sem gaps (001, 002, 003 — NAO 001, 002, 004)
+- [ ] Migrations numeradas sequencialmente sem gaps (001, 002, 003 — NAO 001, 002, 004). No Supabase o prefixo e data-hora (`20261014130500_create_profiles.sql`): ali a regra e ordem crescente sem prefixo repetido, nao ausencia de gaps
 - [ ] Sem migrations com o mesmo numero
 - [ ] Ordem de criacao faz sentido (tabelas pai antes de tabelas filho com FK)
 
@@ -318,7 +402,7 @@ Retorne o relatorio EXATAMENTE neste formato:
 - [ ] Sintaxe JS/TS: [PASS | FAIL | N/A]
 - [ ] JSON Valido: [PASS | FAIL | N/A]
 - [ ] Build: [PASS | FAIL | N/A]
-- [ ] Testes de Contrato (tests/contracts/): [PASS | FAIL | WARNING: nao encontrado | N/A]
+- [ ] Testes de Contrato (tests/contracts/): [PASS | FAIL | WARNING: nao encontrado | N/A | N/A (rodados pelo contract-tester, em paralelo)]
 - [ ] Testes Unitarios: [PASS | FAIL | N/A]
 - [ ] Lint: [PASS | FAIL | N/A]
 - [ ] Refs Internas (imports, URLs): [PASS | FAIL | N/A]

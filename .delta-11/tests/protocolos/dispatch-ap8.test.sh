@@ -1,43 +1,29 @@
 #!/usr/bin/env bash
-# Teste de regressão: AP#8 — disparar.sh foi deletado ou desativado.
-# Sistema NAO depende mais de AppleScript para abrir Terminal humano.
+# ════════════════════════════════════════════════════════════════
+# Teste de regressão AP#8 — disparar.sh (AppleScript) não volta
+# ════════════════════════════════════════════════════════════════
+# Conceitos conferidos (D3: zero copiar-e-colar, zero script manual de disparo):
+#   1. disparar.sh não existe na raiz. Se existir, não pode ter AppleScript
+#      (osascript / tell application "Terminal").            [C-125]
+#   2. Nenhum documento recomenda rodar ./disparar.sh.
+# Caminho certo: a RAIZ é a pasta que contém .delta-11/ (C-124).
+# ════════════════════════════════════════════════════════════════
 
 set -euo pipefail
-GREEN='\033[0;32m'; RED='\033[0;31m'; NC='\033[0m'
+source "$(cd "$(dirname "$0")/.." && pwd)/framework/test-helpers.sh"
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-RAIZ="$SCRIPT_DIR/../../../"
-DISPARAR="$RAIZ/disparar.sh"
-CLAUDE="$RAIZ/CLAUDE.md"
+DISPARAR="$REPO_ROOT/disparar.sh"
+CLAUDE="$REPO_ROOT/CLAUDE.md"
 
-falhou=0
-ok() { echo -e "  ${GREEN}[OK]${NC}   $1"; }
-err() { echo -e "  ${RED}[FALTA]${NC}   $1"; falhou=$((falhou + 1)); }
-
-# 1. disparar.sh NAO pode existir (foi deletado)
 if [ ! -f "$DISPARAR" ]; then
-    ok "disparar.sh foi deletado (AppleScript legado removido)"
+    pass "disparar.sh não existe em $(basename "$REPO_ROOT")/ (AppleScript legado removido)"
+elif grep -qE 'osascript|tell application "Terminal"' "$DISPARAR"; then
+    fail "disparar.sh existe e ainda tem AppleScript ativo"
 else
-    # Se existir, NAO pode conter AppleScript ativo
-    if grep -qE "osascript|tell application "Terminal"" "$DISPARAR" 2>/dev/null; then
-        err "disparar.sh existe e ainda tem AppleScript ativo"
-    else
-        ok "disparar.sh existe mas nao tem AppleScript (refatorado)"
-    fi
+    pass "disparar.sh existe mas não tem AppleScript"
 fi
 
-# 2. CLAUDE.md NAO pode recomendar disparar.sh como caminho de fallback
-if grep -qF "Fallback 2 — Script \`./disparar.sh\` legado" "$CLAUDE"; then
-    err "CLAUDE.md ainda recomenda disparar.sh como fallback"
-else
-    ok "CLAUDE.md NAO recomenda disparar.sh"
-fi
+expect_no_instruction "nenhum documento manda rodar ./disparar.sh" \
+    '(rode|rodar|execute|executar|bash|sh)[[:space:]]+(o script )?`?(\./)?disparar\.sh' "$CLAUDE" "$DELTA_DIR/operativos/CRONOS.md" "$DELTA_DIR/operativos/ATLAS.md"
 
-echo ""
-if [ "$falhou" -eq 0 ]; then
-    echo -e "${GREEN}OK — AP#8 corrigido (AppleScript legacy removido)${NC}"
-    exit 0
-else
-    echo -e "${RED}FALTA $falhou item(ns)${NC}"
-    exit 1
-fi
+finish_test "AP#8 — AppleScript legado removido"

@@ -11,7 +11,7 @@
 
 **Quem LÊ:** **CRONOS** — antes de despachar cada mini-plano, copia os gotchas relevantes à zona do agente (formato resumido: `EVITE: [padrão] — [motivo] — [alternativa]`). Agentes NÃO precisam ler o arquivo inteiro — recebem o recorte no mini-plano.
 
-**Manutenção:** máximo ~50 gotchas por projeto. Gotcha repetido → incrementar `Ocorrências` (não duplicar). Gotcha que virou regra permanente do sistema → promover para a base de conhecimento do domínio (via comandante) e remover daqui.
+**Manutenção:** máximo ~50 gotchas por projeto. Gotcha repetido → incrementar `Ocorrências` (não duplicar). Gotcha que vale para qualquer projeto → o CRONOS leva a lição para `~/.delta-11/aprendizados-entre-projetos.md` ao fim do ciclo (D38); se virar regra permanente do sistema, entra na base de conhecimento do domínio na fonte oficial do Δ-11 e sai daqui.
 
 ---
 

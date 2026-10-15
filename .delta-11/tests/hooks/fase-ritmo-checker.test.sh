@@ -1,206 +1,94 @@
 #!/usr/bin/env bash
-# ════════════════════════════════════════════════════════════════
-# Teste do hook fase-ritmo-checker.py (Etapa 5C do v6.0)
-# ════════════════════════════════════════════════════════════════
-#
-# Verifica que:
-#   1. Hook existe em .delta-11/hooks/
-#   2. Hook é executavel (chmod +x)
-#   3. Hook detecta edicao em kanban.md
-#   4. Hook detecta conclusao de tarefas com tag [3.5] ou [RITMO]
-#   5. Hook verifica presenca dos 10 arquivos em .delta-11/memoria/decisoes/
-#      correspondentes aos 10 artefatos do Dia 4
-#   6. Hook Python cross-platform
-#   7. Hook registrado em settings-hooks.json
-#   8. Hook tem exit codes 0/2
-#   9. Hook tem docstring
-#  10. Teste funcional:
-#      - kanban sem 10 artefatos → BLOQUEIA (exit 2)
-#      - kanban com 10 artefatos + tag [3.5] concluida → PASSA (exit 0)
-#      - kanban de fase DIFERENTE (não [3.5]) → passa direto (exit 0)
-# ════════════════════════════════════════════════════════════════
+# Teste do vigia fase-ritmo-checker.py (v6.3 — C-015, C-028; v6.4 — V9 ciclo leve). Fase 3.5 = Dia 4.
+source "$(dirname "$0")/_ajudante-hooks-python.sh" fase-ritmo-checker
+checagens_basicas
 
-set -euo pipefail
+novo_projeto
+DEC="$TEST_DIR/.delta-11/memoria/decisoes"
+kanban $'# Kanban\n## FAZENDO\n- [ ] T-RIT-01 [3.5] sistema de eventos | Agente: ENGINE'
+SELO=$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\n**Fase 3.5 selada** — SUSTENTA (ATLAS)')
 
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-NC='\033[0m'
+espera 0 "concluir uma tarefa da Fase 3.5 (sem selo): passa" "$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=- [ ] T-RIT-01' 'tool_input.new_string=- [x] T-RIT-01')"
+espera 0 "criar tarefa pendente 'Selar Fase 3.5': passa" "$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=## FAZENDO' $'tool_input.new_string=## FAZENDO\n- [ ] T-RIT-11 Selar Fase 3.5 | Agente: ATLAS')"
+espera 0 "texto com 'ritmo temporal' sem selo: passa" "$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\nnotas sobre ritmo temporal')"
+espera 2 "declarar 'Fase 3.5 selada' sem nenhum artefato: bloqueia" "$SELO"
+stderr_contem "Faltam 10"
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-HOOKS_DIR="$(cd "$SCRIPT_DIR/../../hooks" && pwd)"
-HOOK="$HOOKS_DIR/fase-ritmo-checker.py"
-SETTINGS="$SCRIPT_DIR/../../templates/settings-hooks.json"
+for n in 01 02 03 04 05 06 07; do echo "conteudo" > "$DEC/2026-10-14-ritmo-temporal-$n-item.md"; done
+espera 2 "com 7 de 10 artefatos: bloqueia" "$SELO"
+stderr_contem "Faltam 3"
+stderr_contem "08. ci-cd-staging"
+if printf '%s' "$SAIDA_ERRO" | grep -q "01. sistema-eventos  ->"; then err "lista um artefato que JA existe como faltante (C-028)"; else ok "nao lista como faltante o que ja existe (C-028)"; fi
 
-falhou=0
-ok() { echo -e "  ${GREEN}[OK]${NC}   $1"; }
-err() { echo -e "  ${RED}[FALTA]${NC} $1"; falhou=$((falhou + 1)); }
+: > "$DEC/2026-10-14-ritmo-temporal-08-ci-cd-staging.md"
+echo x > "$DEC/2026-10-14-ritmo-temporal-07-copia.md"
+espera 2 "arquivo vazio e numero repetido nao contam" "$SELO"
+stderr_contem "Faltam 3"
 
-# 1. Hook existe
-if [ -f "$HOOK" ]; then
-    ok "hook existe em $HOOK"
-else
-    err "hook AUSENTE em $HOOK"
-    echo ""
-    echo "Teste de regressão do hook da Fase 3.5."
-    exit 1
-fi
+for n in 08 09 10; do echo "conteudo" > "$DEC/2026-10-14-ritmo-temporal-$n-item.md"; done
+espera 0 "com os 10 artefatos (01 a 10): selo liberado" "$SELO"
+espera 0 "[SELO 3.5] tambem e reconhecido e passa com os 10" "$(evento tool_name=Edit tool_input.file_path=$TEST_DIR/.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\n- [x] [SELO 3.5] ritmo')"
+rm -f "$DEC"/*-ritmo-temporal-10-*
+espera 2 "[SELO 3.5] com 9 artefatos: bloqueia" "$(evento tool_name=Edit tool_input.file_path=$TEST_DIR/.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\n- [x] [SELO 3.5] ritmo')"
+espera 0 "selo de OUTRA fase (Fase 3) nao e assunto deste vigia" "$(evento tool_name=Edit tool_input.file_path=$TEST_DIR/.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\nFase 3 selada')"
 
-# 2. Executavel
-if [ -x "$HOOK" ]; then
-    ok "hook é executavel"
-else
-    err "hook NAO é executavel"
-fi
-
-# 3. Detecta kanban.md
-if grep -qE "kanban\.md|\.delta-11/kanban" "$HOOK"; then
-    ok "hook detecta edicao em kanban.md"
-else
-    err "hook NAO detecta kanban.md"
-fi
-
-# 4. Detecta tag [3.5] / [RITMO] da fase
-if grep -qE "\[3\.5\]|\[RITMO\]|ritmo" "$HOOK"; then
-    ok "hook detecta tag da Fase 3.5"
-else
-    err "hook NAO detecta tag da Fase 3.5"
-fi
-
-# 5. Verifica 10 arquivos em memoria/decisoes
-if grep -qE "memoria/decisoes|ritmo-temporal" "$HOOK"; then
-    ok "hook verifica artefatos em memoria/decisoes"
-else
-    err "hook NAO verifica artefatos em memoria/decisoes"
-fi
-
-# 6. Python cross-platform
-if head -1 "$HOOK" | grep -q "python"; then
-    ok "hook é Python"
-else
-    err "hook NAO é Python"
-fi
-
-# 7. Registrado em settings
-if [ -f "$SETTINGS" ] && grep -q "fase-ritmo-checker" "$SETTINGS"; then
-    ok "hook registrado em settings-hooks.json"
-else
-    err "hook NAO registrado em settings-hooks.json"
-fi
-
-# 8. Exit codes
-if grep -qE "sys\.exit\(0\)|return 0" "$HOOK" && grep -qE "sys\.exit\(2\)|return 2" "$HOOK"; then
-    ok "hook implementa exit codes 0/2"
-else
-    err "hook NAO implementa exit codes"
-fi
-
-# 9. Docstring
-if head -5 "$HOOK" | grep -qE '"""'; then
-    ok "hook tem docstring"
-else
-    err "hook NAO tem docstring"
-fi
-
-# Teste funcional
-TEST_DIR=$(mktemp -d)
-mkdir -p "$TEST_DIR/.delta-11/memoria/decisoes"
-TEST_KB="$TEST_DIR/.delta-11/kanban.md"
-cat > "$TEST_KB" <<'EOF'
-# Kanban
-## A FAZER
-- [ ] T-ARQUI-001 [ARQUITETO] Definir paradigma de arquitetura
-EOF
-
-# Cenario A — Edit em kanban concluindo tarefa Fase 3.5 SEM 10 artefatos → BLOQUEIA
-RESULT=$(python3 -c "
-import json
-event = {
-    'tool_name': 'Edit',
-    'tool_input': {
-        'file_path': '$TEST_KB',
-        'old_string': '## A FAZER\n- [ ] T-ARQUI-001 [ARQUITETO] Definir paradigma de arquitetura',
-        'new_string': '## A FAZER\n\n## CONCLUIDO\n- [x] T-ARQUI-001 [3.5] [RITMO] Preencher 10 artefatos do Dia 4'
-    }
+# ── v6.4 — V9: ciclo leve (checklist de 1 página do Ciclo 2 em diante) ──
+novo_projeto
+DEC="$TEST_DIR/.delta-11/memoria/decisoes"
+selo_no_ciclo() {  # $1 = linha do ciclo no kanban ("" = sem informação)
+    kanban "# Kanban"$'\n'"$1"
+    evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\n**Fase 3.5 selada** — SUSTENTA (BACK)'
 }
-print(json.dumps(event))
-" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?")
-EXIT_CODE=$(echo "$RESULT" | grep "EXIT=" | cut -d= -f2)
-
-if [ "$EXIT_CODE" = "2" ]; then
-    ok "hook BLOQUEIA conclusao Fase 3.5 sem 10 artefatos"
-elif [ "$EXIT_CODE" = "0" ]; then
-    err "hook NAO bloqueia conclusao Fase 3.5 sem artefatos (deveria dar exit 2)"
-else
-    err "hook retornou exit code inesperado ($EXIT_CODE)"
-fi
-
-# Cenario B — kanban com tarefa de fase diferente → nao afeta (passa direto)
-RESULT=$(python3 -c "
-import json
-event = {
-    'tool_name': 'Edit',
-    'tool_input': {
-        'file_path': '$TEST_KB',
-        'old_string': '- [ ] T-ARQUI-001 [ARQUITETO]',
-        'new_string': '- [x] T-ARQUI-001 [ARQUITETO] — feito'
-    }
+checklist_ritmo() {  # $1 = arquivo; $2 = resposta do item 04 (vazio = não responde)
+    {
+        echo "# Checklist de Ritmo Temporal — Ciclo 2"
+        echo "| Nº | Item | Neste ciclo | Documento completo |"
+        echo "|---|---|---|---|"
+        for item in "01 sistema-eventos" "02 filas" "03 jobs-agendados" "04 cache-ttl" "05 timeouts" \
+                    "06 retries" "07 circuit-breakers" "08 ci-cd-staging" "09 observabilidade" "10 sub-contraposicao"; do
+            n="${item%% *}"; slug="${item#* }"
+            if [ "$n" = "04" ]; then resposta="$2"; else resposta="sem mudança"; fi
+            echo "| $n | $slug | $resposta | — |"
+        done
+    } > "$1"
 }
-print(json.dumps(event))
-" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?")
-EXIT_CODE=$(echo "$RESULT" | grep "EXIT=" | cut -d= -f2)
 
-if [ "$EXIT_CODE" = "0" ]; then
-    ok "hook ignora conclusoes de tarefas de fase diferente da 3.5"
-elif [ "$EXIT_CODE" = "2" ]; then
-    err "hook bloqueia conclusao de fase nao-3.5 (NAO deveria)"
-else
-    err "hook retornou exit code inesperado ($EXIT_CODE)"
-fi
+espera 2 "Ciclo 1 (sem informação de ciclo) sem os 10 documentos: bloqueia" "$(selo_no_ciclo "")"
+stderr_contem "Faltam 10"
+checklist_ritmo "$DEC/2026-10-15-ritmo-temporal-checklist-ciclo-1.md" "sem mudança"
+espera 2 "Ciclo 1 explícito: o checklist NÃO substitui os 10 documentos" "$(selo_no_ciclo "**Ciclo atual:** 1")"
+rm -f "$DEC"/*-checklist-ciclo-1.md
 
-# Cenario C — kanban com 10 artefatos + selo explicito → passa
-# Cria 10 arquivos de artefatos
-for i in 1 2 3 4 5 6 7 8 9 10; do
-    touch "$TEST_DIR/.delta-11/memoria/decisoes/2026-07-11-ritmo-temporal-0$i-teste.md"
-done
-# Atualiza kanban com tarefas
-cat > "$TEST_KB" <<'EOF'
-# Kanban
-## A FAZER
+espera 2 "Ciclo 2 sem checklist e sem documentos: bloqueia" "$(selo_no_ciclo "**Ciclo atual:** 2")"
+stderr_contem "ritmo-temporal-checklist-ciclo-2.md"
+stderr_contem "ritmo-temporal-checklist-template.md"
 
-## CONCLUIDO
-- [x] T-RITMO-001 [3.5] [RITMO] Preencher 10 artefatos do Dia 4 — **SELADA**
-EOF
+checklist_ritmo "$DEC/2026-10-15-ritmo-temporal-checklist-ciclo-2.md" "sem mudança"
+espera 0 "Ciclo 2 com o checklist completo: selo liberado" "$(selo_no_ciclo "**Ciclo atual:** 2")"
+log_contem "fase-ritmo-checker.*Ciclo 2.*checklist"
+espera 2 "checklist do Ciclo 2 NÃO vale para o Ciclo 3" "$(selo_no_ciclo "**Ciclo atual:** 3")"
+espera 0 "ciclo lido do fase_atual do kanban-data.js (\"Ciclo 2 · Fase 3.5\")" "$(
+    printf 'window.KANBAN_DATA = {\n  fase_atual: "Ciclo 2 · Fase 3.5 · onda 1 de 2",\n};\n' > "$TEST_DIR/.delta-11/kanban-data.js"
+    selo_no_ciclo "")"
+rm -f "$TEST_DIR/.delta-11/kanban-data.js"
+espera 0 "ciclo lido da linha **Fase atual:** (\"Ciclo 2 — Fase 3.5\")" "$(selo_no_ciclo "**Fase atual:** Ciclo 2 — Fase 3.5")"
+espera 0 "ciclo lido da própria linha do selo (\"[SELO 3.5] Ciclo 2\")" "$(kanban "# Kanban"; evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\n[SELO 3.5] Ciclo 2 — SUSTENTA')"
 
-RESULT=$(python3 -c "
-import json
-event = {
-    'tool_name': 'Edit',
-    'tool_input': {
-        'file_path': '$TEST_KB',
-        'old_string': '## A FAZER',
-        'new_string': '## A FAZER\n\n## CONCLUIDO_EXTRA\n- [x] T-RITMO-002 teste'
-    }
-}
-print(json.dumps(event))
-" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?")
-EXIT_CODE=$(echo "$RESULT" | grep "EXIT=" | cut -d= -f2)
+checklist_ritmo "$DEC/2026-10-15-ritmo-temporal-checklist-ciclo-2.md" "[sem mudança — ou \"mudou: ...\"]"
+espera 2 "Ciclo 2 com checklist sem resposta no item 04 (marcador do modelo): bloqueia" "$(selo_no_ciclo "**Ciclo atual:** 2")"
+stderr_contem "04. cache-ttl"
+checklist_ritmo "$DEC/2026-10-15-ritmo-temporal-checklist-ciclo-2.md" "mudou: TTL do catálogo caiu para 5 min (novo campo de estoque)"
+espera 0 "item 04 com a mudança em 1 linha: passa" "$(selo_no_ciclo "**Ciclo atual:** 2")"
+checklist_ritmo "$DEC/2026-10-15-ritmo-temporal-checklist-ciclo-2.md" "mudou: cache novo — documento completo: 2026-10-15-ritmo-temporal-04-cache-ttl.md"
+espera 2 "item 04 cita documento completo que NÃO existe: bloqueia" "$(selo_no_ciclo "**Ciclo atual:** 2")"
+stderr_contem "documento completo"
+echo "cache novo do catalogo" > "$DEC/2026-10-15-ritmo-temporal-04-cache-ttl.md"
+espera 0 "item 04 cita documento completo que existe: passa" "$(selo_no_ciclo "**Ciclo atual:** 2")"
 
-# Nota: este cenario pode dar exit 0 ou 2 dependendo do hook. Vamos aceitar ambos
-# se exit != 0 estiver documentado como "precisa de mais". Por simplicidade,
-# aceitamos 0 ou 2 (nao falhamos o teste) — o cenario A é o que importa.
-if [ "$EXIT_CODE" = "0" ] || [ "$EXIT_CODE" = "2" ]; then
-    ok "hook processa kanban com 10 artefatos + selo (exit $EXIT_CODE)"
-fi
-
-# Limpa
-rm -rf "$TEST_DIR"
-
-# Resumo
-echo ""
-if [ "$falhou" -eq 0 ]; then
-    echo -e "${GREEN}OK — hook fase-ritmo-checker.py implementado${NC}"
-    exit 0
-else
-    echo -e "${RED}FALTA $falhou item(ns)${NC}"
-    exit 1
-fi
+: > "$DEC/2026-10-15-ritmo-temporal-checklist-ciclo-2.md"
+rm -f "$DEC"/*-ritmo-temporal-04-*
+for n in 01 02 03 04 05 06 07 08 09 10; do echo "conteudo" > "$DEC/2026-10-14-ritmo-temporal-$n-item.md"; done
+espera 2 "Ciclo 2 só com os 10 documentos do Ciclo 1, sem checklist do ciclo atual: bloqueia (v6.4)" "$(selo_no_ciclo "**Ciclo atual:** 2")"
+checklist_ritmo "$DEC/2026-10-15-ritmo-temporal-checklist-ciclo-2.md" ""
+espera 2 "Ciclo 2: checklist COMEÇADO e incompleto bloqueia mesmo com documentos antigos" "$(selo_no_ciclo "**Ciclo atual:** 2")"
+fim

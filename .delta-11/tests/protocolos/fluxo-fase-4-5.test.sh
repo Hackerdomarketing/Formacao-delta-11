@@ -1,117 +1,52 @@
 #!/usr/bin/env bash
 # ════════════════════════════════════════════════════════════════
-# Teste da Etapa 2B do v6.0 — Fluxo com Fase 4.5 (Consciencia)
+# Teste do fluxo-zero-ao-lancamento.md — Fase 4.5 (Consciência = Dia 6)
 # ════════════════════════════════════════════════════════════════
-#
-# Verifica que o protocolo de fluxo-zero-ao-lancamento.md declara:
-#   1. Cabecalho 'FASE 4.5' existe entre Fase 4 e Fase 5
-#   2. Nomeada com termo do Dia 6 (consciencia/autenticacao/autorizacao)
-#   3. Quem faz
-#   4. Janela estimada
-#   5. Resultado esperado
-#   6. 5 entregaveis: auditoria imutavel, rate limiting, motor de regras,
-#      LGPD, fluxos de aprovacao
-#   7. Cross-reference com skills globais v5.4 (owasp-top10, supabase-rls)
-#   8. ORDEM: 4.5 vem ANTES da Fase 5
+# Conceitos conferidos (seção = do título "FASE 4.5" ao próximo título de fase):
+#   1. Título da Fase 4.5 com termo do Dia 6.
+#   2. Quem faz, quem sela e resultado. (As "janelas" foram abolidas na
+#      v6.3 — D3: ninguém abre janela; o CRONOS conduz.)
+#   3. Os 5 entregáveis do Dia 6. Desde a v6.3 o fluxo diz "limite de
+#      requisições" (rate limit). O teste aceita os dois nomes.
+#   4. Liga com as skills globais (owasp-top10 / supabase-rls).
+#   5. Ordem: Fase 4 < Fase 4.5 < Fase 5.
 # ════════════════════════════════════════════════════════════════
 
 set -euo pipefail
+source "$(cd "$(dirname "$0")/.." && pwd)/framework/test-helpers.sh"
 
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-NC='\033[0m'
+DOC="$DELTA_DIR/protocolos/fluxo-zero-ao-lancamento.md"
+require_file "$DOC" ".delta-11/protocolos/fluxo-zero-ao-lancamento.md" || finish_test "Fase 4.5 no fluxo"
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-DOC="$SCRIPT_DIR/../../protocolos/fluxo-zero-ao-lancamento.md"
-
-falhou=0
-ok() { echo -e "  ${GREEN}[OK]${NC}   $1"; }
-err() { echo -e "  ${RED}[FALTA]${NC} $1"; falhou=$((falhou + 1)); }
-
-if [ ! -f "$DOC" ]; then
-    echo "fluxo-zero-ao-lancamento.md AUSENTE em $DOC"
-    exit 1
+TITULO='^#{2,4} FASE 4\.5([^0-9]|$)'
+SECAO=$(markdown_section "$DOC" "$TITULO")
+if [ -z "$SECAO" ]; then
+    fail "título 'FASE 4.5' ausente"
+    finish_test "Fase 4.5 no fluxo"
 fi
+pass "título 'FASE 4.5' presente"
 
-# 1. Cabecalho
-if grep -qE "^### FASE 4\.5 " "$DOC"; then
-    ok "cabecalho 'FASE 4.5' presente"
-else
-    err "cabecalho 'FASE 4.5' AUSENTE"
-fi
-
-# 2. Nomeada com termo do Dia 6
-if grep -E "^### FASE 4\.5 " "$DOC" | grep -qi "consciência\|consciencia\|autenticação\|autorização"; then
-    ok "Fase 4.5 nomeada com termo do Dia 6"
-else
-    err "Fase 4.5 NAO nomeada com termo do Dia 6"
-fi
-
-# 3. Quem faz
-if grep -A40 "^### FASE 4\.5 " "$DOC" | grep -qiF "Quem"; then
-    ok "Fase 4.5 declara quem faz"
-else
-    err "Fase 4.5 NAO declara quem faz"
-fi
-
-# 4. Janela
-if grep -A40 "^### FASE 4\.5 " "$DOC" | grep -qiF "Janela"; then
-    ok "Fase 4.5 declara janela"
-else
-    err "Fase 4.5 NAO declara janela"
-fi
-
-# 5. Resultado
-if grep -A40 "^### FASE 4\.5 " "$DOC" | grep -qF "**Resultado:**"; then
-    ok "Fase 4.5 declara Resultado"
-else
-    err "Fase 4.5 NAO declara Resultado"
-fi
-
-# 6. Os 5 entregaveis do Dia 6
-entregaveis=(
-    "auditoria imutável"
-    "rate limiting"
-    "motor de regras"
-    "LGPD"
-    "fluxos de aprovação"
-)
-for ent in "${entregaveis[@]}"; do
-    if grep -A50 "^### FASE 4\.5 " "$DOC" | grep -qiF "$ent"; then
-        ok "Fase 4.5 menciona entregavel '$ent'"
-    else
-        err "Fase 4.5 NAO menciona entregavel '$ent'"
-    fi
+section_has() {
+    if grep -qiE -- "$1" <<< "$SECAO"; then pass "$2"; else fail "$2"; fi
+}
+section_has "^#{2,4} FASE 4\.5.*(consci(ê|e)ncia|autentica(ção|cao)|autoriza(ção|cao))" "Fase 4.5 nomeada com termo do Dia 6"
+section_has "quem" "Fase 4.5 diz quem faz"
+section_has "quem sela|quem conduz|orquestrad[oa]s? pelo CRONOS" "Fase 4.5 diz quem conduz / quem sela"
+section_has "resultado" "Fase 4.5 diz o resultado"
+for entregavel in "auditoria imut(á|a)vel" "rate limit|limite de requisi(ç|c)(õ|o)es" "motor de regras" "LGPD" "fluxos? de aprova(ção|cao|ções|coes)"; do
+    section_has "$entregavel" "Fase 4.5 cita o entregável '$entregavel'"
 done
+section_has "owasp-top10|supabase-rls|skills-globais" "Fase 4.5 liga com as skills globais"
 
-# 7. Cross-reference com skills globais v5.4
-if grep -A50 "^### FASE 4\.5 " "$DOC" | grep -qiE "owasp-top10|supabase-rls|skills-globais"; then
-    ok "Fase 4.5 cross-reference com skills globais v5.4"
-else
-    err "Fase 4.5 NAO cross-reference com skills globais — fica orfa do v5.4"
-fi
-
-# 8. ORDEM — 4.5 entre 4 e 5
-pos_45=$(grep -nE "^### FASE 4\.5 " "$DOC" | head -1 | cut -d: -f1 || echo "0")
-pos_4=$(grep -nE "^### FASE 4 " "$DOC" | head -1 | cut -d: -f1 || echo "999")
-pos_5=$(grep -nE "^### FASE 5 " "$DOC" | head -1 | cut -d: -f1 || echo "9999")
-
-if [ "$pos_45" = "0" ]; then
-    err "Fase 4.5 AUSENTE — impossivel verificar ordem"
-elif [ "$pos_4" = "999" ] || [ "$pos_5" = "9999" ]; then
-    err "Fase 4 ou 5 AUSENTE — impossivel verificar ordem"
+pos_4=$(first_line_number "$DOC" '^#{2,4} FASE 4([^.0-9]|$)')
+pos_45=$(first_line_number "$DOC" "$TITULO")
+pos_5=$(first_line_number "$DOC" '^#{2,4} FASE 5([^.0-9]|$)')
+if [ -z "$pos_4" ] || [ -z "$pos_5" ]; then
+    fail "não deu para conferir a ordem — falta o título da Fase 4 ou da Fase 5"
 elif [ "$pos_4" -lt "$pos_45" ] && [ "$pos_45" -lt "$pos_5" ]; then
-    ok "Fase 4.5 (linha $pos_45) entre Fase 4 (linha $pos_4) e Fase 5 (linha $pos_5) — ordem correta"
+    pass "ordem certa: Fase 4 (linha $pos_4) < Fase 4.5 (linha $pos_45) < Fase 5 (linha $pos_5)"
 else
-    err "ORDEM ERRADA — Fase 4 (linha $pos_4) / 4.5 (linha $pos_45) / 5 (linha $pos_5). Esperado: 4 < 4.5 < 5"
+    fail "ORDEM ERRADA: Fase 4 (linha $pos_4) / 4.5 (linha $pos_45) / 5 (linha $pos_5)"
 fi
 
-# Resumo
-echo ""
-if [ "$falhou" -eq 0 ]; then
-    echo -e "${GREEN}OK — Fase 4.5 (Consciencia) integra o fluxo corretamente${NC}"
-    exit 0
-else
-    echo -e "${RED}FALTA $falhou item(ns) — corrigir antes de prosseguir para Etapa 2C${NC}"
-    exit 1
-fi
+finish_test "Fase 4.5 (Consciência) integra o fluxo"

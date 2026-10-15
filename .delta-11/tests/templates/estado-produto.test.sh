@@ -1,83 +1,73 @@
 #!/usr/bin/env bash
 # ════════════════════════════════════════════════════════════════
-# Teste do template estado-produto-template.md (G1 — F4 do Bloco A)
+# Teste dos templates de estado: produto × história (D7, D8, D9, D38)
 # ════════════════════════════════════════════════════════════════
-#
-# Verifica que o template:
-#   1. Tem seção AUTOCRÍTICA com formato de path esperado
-#   2. Tem seção PORQUÊS-CHAVE (v5)
-#   3. Tem seção DESVIOS DO PLANO (v5)
-#   4. Tem seção RELATÓRIOS DE SUB-AGENTES (v5)
-#   5. Tem seção O QUE FOI DECIDIDO NÃO FAZER
-#   6. Tem EXEMPLO COMPLETO PREENCHIDO com o bloco markdown de exemplo
-#   7. Limite de 500 tokens visível no topo
-#
-# Saída: exit 0 se tudo OK, exit 1 com lista de faltantes se falhar.
+# Conceitos conferidos:
+#   D8  O estado do agente é DOIS arquivos:
+#       - [NOME]-produto.md (o que existe agora; limite de 500 tokens para
+#         executores; ATLAS e CRONOS isentos);
+#       - [NOME]-historia.md (diário, sem limite).
+#       O estado-agente-template.md ([NOME]-estado.md) é LEGADO: se ainda
+#       existir, precisa se declarar legado.
+#   D9  O produto tem a linha "autocritica: <caminho>" apontando para
+#       .delta-11/logs/autocritica/.
+#   D7  O produto tem a seção PROPOSTAS PARA O PROJECT-CORE (quem não é o
+#       ATLAS propõe ali; o CRONOS encaminha).
+#   v5  Seções PORQUÊS-CHAVE, DESVIOS DO PLANO, RELATÓRIOS DE SUB-AGENTES,
+#       O QUE FOI DECIDIDO NÃO FAZER e um exemplo completo preenchido.
+#   D38 A história não aponta mais para a skill "inteligencia-progressiva":
+#       as lições vão para ~/.delta-11/aprendizados-entre-projetos.md.
 # ════════════════════════════════════════════════════════════════
 
 set -euo pipefail
+source "$(cd "$(dirname "$0")/.." && pwd)/framework/test-helpers.sh"
 
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-NC='\033[0m'
+PRODUTO="$DELTA_DIR/templates/estado-produto-template.md"
+HISTORIA="$DELTA_DIR/templates/estado-historia-template.md"
+LEGADO="$DELTA_DIR/templates/estado-agente-template.md"
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-# tests/templates/ → tests/ → .delta-11/ → templates/
-TEMPLATE="$SCRIPT_DIR/../../templates/estado-produto-template.md"
-
-if [ ! -f "$TEMPLATE" ]; then
-    echo -e "${RED}[FAIL]${NC} template nao encontrado: $TEMPLATE"
-    exit 1
+if require_file "$PRODUTO" ".delta-11/templates/estado-produto-template.md"; then
+    TOPO_PRODUTO="$(head -12 "$PRODUTO")"
+    if grep -qiE "500 tokens" <<< "$TOPO_PRODUTO"; then
+        pass "D8: limite de 500 tokens visível no topo do produto"
+    else
+        fail "D8: limite de 500 tokens não aparece no topo do produto"
+    fi
+    if grep -qE "ATLAS" <<< "$TOPO_PRODUTO" && grep -qE "CRONOS" <<< "$TOPO_PRODUTO"; then
+        pass "D8: o topo diz que ATLAS e CRONOS ficam fora do limite"
+    else
+        fail "D8: o topo não diz que ATLAS e CRONOS ficam fora do limite"
+    fi
+    expect_match "$PRODUTO" "autocr(í|i)tica:[[:space:]]*\.?(\.delta-11/)?logs/autocritica/" \
+        "D9: linha 'autocritica: <caminho>' apontando para .delta-11/logs/autocritica/"
+    expect_match "$PRODUTO" "^#+ .*PROPOSTAS PARA O PROJECT-CORE" "D7: seção PROPOSTAS PARA O PROJECT-CORE"
+    expect_match "$PRODUTO" "^#+ .*PORQU(Ê|E)S-CHAVE" "seção PORQUÊS-CHAVE"
+    expect_match "$PRODUTO" "^#+ .*DESVIOS DO PLANO" "seção DESVIOS DO PLANO"
+    expect_match "$PRODUTO" "^#+ .*RELAT(Ó|O)RIOS DE SUB-AGENTES" "seção RELATÓRIOS DE SUB-AGENTES"
+    expect_match "$PRODUTO" "^#+ .*DECIDIDO N(Ã|A)O FAZER" "seção O QUE FOI DECIDIDO NÃO FAZER"
+    if grep -qiE "EXEMPLO COMPLETO PREENCHIDO" "$PRODUTO" && grep -qE '^```markdown' "$PRODUTO"; then
+        pass "exemplo completo preenchido (bloco markdown)"
+    else
+        fail "exemplo completo preenchido ausente"
+    fi
+    expect_no_instruction "D8: o produto não manda escrever [NOME]-estado.md" "-estado\.md" "$PRODUTO"
 fi
 
-falhou=0
-ok() { echo -e "  ${GREEN}[OK]${NC} $1"; }
-err() { echo -e "  ${RED}[FALTA]${NC} $1"; falhou=$((falhou + 1)); }
+if require_file "$HISTORIA" ".delta-11/templates/estado-historia-template.md"; then
+    expect_match "$HISTORIA" "sem limite" "D8: a história não tem limite de tamanho"
+    expect_no_match "$HISTORIA" "intelig(ê|e)ncia[ -]progressiva" \
+        "D38: a história não aponta para a skill inteligencia-progressiva"
+fi
 
-# 1. AUTOCRÍTICA com formato correto
-grep -q "## AUTOCRÍTICA" "$TEMPLATE" && \
-    grep -q "\.delta-11/logs/autocritica/" "$TEMPLATE" \
-    && ok "secao AUTOCRITICA com formato de path esperado" \
-    || err "secao AUTOCRITICA com formato .delta-11/logs/autocritica/AAAA-MM-DD-T-XXX-NOME.md"
-
-# 2. PORQUÊS-CHAVE
-grep -q "## PORQUÊS-CHAVE" "$TEMPLATE" \
-    && ok "secao PORQUEIS-CHAVE presente" \
-    || err "secao PORQUEIS-CHAVE ausente"
-
-# 3. DESVIOS DO PLANO
-grep -q "## DESVIOS DO PLANO" "$TEMPLATE" \
-    && ok "secao DESVIOS DO PLANO presente" \
-    || err "secao DESVIOS DO PLANO ausente"
-
-# 4. RELATÓRIOS DE SUB-AGENTES
-grep -q "## RELATÓRIOS DE SUB-AGENTES" "$TEMPLATE" \
-    && ok "secao RELATORIOS DE SUB-AGENTES presente" \
-    || err "secao RELATORIOS DE SUB-AGENTES ausente"
-
-# 5. DECIDIDO NÃO FAZER
-grep -q "## O QUE FOI DECIDIDO NÃO FAZER" "$TEMPLATE" \
-    && ok "secao O QUE FOI DECIDIDO NAO FAZER presente" \
-    || err "secao DECIDIDO NAO FAZER ausente"
-
-# 6. EXEMPLO COMPLETO PREENCHIDO (v5.4 — F4)
-grep -q "EXEMPLO COMPLETO PREENCHIDO" "$TEMPLATE" && \
-    grep -q "^> Para agentes novos" "$TEMPLATE" && \
-    grep -q '```markdown' "$TEMPLATE" \
-    && ok "EXEMPLO COMPLETO PREENCHIDO presente (F4)" \
-    || err "EXEMPLO COMPLETO PREENCHIDO ausente (F4 nao fechado)"
-
-# 7. Limite 500 tokens visível
-grep -q "LIMITE DURO: 500 tokens" "$TEMPLATE" \
-    && ok "LIMITE 500 TOKENS visivel no topo" \
-    || err "LIMITE 500 TOKENS ausente"
-
-if [ "$falhou" -eq 0 ]; then
-    echo ""
-    echo -e "${GREEN}[OK]${NC} estado-produto-template: todas as secoes obrigatorias + exemplo (F4)"
-    exit 0
+if [ -f "$LEGADO" ]; then
+    TOPO_LEGADO="$(head -10 "$LEGADO")"
+    if grep -qiE "legad|LEGAD|n(ã|a)o (use|usar|escreva)" <<< "$TOPO_LEGADO"; then
+        pass "D8: estado-agente-template.md se declara LEGADO"
+    else
+        fail "D8: estado-agente-template.md ([NOME]-estado.md) ainda existe sem se declarar LEGADO"
+    fi
 else
-    echo ""
-    echo -e "${RED}[FAIL]${NC} $falhou verificacao(oes) faltando"
-    exit 1
+    pass "D8: estado-agente-template.md (legado) não existe mais"
 fi
+
+finish_test "templates de estado produto × história"

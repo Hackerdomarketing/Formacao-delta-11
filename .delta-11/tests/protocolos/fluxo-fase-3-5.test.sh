@@ -1,124 +1,56 @@
 #!/usr/bin/env bash
 # ════════════════════════════════════════════════════════════════
-# Teste da Etapa 2 do v6.0 — Fluxo com Fase 3.5 (Ritmo Temporal)
+# Teste do fluxo-zero-ao-lancamento.md — Fase 3.5 (Ritmo Temporal = Dia 4)
 # ════════════════════════════════════════════════════════════════
-#
-# Verifica que o protocolo de fluxo-zero-ao-lancamento.md declara:
-#   1. Fase 3.5 — RITMO TEMPORAL existe entre Fase 3 e Fase 4
-#   2. Quem faz (CRONOS + DevOps/SRE)
-#   3. Janelas estimadas
-#   4. Resultado esperado
-#   5. Critério de selo com os 10 artefatos do Dia 4
-#   6. Cross-reference com a base canonica da Metodologia Genesis
-#   7. A Fase 3.5 vem ANTES da Fase 4 (ordem inegociavel)
-#
-# Guard de regressao: se a Fase 3.5 for removida ou renomeada,
-# este teste falha. Se ela for colocada DEPOIS da Fase 4 (inversao
-# heretica), este teste tambem falha.
+# Conceitos conferidos (a seção vai do título "FASE 3.5" até o próximo
+# título de fase — não depende de "N linhas depois"):
+#   1. Existe o título da Fase 3.5, com termo do Dia 4 (ritmo/astros/temporal).
+#   2. A seção diz quem faz, quem sela e o resultado esperado. (As "janelas"
+#      foram abolidas na v6.3 — D3: ninguém abre janela; o CRONOS conduz.)
+#   3. A seção cita os 10 artefatos do Dia 4. Desde a v6.3 o fluxo usa os
+#      nomes em português: "tempos-limite" (timeout) e "novas tentativas"
+#      (retry). O teste aceita os dois nomes.
+#   4. Ordem: Fase 3 < Fase 3.5 < Fase 4.
+#   5. Liga com a Metodologia Gênesis.
 # ════════════════════════════════════════════════════════════════
 
 set -euo pipefail
+source "$(cd "$(dirname "$0")/.." && pwd)/framework/test-helpers.sh"
 
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-NC='\033[0m'
+DOC="$DELTA_DIR/protocolos/fluxo-zero-ao-lancamento.md"
+require_file "$DOC" ".delta-11/protocolos/fluxo-zero-ao-lancamento.md" || finish_test "Fase 3.5 no fluxo"
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-DOC="$SCRIPT_DIR/../../protocolos/fluxo-zero-ao-lancamento.md"
+TITULO='^#{2,4} FASE 3\.5([^0-9]|$)'
+SECAO=$(markdown_section "$DOC" "$TITULO")
 
-falhou=0
-ok() { echo -e "  ${GREEN}[OK]${NC}   $1"; }
-err() { echo -e "  ${RED}[FALTA]${NC} $1"; falhou=$((falhou + 1)); }
-
-if [ ! -f "$DOC" ]; then
-    echo "fluxo-zero-ao-lancamento.md AUSENTE em $DOC"
-    exit 1
+if [ -z "$SECAO" ]; then
+    fail "título 'FASE 3.5' ausente — sem ele o Dia 4 não existe no fluxo"
+    finish_test "Fase 3.5 no fluxo"
 fi
+pass "título 'FASE 3.5' presente"
 
-# 1. Cabecalho da Fase 3.5 existe
-if grep -qE "^### FASE 3\.5 " "$DOC"; then
-    ok "cabecalho 'FASE 3.5' presente"
-else
-    err "cabecalho 'FASE 3.5' AUSENTE — sem isso, Dia 4 nao existe no fluxo"
-fi
-
-# 2. Nome da Fase 3.5 menciona RITMO (palavra-chave do Dia 4)
-# Procura na mesma linha do cabecalho
-if grep -E "^### FASE 3\.5 " "$DOC" | grep -qi "ritmo\|astros\|temporal"; then
-    ok "Fase 3.5 nomeada com termo do Dia 4 (ritmo/astros/temporal)"
-else
-    err "Fase 3.5 NAO nomeada com termo do Dia 4 — confusao conceitual"
-fi
-
-# 3. Quem faz — CRONOS + DevOps/SRE/lider tecnico presentes
-# Range de 25 linhas apos o cabecalho cobre a secao inteira
-if grep -A25 "^### FASE 3\.5 " "$DOC" | grep -qi "CRONOS\|DevOps\|SRE\|l[íi]der t[ée]cnico"; then
-    ok "Fase 3.5 declara quem faz"
-else
-    err "Fase 3.5 NAO declara quem faz"
-fi
-
-# 4. Janela estimada presente (formato: Janela(s): N — busca simples para evitar problemas de regex)
-if grep -A25 "^### FASE 3\.5 " "$DOC" | grep -qiF "Janela"; then
-    ok "Fase 3.5 declara janela estimada"
-else
-    err "Fase 3.5 NAO declara janela estimada"
-fi
-
-# 5. Resultado esperado presente (palavra-chave: Resultado no padrao das outras fases)
-# Range de 40 linhas apos o cabecalho cobre secoes inteiras
-if grep -A40 "^### FASE 3\.5 " "$DOC" | grep -qF "**Resultado:**"; then
-    ok "Fase 3.5 declara Resultado esperado"
-else
-    err "Fase 3.5 NAO declara Resultado esperado (padrao das outras fases)"
-fi
-
-# 6. Critério de selo com os 10 artefatos do Dia 4
-artefatos=(
-    "eventos"
-    "filas"
-    "jobs"
-    "cache"
-    "timeout"
-    "retry"
-    "circuit breaker"
-    "CI/CD"
-    "observabilidade"
-    "Sub-contraposição"
-)
-for art in "${artefatos[@]}"; do
-    if grep -A40 "^### FASE 3\.5 " "$DOC" | grep -qiF "$art"; then
-        ok "Fase 3.5 menciona artefato '$art'"
-    else
-        err "Fase 3.5 NAO menciona artefato '$art'"
-    fi
+section_has() {
+    if grep -qiE -- "$1" <<< "$SECAO"; then pass "$2"; else fail "$2"; fi
+}
+section_has "^#{2,4} FASE 3\.5.*(ritmo|astros|temporal)" "Fase 3.5 nomeada com termo do Dia 4"
+section_has "CRONOS|DevOps|SRE|l(í|i)der t(é|e)cnico|quem faz" "Fase 3.5 diz quem faz"
+section_has "quem sela|quem conduz|orquestrad[oa]s? pelo CRONOS" "Fase 3.5 diz quem conduz / quem sela"
+section_has "resultado" "Fase 3.5 diz o resultado esperado"
+for artefato in "eventos" "filas" "jobs" "cache" "timeout|tempos?-limite" "retr(y|ies|i)|novas tentativas" "circuit breaker" "CI/CD" "observabilidade" "sub-contraposi"; do
+    section_has "$artefato" "Fase 3.5 cita o artefato '$artefato'"
 done
 
-# 7. ORDEM INEGOCIAVEL — Fase 3.5 vem ANTES da Fase 4
-pos_35=$(grep -nE "^### FASE 3\.5 " "$DOC" | head -1 | cut -d: -f1 || echo "0")
-pos_4=$(grep -nE "^### FASE 4 " "$DOC" | head -1 | cut -d: -f1 || echo "999")
-
-if [ "$pos_35" = "0" ] || [ "$pos_4" = "999" ]; then
-    err "impossivel determinar posicao — falta Fase 3.5 ou Fase 4"
-elif [ "$pos_35" -lt "$pos_4" ]; then
-    ok "Fase 3.5 (linha $pos_35) vem ANTES da Fase 4 (linha $pos_4) — ordem inegociavel preservada"
+pos_3=$(first_line_number "$DOC" '^#{2,4} FASE 3([^.0-9]|$)')
+pos_35=$(first_line_number "$DOC" "$TITULO")
+pos_4=$(first_line_number "$DOC" '^#{2,4} FASE 4([^.0-9]|$)')
+if [ -z "$pos_3" ] || [ -z "$pos_4" ]; then
+    fail "não deu para conferir a ordem — falta o título da Fase 3 ou da Fase 4"
+elif [ "$pos_3" -lt "$pos_35" ] && [ "$pos_35" -lt "$pos_4" ]; then
+    pass "ordem certa: Fase 3 (linha $pos_3) < Fase 3.5 (linha $pos_35) < Fase 4 (linha $pos_4)"
 else
-    err "INVERSAO HERETICA — Fase 3.5 (linha $pos_35) esta DEPOIS da Fase 4 (linha $pos_4). Isso e exatamente o erro que a Metodologia Genesis adverte: 'fazer os peixes antes das aguas'."
+    fail "ORDEM ERRADA: Fase 3 (linha $pos_3) / 3.5 (linha $pos_35) / 4 (linha $pos_4) — 'peixes antes das águas'"
 fi
 
-# 8. Cross-reference com a base canonica da Metodologia
-if grep -q "metodologia-genesis-camadas\|Dia 4\|metodologia.*genesis" "$DOC"; then
-    ok "cross-reference com Metodologia Genesis (Dia 4)"
-else
-    err "NAO cross-reference com Metodologia Genesis — Fase 3.5 fica orfa do conceito"
-fi
+expect_match "$DOC" "metodologia-genesis-camadas|Dia 4" "o fluxo liga com a Metodologia Gênesis (Dia 4)"
 
-# Resumo
-echo ""
-if [ "$falhou" -eq 0 ]; then
-    echo -e "${GREEN}OK — Fase 3.5 (Ritmo Temporal) integra o fluxo corretamente${NC}"
-    exit 0
-else
-    echo -e "${RED}FALTA $falhou item(ns) — corrigir antes de prosseguir para Etapa 2B${NC}"
-    exit 1
-fi
+finish_test "Fase 3.5 (Ritmo Temporal) integra o fluxo"

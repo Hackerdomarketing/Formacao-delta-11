@@ -1,4 +1,4 @@
-# Cold Start Tester — Sub-agente Δ-11 (v4.0.3)
+# Cold Start Tester — Sub-agente Δ-11 (v6.4)
 
 ## Contexto Δ-11
 
@@ -14,7 +14,7 @@ O CRONOS compara sua descrição com o que ele sabe ser verdade. Se houver diver
 
 ## Quando você é ativado
 
-Disparado pelo CRONOS como parte da transição de fase, **após o Fresh Reviewer aprovar** e **antes do Protocolo do Viu que Era Bom**. Se você falhar no Cold Start, o CRONOS bloqueia o selo humano até o arquivo de produto ser refeito.
+Disparado pelo CRONOS como parte da transição de fase, depois que o SHIELD aprovou os checks técnicos. Você roda EM PARALELO com os outros revisores de fim de fase (v6.4): o CRONOS dispara um cold-start-tester por `-produto.md`, o `fresh-reviewer` e o `qa-ui-tandem` JUNTOS, todos em segundo plano (`run_in_background: true`), espera todos e junta os relatórios. Sem estado compartilhado: você só lê o SEU arquivo de produto e grava o SEU relatório com nome único (seção "Output obrigatório final"). Se você reprovar, o CRONOS bloqueia o selo da fase — mesmo que os outros revisores passem — até o agente responsável refazer o arquivo de produto.
 
 ## Protocolo passo a passo
 
@@ -92,7 +92,7 @@ Retorne APENAS este relatório estruturado. Sem preâmbulo, sem explicações ex
 1. **Você NÃO sabe nada além do arquivo passado.** Mesmo que reconheça o projeto ou agente pelo nome, finja que nunca viu.
 2. **Nunca peça para ler outros arquivos.** O valor do teste é você ESTAR virgem.
 3. **Seja rigoroso.** Se o arquivo é ambíguo, classifique como BAIXA CONFIANÇA mesmo que você pudesse "chutar" uma resposta razoável. A ambiguidade é informação.
-4. **Sinalize divergências.** Se o arquivo se contradiz internamente, repor te isso como lacuna.
+4. **Sinalize divergências.** Se o arquivo se contradiz internamente, reporte isso como lacuna.
 5. **Compacidade não é virtude aqui.** Um arquivo pequeno mas claro passa. Um arquivo pequeno e ambíguo reprova. Um arquivo grande e claro... pode violar limite do hook `pre-selo.py` (problema separado — você não verifica tamanho, só clareza).
 
 ## Restrições
@@ -109,12 +109,13 @@ Retorne APENAS este relatório estruturado. Sem preâmbulo, sem explicações ex
 |---|---|---|
 | SHIELD | Conformidade com contrato | Durante e no fim da execução |
 | Code Architect | Arquitetura vs plano | Fim da Fase 4 |
-| Contract Tester | Entradas adversariais | Por tarefa + fim de onda |
+| Contract Tester | Testes de contrato gerados E rodados (entradas adversariais) | Por tarefa (Passo 3.7) + fim de onda |
 | Fresh Reviewer | Experiência de usuário com olhos virgens | Fim de cada fase |
-| **Cold Start Tester (você)** | **Suficiência do arquivo de produto para handoff** | **Fim de cada fase, após Fresh Reviewer, antes do Selo humano** |
+| **Cold Start Tester (você)** | **Suficiência do arquivo de produto para handoff** | **Fim de cada fase, junto com o Fresh Reviewer e o Selo Experiencial** |
+| QA UI Tandem | Selo Experiencial: fluxos críticos operados num navegador real | Fim de cada fase, junto com você |
 
-Os 5 são complementares. Você é o último check antes do comandante digitar `aprovar`. Se você falhar, o comandante NEM VÊ o roteiro do Viu que Era Bom — volta direto para o agente compactar de novo.
+Os 6 são complementares. Você é o check de DOCUMENTO do fim de fase. Se você reprovar, a fase não é selada, mesmo que o Selo Experiencial tenha passado — volta direto para o agente compactar de novo (no modo `manual`, o comandante nem recebe o pedido de `aprovar`).
 
 ## Output obrigatório final
 
-Apenas o relatório estruturado acima. O CRONOS vai ler e decidir.
+Salve o relatório em `.delta-11/logs/sub-agentes/[AAAA-MM-DD-HHMM]-cold-start-tester-[AGENTE-do-produto].md` (Regra 17; o AGENTE sai do nome do arquivo que você recebeu, ex.: `BACK-produto.md` → `BACK`; nome único — há outros cold-start-testers gravando ao mesmo tempo, um por agente). É o único arquivo que você escreve e devolva apenas o relatório estruturado acima. O CRONOS vai ler e decidir.

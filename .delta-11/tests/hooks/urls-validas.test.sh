@@ -1,89 +1,31 @@
 #!/usr/bin/env bash
-# Teste do hook urls-validas.py (Etapa 6 do v6.2)
-set -euo pipefail
-GREEN='\033[0;32m'; RED='\033[0;31m'; NC='\033[0m'
+# Teste do vigia urls-validas.py (v6.3 — C-041, D34)
+source "$(dirname "$0")/_ajudante-hooks-python.sh" urls-validas
+checagens_basicas
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-HOOKS_DIR="$(cd "$SCRIPT_DIR/../../hooks" && pwd)"
-HOOK="$HOOKS_DIR/urls-validas.py"
-SETTINGS="$SCRIPT_DIR/../../templates/settings-hooks.json"
+novo_projeto
+escreve() { evento tool_name=Write tool_input.file_path=$TEST_DIR/src/config.ts "tool_input.content=$1"; }
 
-falhou=0
-ok() { echo -e "  ${GREEN}[OK]${NC}   $1"; }
-err() { echo -e "  ${RED}[FALTA]${NC} $1"; falhou=$((falhou + 1)); }
+espera 0 "https://api.exemplo.com/v1: valida" "$(escreve 'ver https://api.exemplo.com/v1/users?x=1')"
+espera 0 "http://localhost:3000: valida (D34)" "$(escreve 'abra http://localhost:3000/painel')"
+espera 0 "http://127.0.0.1:8765: valida (D34)" "$(escreve 'API em http://127.0.0.1:8765/status')"
+espera 0 "http://meu-mac.local: valida (D34)" "$(escreve 'http://meu-mac.local/teste')"
+espera 0 "http://[::1]:8080: valida" "$(escreve 'http://[::1]:8080/')"
+espera 0 "URL entre aspas duplas em codigo: valida (D34)" "$(escreve 'const API = "https://api.exemplo.com";')"
+espera 0 "URL entre aspas simples: valida" "$(escreve "fetch('https://api.exemplo.com/x')")"
+espera 0 "URL entre crases (markdown): valida" "$(escreve 'use `https://exemplo.com.br/a`')"
+espera 0 "URL entre < >: valida" "$(escreve '<https://exemplo.com>')"
+espera 0 "URL no fim da frase com ponto: valida" "$(escreve 'Veja https://exemplo.com.')"
+espera 0 "link markdown [texto](url): valida" "$(escreve '[docs](https://docs.exemplo.com/x)')"
+espera 0 "marcador \${HOST} em template literal: ignorado" "$(escreve 'fetch(`https://${HOST}/api`)')"
+espera 0 "marcador {{dominio}}: ignorado" "$(escreve 'https://{{dominio}}/x')"
+espera 0 "marcador [seu-dominio]: ignorado" "$(escreve 'https://[seu-dominio]/x')"
+espera 0 "nome interno com porta (docker): valido" "$(escreve 'DATABASE=http://db:5432')"
+espera 0 "texto sem URL: passa" "$(escreve 'nada aqui')"
 
-if [ -f "$HOOK" ]; then ok "hook existe"; else err "hook AUSENTE"; exit 1; fi
-if [ -x "$HOOK" ]; then ok "hook executavel"; else err "hook NAO executavel"; fi
-if grep -qE "https?://" "$HOOK"; then ok "hook detecta URLs (regex)"; else err "sem regex URL"; fi
-if grep -qE "TLD|tld" "$HOOK"; then ok "hook valida TLD"; else err "sem TLD check"; fi
-if grep -qE "sys\.exit|return 2" "$HOOK"; then ok "exit 2 (sys.exit ou return 2)"; else err "sem exit 2"; fi
-if head -1 "$HOOK" | grep -q "python"; then ok "Python"; else err "NAO Python"; fi
-if [ -f "$SETTINGS" ] && grep -q "urls-validas" "$SETTINGS"; then ok "registrado em settings"; else err "NAO em settings"; fi
-if head -10 "$HOOK" | grep -qE '"""'; then ok "docstring"; else err "sem docstring"; fi
-if grep -qE "sys\.exit\(0\)" "$HOOK"; then ok "exit 0"; else err "sem exit 0"; fi
-
-# Testes funcionais
-TEST_DIR=$(mktemp -d)
-cd "$TEST_DIR"
-touch test.md
-
-# Cenario A: conteudo sem URL = passa
-EVENT=$(python3 -c "
-import json
-print(json.dumps({
-    'tool_name': 'Write',
-    'tool_input': {
-        'file_path': 'test.md',
-        'content': 'sem urls aqui'
-    }
-}))
-")
-EXIT=$(echo "$EVENT" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?" | grep -oE '[0-9]+' | tail -1)
-if [ "$EXIT" = "0" ]; then ok "PASSA sem URL"; else err "NAO passa sem URL (exit=$EXIT)"; fi
-
-# Cenario B: URL valida = passa
-EVENT=$(python3 -c "
-import json
-print(json.dumps({
-    'tool_name': 'Write',
-    'tool_input': {
-        'file_path': 'test.md',
-        'content': 'Acesse https://example.com/path'
-    }
-}))
-")
-EXIT=$(echo "$EVENT" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?" | grep -oE '[0-9]+' | tail -1)
-if [ "$EXIT" = "0" ]; then ok "PASSA URL valida"; else err "NAO passa URL valida (exit=$EXIT)"; fi
-
-# Cenario C: URL sem TLD = BLOQUEIA
-EVENT=$(python3 -c "
-import json
-print(json.dumps({
-    'tool_name': 'Write',
-    'tool_input': {
-        'file_path': 'test.md',
-        'content': 'Acesse https://localhost'
-    }
-}))
-")
-EXIT=$(echo "$EVENT" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?" | grep -oE '[0-9]+' | tail -1)
-if [ "$EXIT" = "2" ]; then ok "BLOQUEIA URL sem TLD"; else err "NAO bloqueia URL sem TLD (exit=$EXIT)"; fi
-
-# Cenario D: URL com espaco = BLOQUEIA
-EVENT=$(python3 -c "
-import json
-print(json.dumps({
-    'tool_name': 'Write',
-    'tool_input': {
-        'file_path': 'test.md',
-        'content': 'Acesse https://foo bar.com'
-    }
-}))
-")
-EXIT=$(echo "$EVENT" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?" | grep -oE '[0-9]+' | tail -1)
-if [ "$EXIT" = "2" ]; then ok "BLOQUEIA URL com espaco"; else err "NAO bloqueia URL com espaco (exit=$EXIT)"; fi
-
-cd / && rm -rf "$TEST_DIR"
-
-echo ""
-if [ "$falhou" -eq 0 ]; then echo -e "${GREEN}OK — Hook 6 urls-validas.py${NC}"; exit 0; else echo -e "${RED}FALTA $falhou item(ns)${NC}"; exit 1; fi
+espera 2 "https://exemplo (sem terminacao): bloqueia" "$(escreve 'ver https://exemplo/caminho')"
+stderr_contem "sem terminacao"
+espera 2 "terminacao numerica https://exemplo.123: bloqueia" "$(escreve 'https://exemplo.123/x')"
+espera 2 "caractere invalido no dominio: bloqueia" "$(escreve 'https://exem_plo.com/x')"
+espera 2 "Edit com URL quebrada no new_string: bloqueia" "$(evento tool_name=Edit tool_input.file_path=$TEST_DIR/a.md tool_input.old_string=a 'tool_input.new_string=https://dominio-sem-fim')"
+fim

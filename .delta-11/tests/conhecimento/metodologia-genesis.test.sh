@@ -1,153 +1,65 @@
 #!/usr/bin/env bash
 # ════════════════════════════════════════════════════════════════
-# Teste da Metodologia Gênesis como base canônica (Etapa 1 do v6.0)
+# Teste da Metodologia Gênesis como base canônica (Etapa 1 do v6.0, revisto na v6.3)
 # ════════════════════════════════════════════════════════════════
-#
-# Verifica que a base da Metodologia Gênesis existe em
-# .delta-11/conhecimento/metodologia-genesis-camadas.md e tem:
-#   1. Caminho canônico (pasta conhecimento/, nome correto)
-#   2. 3 Princípios Fundamentais (Ordem, Selagem, Contraposição)
-#   3. 7 Dias (Luz, Container, Superfícies, Astros, Habitantes, Consciência, Descanso)
-#   4. 7 Tipos de Contraposição Lateral (um por dia)
-#   5. Critérios objetivos de selo (mencionados por dia)
-#   6. As 7 sub-etapas do Ciclo Interno
-#   7. Os 4 Sinais de "Fazendo Certo"
-#   8. Texto hebraico chave de pelo menos 1 dia (referência)
-#   9. Cross-reference com a skills-globais-v5-4.md
-#  10. Cross-reference com o relatório de auditoria 2026-07-10
+# Conceitos conferidos em .delta-11/conhecimento/metodologia-genesis-camadas.md:
+#   1. O arquivo existe.
+#   2. Os 3 Princípios (Ordem, Selagem, Contraposição).
+#   3. Os 7 Dias (Luz, Container, Superfícies, Astros, Habitantes,
+#      Consciência, Descanso) — cada um com seção própria "Dia N" que fala
+#      de critério/selo (a seção inteira, até o próximo título).
+#   4. Os 7 tipos de contraposição lateral.
+#   5. As 7 sub-etapas do Ciclo Interno.
+#   6. Os 4 Sinais de "Fazendo Certo".
+#   7. Texto hebraico; skills globais; relatório de auditoria.
+# (O mapa Dia → Fase e as "13 fases" ficam em protocolos/fluxo-13-fases-d16.test.sh.)
 # ════════════════════════════════════════════════════════════════
 
 set -euo pipefail
+source "$(cd "$(dirname "$0")/.." && pwd)/framework/test-helpers.sh"
 
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-# tests/conhecimento/ → sobe 3 níveis: tests/ → .delta-11/ → raiz do repo
-DOC="$SCRIPT_DIR/../../conhecimento/metodologia-genesis-camadas.md"
-
-falhou=0
-ok() { echo -e "  ${GREEN}[OK]${NC}   $1"; }
-err() { echo -e "  ${RED}[FALTA]${NC} $1"; falhou=$((falhou + 1)); }
-
-# 1. Caminho canônico
-if [ -f "$DOC" ]; then
-    ok "existe em .delta-11/conhecimento/metodologia-genesis-camadas.md"
-else
-    err "ARQUIVO AUSENTE em $DOC"
-    echo ""
-    echo "Este teste é o guarda de regressão da Etapa 1 do v6.0."
-    echo "Se a base da Metodologia Gênesis sumir, o sistema inteiro perde"
-    echo "sua referência canônica. O teste falhará até que o arquivo seja criado."
-    exit 1
+DOC="$DELTA_DIR/conhecimento/metodologia-genesis-camadas.md"
+if ! require_file "$DOC" ".delta-11/conhecimento/metodologia-genesis-camadas.md"; then
+    echo "  Sem esta base o sistema perde sua referência canônica."
+    finish_test "base da Metodologia Gênesis"
 fi
+pass "existe em .delta-11/conhecimento/metodologia-genesis-camadas.md"
 
-# 2. 3 Princípios Fundamentais
-for principio in "Ordem" "Selagem" "Contraposição"; do
-    if grep -qi "$principio" "$DOC"; then
-        ok "menciona princípio $principio"
+for principio in "Ordem" "Selagem" "Contraposi(ção|cao)"; do
+    expect_match "$DOC" "$principio" "princípio '$principio'"
+done
+
+DIAS=("Luz" "Container" "Superf(í|i)cies" "Astros" "Habitantes" "Consci(ê|e)ncia" "Descanso")
+for numero in 1 2 3 4 5 6 7; do
+    nome="${DIAS[$((numero - 1))]}"
+    secao=$(markdown_section "$DOC" "^#{2,4} Dia $numero([^0-9]|$)")
+    if [ -z "$secao" ]; then
+        fail "Dia $numero ($nome) sem seção própria"
+        continue
+    fi
+    if grep -qiE "$nome" <<< "$secao"; then
+        pass "Dia $numero = $nome"
     else
-        err "NAO menciona princípio $principio"
+        fail "Dia $numero não fala de '$nome'"
+    fi
+    if grep -qiE "selo|crit(é|e)rio" <<< "$secao"; then
+        pass "Dia $numero tem critério de selo"
+    else
+        fail "Dia $numero sem critério de selo na própria seção"
     fi
 done
 
-# 3. 7 Dias (nomes canônicos)
-for dia in "Luz" "Container" "Superfícies" "Astros" "Habitantes" "Consciência" "Descanso"; do
-    if grep -q "$dia" "$DOC"; then
-        ok "menciona Dia $dia"
-    else
-        err "NAO menciona Dia $dia"
-    fi
+for tipo in "existencial" "estrutural tripla" "subst(â|a)ncia" "funcional-temporal" "territorial" "complementar" "estado"; do
+    expect_match "$DOC" "$tipo" "tipo de contraposição '$tipo'"
 done
 
-# 4. Os 7 tipos de contraposição lateral
-# Tipo 1: existencial-identitária (Dia 1)
-# Tipo 2: estrutural tripla (Dia 2)
-# Tipo 3: substância + estrutural-reprodutiva (Dia 3)
-# Tipo 4: funcional-temporal + hierárquica (Dia 4)
-# Tipo 5: territorial + escalar (Dia 5)
-# Tipo 6: complementar + hierárquica (Dia 6)
-# Tipo 7: estado (Dia 7)
-for tipo in \
-    "existencial" \
-    "estrutural tripla" \
-    "substância" \
-    "funcional-temporal" \
-    "territorial" \
-    "complementar" \
-    "estado"; do
-    if grep -qi "$tipo" "$DOC"; then
-        ok "menciona tipo de contraposição '$tipo'"
-    else
-        err "NAO menciona tipo de contraposição '$tipo'"
-    fi
+for sub in "planejamento" "delega(ção|cao)" "execu(ção|cao) paralela" "comunica(ção|cao)" "revis(ão|ao) cruzada" "teste adversarial" "selagem"; do
+    expect_match "$DOC" "$sub" "sub-etapa '$sub'"
 done
 
-# 5. Critérios objetivos de selo (palavra-chave por dia)
-# Pelo menos UMA menção por dia a "selo" ou "critério"
-# Range de 25 linhas após o cabeçalho do Dia cobre seções inteiras
-for dia in "Dia 1" "Dia 2" "Dia 3" "Dia 4" "Dia 5" "Dia 6" "Dia 7"; do
-    if grep -q "$dia" "$DOC"; then
-        # busca selos perto do dia (mesma linha ou 25 linhas depois — cobre seções inteiras)
-        if grep -A25 "^### $dia " "$DOC" | grep -qi "selo\|critério"; then
-            ok "$dia menciona critério/selo"
-        else
-            err "$dia NAO menciona critério/selo (verificar se seção de critérios objetivos de selo está dentro do Dia)"
-        fi
-    else
-        err "$dia AUSENTE do documento"
-    fi
-done
+expect_match "$DOC" "sinais? de" "os Sinais de 'Fazendo Certo'"
+expect_match "$DOC" "yehi|vayavdel|badal|shabat|kal(á|a)|yom|shamayim" "texto hebraico chave"
+expect_match "$DOC" "skills-globais-v5-4|skill global|owasp-top10|supabase-rls|react-next" "liga com as skills globais"
+expect_match "$DOC" "auditoria-delta-11-vs-metodologia-genesis|2026-07-10-auditoria" "liga com o relatório de auditoria 2026-07-10"
 
-# 6. As 7 sub-etapas do Ciclo Interno
-for sub in "planejamento" "delegação" "execução paralela" "comunicação" "revisão cruzada" "teste adversarial" "selagem"; do
-    if grep -qi "$sub" "$DOC"; then
-        ok "menciona sub-etapa '$sub'"
-    else
-        err "NAO menciona sub-etapa '$sub'"
-    fi
-done
-
-# 7. Os 4 Sinais de "Fazendo Certo"
-# Sinal 1: energia para consagrar diminui
-# Sinal 2: novos membros entendem sem o criador
-# Sinal 3: bug no dia N é resolvido no dia N
-# Sinal 4: tirar 2 semanas de férias e o sistema continua
-if grep -qi "sinal\|sinais de" "$DOC"; then
-    ok "menciona Sinais de 'Fazendo Certo'"
-else
-    err "NAO menciona Sinais de 'Fazendo Certo'"
-fi
-
-# 8. Texto hebraico chave (mínimo 1 dia, preferencialmente Dia 1 = yehi or)
-if grep -q "yehi\|vayavdel\|badal\|shabat\|kalá\|yom\|shamayim" "$DOC"; then
-    ok "inclui texto hebraico chave (referência Massorética)"
-else
-    err "NAO inclui texto hebraico chave — perde fidelidade à fonte"
-fi
-
-# 9. Cross-reference com skills-globais-v5-4.md (o sistema ja reconhece skills globais)
-if grep -q "skills-globais-v5-4\|skill global\|owasp-top10\|supabase-rls\|react-next" "$DOC"; then
-    ok "cross-reference com skills globais v5.4"
-else
-    err "NAO cross-reference com skills globais — fica órfão do v5.4"
-fi
-
-# 10. Cross-reference com o relatório de auditoria
-if grep -q "auditoria-delta-11-vs-metodologia-genesis\|2026-07-10-auditoria" "$DOC"; then
-    ok "cross-reference com relatório de auditoria 2026-07-10"
-else
-    err "NAO cross-reference com auditoria — perde rastreabilidade"
-fi
-
-# Resumo
-echo ""
-if [ "$falhou" -eq 0 ]; then
-    echo -e "${GREEN}OK — base da Metodologia Gênesis conforme esperado${NC}"
-    exit 0
-else
-    echo -e "${RED}FALTA $falhou item(ns) — corrigir antes de prosseguir para Etapa 2${NC}"
-    exit 1
-fi
+finish_test "base da Metodologia Gênesis"

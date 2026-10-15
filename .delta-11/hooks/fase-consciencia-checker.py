@@ -1,242 +1,131 @@
 #!/usr/bin/env python3
 """
-Hook PreToolUse do Delta-11 v6.0: bloqueia conclusão da Fase 4.5
-(Consciência Dominante) sem os 5 entregáveis do Dia 6.
+Vigia da Fase 4.5 (Consciencia Dominante, Dia 6) — Delta-11 v6.4 (2026-10-15). C-015, C-026, V9.
 
-Materializa o Princípio de Selagem (Princípio 2) aplicado ao Dia 6
-da Metodologia Gênesis: "Cada camada precisa ser selada antes da
-próxima começar."
+Principio de Selagem: a Fase 4.5 so pode ser SELADA com os 5 entregaveis do Dia 6
+em `.delta-11/memoria/decisoes/` da pasta principal, um por numero (C-026):
+  AAAA-MM-DD-consciencia-NN-<slug>.md   (NN = 01 a 05, arquivo nao vazio)
+    01 auditoria-imutavel · 02 rate-limiting · 03 motor-regras · 04 lgpd ·
+    05 fluxos-aprovacao
+Cinco arquivos quaisquer com "consciencia" no nome nao bastam: precisa ser um de
+cada numero.
 
-Para o Dia 6, "selar" significa: os 5 entregáveis estão documentados
-em arquivos com nome padrao `consciencia-NN-*.md` na pasta
-.delta-11/memoria/decisoes/.
+Quando age (PreToolUse em Edit|Write do `.delta-11/kanban.md`, caminho relativo
+ou absoluto — C-026): so quando a edicao ACRESCENTA uma linha que declara o selo
+da fase, por exemplo "Fase 4.5 selada", "[SELO 4.5]", "Dia 6 selado",
+"[CONSCIÊNCIA] ... SELO" (protocolos/fase-consciencia.md: "SHIELD declara 'Fase
+4.5 selada' no kanban"). Concluir as tarefas que produzem os entregaveis nao e
+bloqueado.
 
-ALVO: edicoes em .delta-11/kanban.md que tentam marcar tarefas da
-Fase 4.5 como CONCLUIDAS sem os 5 entregáveis presentes.
+Ciclo leve (v6.4 — V9): do Ciclo 2 em diante, o checklist de 1 pagina do ciclo
+vale como equivalente (e obrigatório: documentos de ciclos anteriores não o substituem) aos 5 documentos:
+  AAAA-MM-DD-consciencia-checklist-ciclo-N.md
+com os 5 itens, cada um "sem mudança" ou "mudou: <ate 3 linhas>" (modelo:
+templates/consciencia-checklist-template.md). O numero do ciclo vem da linha do
+selo ("Ciclo N"), senao do kanban (`**Ciclo atual:** N` ou "Ciclo N" na Fase
+atual) ou do `fase_atual` do kanban-data.js; sem informacao, Ciclo 1. No Ciclo 1
+o checklist NAO vale. Checklist do ciclo atual COMECADO e incompleto bloqueia.
+Limite conhecido: quando o ciclo MEXE na area (muda a autenticacao, cria fluxo
+de aprovacao novo...), o item afetado precisa do documento completo — isso o
+vigia nao julga; quem confere e o SHIELD (protocolos/fase-consciencia.md).
 
-LOGICA:
-  1. Detecta se Edit atinge .delta-11/kanban.md
-  2. Detecta se há tarefa da Fase 4.5 (tag [4.5] ou [CONSCIÊNCIA])
-     sendo concluída
-  3. Se NAO for Fase 4.5 → exit 0 (deixa passar)
-  4. Se for Fase 4.5 → conta quantos arquivos consciencia-* existem
-     em memoria/decisoes/
-  5. Se houver < 5 entregáveis → BLOQUEIA (exit 2)
-  6. Se houver 5+ → exit 0 (passa)
-
-EXIT CODES:
-  0 = pode prosseguir
-  2 = bloquear (PreToolUse hook convention)
-  1 = erro interno (nao bloqueia)
-
-Cross-platform: macOS, Linux, Windows. Requer Python 3.8+.
-Inspirado em fase-ritmo-checker.py.
+Erro interno: libera a acao, registra ERRO-INTERNO no activity-log e avisa no
+stderr (exit 1) — ver _comum.run.
 """
 
 from __future__ import annotations
 
-import json
-import re
+import os
 import sys
-from pathlib import Path
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _comum as comum  # noqa: E402
+
+HOOK = "fase-consciencia-checker"
+FASE = "4.5"
+PREFIXO = "consciencia"
+ENTREGAVEIS = {
+    1: "auditoria-imutavel", 2: "rate-limiting", 3: "motor-regras",
+    4: "lgpd", 5: "fluxos-aprovacao",
+}
 
 
-ACTIVITY_LOG = Path(".delta-11/activity-log.md")
-DECISOES_DIR = Path(".delta-11/memoria/decisoes")
-
-CONCLUSAO_RE = re.compile(
-    r"\[x\]|CONCLU[IÍ]DO|CONCLUIDA|✅",
-    re.IGNORECASE,
-)
-
-FASE_4_5_RE = re.compile(
-    r"\[4\.5\]|\[CONSCI[ÊE]NCIA\]|consci[êe]ncia\s+dominante",
-    re.IGNORECASE,
-)
+CHECKLIST_MODELO = ".delta-11/templates/consciencia-checklist-template.md"
 
 
-def timestamp_utc() -> str:
-    from datetime import datetime
-    return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-def log_activity(message: str) -> None:
-    try:
-        ACTIVITY_LOG.parent.mkdir(parents=True, exist_ok=True)
-        with ACTIVITY_LOG.open("a", encoding="utf-8") as f:
-            f.write(f"- [{timestamp_utc()}] [fase-consciencia-checker] {message}\n")
-    except OSError:
-        pass
-
-
-def read_hook_event() -> dict:
-    raw = sys.stdin.read().strip()
-    if not raw:
-        return {}
-    try:
-        return json.loads(raw)
-    except json.JSONDecodeError:
-        return {}
-
-
-def is_kanban_edit(event: dict) -> bool:
-    tool_input = event.get("tool_input") or {}
-    file_path = tool_input.get("file_path") or tool_input.get("path") or ""
-    return (
-        file_path.endswith("/.delta-11/kanban.md")
-        or file_path.endswith("\\.delta-11\\kanban.md")
+def message(selo: list[str], faltando: list[int], nomes: list[str], ciclo: int = 1,
+            checklist: str | None = None, pendencias: list[tuple[int, str]] | None = None) -> str:
+    texto = (
+        f"[{HOOK}] BLOQUEIO {comum.VERSAO} — Selo da Fase 4.5 (Consciencia Dominante, Dia 6) — Ciclo {ciclo}\n"
+        f"\n"
+        f"Linha que declara o selo: {selo[0][:160]}\n"
     )
-
-
-def get_combined_content(event: dict) -> str:
-    tool_input = event.get("tool_input") or {}
-    return (
-        tool_input.get("new_string", "")
-        + "\n"
-        + tool_input.get("content", "")
+    if ciclo >= 2:
+        if checklist and pendencias:
+            texto += f"\nO checklist do Ciclo {ciclo} ({checklist}) esta incompleto:\n"
+            texto += "".join(f"  {n:02d}. {ENTREGAVEIS[n]} — {motivo}\n" for n, motivo in pendencias)
+            texto += "\nComplete esses itens e declare o selo de novo.\n"
+            return texto
+        texto += (
+            f"\nCiclo {ciclo} (ciclo leve): basta UM checklist de 1 pagina com os 5 itens:\n"
+            f"  .delta-11/memoria/decisoes/AAAA-MM-DD-{PREFIXO}-checklist-ciclo-{ciclo}.md\n"
+            f"  (modelo: {CHECKLIST_MODELO})\n"
+            f"(Os documentos de ciclos anteriores não substituem o checklist do ciclo atual.)\n\n"
+        )
+    texto += f"Presentes: {len(ENTREGAVEIS) - len(faltando)} de {len(ENTREGAVEIS)}. Faltam:\n"
+    texto += "".join(
+        f"  {n:02d}. {ENTREGAVEIS[n]}  -> .delta-11/memoria/decisoes/AAAA-MM-DD-{PREFIXO}-{n:02d}-{ENTREGAVEIS[n]}.md\n"
+        for n in faltando
     )
-
-
-def is_conclusao(content: str) -> bool:
-    return bool(CONCLUSAO_RE.search(content))
-
-
-def is_fase_4_5(content: str) -> bool:
-    return bool(FASE_4_5_RE.search(content))
-
-
-def count_consciencia_artifacts(base_dir: str | None = None) -> tuple[int, list[str]]:
-    """
-    Conta quantos artefatos de consciencia existem em memoria/decisoes.
-    Retorna (count, lista_de_nomes).
-    """
-    search_dir = DECISOES_DIR
-    if base_dir:
-        search_dir = Path(base_dir) / ".delta-11/memoria/decisoes"
-
-    if not search_dir.exists():
-        return (0, [])
-
-    artifact_names = []
-    for f in search_dir.iterdir():
-        if f.is_file() and "consciencia" in f.name.lower():
-            artifact_names.append(f.name)
-
-    return (len(artifact_names), sorted(artifact_names))
-
-
-def block_edit(file_path: str, count: int, names: list[str]) -> int:
-    msg = (
-        f"[fase-consciencia-checker] BLOQUEIO v6.0.0 — Princípio de Selagem do Dia 6\n"
-        f"\n"
-        f"Arquivo: {file_path}\n"
-        f"\n"
-        f"A tarefa da Fase 4.5 (Consciência Dominante) está sendo marcada\n"
-        f"como CONCLUÍDA, mas só {count} de 5 entregáveis do Dia 6 estão\n"
-        f"presentes em .delta-11/memoria/decisoes/.\n"
-        f"\n"
-        f"Sem os 5 entregáveis, o Dia 6 NÃO está selado. A Metodologia\n"
-        f"Gênesis é explícita: este é o único dia com a expressão *tov meod*\n"
-        f"(muito bom). Construir testes de integração com sistema sem\n"
-        f"consciência de domínio é validar um sistema irresponsável.\n"
-        f"\n"
-        f"Os 5 entregáveis do Dia 6 que devem existir:\n"
-        f"  01. auditoria-imutavel (audit_log append-only)\n"
-        f"  02. rate-limiting (endpoints críticos)\n"
-        f"  03. motor-regras (central, com testes)\n"
-        f"  04. lgpd (consentimento, export, direito ao esquecimento)\n"
-        f"  05. fluxos-aprovacao (state machine)\n"
-        f"\n"
+    if nomes:
+        texto += "\nJa existem:\n" + "".join(f"  - {n}\n" for n in nomes)
+    texto += (
+        "\nCrie os que faltam com .delta-11/templates/fase-consciencia-template.md e\n"
+        "declare o selo de novo. Protocolo: .delta-11/protocolos/fase-consciencia.md\n"
     )
-    if names:
-        msg += "Artefatos encontrados:\n"
-        msg += "\n".join(f"  - {n}" for n in names[:10]) + "\n"
-        msg += "\n"
-    else:
-        msg += "Nenhum artefato consciencia-* encontrado ainda.\n\n"
-
-    msg += (
-        f"Use o template .delta-11/templates/fase-consciencia-template.md\n"
-        f"para preencher cada um. Salve em formato:\n"
-        f".delta-11/memoria/decisoes/AAAA-MM-DD-consciencia-<NN>-<slug>.md\n"
-        f"\n"
-        f"Referência conceitual: .delta-11/conhecimento/metodologia-genesis-camadas.md\n"
-        f"  → Dia 6 (A Consciência Que Domina)\n"
-        f"Protocolo formal: .delta-11/protocolos/fase-consciencia.md\n"
-        f"Skills globais integradas: ~/.claude/skills/supabase-rls/, ~/.claude/skills/owasp-top10/\n"
-        f"\n"
-        f"AÇÃO REQUERIDA:\n"
-        f"  1. Crie os 5 entregáveis usando o template\n"
-        f"  2. Salve cada um em .delta-11/memoria/decisoes/ com nome padrao\n"
-        f"  3. SHIELD valida e sela, Comandante aprova\n"
-        f"  4. Repita a edição que tentou marcar Fase 4.5 como concluída\n"
-    )
-    print(msg, file=sys.stderr)
-    return 2
+    return texto
 
 
 def main() -> int:
-    try:
-        event = read_hook_event()
-
-        if not is_kanban_edit(event):
-            return 0
-
-        file_path = (
-            (event.get("tool_input") or {}).get("file_path", "")
-            or "<desconhecido>"
-        )
-
-        combined = get_combined_content(event)
-
-        if not is_conclusao(combined):
-            return 0
-
-        if not is_fase_4_5(combined):
-            return 0
-
-        # Determina diretorio base
-        tool_input = event.get("tool_input") or {}
-        file_path_str = tool_input.get("file_path", "")
-        base_dir = None
-        if file_path_str:
-            parts = file_path_str.replace("\\", "/").split("/.delta-11/")
-            if len(parts) >= 2:
-                base_dir = parts[0]
-
-        count, names = count_consciencia_artifacts(base_dir)
-
-        if count >= 5:
-            log_activity(
-                f"Fase 4.5 com {count} entregaveis >= 5 — conclusao permitida"
-            )
-            return 0
-
-        log_activity(
-            f"Fase 4.5 com {count} de 5 entregaveis — conclusao BLOQUEADA"
-        )
-        return block_edit(file_path, count, names)
-
-    except Exception as exc:  # noqa: BLE001
-        print(
-            f"[fase-consciencia-checker] erro não-fatal: {exc}",
-            file=sys.stderr,
-        )
-        try:
-            log_activity(f"ERRO nao-fatal: {exc}")
-        except Exception:  # noqa: BLE001
-            pass
+    evento = comum.read_event()
+    if not comum.is_kanban_event(evento):
         return 0
+    antes, depois = comum.before_and_after(evento)
+    selo = comum.declares_seal(comum.new_lines(antes, depois), FASE)
+    if not selo:
+        return 0
+    ciclo = comum.cycle_in_text(selo[0]) or comum.current_cycle(depois)
+    _presentes, faltando, nomes = comum.phase_artifacts(PREFIXO, len(ENTREGAVEIS))
+    if ciclo >= 2:
+        checklist, pendencias = comum.cycle_checklist(PREFIXO, ciclo, ENTREGAVEIS)
+        if checklist and not pendencias:
+            comum.log(HOOK, f"OK: selo da Fase 4.5 do Ciclo {ciclo} com o checklist {checklist} (ciclo leve)")
+            return 0
+        if checklist and pendencias:
+            return comum.block(
+                HOOK, message(selo, faltando, nomes, ciclo, checklist, pendencias),
+                f"selo da Fase 4.5 do Ciclo {ciclo}: checklist com {len(pendencias)} item(ns) pendente(s)",
+            )
+        if not checklist:
+            # v6.4 (integração): do Ciclo 2 em diante, documentos de ciclos anteriores NÃO substituem o checklist
+            # do ciclo atual (senão o vigia liberaria sempre: os documentos do Ciclo 1 continuam na pasta).
+            return comum.block(
+                HOOK,
+                f"Selo da Fase 4.5 do Ciclo {ciclo} sem o checklist do ciclo atual (ciclo leve, V9).\n"
+                f"Crie memoria/decisoes/AAAA-MM-DD-consciencia-checklist-ciclo-{ciclo}.md a partir de\n"
+                "templates/consciencia-checklist-template.md: um item por linha, 'sem mudança' ou 'mudou: ...'\n"
+                "(item que o ciclo mexeu cita o documento completo novo).",
+                f"selo da Fase 4.5 do Ciclo {ciclo} sem checklist do ciclo",
+            )
+    if not faltando:
+        comum.log(HOOK, f"OK: selo da Fase 4.5 do Ciclo {ciclo} com os 5 entregaveis")
+        return 0
+    return comum.block(
+        HOOK, message(selo, faltando, nomes, ciclo),
+        f"selo da Fase 4.5 do Ciclo {ciclo} com {len(faltando)} entregavel(is) faltando",
+    )
 
 
 if __name__ == "__main__":
-    try:
-        sys.exit(main())
-    except SystemExit:
-        raise
-    except Exception as exc:  # noqa: BLE001
-        print(
-            f"[fase-consciencia-checker] erro fatal: {exc}",
-            file=sys.stderr,
-        )
-        sys.exit(0)
+    comum.run(main, HOOK)

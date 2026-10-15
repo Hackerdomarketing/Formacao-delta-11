@@ -1,11 +1,29 @@
 {
   "agent": "SCOUT",
+  "versao": "6.3",
+  "papel": "Diagnóstico, Correção de Erros e Varredura Preventiva",
   "model": "sonnet",
+  "isolation": "worktree",
+  "operativo": ".delta-11/operativos/SCOUT.md",
+  "project_core_leitura": "inteiro",
+  "project_core_fatias": [],
   "mcp_config": "",
   "allowed_tools": [],
   "disallowed_tools": [],
   "append_system_prompt": "",
-  "ferramentas": [".delta-11/ferramentas/scout-lighthouse.sh"],
-  "conhecimento": [".delta-11/conhecimento/debugging-preventivo-patterns.md"],
-  "knowledge_fetch": []
+  "ferramentas": [
+    ".delta-11/ferramentas/scout-lighthouse.sh",
+    ".delta-11/ferramentas/verificar-dependencias.sh"
+  ],
+  "conhecimento": [
+    ".delta-11/conhecimento/debugging-preventivo-patterns.md",
+    ".delta-11/conhecimento/skills-globais-v5-4.md"
+  ],
+  "skills_globais": [
+    "supabase-rls",
+    "owasp-top10",
+    "react-next"
+  ],
+  "knowledge_fetch": [],
+  "nota_despacho": "Sempre com worktree própria a partir da branch principal. Após 3 falhas, para e avisa o CRONOS, que dispara um NOVO SCOUT; após 6, o CRONOS dispara o ATLAS."
 }

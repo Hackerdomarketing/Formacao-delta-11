@@ -1,11 +1,29 @@
 {
   "agent": "FORM",
+  "versao": "6.3",
+  "papel": "Programador de Formulários e Validações",
   "model": "sonnet",
+  "isolation": "worktree",
+  "operativo": ".delta-11/operativos/FORM.md",
+  "project_core_leitura": "fatias",
+  "project_core_fatias": [
+    ".delta-11/memoria/project-core/contratos.md",
+    ".delta-11/memoria/project-core/visual.md",
+    ".delta-11/memoria/project-core/decisoes-tecnicas.md"
+  ],
   "mcp_config": "",
   "allowed_tools": [],
   "disallowed_tools": [],
   "append_system_prompt": "",
-  "ferramentas": [],
-  "conhecimento": [".delta-11/conhecimento/react-form-patterns.md"],
+  "ferramentas": [
+    ".delta-11/ferramentas/verificar-dependencias.sh"
+  ],
+  "conhecimento": [
+    ".delta-11/conhecimento/react-form-patterns.md",
+    ".delta-11/conhecimento/react-next-overview.md"
+  ],
+  "skills_globais": [
+    "react-next"
+  ],
   "knowledge_fetch": []
 }

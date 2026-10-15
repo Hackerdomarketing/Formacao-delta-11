@@ -1,6 +1,10 @@
-# CLASSIFICAÇÃO DE PROJETOS — FORMAÇÃO Δ-11
+# CLASSIFICAÇÃO DE PROJETOS — FORMAÇÃO Δ-11 (v6.4)
+
+Esta é a **régua única** de complexidade do sistema. Qualquer outro arquivo que fale de pontuação de complexidade usa estes números.
 
 ## CRITÉRIOS (usado pelo ATLAS na Fase 1)
+
+5 critérios, cada um vale de 1 a 3 pontos. A soma vai de 5 a 15.
 
 | Critério | 1 ponto | 2 pontos | 3 pontos |
 |---------|---------|----------|----------|
@@ -12,24 +16,27 @@
 
 ## RESULTADO
 
-| Soma | Complexidade | Agentes | Janelas simultâneas |
-|------|-------------|---------|---------------------|
-| 5-8 | BAIXA | ATLAS + CRONOS + 2 líderes acumuladores (FRONT, BACK) + SHIELD + SCOUT sob demanda | 3 a 4 |
-| 9-12 | MÉDIA | Todos os 10 (CRONOS + ATLAS + FRONT + PIXEL + FORM + BACK + ENGINE + VAULT + SHIELD + SCOUT sob demanda) | 5 a 6 |
-| 13-15 | ALTA | Todos os 10 com monitoramento reforçado do CRONOS via Code Architect | 6 a 8 |
+| Soma | Complexidade | Agentes que o CRONOS orquestra |
+|------|-------------|---------|
+| 5–8 | BAIXA | ATLAS + CRONOS + 2 líderes que acumulam papéis (FRONT faz PIXEL+FORM; BACK faz ENGINE+VAULT) + SHIELD + SCOUT sob demanda |
+| 9–12 | MÉDIA | Todos os 10 (ATLAS, CRONOS, FRONT, PIXEL, FORM, BACK, ENGINE, VAULT, SHIELD, SCOUT sob demanda) |
+| 13–15 | ALTA | Todos os 10, com acompanhamento reforçado do CRONOS pelo sub-agente `code-architect` |
 
-## USO DO SCORE A PARTIR DA v4.0
+Em qualquer faixa, o CRONOS dispara a onda inteira de uma vez — todos os agentes independentes, na mesma mensagem —, até `paralelo_max` agentes ao mesmo tempo (padrão 5, em `.delta-11/.config-limites.json`); acima disso, a fila anda por vaga. O comandante não abre nada: todo disparo é do CRONOS.
 
-**O score continua sendo útil** para o ATLAS na Fase 1 decidir:
-- Se FRONT acumula PIXEL+FORM (score < 7) ou se eles são separados (score ≥ 7)
-- Se BACK acumula ENGINE+VAULT (score < 7) ou se eles são separados (score ≥ 7)
-- Estimativa de escopo e prazo
-- Expectativa de quantas janelas simultâneas o comandante vai abrir
+## PARA QUE O SCORE SERVE
 
-**O que MUDOU na v4.0:**
+O ATLAS usa o score na Fase 1 para decidir:
+- **Acúmulo de papéis:** se a soma é **≤ 8** (faixa BAIXA), FRONT acumula PIXEL+FORM e BACK acumula ENGINE+VAULT. Com **9 ou mais**, eles são separados.
+- Estimativa de escopo e prazo.
+- Se o `code-architect` acompanha a execução de perto (faixa ALTA).
 
-O score **NÃO determina mais se o CRONOS entra no projeto**. A partir da v4.0, o CRONOS é ativado em TODO projeto, independente da complexidade — incluindo projetos de baixa complexidade (score < 7).
+O score **NÃO** decide se a Fase 2.5 acontece: os mini-planos da Fase 2.5 são obrigatórios em TODO projeto (Regra 13).
+
+## O CRONOS ENTRA SEMPRE
+
+O score **NÃO determina se o CRONOS entra no projeto**. Desde a v4.0, o CRONOS é ativado em TODO projeto, independente da complexidade — inclusive na faixa BAIXA.
 
 **Por quê:** em times de engenharia reais, o arquiteto entrega o blueprint e sai; o gerente de projeto orquestra a execução. Manter essa separação em todos os projetos (e não apenas nos complexos) torna o sistema previsível e escalável. Mesmo um projeto simples precisa de alguém cobrando, sequenciando e destravando.
 
-O score continua indicando a QUANTIDADE de agentes que o CRONOS orquestra, nunca SE o CRONOS orquestra.
+O score indica a QUANTIDADE de agentes que o CRONOS orquestra, nunca SE o CRONOS orquestra.

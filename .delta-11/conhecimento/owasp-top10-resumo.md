@@ -1,4 +1,10 @@
-# Base de Conhecimento de Seguranca — SHIELD Agent
+# Base de Conhecimento de Seguranca — SHIELD Agent (BASE OFICIAL)
+
+> **v6.3 (2026-10-14) — esta é a base OFICIAL de segurança do SHIELD** (`perfis/SHIELD.json`). O arquivo
+> `owasp-top10-overview.md` é um apêndice curto (tabela das 10 categorias, CVEs, anti-tabela) e a skill global
+> `~/.claude/skills/owasp-top10/` é o aprofundamento (padrões, 47 testes executáveis, resposta a incidentes).
+> Se algo parecer discordar, vale ESTA base. RLS em detalhe: `supabase-rls-patterns.md` (base do VAULT) e a skill
+> `~/.claude/skills/supabase-rls/`.
 
 > **LIMITES ESTRUTURAIS E IDIOMA (obrigatório — `.delta-11/protocolos/regras-codigo.md` seções 8 e 9):**
 > Função ≤ 50 linhas e ≤ 3 parâmetros · arquivo ≤ 400 linhas · aninhamento ≤ 3 · 1 classe por arquivo · complexidade ciclomática ≤ 10.
@@ -19,13 +25,17 @@ Foco: Next.js + Supabase. Verificacoes executaveis por leitura de codigo.
 
 **Como detectar no codigo:**
 - Rotas de API sem verificacao de `session` ou `user.id` antes de retornar dados
-- Queries ao banco sem filtro por `user_id` (ex: `SELECT * FROM pedidos` sem `WHERE user_id = ?`)
+- Queries ao banco sem filtro por `user_id` (ex: `SELECT * FROM orders` sem `WHERE user_id = ?`)
 - Paginas admin sem middleware de autenticacao/autorizacao
 - IDs sequenciais expostos em URLs sem validacao de propriedade (IDOR)
 - Falta de RLS no Supabase (tabelas com `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` ausente)
 
 **Como corrigir:**
-- Toda rota de API valida sessao: `const { data: { session } } = await supabase.auth.getSession()`
+- Toda rota de API confere o usuario NO SERVIDOR com `@supabase/ssr` + `getUser()`:
+  `const { data: { user }, error } = await supabase.auth.getUser()` → sem `user` = 401.
+  **NUNCA `getSession()` no servidor:** ele so le o cookie e confia nele, sem conferir com o Supabase — um cookie
+  adulterado passa. `getSession()` so serve no navegador, para mostrar estado de tela.
+- O pacote `@supabase/auth-helpers-nextjs` e LEGADO: codigo novo que o importa e reprovado (usar `@supabase/ssr`)
 - Toda query filtra por `user_id` do usuario autenticado
 - RLS ativado em TODAS as tabelas do Supabase com policies explicitas
 - Middleware Next.js protege rotas privadas (`middleware.ts`)
@@ -81,7 +91,7 @@ Foco: Next.js + Supabase. Verificacoes executaveis por leitura de codigo.
 - Fluxo de pagamento sem verificacao server-side do valor
 
 **Como corrigir:**
-- Rate limiting via middleware ou Supabase Edge Functions
+- Rate limiting com armazenamento compartilhado (Upstash Redis / `@upstash/ratelimit`) chamado no middleware ou na rota. **NUNCA** contador em memoria (`new Map()`): em servidor serverless cada requisicao pode cair numa instancia nova e o contador zera — o limite nao funciona em producao
 - TODA logica de negocio critica no servidor (API routes ou Supabase Functions)
 - Validacao duplicada: frontend (UX) + servidor (seguranca)
 
@@ -200,6 +210,8 @@ Foco: Next.js + Supabase. Verificacoes executaveis por leitura de codigo.
 [ ] Todas as tabelas com RLS ativado
 [ ] Server Actions validam input antes de processar
 [ ] API routes retornam 401/403 para requests nao autorizados (nao 200 com erro no body)
+[ ] Validacao falhou ou campo faltando = 400 com o formato unico `{ "error": { "code": "VALIDATION_ERROR", "message": "...", "details": [...] } }` (D13) — nunca 422, nunca stack trace
+[ ] Servidor confere o usuario com getUser() (nunca getSession()); nenhum import de @supabase/auth-helpers-nextjs
 [ ] next.config.js define security headers
 [ ] Imagens externas restritas em next.config.js (remotePatterns)
 ```
@@ -211,6 +223,9 @@ Foco: Next.js + Supabase. Verificacoes executaveis por leitura de codigo.
 | `createBrowserClient` no servidor | API routes, Server Components | `createServerClient` |
 | `NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY` | `.env*` | Remover `NEXT_PUBLIC_` — nunca expor no browser |
 | `supabase.auth.getUser()` sem validar retorno | API routes | Verificar `error` e `data.user` antes de prosseguir |
+| `supabase.auth.getSession()` no servidor | API routes, Server Actions, middleware | `supabase.auth.getUser()` (confere o token com o Supabase) |
+| `@supabase/auth-helpers-nextjs` | imports | `@supabase/ssr` (`createServerClient` / `createBrowserClient`) |
+| Rate limit com `new Map()` em memoria | rotas de login/registro | `@upstash/ratelimit` com Redis |
 | `headers()` / `cookies()` em Client Component | Componentes com `"use client"` | Mover logica para Server Component ou API route |
 | Fetch sem `cache: 'no-store'` para dados sensiveis | Server Components | Adicionar `cache: 'no-store'` ou `revalidate: 0` |
 
@@ -284,24 +299,25 @@ Foco: Next.js + Supabase. Verificacoes executaveis por leitura de codigo.
 
 ```sql
 -- Ativar RLS
-ALTER TABLE tabela ENABLE ROW LEVEL SECURITY;
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 
 -- SELECT: usuario ve apenas seus dados
-CREATE POLICY "usuario_ve_seus_dados" ON tabela
-  FOR SELECT USING (auth.uid() = user_id);
+-- (select auth.uid()) entre parenteses = calculado 1 vez por consulta, nao 1 vez por linha (ver supabase-rls-patterns.md)
+CREATE POLICY "orders_select_own" ON orders
+  FOR SELECT TO authenticated USING ((select auth.uid()) = user_id);
 
 -- INSERT: usuario insere apenas com seu id
-CREATE POLICY "usuario_insere_seus_dados" ON tabela
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "orders_insert_own" ON orders
+  FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = user_id);
 
 -- UPDATE: usuario atualiza apenas seus dados
-CREATE POLICY "usuario_atualiza_seus_dados" ON tabela
-  FOR UPDATE USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "orders_update_own" ON orders
+  FOR UPDATE TO authenticated USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
 
 -- DELETE: usuario deleta apenas seus dados
-CREATE POLICY "usuario_deleta_seus_dados" ON tabela
-  FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "orders_delete_own" ON orders
+  FOR DELETE TO authenticated USING ((select auth.uid()) = user_id);
 ```
 
 ---

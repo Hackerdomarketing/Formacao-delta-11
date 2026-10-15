@@ -1,252 +1,132 @@
 #!/usr/bin/env python3
 """
-Hook PreToolUse do Delta-11 v6.0: bloqueia conclusão da Fase 3.5
-(Ritmo Temporal) sem os 10 artefatos do Dia 4 em .delta-11/memoria/decisoes/.
+Vigia da Fase 3.5 (Ritmo Temporal, Dia 4) — Delta-11 v6.4 (2026-10-15). C-015, C-028, V9.
 
-Materializa o Princípio de Selagem (Princípio 2 da Metodologia Gênesis
-aplicado ao Dia 4): "Cada camada precisa ser selada antes da próxima
-começar. Selado = capacidade estrutural completa."
+Principio de Selagem: a Fase 3.5 so pode ser SELADA com os 10 artefatos do Dia 4
+em `.delta-11/memoria/decisoes/` da pasta principal, um por numero:
+  AAAA-MM-DD-ritmo-temporal-NN-<slug>.md   (NN = 01 a 10, arquivo nao vazio)
 
-Para o Dia 4, "selar" significa: os 10 artefatos estão documentados em
-arquivos com nome padrao `ritmo-temporal-NN-*.md` na pasta .delta-11/memoria/decisoes/.
+Ciclo leve (v6.4 — V9): do Ciclo 2 em diante, o checklist de 1 pagina do ciclo
+vale como equivalente (e obrigatório: documentos de ciclos anteriores não o substituem) aos 10 documentos:
+  AAAA-MM-DD-ritmo-temporal-checklist-ciclo-N.md
+com os 10 itens, cada um "sem mudança" ou "mudou: <ate 3 linhas>" (modelo:
+templates/ritmo-temporal-checklist-template.md). O numero do ciclo vem da linha
+do selo ("Ciclo N"), senao do kanban (`**Ciclo atual:** N` ou "Ciclo N" na Fase
+atual) ou do `fase_atual` do kanban-data.js; sem informacao, Ciclo 1. No Ciclo 1
+o checklist NAO vale: so os 10 documentos. Checklist do ciclo atual COMECADO e
+incompleto bloqueia (mesmo com documentos antigos): termine-o.
+Limite conhecido: quando o ciclo MEXE na area (filas novas, por exemplo), o item
+afetado precisa do documento completo — isso o vigia nao consegue julgar; quem
+confere e o SHIELD (protocolos/fase-ritmo.md, "Ciclo leve").
 
-ALVO: edicoes em .delta-11/kanban.md que tentam marcar tarefas da
-Fase 3.5 como CONCLUIDAS sem os 10 artefatos presentes.
+Quando age (PreToolUse em Edit|Write do `.delta-11/kanban.md`, caminho relativo
+ou absoluto): so quando a edicao ACRESCENTA uma linha que declara o selo da fase,
+por exemplo:
+  "Fase 3.5 selada"   "[SELO 3.5]"   "Dia 4 selado"   "[RITMO] ... SELO"
+Concluir tarefas individuais da fase (que produzem os artefatos um a um) nao e
+bloqueado — o selo e que exige os 10 (protocolos/fase-ritmo.md, "Criterio
+objetivo de selo").
 
-LOGICA:
-  1. Detecta se Edit atinge .delta-11/kanban.md
-  2. Detecta se há tarefa da Fase 3.5 (tag [3.5] ou [RITMO]) sendo concluída
-  3. Se NAO for Fase 3.5 → exit 0 (deixa passar)
-  4. Se for Fase 3.5 → verifica quantos arquivos ritmo-temporal-* existem em memoria/decisoes/
-  5. Se houver < 10 artefatos → BLOQUEIA (exit 2) com mensagem listando os 10
-  6. Se houver 10+ artefatos → exit 0 (passa)
+A mensagem lista exatamente os numeros que FALTAM (C-028).
 
-EXIT CODES:
-  0 = pode prosseguir
-  2 = bloquear (PreToolUse hook convention)
-  1 = erro interno (nao bloqueia)
-
-Cross-platform: macOS, Linux, Windows. Requer Python 3.8+.
-Inspirado em validar-contratos-fim-fase.py e validar-arquitetura-vs-modelos.py.
+Erro interno: libera a acao, registra ERRO-INTERNO no activity-log e avisa no
+stderr (exit 1) — ver _comum.run.
 """
 
 from __future__ import annotations
 
-import json
-import re
+import os
 import sys
-from pathlib import Path
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _comum as comum  # noqa: E402
+
+HOOK = "fase-ritmo-checker"
+FASE = "3.5"
+PREFIXO = "ritmo-temporal"
+ARTEFATOS = {
+    1: "sistema-eventos", 2: "filas", 3: "jobs-agendados", 4: "cache-ttl",
+    5: "timeouts", 6: "retries", 7: "circuit-breakers", 8: "ci-cd-staging",
+    9: "observabilidade", 10: "sub-contraposicao",
+}
 
 
-ACTIVITY_LOG = Path(".delta-11/activity-log.md")
-DECISOES_DIR = Path(".delta-11/memoria/decisoes")
-
-# Regex para detectar conclusao
-CONCLUSAO_RE = re.compile(
-    r"\[x\]|CONCLU[IÍ]DO|CONCLUIDA|✅",
-    re.IGNORECASE,
-)
-
-# Regex para tag de Fase 3.5 (pode ser [3.5] ou [RITMO])
-FASE_3_5_RE = re.compile(
-    r"\[3\.5\]|\[RITMO\]|ritmo\s+temporal",
-    re.IGNORECASE,
-)
+CHECKLIST_MODELO = ".delta-11/templates/ritmo-temporal-checklist-template.md"
 
 
-def timestamp_utc() -> str:
-    from datetime import datetime
-    return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-def log_activity(message: str) -> None:
-    try:
-        ACTIVITY_LOG.parent.mkdir(parents=True, exist_ok=True)
-        with ACTIVITY_LOG.open("a", encoding="utf-8") as f:
-            f.write(f"- [{timestamp_utc()}] [fase-ritmo-checker] {message}\n")
-    except OSError:
-        pass
-
-
-def read_hook_event() -> dict:
-    raw = sys.stdin.read().strip()
-    if not raw:
-        return {}
-    try:
-        return json.loads(raw)
-    except json.JSONDecodeError:
-        return {}
-
-
-def is_kanban_edit(event: dict) -> bool:
-    tool_input = event.get("tool_input") or {}
-    file_path = tool_input.get("file_path") or tool_input.get("path") or ""
-    return (
-        file_path.endswith("/.delta-11/kanban.md")
-        or file_path.endswith("\\.delta-11\\kanban.md")
+def message(selo: list[str], faltando: list[int], nomes: list[str], ciclo: int = 1,
+            checklist: str | None = None, pendencias: list[tuple[int, str]] | None = None) -> str:
+    texto = (
+        f"[{HOOK}] BLOQUEIO {comum.VERSAO} — Selo da Fase 3.5 (Ritmo Temporal, Dia 4) — Ciclo {ciclo}\n"
+        f"\n"
+        f"Linha que declara o selo: {selo[0][:160]}\n"
     )
-
-
-def get_combined_content(event: dict) -> str:
-    tool_input = event.get("tool_input") or {}
-    return (
-        tool_input.get("new_string", "")
-        + "\n"
-        + tool_input.get("content", "")
+    if ciclo >= 2:
+        if checklist and pendencias:
+            texto += f"\nO checklist do Ciclo {ciclo} ({checklist}) esta incompleto:\n"
+            texto += "".join(f"  {n:02d}. {ARTEFATOS[n]} — {motivo}\n" for n, motivo in pendencias)
+            texto += "\nComplete esses itens e declare o selo de novo.\n"
+            return texto
+        texto += (
+            f"\nCiclo {ciclo} (ciclo leve): basta UM checklist de 1 pagina com os 10 itens:\n"
+            f"  .delta-11/memoria/decisoes/AAAA-MM-DD-{PREFIXO}-checklist-ciclo-{ciclo}.md\n"
+            f"  (modelo: {CHECKLIST_MODELO})\n"
+            f"(Os documentos de ciclos anteriores não substituem o checklist do ciclo atual.)\n\n"
+        )
+    texto += f"Presentes: {len(ARTEFATOS) - len(faltando)} de {len(ARTEFATOS)}. Faltam {len(faltando)}:\n"
+    texto += "".join(
+        f"  {n:02d}. {ARTEFATOS[n]}  -> .delta-11/memoria/decisoes/AAAA-MM-DD-{PREFIXO}-{n:02d}-{ARTEFATOS[n]}.md\n"
+        for n in faltando
     )
-
-
-def is_conclusao(content: str) -> bool:
-    return bool(CONCLUSAO_RE.search(content))
-
-
-def is_fase_3_5(content: str) -> bool:
-    return bool(FASE_3_5_RE.search(content))
-
-
-def count_ritmo_artifacts(base_dir: str | None = None) -> tuple[int, list[str]]:
-    """
-    Conta quantos artefatos de ritmo temporal existem em memoria/decisoes.
-    Procura por arquivos com nome contendo 'ritmo-temporal' no nome.
-    Retorna (count, lista_de_nomes).
-    """
-    search_dir = DECISOES_DIR
-    if base_dir:
-        search_dir = Path(base_dir) / ".delta-11/memoria/decisoes"
-
-    if not search_dir.exists():
-        return (0, [])
-
-    artifact_names = []
-    for f in search_dir.iterdir():
-        if f.is_file() and "ritmo-temporal" in f.name.lower():
-            artifact_names.append(f.name)
-
-    return (len(artifact_names), sorted(artifact_names))
-
-
-def block_edit(file_path: str, count: int, missing: list[str]) -> int:
-    msg = (
-        f"[fase-ritmo-checker] BLOQUEIO v6.0.0 — Princípio de Selagem do Dia 4\n"
-        f"\n"
-        f"Arquivo: {file_path}\n"
-        f"\n"
-        f"A tarefa da Fase 3.5 (Ritmo Temporal) está sendo marcada como CONCLUÍDA,\n"
-        f"mas só {count} de 10 artefatos do Dia 4 estão presentes em\n"
-        f".delta-11/memoria/decisoes/.\n"
-        f"\n"
-        f"Sem os 10 artefatos, o Dia 4 NÃO está selado. A Metodologia Gênesis é\n"
-        f"explícita: 'Astros para governar o tempo não foram feitos antes de\n"
-        f"existir dia e noite.' Construir código de funcionalidade sem ritmo\n"
-        f"temporal é 'fazer os peixes antes de haver águas'.\n"
-        f"\n"
-        f"Os 10 artefatos do Dia 4 que devem existir:\n"
-        f"  01. sistema-eventos\n"
-        f"  02. filas (escolha do provedor)\n"
-        f"  03. jobs-agendados\n"
-        f"  04. cache-ttl\n"
-        f"  05. timeouts\n"
-        f"  06. retries (with backoff)\n"
-        f"  07. circuit-breakers\n"
-        f"  08. ci-cd-staging\n"
-        f"  09. observabilidade\n"
-        f"  10. sub-contraposicao (dominantes vs testemunhas)\n"
-        f"\n"
+    if nomes:
+        texto += "\nJa existem:\n" + "".join(f"  - {n}\n" for n in nomes)
+    texto += (
+        "\nCrie os que faltam com .delta-11/templates/fase-ritmo-template.md e declare o\n"
+        "selo de novo. Protocolo: .delta-11/protocolos/fase-ritmo.md\n"
     )
-    if missing:
-        msg += f"Faltam {len(missing)} artefatos. Crie cada um usando o template\n"
-        msg += f".delta-11/templates/fase-ritmo-template.md e salve em\n"
-        msg += f".delta-11/memoria/decisoes/AAAA-MM-DD-ritmo-temporal-<NN>-<slug>.md\n"
-    else:
-        msg += "Artefatos encontrados:\n"
-        msg += "\n".join(f"  - {name}" for name in missing[:10]) + "\n"
-
-    msg += (
-        f"\n"
-        f"Referência conceitual: .delta-11/conhecimento/metodologia-genesis-camadas.md\n"
-        f"  → Dia 4 (Os Astros)\n"
-        f"Protocolo formal: .delta-11/protocolos/fase-ritmo.md\n"
-        f"Template: .delta-11/templates/fase-ritmo-template.md\n"
-        f"\n"
-        f"AÇÃO REQUERIDA:\n"
-        f"  1. Crie os 10 artefatos usando o template\n"
-        f"  2. Salve cada um em .delta-11/memoria/decisoes/ com nome padrao\n"
-        f"  3. Repita a edição que tentou marcar Fase 3.5 como concluída\n"
-    )
-    print(msg, file=sys.stderr)
-    return 2
+    return texto
 
 
 def main() -> int:
-    try:
-        event = read_hook_event()
-
-        if not is_kanban_edit(event):
-            return 0
-
-        file_path = (
-            (event.get("tool_input") or {}).get("file_path", "")
-            or "<desconhecido>"
-        )
-
-        combined = get_combined_content(event)
-
-        if not is_conclusao(combined):
-            return 0
-
-        if not is_fase_3_5(combined):
-            return 0
-
-        # Eh conclusao de tarefa da Fase 3.5 → checa artefatos
-        # Determina o diretorio base a partir do file_path do kanban
-        # (caso hook esteja rodando em outro diretorio)
-        base_dir = None
-        tool_input = event.get("tool_input") or {}
-        file_path_str = tool_input.get("file_path", "")
-        if file_path_str:
-            # Extrai base (pai de .delta-11/kanban.md)
-            # Path is like /Users/foo/projeto/.delta-11/kanban.md
-            parts = file_path_str.replace("\\", "/").split("/.delta-11/")
-            if len(parts) >= 2:
-                base_dir = parts[0]
-
-        count, names = count_ritmo_artifacts(base_dir)
-
-        if count >= 10:
-            log_activity(
-                f"Fase 3.5 com {count} artefatos >= 10 — conclusao permitida"
-            )
-            return 0
-
-        log_activity(
-            f"Fase 3.5 com {count} de 10 artefatos — conclusao BLOQUEADA"
-        )
-        return block_edit(
-            file_path,
-            count=count,
-            missing=names,
-        )
-
-    except Exception as exc:  # noqa: BLE001
-        print(
-            f"[fase-ritmo-checker] erro não-fatal: {exc}",
-            file=sys.stderr,
-        )
-        try:
-            log_activity(f"ERRO nao-fatal: {exc}")
-        except Exception:  # noqa: BLE001
-            pass
+    evento = comum.read_event()
+    if not comum.is_kanban_event(evento):
         return 0
+    antes, depois = comum.before_and_after(evento)
+    selo = comum.declares_seal(comum.new_lines(antes, depois), FASE)
+    if not selo:
+        return 0
+    ciclo = comum.cycle_in_text(selo[0]) or comum.current_cycle(depois)
+    _presentes, faltando, nomes = comum.phase_artifacts(PREFIXO, len(ARTEFATOS))
+    if ciclo >= 2:
+        checklist, pendencias = comum.cycle_checklist(PREFIXO, ciclo, ARTEFATOS)
+        if checklist and not pendencias:
+            comum.log(HOOK, f"OK: selo da Fase 3.5 do Ciclo {ciclo} com o checklist {checklist} (ciclo leve)")
+            return 0
+        if checklist and pendencias:
+            return comum.block(
+                HOOK, message(selo, faltando, nomes, ciclo, checklist, pendencias),
+                f"selo da Fase 3.5 do Ciclo {ciclo}: checklist com {len(pendencias)} item(ns) pendente(s)",
+            )
+        if not checklist:
+            # v6.4 (integração): do Ciclo 2 em diante, documentos completos de ciclos anteriores NÃO substituem o
+            # checklist do ciclo atual (senão o vigia liberaria sempre: os documentos do Ciclo 1 continuam na pasta).
+            return comum.block(
+                HOOK,
+                f"Selo da Fase 3.5 do Ciclo {ciclo} sem o checklist do ciclo atual (ciclo leve, V9).\n"
+                f"Crie memoria/decisoes/AAAA-MM-DD-ritmo-temporal-checklist-ciclo-{ciclo}.md a partir de\n"
+                "templates/ritmo-temporal-checklist-template.md: um item por linha, 'sem mudança' ou 'mudou: ...'\n"
+                "(item que o ciclo mexeu cita o documento completo novo).",
+                f"selo da Fase 3.5 do Ciclo {ciclo} sem checklist do ciclo",
+            )
+    if not faltando:
+        comum.log(HOOK, f"OK: selo da Fase 3.5 do Ciclo {ciclo} com os 10 artefatos")
+        return 0
+    return comum.block(
+        HOOK, message(selo, faltando, nomes, ciclo),
+        f"selo da Fase 3.5 do Ciclo {ciclo} com {len(faltando)} artefato(s) faltando",
+    )
 
 
 if __name__ == "__main__":
-    try:
-        sys.exit(main())
-    except SystemExit:
-        raise
-    except Exception as exc:  # noqa: BLE001
-        print(
-            f"[fase-ritmo-checker] erro fatal: {exc}",
-            file=sys.stderr,
-        )
-        sys.exit(0)
+    comum.run(main, HOOK)

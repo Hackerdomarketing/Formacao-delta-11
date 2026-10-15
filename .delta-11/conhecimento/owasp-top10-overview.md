@@ -1,6 +1,12 @@
-# OWASP Top 10 — Referência Curta para Code Review
+# OWASP Top 10 — Referência Curta para Code Review (APÊNDICE)
 
-> **Esta é a base CURTA.** A versão COMPLETA (16 fontes, 53 claims, 51 armadilhas catalogadas, 36 princípios, 32 heurísticas, 47 testes, 25 padrões canônicos, 44 anti-padrões, 5 configs, 4 runbooks IR, 5 evals) vive em `~/.claude/skills/owasp-top10/` (skill global instalada em v5.4 Estágios 5.1-5.4).
+> **v6.3 (2026-10-14) — qual base é a oficial:** a base OFICIAL de segurança do SHIELD é
+> `.delta-11/conhecimento/owasp-top10-resumo.md` (é a que está no `perfis/SHIELD.json` e no operativo do SHIELD).
+> ESTE arquivo é o **apêndice curto** da skill global `owasp-top10`: tabela das 10 categorias, CVEs do
+> ecossistema e anti-tabela, para consulta rápida. Se as duas parecerem discordar, vale o `owasp-top10-resumo.md`.
+>
+> A versão COMPLETA (padrões canônicos, anti-padrões, configs, 47 testes executáveis, resposta a incidentes em 4
+> fases com contenção para 9 categorias) vive em `~/.claude/skills/owasp-top10/` (skill global instalada na v5.4).
 >
 > **Quando consultar esta base vs a skill:**
 > - Esta base: code review rápido de uma PR; checklist pré-deploy; lembrar uma categoria OWASP específica
@@ -8,7 +14,7 @@
 >
 > **CROSS-REFERENCE com outras skills:**
 > - **RLS, BYPASSRLS, search_path hijack, service_role:** use `~/.claude/skills/supabase-rls/` (A01 + A02)
-> - **Auditoria do D-11:** use `ferramentas-do-projeto.md` + `validar-deploy.py`
+> - **Auditoria do D-11:** use `memoria/ferramentas-do-projeto.md` + o hook `validar-deploy.py` + o sub-agente `verify-app`
 > - **Pentest externo / compliance:** contrate auditoria humana; skill é defesa em profundidade, não substitui profissional
 
 ## 1. As 10 categorias OWASP (regra de bolso)
@@ -43,9 +49,9 @@
 |---|---|---|---|
 | **CVE-2024-34351** | HIGH (7.5) | SSRF via Server Actions image optimization | Next.js ≥ 14.1.1; nunca passar URL user para Image |
 | **CVE-2025-29927** | CRITICAL (9.1) | Middleware bypass via `x-middleware-subrequest` | Next.js ≥ 14.2.25/15.2.3; nunca confiar SÓ em middleware |
-| **CVE-2022-24834** (event-stream) | CRITICAL | Dep npm com código malicioso | `npm audit` em CI; lockfile obrigatório |
-| **CVE-2023-XXXXX** (Supabase Auth) | HIGH | Token não expira em algumas rotas | Rotação JWT secret + revisão de policies |
-| **MS-2021-XXXX** (log4j) | CRITICAL | RCE via log injection (exemplo A06) | Não usar Java (irrelevante p/ Next.js) |
+| **CVE-2025-48757** (apps gerados no Lovable + Supabase) | CRITICAL (9.3, contestado pelo fornecedor) | Tabelas sem RLS lidas/escritas só com a chave pública `anon` | RLS em TODA tabela + policy explícita; testar com a chave `anon` antes do deploy |
+| **CVE-2021-44228** (Log4Shell, log4j) | CRITICAL (10.0) | Execução remota de código via texto gravado em log (exemplo clássico de A06) | Irrelevante para Next.js, mas o padrão vale: dependência com CVE crítico = atualizar no mesmo dia |
+| **Incidente event-stream** (npm, 2018 — sem número de CVE próprio) | CRITICAL | Dependência popular recebeu código malicioso (`flatmap-stream`) que roubava carteiras | `npm audit` em CI; lockfile obrigatório; revisar mantenedor novo em dependência crítica |
 
 ## 4. Anti-tabela: 12 coisas que você NÃO faz
 
@@ -88,8 +94,8 @@
 | **VAULT** | Cria tabelas com RLS habilitada desde o dia 1 |
 | **FRONT** | Configura `next.config.js` com security headers |
 | **CRONOS** | Despacha migration de schema RLS ANTES de ENGINE (dependência) |
-| **Comandante** | Roda `audit-security.sh` antes de cada deploy em staging |
+| **SHIELD (antes do deploy)** | Dispara o `verify-app` e roda os testes executáveis da skill (`references/09-testes-executaveis.md`); o hook `validar-deploy.py` bloqueia o deploy sem a revisão |
 
 ---
 
-**Proveniência:** Esta base é a versão resumida (gate) da skill completa `~/.claude/skills/owasp-top10/` construída via Skill Forge v3 (Deep Path, Estágio 5.1 do plano de execução v5.4). A skill é o lugar de verdade; esta base existe para o time ter o essencial de OWASP em 5 minutos de leitura.
+**Proveniência:** apêndice curto da skill completa `~/.claude/skills/owasp-top10/` (Skill Forge v3, v5.4). A base oficial do SHIELD é `owasp-top10-resumo.md`; a skill é o aprofundamento. Revisado na v6.3 (2026-10-14): CVEs com número real, sem placeholders, sem o script inexistente `audit-security.sh`.

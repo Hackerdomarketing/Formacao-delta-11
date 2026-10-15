@@ -6,6 +6,8 @@
 # Verifica que:
 #   F7  — todas as cross-refs a outras bases batem com seções reais
 #   F15 — seção Adapter menciona a Regra 14 (não só a Regra 15)
+#   v6.3 — o caminho de protocolos/ é calculado a partir do arquivo da base,
+#          e não do diretório de onde o teste é chamado.
 #
 # Saída: exit 0 se tudo OK.
 # ════════════════════════════════════════════════════════════════
@@ -37,7 +39,9 @@ import re, sys, pathlib
 base_path = pathlib.Path(sys.argv[1])
 content = base_path.read_text()
 root = base_path.parent
-protocolos = pathlib.Path('.delta-11/protocolos')
+# A pasta protocolos/ é irmã de conhecimento/ — calculada a partir da base,
+# não do diretório atual (antes o teste dependia de onde era chamado).
+protocolos = root.parent / 'protocolos'
 
 # Captura refs em formato de cross-ref de SEÇÃO: "nome-arquivo §N" OU "nome-arquivo"
 # seguido de seção. Ignora menções dentro de path de skill (começa com `~/.claude/skills/`).
@@ -91,11 +95,14 @@ for ref, sec in sorted(refs, key=lambda x: (x[0], x[1] or '')):
 print(f'TOTAL:{total} OK:{ok_count}')
 PY
 )
-total=$(echo "$refs_validas" | grep "^TOTAL:" | cut -d: -f2)
-ok_count=$(echo "$refs_validas" | grep "^TOTAL:" | cut -d: -f3)
+linha_total=$(echo "$refs_validas" | grep "^TOTAL:" || true)
+total=$(echo "$linha_total" | sed -E 's/^TOTAL:([0-9]+) OK:([0-9]+)$/\1/')
+ok_count=$(echo "$linha_total" | sed -E 's/^TOTAL:([0-9]+) OK:([0-9]+)$/\2/')
 falhas_ref=$(echo "$refs_validas" | grep -E "^(FALTA|SECAO_NAO_ENCONTRADA):" || true)
 
-if [ -n "$falhas_ref" ]; then
+if [ -z "$total" ] || [ "$total" -eq 0 ]; then
+    err "F7 nenhuma cross-ref encontrada — o teste não conferiu nada (base vazia ou extração quebrada)"
+elif [ -n "$falhas_ref" ]; then
     err "F7 cross-refs quebradas:"
     echo "$falhas_ref" | sed 's/^/        /'
 else

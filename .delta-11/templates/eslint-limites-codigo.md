@@ -9,7 +9,7 @@
 ```js
 // Limites estruturais de código — Formação Δ-11
 // Fonte: .delta-11/protocolos/regras-codigo.md seção 8
-// NÃO afrouxar valores sem aprovação do comandante.
+// NÃO afrouxar valores sem decisão registrada do ATLAS (ADR em .delta-11/memoria/decisoes/).
 {
   rules: {
     'max-params': ['error', 3],

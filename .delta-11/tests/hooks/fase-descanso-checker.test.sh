@@ -1,93 +1,39 @@
 #!/usr/bin/env bash
-# Teste do hook fase-descanso-checker.py (Etapa 7C do v6.0)
+# Teste do vigia fase-descanso-checker.py (v6.3 — C-015, C-027; v6.4 — V10). Fase 7 = Dia 7.
+source "$(dirname "$0")/_ajudante-hooks-python.sh" fase-descanso-checker
+checagens_basicas
+if grep -q "CONAGRAC" "$HOOK"; then err "erro de digitacao CONAGRAC ainda existe (C-027)"; else ok "sem o erro de digitacao CONAGRAC (C-027)"; fi
 
-set -euo pipefail
-GREEN='\033[0;32m'; RED='\033[0;31m'; NC='\033[0m'
+novo_projeto
+DEC="$TEST_DIR/.delta-11/memoria/decisoes"
+kanban $'# Kanban\n## FAZENDO\n- [ ] T-DES-01 docs [FRONT]'
+SELO=$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\n**Fase 7 consagrada**')
+SELO_COM_TESTE=$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\n**TESTE SUPREMO PASSOU** — 2 semanas sem intervencao\n**Fase 7 consagrada**')
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-HOOKS_DIR="$(cd "$SCRIPT_DIR/../../hooks" && pwd)"
-HOOK="$HOOKS_DIR/fase-descanso-checker.py"
-SETTINGS="$SCRIPT_DIR/../../templates/settings-hooks.json"
+espera 0 "um '[7]' solto no texto nao dispara (C-027)" "$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=docs [FRONT]' 'tool_input.new_string=docs [FRONT] ver nota [7] ✅')"
+espera 2 "selo da Fase 7 sem entregaveis: bloqueia" "$SELO"
+stderr_contem "Faltam"
+for n in 01 02 03 04 05 06 07 08 09 10; do echo x > "$DEC/2026-10-14-descanso-$n-item.md"; done
+espera 2 "10 entregaveis, mas sem TESTE SUPREMO: bloqueia" "$SELO"
+stderr_contem "TESTE SUPREMO"
+espera 0 "10 entregaveis + TESTE SUPREMO: selo liberado" "$SELO_COM_TESTE"
+espera 0 "[CONSAGRAÇÃO] com SELO e a grafia certa reconhecida" "$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\n**TESTE SUPREMO OK** 2 semanas\n[CONSAGRAÇÃO] SELO final')"
+rm -f "$DEC"/*-descanso-09-*
+espera 2 "[CONSAGRAÇÃO] SELO com 9 entregaveis: bloqueia" "$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\n**TESTE SUPREMO OK** 2 semanas\n[CONSAGRAÇÃO] SELO final')"
+stderr_contem "09. dr-testado"
+espera 0 "'Fase 7.5' ou 'Fase 70' nao sao Fase 7" "$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\nFase 7.5 selada')"
 
-falhou=0
-ok() { echo -e "  ${GREEN}[OK]${NC}   $1"; }
-err() { echo -e "  ${RED}[FALTA]${NC} $1"; falhou=$((falhou + 1)); }
-
-if [ -f "$HOOK" ]; then
-    ok "hook existe em $HOOK"
-else
-    err "hook AUSENTE"; exit 1
-fi
-
-if [ -x "$HOOK" ]; then ok "hook executavel"; else err "hook NAO executavel"; fi
-
-if grep -qE "kanban\.md|\.delta-11/kanban" "$HOOK"; then ok "hook detecta kanban.md"; else err "hook NAO detecta kanban.md"; fi
-
-if grep -qE "\[7\]|\[DESCANSO\]|\[CONAGRAC" "$HOOK"; then ok "hook detecta tag da Fase 7"; else err "hook NAO detecta tag Fase 7"; fi
-
-if grep -qE "memoria/decisoes|descanso" "$HOOK"; then ok "hook verifica artefatos descanso-*"; else err "hook NAO verifica artefatos"; fi
-
-if grep -qE "operacao.autonoma|2 semanas" "$HOOK"; then ok "hook verifica teste supremo / 2 semanas"; else err "hook NAO verifica teste supremo"; fi
-
-if head -1 "$HOOK" | grep -q "python"; then ok "hook Python"; else err "hook NAO Python"; fi
-
-if [ -f "$SETTINGS" ] && grep -q "fase-descanso-checker" "$SETTINGS"; then ok "registrado em settings"; else err "NAO registrado em settings"; fi
-
-if grep -qE "sys\.exit\(0\)|return 0" "$HOOK" && grep -qE "sys\.exit\(2\)|return 2" "$HOOK"; then ok "exit codes 0/2"; else err "sem exit codes"; fi
-
-if head -5 "$HOOK" | grep -qE '"""'; then ok "docstring"; else err "sem docstring"; fi
-
-# Teste funcional
-TEST_DIR=$(mktemp -d)
-mkdir -p "$TEST_DIR/.delta-11/memoria/decisoes"
-TEST_KB="$TEST_DIR/.delta-11/kanban.md"
-cat > "$TEST_KB" <<'EOF'
-# Kanban
-## A FAZER
-- [ ] T-DESC-001 Operacao autonoma
-EOF
-
-# Cenario A — sem 10 artefatos → BLOQUEIA
-RESULT=$(python3 -c "
-import json
-event = {'tool_name': 'Edit', 'tool_input': {'file_path': '$TEST_KB', 'old_string': '## A FAZER\n- [ ] T-DESC-001', 'new_string': '## CONCLUIDO\n- [x] T-DESC-001 [7] [DESCANSO] Dia 7 consagra'}}
-print(json.dumps(event))
-" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?")
-EXIT_CODE=$(echo "$RESULT" | grep "EXIT=" | cut -d= -f2)
-if [ "$EXIT_CODE" = "2" ]; then ok "BLOQUEIA conclusao Dia 7 sem 10 artefatos"; else err "NAO bloqueia (exit=$EXIT_CODE)"; fi
-
-# Cenario B — kanban com 10 artefatos + selo explicito → PASSA
-for i in 01 02 03 04 05 06 07 08 09 10; do
-    touch "$TEST_DIR/.delta-11/memoria/decisoes/2026-07-12-descanso-$i-teste.md"
-done
-
-RESULT=$(python3 -c "
-import json
-event = {'tool_name': 'Edit', 'tool_input': {'file_path': '$TEST_KB', 'old_string': '## CONCLUIDO\n- [x] T-DESC-001', 'new_string': '## CONCLUIDO\n- [x] T-DESC-001 [7] [DESCANSO] Dia 7 consagra — **TESTE SUPREMO PASSOU** 2 semanas sem intervencao'}}
-print(json.dumps(event))
-" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?")
-EXIT_CODE=$(echo "$RESULT" | grep "EXIT=" | cut -d= -f2)
-if [ "$EXIT_CODE" = "0" ]; then ok "PASSA com 10 artefatos + teste supremo"; else err "NAO passa mesmo com 10+teste supremo (exit=$EXIT_CODE)"; fi
-
-# Cenario C — kanban com 10 artefatos MAS sem teste supremo → BLOQUEIA
-cat > "$TEST_KB" <<'EOF'
-# Kanban
-## CONCLUIDO
-- [x] T-DESC-001 [7] [DESCANSO] consagra
-EOF
-
-RESULT=$(python3 -c "
-import json
-event = {'tool_name': 'Edit', 'tool_input': {'file_path': '$TEST_KB', 'old_string': 'EOF', 'new_string': 'EOF\n## NEXT'}}
-print(json.dumps(event))
-" | python3 "$HOOK" 2>/dev/null; echo "EXIT=$?")
-# Cenario B nao eh conclusao de fase 7 nova (ja concluida), entao passa.
-# Cenario de teste supremo: edit que adiciona marcador sem teste supremo → BLOQUEIA
-# Sao testes complexos. Aceitamos 0 ou 2 aqui.
-if [ "$EXIT_CODE" = "0" ] || [ "$EXIT_CODE" = "2" ]; then ok "processa edicao sem conclusao nova (exit $EXIT_CODE)"; fi
-
-rm -rf "$TEST_DIR"
-
-echo ""
-[ "$falhou" -eq 0 ] && { echo -e "${GREEN}OK — hook implementado${NC}"; exit 0; } \
-  || { echo -e "${RED}FALTA $falhou item(ns)${NC}"; exit 1; }
+# ── v6.4 — V10: a Fase 7 não trava o ciclo seguinte; só o selo FINAL exige o teste supremo ──
+novo_projeto
+DEC="$TEST_DIR/.delta-11/memoria/decisoes"
+for n in 01 02 03 04 05 06 07 08 09 10; do echo x > "$DEC/2026-10-15-descanso-$n-item.md"; done
+kanban $'# Kanban\n**Ciclo atual:** 1\n**Fase atual:** Fase 7'
+espera 0 "\"Fase 7 entregue\" (sem teste supremo): não trava" "$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\nFase 7 entregue — observação de 2 semanas em andamento')"
+espera 0 "\"Fase 7 iniciada\": não trava" "$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\n**Fase 7 iniciada** (Ciclo 1)')"
+espera 0 "abrir o ciclo seguinte durante a observação: não trava" "$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=**Ciclo atual:** 1' $'tool_input.new_string=**Ciclo atual:** 2\nCiclo 2 aberto — Fase 7 do Ciclo 1 será consagrada ao fim das 2 semanas de observação')"
+espera 0 "\"ainda não consagrada\" não é selo final" "$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\nFase 7 do Ciclo 1 ainda não consagrada (observação no dia 5 de 14)')"
+espera 2 "selo FINAL do Dia 7 sem teste supremo: bloqueia" "$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\n**Dia 7 consagrado** (Ciclo 1)')"
+stderr_contem "TESTE SUPREMO"
+espera 2 "\"Fase 7 consagrada\" sem teste supremo: bloqueia" "$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\nFase 7 do Ciclo 1 consagrada')"
+espera 0 "selo final com o TESTE SUPREMO registrado: liberado" "$(evento tool_name=Edit tool_input.file_path=.delta-11/kanban.md 'tool_input.old_string=# Kanban' $'tool_input.new_string=# Kanban\n**TESTE SUPREMO PASSOU** — 2 semanas sem intervencao\n**Dia 7 consagrado** (Ciclo 1)')"
+fim

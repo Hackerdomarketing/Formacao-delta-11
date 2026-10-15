@@ -1,6 +1,6 @@
 # Mapa de Dependências — [Ciclo/Fase] ([data ISO])
 
-> **Template v5.2 — Mapa de dependências do CRONOS (Fase 2.5, Passo 2).**
+> **Template v6.3 (2026-10-14) — Mapa de dependências do CRONOS (Fase 2.5, Passo 2).**
 > Salvo em `.delta-11/planos/CRONOS-dependencias[-ciclo].md`.
 
 Gerado por: CRONOS

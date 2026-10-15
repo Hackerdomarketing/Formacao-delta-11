@@ -1,8 +1,11 @@
 # Pesquisa Técnica — [NOME DO PROJETO]
 
-> **Template v5.2 — Artefato da Fase 2.3 (CRONOS).**
+> **Template v6.4 (2026-10-15) — Artefato da Fase 2.3 (CRONOS).**
 > Salvo em `.delta-11/memoria/pesquisa-tecnica.md`. Consolidado pelo CRONOS a partir dos
-> relatórios dos sub-agentes de pesquisa (um por tecnologia, até 3 em paralelo).
+> relatórios dos sub-agentes de pesquisa (um por tecnologia, todos disparados de uma vez, em segundo plano,
+> até `paralelo_max` — padrão 5; acima disso, fila por vaga).
+> **Ciclo 2 em diante:** só tecnologia NOVA no ciclo, acrescentada no fim deste arquivo com a data e o ciclo.
+> Sem tecnologia nova, uma linha "sem tecnologia nova" no `planos/CRONOS-sequenciamento.md` do ciclo.
 > Alimenta OBRIGATORIAMENTE os mini-planos da Fase 2.5.
 
 Gerado por: CRONOS
@@ -18,7 +21,7 @@ Fonte preferencial: [MCP Context7 / WebSearch + docs oficiais]
 ## [Tecnologia 1] — versão [X.Y.Z]
 
 ### Status
-[atualizada / atrasada em N versões / DEPRECATED / CVE ativo — se crítico, PARAR e reportar ao comandante]
+[atualizada / atrasada em N versões / DEPRECATED / CVE ativo — se crítico, PARAR e disparar o ATLAS (decisão de stack); o comandante só entra se a troca for decisão de negócio — D4]
 
 ### Breaking changes recentes (últimas 3 versões)
 - [mudança + o que afeta neste projeto]

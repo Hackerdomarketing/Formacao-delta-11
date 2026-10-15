@@ -6,6 +6,66 @@
 
 ---
 
+## Atualização v6.3 — Correção Geral (2026-10-14)
+
+> Esta seção vale por cima do resto do arquivo. O texto original da v5.1 fica abaixo como histórico.
+
+### Imagem de fundo e figuras dos agentes REMOVIDAS (C-146)
+- `bg-delta11.png` (6,7 MB) e a pasta `sprites/` **saíram da distribuição**. O painel atual (v10) não usa
+  nenhuma das duas desde antes da v6: o fundo é um gradiente escuro feito só com CSS.
+- O item 10 abaixo dizia "imagem bg-delta11.png sutil: MANTIDOS". **Isso estava errado** e foi corrigido.
+- Motivos: peso inútil copiado para todos os projetos a cada sincronização; a imagem tinha defeitos de geração
+  por IA (texto do comando de geração escrito na arte, letras sem sentido, "ONZE AGENTES" quando são 10 + o
+  comandante); as figuras dos agentes eram quase ilegíveis.
+- O `sincronizar.sh` deixa de copiar esses arquivos. Projetos que já têm a imagem podem apagá-la à mão; nada
+  quebra se ela ficar.
+- Quem restaurar o `painel-v4.html.backup` fica sem a imagem de fundo (aquele painel antigo a usava).
+
+### O painel lê três arquivos (C-144, N-002)
+| Arquivo | Quem grava | O que traz |
+|---|---|---|
+| `kanban-data.js` (`window.KANBAN_DATA`) | **só o CRONOS** (D10) | tarefas, fase, mensagem do gerente |
+| `pulsos-data.js` (`window.D11_PULSOS`) | o vigia `heartbeat.sh`, sozinho | último sinal de vida de cada agente, inclusive dos que trabalham numa worktree |
+| `monitor-data.js` (`window.D11_MONITOR`) | o vigia externo `monitor-delta11.sh` | alertas deste projeto: agente parou, agente em silêncio, tarefa sem dono |
+
+Os três entram por `<script src>` (funciona abrindo o arquivo direto, sem servidor) e são relidos a cada 5 s.
+Formato do `pulsos-data.js`:
+```javascript
+window.D11_PULSOS = {"atualizado_em":"2026-10-14T13:05:00-03:00","agentes":{
+  "ENGINE":{"ultimo_sinal":"2026-10-14T13:05:00-03:00","ferramenta":"Edit","worktree":"/caminho/da/worktree"}}};
+```
+Os modelos vazios da distribuição são `window.D11_PULSOS = {"atualizado_em":null,"agentes":{}};` e
+`window.D11_MONITOR = null;`.
+
+### Sinal de vida por agente
+- Nova seção **"Sinais de vida"**: cada agente com o último sinal, a ferramenta usada e onde está trabalhando
+  (pasta principal ou nome da cópia isolada).
+- Cores: **verde** até 2 min, **amarelo** até 10 min, **vermelho** acima de 10 min.
+- O campo `heartbeats` do `kanban-data.js` virou reserva de compatibilidade: os agentes não escrevem mais à mão;
+  vale o sinal mais recente entre `pulsos-data.js` e `heartbeats`.
+
+### Selo do topo mais honesto
+- **"Seguro fechar"** só aparece quando todos os agentes com tarefa em andamento deram sinal nos últimos 10 min
+  e o vigia não tem alerta (C-143).
+- Agente com tarefa em andamento e **nenhum** sinal → selo amarelo **"Monitoramento parcial"**.
+- Sinal vermelho → "Agente sem sinal". Alerta do vigia → "Agente parou", "Agente em silêncio" ou "Tarefa sem dono",
+  com a nova seção **"Alertas do vigia"**.
+
+### Outras correções
+- **C-140:** `inicio` das tarefas agora é ISO completo (`2026-10-14T13:05:00-03:00`). Por compatibilidade, o
+  painel ainda entende `"HH:MM"` como hora de hoje. O alerta "Tarefa demorando" (mais de 30 min) volta a funcionar.
+- **C-141:** o indicador do canto superior direito mostra a **idade dos dados** ("dados atualizados há 3 min"),
+  calculada por `ultima_atualizacao` do quadro e `atualizado_em` dos sinais, e fica vermelho acima de 10 min. Antes
+  ele contava só desde a última leitura do arquivo, que é sempre "agora".
+- **C-142:** o re-desenho periódico mantém abertos o histórico, os dados brutos e os agentes abertos na gaveta, e
+  não mexe na rolagem da página.
+- **C-145:** as fontes (Bebas Neue, Chakra Petch, JetBrains Mono) estão embutidas no próprio `painel.html`; o
+  painel fica igual sem internet. A função que protege o texto vindo dos agentes agora também trata a aspa simples.
+- **C-120:** o modelo `kanban-data.js` nasce com todos os campos que o painel usa (`total_ondas`,
+  `mensagem_cronos`, `heartbeats`, `resumo_humano` nos formatos das tarefas).
+
+---
+
 ## Por que essa mudança existe
 
 O painel anterior (v4.x) era uma **cópia visual literal** do `kanban.md` que os agentes usam pra se coordenar entre si. Isso fez o painel ficar cheio de linguagem técnica que só faz sentido pra outros agentes: IDs de tarefa (`T-IMPC-04`), hashes (`worktree agent-aa356b6e560d2eac5`), timestamps ISO 8601 (`2026-07-01T23:15Z`), caminhos de arquivo (`src/lib/ia/passada1/definicoes-blocos.ts`), status de build (`tsc PASS`).
@@ -61,7 +121,7 @@ Resposta: é pra você. Os agentes já têm o `kanban.md` cru.
 - Agora: metadado minúsculo cinza no canto direito
 
 ### 10. Estética preservada mas ressemantizada
-- Fundo escuro cinematográfico + imagem bg-delta11.png sutil: MANTIDOS
+- Fundo escuro cinematográfico: MANTIDO (só gradiente CSS; a imagem bg-delta11.png NÃO é usada — ver v6.3 no topo)
 - Vermelho: reservado APENAS para emergência real (não mais cor de tudo)
 - Verde: para "seguro" e tarefas concluídas
 - Amarelo: para "precisa de você"
@@ -97,8 +157,9 @@ mensagem_cronos: {
 }
 ```
 
-### `heartbeats` (array no nível principal — TODOS os agentes ativos)
-Batimento cardíaco. Cada agente ativo grava:
+### `heartbeats` (array no nível principal — LEGADO desde a v6.3)
+> v6.3: ninguém mais grava este campo à mão. O sinal de vida vem sozinho do `pulsos-data.js` (vigia `heartbeat.sh`).
+> O painel ainda lê `heartbeats` de quadros antigos. Formato antigo:
 ```javascript
 heartbeats: [
   { agente: "CRONOS", ultima_atividade: "2026-07-02T00:35:00Z", tarefa_atual: "T-CRONOS-COMMODITY" },
@@ -113,7 +174,7 @@ Agentes que estão descansando (concluíram tudo) NÃO gravam heartbeat — aus�
 O painel v4 antigo está preservado em `painel-v4.html.backup` na pasta oficial. Para reverter:
 
 ```bash
-cd /Users/alfa/projetos/Formacao-delta-11/.delta-11
+cd <fonte oficial do Delta-11>/.delta-11
 mv painel.html painel-v5.1.html.backup
 mv painel-v4.html.backup painel.html
 ./sincronizar.sh  # (se quiser propagar reversão para todos os projetos)
@@ -137,7 +198,7 @@ Também existe backup completo da v4.0.5 em:
 ## Backups criados nesta sessão
 
 - `~/Downloads/Formacao-delta-11-v4.0.5-backup-20260701-212024/` — snapshot completo da v4.0.5 antes da v5 chegar
-- `~/projetos/Formacao-delta-11/.delta-11/painel-v4.html.backup` — versão anterior do painel
+- `painel-v4.html.backup` — versão anterior do painel (removido da distribuição na v6.3; recupere pelo histórico do git: `git show 4fa10cc~1:.delta-11/painel.html`)
 
 ---
 

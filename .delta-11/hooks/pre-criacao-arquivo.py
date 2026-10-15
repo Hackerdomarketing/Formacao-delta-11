@@ -1,58 +1,58 @@
 #!/usr/bin/env python3
 """
-Hook PreToolUse do Delta-11 v5.2: guarda de zoneamento documental.
+Vigia PreToolUse "zoneamento documental" — Delta-11 v6.3 (2026-10-14). C-034.
 
-Materializa as Regras Invioláveis 14 e 15 + a seção "PARA IA EXTERNA" do CLAUDE.md.
-Bloqueia a CRIAÇÃO de arquivos .md em zonas vigiadas quando o padrão de nome/lugar
-indica decisão de organização ruim (o "caso Kimi": docs/configuracao-kimi-moonshot.md —
-config de API nomeada pelo vendor, jogada na pasta de specs).
+Materializa as Regras Inviolaveis 14 e 15 + a secao "PARA IA EXTERNA" do CLAUDE.md.
+Bloqueia a CRIACAO de arquivos em lugares errados quando o padrao de nome/lugar
+indica decisao de organizacao ruim (o "caso Kimi": docs/configuracao-kimi-moonshot.md
+— config de API nomeada pelo fornecedor, jogada na pasta de specs).
 
-O QUE VIGIA (apenas CRIAÇÃO — arquivo que ainda não existe; edições passam livre):
-  CASO A — .md novo em docs/ com nome de config/setup de vendor
+O QUE VIGIA (apenas CRIACAO via Write — arquivo que ainda nao existe; edicoes passam):
+  CASO C — arquivo novo em skills/ na raiz -> pasta legada; o lugar certo e
+           .delta-11/conhecimento/
+  CASO A — .md novo em docs/ com nome de config/setup de fornecedor
            (prefixos: configuracao-, config-, setup-, integracao-)
-           → destino certo: src/lib/[dominio]/[etapa]/README.md pelo template
-             config-integracao-externa-template.md (Regra 15)
-  CASO B — .md novo na RAIZ do projeto (fora as exceções: CLAUDE.md, README.md,
-           AGENTS.md) → raiz é só para código/config de framework (zoneamento v5.2)
-  CASO C — arquivo novo em skills/ na raiz → pasta legada; canônico é
-           .delta-11/conhecimento/ (decisão v5.2 — M-20)
+           -> destino certo: src/lib/[dominio]/[etapa]/README.md (Regra 15)
+  CASO D — ADR [registro de decisao arquitetural] fora de .delta-11/memoria/decisoes/.
+           v6.3 (C-034): so e ADR quando o nome COMECA com "adr-"/"adr_" ou
+           CONTEM "decisao"/"decision-record"/"-adr.". Data no nome NAO faz mais
+           um arquivo virar ADR — diarios, relatorios e changelogs datados passam.
+  CASO E — relato de bug (bug-*.md) fora de .delta-11/bugs/
+  CASO F — PRD fora de docs/prd.md
+  CASO B — .md novo na RAIZ do projeto, exceto CLAUDE.md, README.md, AGENTS.md e
+           GEMINI.md
 
-ESCAPE DO COMANDANTE: criar .delta-11/.permitir-docs-livres desativa os 3 casos
-(mesmo padrão do .permitir-edicao-main da guarda-worktree). Apagar depois de usar.
+A raiz considerada e a pasta (principal ou worktree) que contem a .delta-11 mais
+proxima do cwd do evento.
 
-Filosofia v5: proteção técnica > instrução em prompt. Em qualquer erro interno o
-hook LIBERA (exit 0) — nunca derruba o projeto por falha da própria guarda.
+ESCAPE DO COMANDANTE: criar .delta-11/.permitir-docs-livres desativa todos os casos.
+Apagar depois de usar.
 
-Exit codes: 0 = prosseguir · 2 = bloquear (PreToolUse convention)
+Erro interno: libera a acao, registra ERRO-INTERNO no activity-log e avisa no
+stderr (exit 1) — ver _comum.run.
 """
 
 from __future__ import annotations
 
-import json
 import os
-import re
 import sys
-from datetime import datetime
-from pathlib import Path
 
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _comum as comum  # noqa: E402
+
+HOOK = "pre-criacao-arquivo"
 ARQUIVO_DE_ESCAPE = ".delta-11/.permitir-docs-livres"
-ACTIVITY_LOG = Path(".delta-11/activity-log.md")
 
 # .md permitidos na raiz do projeto
 EXCECOES_RAIZ = {"CLAUDE.md", "README.md", "AGENTS.md", "GEMINI.md"}
 
-# prefixos que denunciam config de integração externa nomeada pelo vendor
+# prefixos que denunciam config de integracao externa nomeada pelo fornecedor
 PREFIXOS_CONFIG = ("configuracao-", "config-", "setup-", "integracao-")
 
 
 def log_activity(mensagem: str) -> None:
-    try:
-        ACTIVITY_LOG.parent.mkdir(parents=True, exist_ok=True)
-        ts = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-        with ACTIVITY_LOG.open("a", encoding="utf-8") as fh:
-            fh.write(f"- [{ts}] [pre-criacao-arquivo] {mensagem}\n")
-    except OSError:
-        pass
+    comum.log(HOOK, mensagem)
 
 
 def bloquear(mensagem: str) -> None:
@@ -61,10 +61,7 @@ def bloquear(mensagem: str) -> None:
 
 
 def main() -> int:
-    try:
-        event = json.load(sys.stdin)
-    except Exception:
-        return 0
+    event = comum.read_event()
 
     if event.get("tool_name") != "Write":
         return 0  # só vigia criação via Write; Edit em arquivo existente passa
@@ -74,19 +71,21 @@ def main() -> int:
     if not file_path:
         return 0
 
-    cwd = event.get("cwd") or os.getcwd()
-    raiz = os.path.realpath(cwd)
-
-    # fora de projeto Delta-11 → guarda não se aplica
-    if not os.path.isdir(os.path.join(raiz, ".delta-11")):
-        return 0
+    cwd = os.path.realpath(str(comum.event_cwd(event)))
+    raiz = cwd
+    while not os.path.isdir(os.path.join(raiz, ".delta-11")):
+        acima = os.path.dirname(raiz)
+        if acima == raiz:
+            return 0  # fora de projeto Delta-11 → guarda nao se aplica
+        raiz = acima
+    alvo_base = cwd
 
     # escape do comandante
     if os.path.exists(os.path.join(raiz, ARQUIVO_DE_ESCAPE)):
         return 0
 
     alvo = os.path.realpath(
-        file_path if os.path.isabs(file_path) else os.path.join(raiz, file_path)
+        file_path if os.path.isabs(file_path) else os.path.join(alvo_base, file_path)
     )
 
     # arquivo já existe → é sobrescrita/edição, não criação; passa
@@ -127,7 +126,7 @@ def main() -> int:
             "docs/ e para spec de produto do comandante. Configuracao de integracao vive\n"
             "AO LADO do codigo que a consome, nomeada pela FUNCAO no produto:\n"
             "  src/lib/[dominio]/[etapa]/README.md\n"
-            "  (ex: src/lib/ia/analise-competitiva/README.md — nao 'configuracao-kimi.md')\n"
+            "  (ex: src/lib/ai/competitive-analysis/README.md — nao 'configuracao-kimi.md')\n"
             "\n"
             "Use o template: .delta-11/templates/config-integracao-externa-template.md\n"
             "Antes, atualize: .delta-11/memoria/ferramentas-do-projeto.md (Regra 14)\n"
@@ -143,19 +142,14 @@ def main() -> int:
     # ou docs/. Correção v5.4: D → E → F → B. Específicos têm prioridade sobre
     # genéricos para que o diagnóstico seja ÚTIL, não genérico.
 
-    # ── CASO D (v5.3): ADR fora de .delta-11/memoria/decisoes/ ──
-    # Detecta pelo padrao "AAAA-MM-DD-*.md" OU nome comecando com "adr" OU contendo "decisao"/"decision"
-    # em qualquer path que NAO seja o canonico.
+    # ── CASO D: ADR fora de .delta-11/memoria/decisoes/ ──
+    # v6.3 (C-034): so e ADR quando o nome comeca com "adr-"/"adr_" ou contem
+    # "decisao"/"decision-record"/"-adr.". Data no inicio do nome NAO basta.
     def parece_adr(n: str) -> bool:
         low = n.lower()
         if low.startswith("adr-") or low.startswith("adr_"):
             return True
-        if "decisao-arquitetural" in low or "decision-record" in low or "-adr." in low:
-            return True
-        # padrao AAAA-MM-DD- no inicio (padrao do template ADR)
-        if len(n) >= 11 and n[:4].isdigit() and n[4] == "-" and n[5:7].isdigit() and n[7] == "-" and n[8:10].isdigit() and n[10] == "-":
-            return True
-        return False
+        return "decisao" in low or "decisão" in low or "decision-record" in low or "-adr." in low
 
     path_canonico_adr = os.path.join(".delta-11", "memoria", "decisoes")
     if parece_adr(nome) and not rel.startswith(path_canonico_adr + os.sep):
@@ -238,14 +232,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    try:
-        sys.exit(main())
-    except SystemExit:
-        raise
-    except Exception as exc:  # noqa: BLE001
-        # falha da guarda nunca derruba o fluxo
-        try:
-            log_activity(f"ERRO nao-fatal: {exc}")
-        except Exception:  # noqa: BLE001
-            pass
-        sys.exit(0)
+    comum.run(main, HOOK)

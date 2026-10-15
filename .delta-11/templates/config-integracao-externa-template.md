@@ -1,8 +1,11 @@
 # [FUNÇÃO NO PRODUTO — ex: IA da Etapa de Análise Competitiva]
 
-> **Template v5.2 — Configuração de Integração Externa (Regra Inviolável 15)**
-> Este arquivo vive em `src/lib/[dominio]/[etapa]/README.md` — AO LADO do código que consome a integração.
+> **Template v6.3 (2026-10-14) — Configuração de Integração Externa (Regra Inviolável 15)**
+> Este arquivo vive em `src/lib/[domain]/[step]/README.md` — AO LADO do código que consome a integração.
 > O NOME é pela FUNÇÃO no produto, NUNCA pelo vendor. Se o vendor trocar, o nome continua verdadeiro.
+> Pastas e arquivos de código em inglês, sem abreviação (regra de código §9, D20): ex.
+> `src/lib/competitive-analysis/ai-comparison/README.md` (certo) — não `src/lib/kimi-moonshot/` (vendor) nem
+> `src/lib/analise-competitiva/` (português em nome de código).
 > Antes de preencher este arquivo, atualize também `.delta-11/memoria/ferramentas-do-projeto.md` (Regra Inviolável 14).
 
 ---
@@ -32,7 +35,7 @@ extração de conteúdo e antes da montagem dos relatórios."]
 
 - **Endpoint:** [URL base]
 - **Modelo:** [nome exato do modelo]
-- **Parâmetros que importam:** [max_tokens, temperature, timeout — só os que afetam o produto]
+- **Parâmetros que importam:** [max_tokens, temperature, timeout — só os que afetam o produto. Tempo-limite padrão de API externa: 10 s, 3 novas tentativas com espera crescente, circuit breaker após 5 falhas por 60 s (D19); valor diferente precisa de motivo aqui]
 - **Rate limits conhecidos:** [ex: 60 req/min — e o que o código faz quando bate]
 
 ## Fallback e comportamento em falha
@@ -59,4 +62,4 @@ extração de conteúdo e antes da montagem dos relatórios."]
 - [ ] Nome do arquivo/pasta é pela FUNÇÃO, não pelo vendor?
 - [ ] `.delta-11/memoria/ferramentas-do-projeto.md` foi atualizado (Regra 14)?
 - [ ] Variável adicionada ao `.env.example` SEM o valor real?
-- [ ] Contrato da rota afetada em `contratos-api.md` continua verdadeiro? (se mudou, escalar ao ATLAS)
+- [ ] Contrato da rota afetada em `project-core/contratos.md` continua verdadeiro? (se mudou, escreva em `PROPOSTAS PARA O PROJECT-CORE` do seu `-produto.md` e avise o CRONOS, que leva ao ATLAS)

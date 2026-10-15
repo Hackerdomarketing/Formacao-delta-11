@@ -1,6 +1,8 @@
 # [NOME-AGENTE] — Produto
 
-**⚠️ LIMITE DURO: 500 tokens (≈ 2000 caracteres) para os 8 agentes executores (BACK, FRONT, PIXEL, FORM, ENGINE, VAULT, SHIELD, SCOUT). Hook `pre-selo.py` bloqueia transição de fase se ultrapassar.**
+**⚠️ LIMITE DURO: 500 tokens (Mecanismo M4) (≈ 2000 caracteres) para os 8 agentes que não são ATLAS nem CRONOS (BACK, FRONT, PIXEL, FORM, ENGINE, VAULT, SHIELD, SCOUT). O valor vem de `produto_max_tokens` em `.delta-11/.config-limites.json`; o hook `pre-selo.py` bloqueia a transição de fase se ultrapassar.**
+
+**Onde fica:** `memoria/[NOME-AGENTE]-produto.md` na pasta PRINCIPAL do projeto (nunca dentro da worktree). Junto com ele existe `memoria/[NOME-AGENTE]-historia.md` (diário, sem limite). O antigo `[NOME-AGENTE]-estado.md` é LEGADO — pode ser lido se existir, nunca escrito (D8).
 
 **EXCEÇÃO v4.0.4:** ATLAS (arquiteto) e CRONOS (orquestrador) ficam **SEM LIMITE** — carregam visão arquitetural multi-fase e estado de despachança multi-onda que legitimamente não cabem em 500 tokens. Aplica-se apenas a estes dois.
 
@@ -38,14 +40,24 @@ Se não houve desvios, escreva "Nenhum — segui o mini-plano exatamente."]
 
 ## AUTOCRÍTICA (v5.3 — OBRIGATÓRIO para os 8 executores; ver Passo 3.4 do CLAUDE.md)
 [Uma linha com o path exato do log — o SHIELD lê este arquivo antes de revisar; ausência ou path errado = tarefa devolvida sem revisão. Formato:
-- "autocritica: .delta-11/logs/autocritica/AAAA-MM-DD-T-XXX-[SEU-NOME].md"]
+- "autocritica: .delta-11/logs/autocritica/[AAAA-MM-DD]-[T-XXX]-[NOME].md"
+A linha começa exatamente com `autocritica: ` — é obrigatória e é conferida pelo SHIELD e pelos vigias.]
+
+autocritica: .delta-11/logs/autocritica/[AAAA-MM-DD]-[T-XXX]-[NOME].md
+
+## PROPOSTAS PARA O PROJECT-CORE (v6.3 — D7)
+[Só o ATLAS escreve no project-core e nas fatias. Se você descobriu algo que deveria entrar lá (contrato
+ambíguo, coluna com nome diferente, decisão técnica nova), escreva aqui em 1 linha por item; o CRONOS encaminha
+ao ATLAS. Padrão quando não há nada: "Nenhuma".]
+
+Nenhuma
 
 ## PRÓXIMA TAREFA
 [1 linha. Se não há, escreva "aguardando próxima fase".]
 
 ---
 
-## EXEMPLO COMPLETO PREENCHIDO (v5.4 — F4)
+## EXEMPLO COMPLETO PREENCHIDO (v6.3 — pilha padrão Supabase, nomes de código em inglês)
 
 > Para agentes novos: este é um exemplo realista de como o arquivo fica
 > depois de uma tarefa de ENGINE. Use como referência visual do que
@@ -57,16 +69,16 @@ Se não houve desvios, escreva "Nenhum — segui o mini-plano exatamente."]
 **⚠️ LIMITE 500 TOKENS — este exemplo tem ~470. Dentro do orçamento.**
 
 ## O QUE EXISTE AGORA
-Rota `POST /api/v1/orders` cria pedido aplicando cupom server-side e gravando
-em `orders` + `order_items` em transação única. Idempotency-Key no header evita
-duplicação em retry. Retorna 201 com Location header apontando para
-`GET /api/v1/orders/{id}`.
+Rota `POST /api/v1/orders` cria pedido aplicando cupom no servidor e gravando
+em `orders` + `order_items` numa única função do banco (transação). Idempotency-Key
+no header evita duplicação em retry. Retorna 201 com Location header apontando para
+`GET /api/v1/orders/{id}`. Campo inválido → 400 `VALIDATION_ERROR`.
 
 ## COMO ESTÁ ESTRUTURADO
-- src/app/api/v1/orders/route.ts: handler com zod validation + try/catch + Prisma tx
-- src/lib/orders/calcular-total.ts: função pura testada (cupom, frete, impostos)
-- prisma/migrations/2026-07-10_create_orders.sql: 3 tabelas (orders, order_items, coupons)
-- Contrato: ver .delta-11/memoria/project-core/contratos.md#POST-orders
+- src/app/api/v1/orders/route.ts: handler com Zod + `@supabase/ssr` + `getUser()`
+- src/lib/orders/calculate-cart-total.ts: função pura testada (cupom, frete, impostos)
+- supabase/migrations/20261014130500_create_orders.sql: 3 tabelas (orders, order_items, coupons) + RLS + função `create_order`
+- Contrato: ver .delta-11/memoria/project-core/contratos.md#post-api-v1-orders
 
 ## O QUE FOI DECIDIDO NÃO FAZER
 - Sem webhook de pagamento (só síncrono) — futuro, fora desta fase
@@ -74,11 +86,11 @@ duplicação em retry. Retorna 201 com Location header apontando para
 - Sem retry interno (idempotency-key no cliente é suficiente)
 
 ## DESCOBERTAS QUE AFETAM FASES FUTURAS
-- `calcular-total()` precisa virar exportável para o BACK usar no carrinho — não mexer
+- `calculateCartTotal()` precisa virar exportável para o BACK usar no carrinho — não mexer
   em assinatura sem avisar
 
 ## PORQUÊS-CHAVE
-- Try/catch em vez de leftHook do Prisma: erros tipados ficam no handler, tx só aborta
+- Transação via função SQL `create_order` (chamada com `supabase.rpc`): o cliente JS não abre transação; erro aborta tudo
 - Idempotency-Key por header (não body): RFC padrão, clientes já conhecem
 - LIMIT 1000 itens por order: equilibra round-trips vs timeout de transação
 
@@ -88,16 +100,19 @@ duplicação em retry. Retorna 201 com Location header apontando para
 
 ## RELATÓRIOS DE SUB-AGENTES
 - build-validator: PASS / 119 testes / 0 warnings
-- contract-tester: PASS / 0 desvios
+- contract-tester: PASS / 14 testes / 0 desvios
 
 ## AUTOCRÍTICA
-- autocritica: .delta-11/logs/autocritica/2026-07-10-T-042-ENGINE.md
+- autocritica: .delta-11/logs/autocritica/2026-10-14-T-042-ENGINE.md
+
+## PROPOSTAS PARA O PROJECT-CORE
+- Nenhuma
 
 ## PRÓXIMA TAREFA
 T-043: GET /api/v1/orders/{id} com paginação de order_items.
 ```
 
-**Por que este exemplo importa (v5.4 E1 — F4):** sem exemplo preenchido, o
+**Por que este exemplo importa:** sem exemplo preenchido, o
 agente novo preenche cada seção na dúvida — formato inconsistente entre
 agentes, SHIELD precisa reabrir tarefa para pedir reformatação. Com exemplo,
 o caminho "óbvio" é copiar a estrutura e preencher com conteúdo real.
@@ -109,4 +124,4 @@ o caminho "óbvio" é copiar a estrutura e preencher com conteúdo real.
 
 **Teste de Cold Start:** se o sub-agente `cold-start-tester` consegue descrever o sistema corretamente lendo apenas este arquivo, está pronto. Se não conseguir, você compactou mal.
 
-**Disciplina v5:** as novas seções (PORQUÊS / DESVIOS / RELATÓRIOS) precisam caber junto com tudo nos 500 tokens. Se estourar, compacte MAIS — não suba o limite. Se um porquê precisa de 3 linhas pra explicar, ele provavelmente é uma decisão de história (vai pro historia.md), não de produto.
+**Disciplina v5:** as seções (PORQUÊS / DESVIOS / RELATÓRIOS / PROPOSTAS) precisam caber junto com tudo nos 500 tokens. Se estourar, compacte MAIS — não suba o limite. Se um porquê precisa de 3 linhas pra explicar, ele provavelmente é uma decisão de história (vai pro historia.md), não de produto.

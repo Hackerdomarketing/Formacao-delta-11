@@ -1,12 +1,16 @@
 # TEMPLATE — Fase 7: Artefato de Descanso (Dia 7 da Metodologia Gênesis)
 
-> **O que é:** este template preenche CADA UM dos 10 entregáveis do Dia 7 (Descanso Consagrado). Um entregável = um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-descanso-<N>-<slug>.md`.
+> **O que é:** este template preenche CADA UM dos 10 entregáveis do Dia 7 (Descanso Consagrado). Um entregável = um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-descanso-<NN>-<slug>.md`.
 >
 > **Diferença dos entregáveis do Dia 4 e Dia 6:** o Dia 7 exige **EVIDÊNCIA** — não basta declarar. O entregável só conta quando há prova de execução (link para log, screenshot, hash, ou teste executado).
 >
 > **Quem escreve:** SHIELD + Líder técnico + Comandante.
 >
-> **Quem sella:** Comandante (teste supremo) + Líder técnico (entregáveis).
+> **Quem sela:** Comandante (teste supremo) + Líder técnico (entregáveis).
+>
+> **A Fase 7 não trava o ciclo seguinte (v6.4):** com os 10 entregáveis conferidos, o CRONOS registra "Fase 7
+> entregue" e já abre o próximo ciclo. As 2 semanas do teste supremo correm em paralelo; o selo final ("Fase 7
+> consagrada") vem quando elas terminam. O vigia `fase-descanso-checker.py` só cobra o teste supremo nesse selo final.
 >
 > **Quando NÃO aplicar:** sistemas de playground, MVP descartável, demo didática. Ver protocolo para exceções.
 >
@@ -104,7 +108,7 @@ Quais skills globais e patterns este entregável consulta:
 | 3 | Testes E2E | `e2e` | `{{DATA}}-descanso-03-e2e.md` | `tests/e2e/` |
 | 4 | Deploy automatizado | `deploy-auto` | `{{DATA}}-descanso-04-deploy-auto.md` | `.github/workflows/` |
 | 5 | Runbooks específicos | `runbooks` | `{{DATA}}-descanso-05-runbooks.md` | `memoria/runbooks/` |
-| 6 | Monitoramento + alertas | `monitoramento` | `{{DATA}}-descanso-06-monitoramento.md` | `src/lib/observabilidade/` |
+| 6 | Monitoramento + alertas | `monitoramento` | `{{DATA}}-descanso-06-monitoramento.md` | `src/lib/observability/` |
 | 7 | Tag de release | `tag-release` | `{{DATA}}-descanso-07-tag-release.md` | tag git |
 | 8 | Backup testado | `backup` | `{{DATA}}-descanso-08-backup-testado.md` | logs + restore |
 | 9 | DR testado | `dr` | `{{DATA}}-descanso-09-dr-testado.md` | runbook + log |
@@ -113,7 +117,7 @@ Quais skills globais e patterns este entregável consulta:
 
 Substitua `{{DATA}}` por `date +%Y-%m-%d`.
 
-Para entregáveis 5-10, copie o **template de runbook** (em `.delta-11/templates/descanso-runbook-template.md` se existir, ou use o cabeçalho acima) para CADA runbook específico.
+Para o entregável 5, cada runbook específico é um arquivo próprio em `.delta-11/memoria/runbooks/[nome-do-incidente].md`, preenchido com a seção **"Especial: Template de Runbook"** no fim deste arquivo (é o único modelo de runbook do sistema — não existe arquivo separado). Os entregáveis 8 (backup) e 9 (DR) citam o runbook de restauração que usaram como evidência.
 
 ---
 
@@ -225,6 +229,6 @@ journalctl -u servico --since "10 min ago"
 
 ---
 
-**Versão do template:** v6.0.0 (2026-07-12)
+**Versão do template:** v6.4 (2026-10-15) — as 2 semanas correm em paralelo com o ciclo seguinte. Antes: v6.3 (2026-10-14) — modelo de runbook único (seção no fim), pasta `observability` em inglês; v6.0.0 (2026-07-12)
 **Local canônico:** `.delta-11/templates/fase-descanso-template.md`
 **Proveniência:** criado na Etapa 7B do plano Nível 3 Profundo (auditoria 2026-07-10)

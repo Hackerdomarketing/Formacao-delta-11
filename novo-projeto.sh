@@ -1,15 +1,22 @@
 #!/bin/bash
 
 # ═══════════════════════════════════════════════════════════════
-# FORMAÇÃO Δ-11 — Iniciar Projeto Novo
+# FORMAÇÃO Δ-11 — Iniciar Projeto Novo (v6.3)
 # ═══════════════════════════════════════════════════════════════
 #
-# Use este script para copiar os arquivos da Formação Δ-11
-# para uma nova pasta de projeto.
+# Copia os arquivos de SISTEMA da Formação Δ-11 para a pasta de um
+# projeto e deixa tudo pronto para digitar "d11".
+#
+# O projeto novo NÃO herda nada da execução de outros projetos (C-048):
+# só as pastas de sistema são copiadas; quadro de tarefas (kanban) e
+# memória central (project-core) nascem dos modelos, zerados.
 #
 # Como usar:
 #   ./novo-projeto.sh /caminho/para/meu-projeto
 #   ./novo-projeto.sh ~/projetos/meu-app
+#
+# Variável opcional (usada pelos testes):
+#   DELTA11_REGISTRY   caminho do registro (padrão ~/.delta-11-registry.json)
 #
 # ═══════════════════════════════════════════════════════════════
 
@@ -22,11 +29,18 @@ RED='\033[0;31m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-# Diretório de origem (onde este script está)
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Fonte = pasta onde este script está
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+REGISTRY="${DELTA11_REGISTRY:-$HOME/.delta-11-registry.json}"
+APRENDIZADOS="$HOME/.delta-11/aprendizados-entre-projetos.md"
 
-# Verificar argumento
-if [ -z "$1" ]; then
+# Pastas de SISTEMA dentro de .delta-11/ (as mesmas do sincronizar.sh)
+PASTAS_DE_SISTEMA="operativos protocolos sub-agentes templates conhecimento hooks ferramentas perfis mcp tests"
+SCRIPTS_DE_OPERACAO="task-done.sh monitor-delta11.sh vigilante.sh"
+
+# ─── Argumento ─────────────────────────────────────────────────
+
+if [ -z "${1:-}" ]; then
     echo ""
     echo -e "${BOLD}Uso:${NC} ./novo-projeto.sh /caminho/para/meu-projeto"
     echo ""
@@ -37,7 +51,10 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-TARGET_DIR="$1"
+if [ ! -f "$SCRIPT_DIR/CLAUDE.md" ] || [ ! -d "$SCRIPT_DIR/.delta-11/operativos" ]; then
+    echo -e "${RED}✗ Este script precisa rodar de dentro da pasta da Formação Δ-11 (onde ficam CLAUDE.md e .delta-11/).${NC}"
+    exit 1
+fi
 
 echo ""
 echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
@@ -45,139 +62,245 @@ echo -e "${BOLD}  FORMAÇÃO Δ-11 — Novo Projeto${NC}"
 echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
 echo ""
 
-# Criar pasta do projeto se não existir
-if [ ! -d "$TARGET_DIR" ]; then
-    mkdir -p "$TARGET_DIR"
-    echo -e "  ${GREEN}✓${NC} Pasta criada: $TARGET_DIR"
-else
-    # Verificar se já tem .delta-11
-    if [ -d "$TARGET_DIR/.delta-11" ]; then
-        echo -e "${YELLOW}  ⚠ Este projeto já tem a Formação Δ-11 instalada.${NC}"
-        read -p "  Deseja sobrescrever? (s/n): " OVERWRITE
-        if [[ "$OVERWRITE" != "s" && "$OVERWRITE" != "S" ]]; then
-            echo "  Abortado."
-            exit 1
-        fi
-        rm -rf "$TARGET_DIR/.delta-11"
-        rm -f "$TARGET_DIR/CLAUDE.md"
+# ─── Pasta do projeto ──────────────────────────────────────────
+
+mkdir -p "$1"
+TARGET_DIR="$(cd "$1" && pwd -P)"
+[ -z "$TARGET_DIR" ] && echo -e "${RED}ERRO: caminho do projeto vazio, abortando${NC}" && exit 1
+
+case "$TARGET_DIR/" in
+    "$SCRIPT_DIR/"*)
+        echo -e "${RED}✗ O projeto não pode ficar dentro da própria pasta da Formação Δ-11 ($SCRIPT_DIR).${NC}"
+        exit 1 ;;
+esac
+echo -e "  ${GREEN}✓${NC} Pasta do projeto: $TARGET_DIR"
+
+CARIMBO="$(date +%Y%m%d-%H%M%S)"
+
+# Já tem Δ-11? Nada é apagado: a instalação antiga é guardada ao lado (C-150).
+if [ -d "$TARGET_DIR/.delta-11" ]; then
+    echo -e "${YELLOW}  ⚠ Este projeto já tem a Formação Δ-11 instalada.${NC}"
+    echo "  Conteúdo atual de .delta-11/ (será guardado, não apagado):"
+    ls -la "$TARGET_DIR/.delta-11" | sed 's/^/    /'
+    read -r -p "  Guardar a instalação atual como .delta-11.antigo-$CARIMBO e instalar do zero? (s/n): " OVERWRITE || OVERWRITE=""
+    if [[ "$OVERWRITE" != "s" && "$OVERWRITE" != "S" ]]; then
+        echo "  Abortado. Nada foi alterado."
+        echo "  Dica: para só ATUALIZAR os arquivos de sistema sem perder nada, use o sincronizar.sh."
+        exit 1
     fi
+    mv "$TARGET_DIR/.delta-11" "$TARGET_DIR/.delta-11.antigo-$CARIMBO"
+    [ -f "$TARGET_DIR/CLAUDE.md" ] && mv "$TARGET_DIR/CLAUDE.md" "$TARGET_DIR/CLAUDE.md.antigo-$CARIMBO"
+    echo -e "  ${GREEN}✓${NC} Instalação anterior guardada em .delta-11.antigo-$CARIMBO"
 fi
 
 # ─── v5.2 (M-17): migração interativa de memórias legadas ───
-# Projetos que existiam ANTES do Δ-11 podem ter arquivos .memoria-* na raiz
-# (sistema antigo). Perguntar antes de mover — nunca mover silenciosamente.
+# Projetos que existiam ANTES do Δ-11 podem ter arquivos .memoria-* na raiz.
+# Perguntar antes de mover — nunca mover silenciosamente.
 LEGADOS=""
 for f in "$TARGET_DIR/.memoria-do-dia.md" "$TARGET_DIR/.memoria-projeto.md" "$TARGET_DIR/.memoria-ultimas-tarefas.md"; do
     [ -f "$f" ] && LEGADOS="$LEGADOS $(basename "$f")"
 done
+MIGRAR="n"
 if [ -n "$LEGADOS" ]; then
     echo -e "${YELLOW}  ⚠ Encontrei arquivos de memória de um sistema antigo na raiz:${NC}"
     echo "   $LEGADOS"
-    read -p "  Mover para .delta-11/memoria/legado/ ? (s/n): " MIGRAR
-    if [[ "$MIGRAR" == "s" || "$MIGRAR" == "S" ]]; then
-        mkdir -p "$TARGET_DIR/.delta-11-legado-temp"
-        for f in "$TARGET_DIR/.memoria-do-dia.md" "$TARGET_DIR/.memoria-projeto.md" "$TARGET_DIR/.memoria-ultimas-tarefas.md"; do
-            [ -f "$f" ] && mv "$f" "$TARGET_DIR/.delta-11-legado-temp/"
-        done
-        echo -e "  ${GREEN}✓${NC} Memórias legadas separadas (serão movidas para .delta-11/memoria/legado/)"
-    fi
+    read -r -p "  Mover para .delta-11/memoria/legado/ ? (s/n): " MIGRAR || MIGRAR="n"
 fi
 
-# Copiar arquivos do sistema
-echo "  Copiando arquivos da Formação Δ-11..."
+# ─── Copiar SÓ os arquivos de sistema (C-048) ─────────────────
 
-cp -r "$SCRIPT_DIR/.delta-11" "$TARGET_DIR/.delta-11"
+echo "  Copiando arquivos de sistema da Formação Δ-11..."
+
+ORIGEM="$SCRIPT_DIR/.delta-11"
+DESTINO="$TARGET_DIR/.delta-11"
+mkdir -p "$DESTINO"
+
+copiar_arquivo() {
+    # copiar_arquivo <origem-absoluta> <destino-absoluto>
+    mkdir -p "$(dirname "$2")"
+    cp "$1" "$2"
+    [ -x "$1" ] && chmod +x "$2"
+    return 0
+}
+
+for pasta in $PASTAS_DE_SISTEMA; do
+    [ -d "$ORIGEM/$pasta" ] || continue
+    while IFS= read -r arquivo; do
+        copiar_arquivo "$arquivo" "$DESTINO/${arquivo#"$ORIGEM/"}"
+    done < <(find "$ORIGEM/$pasta" -type f ! -name ".DS_Store" ! -name "*.pyc" ! -path "*/__pycache__/*")
+done
+
+for rel in painel.html .modo-selo .config-limites.json \
+           scratch/README.md evidencias/screenshots/README.md logs/sub-agentes/README.md; do
+    [ -f "$ORIGEM/$rel" ] && copiar_arquivo "$ORIGEM/$rel" "$DESTINO/$rel"
+done
+for f in "$ORIGEM/"CHANGELOG*.md; do
+    [ -f "$f" ] && copiar_arquivo "$f" "$DESTINO/$(basename "$f")"
+done
+
+# Modo do selo: se a fonte não tiver, o padrão é automático (D1)
+[ -f "$DESTINO/.modo-selo" ] || echo "automatico" > "$DESTINO/.modo-selo"
+
 cp "$SCRIPT_DIR/CLAUDE.md" "$TARGET_DIR/CLAUDE.md"
 
-# ─── v5.2 (M-17): finalizar migração das memórias legadas ───
-if [ -d "$TARGET_DIR/.delta-11-legado-temp" ]; then
-    mkdir -p "$TARGET_DIR/.delta-11/memoria/legado"
-    mv "$TARGET_DIR/.delta-11-legado-temp/"* "$TARGET_DIR/.delta-11/memoria/legado/" 2>/dev/null || true
-    rmdir "$TARGET_DIR/.delta-11-legado-temp" 2>/dev/null || true
+# ─── Quadro de tarefas e memória central a partir dos MODELOS ──
+# Os modelos são as versões limpas guardadas na fonte. Nada de execução
+# (activity-log, ativacoes, locks, logs, memórias de agente, planos) vem junto.
+for modelo in kanban.md kanban-data.js pulsos-data.js monitor-data.js memoria/project-core.md; do
+    if [ -f "$ORIGEM/$modelo" ]; then
+        copiar_arquivo "$ORIGEM/$modelo" "$DESTINO/$modelo"
+    fi
+done
+# Fatias do project-core (D6), se a fonte tiver os modelos
+if [ -d "$ORIGEM/memoria/project-core" ]; then
+    for f in "$ORIGEM/memoria/project-core/"*.md; do
+        [ -f "$f" ] && copiar_arquivo "$f" "$DESTINO/memoria/project-core/$(basename "$f")"
+    done
+fi
+if [ ! -f "$DESTINO/kanban-data.js" ]; then
+    cat > "$DESTINO/kanban-data.js" << 'EOF'
+window.KANBAN_DATA = {
+  projeto: "", complexidade: "", fase_atual: "",
+  ultima_atualizacao: "", agente_atualizador: "",
+  a_fazer: { ATLAS: [], CRONOS: [], FRONT: [], PIXEL: [], FORM: [], BACK: [], ENGINE: [], VAULT: [], SHIELD: [], SCOUT: [] },
+  fazendo: [], revisao: [], concluido: [], bloqueado: []
+};
+EOF
+fi
+echo -e "  ${GREEN}✓${NC} Quadro de tarefas e memória central criados a partir dos modelos (zerados)"
+
+# gotchas.md desde o dia 1 (v5.4 F5)
+if [ ! -f "$DESTINO/memoria/gotchas.md" ] && [ -f "$ORIGEM/templates/gotchas-inicial.md" ]; then
+    copiar_arquivo "$ORIGEM/templates/gotchas-inicial.md" "$DESTINO/memoria/gotchas.md"
+    echo -e "  ${GREEN}✓${NC} gotchas.md criado em .delta-11/memoria/"
+fi
+
+# Memórias legadas (M-17)
+if [[ "$MIGRAR" == "s" || "$MIGRAR" == "S" ]]; then
+    mkdir -p "$DESTINO/memoria/legado"
+    for f in "$TARGET_DIR/.memoria-do-dia.md" "$TARGET_DIR/.memoria-projeto.md" "$TARGET_DIR/.memoria-ultimas-tarefas.md"; do
+        [ -f "$f" ] && mv "$f" "$DESTINO/memoria/legado/"
+    done
     echo -e "  ${GREEN}✓${NC} Memórias legadas em .delta-11/memoria/legado/"
 fi
 
-# ─── v5.2 (M-18): shells de operação vão para .delta-11/scripts/ ───
-# Endereço canônico a partir da v5.2 — a raiz do projeto fica só com código + configs.
-mkdir -p "$TARGET_DIR/.delta-11/scripts"
-for script in task-done.sh disparar.sh monitor-delta11.sh vigilante.sh com.delta11.monitor.plist; do
-    [ -f "$SCRIPT_DIR/$script" ] && cp "$SCRIPT_DIR/$script" "$TARGET_DIR/.delta-11/scripts/"
+# ─── Pastas canônicas (vazias, mas presentes desde o dia 1) ────
+for pasta in ".delta-11/bugs" ".delta-11/logs/autocritica" ".delta-11/memoria/decisoes" ".delta-11/locks"; do
+    mkdir -p "$TARGET_DIR/$pasta"
+    [ -f "$TARGET_DIR/$pasta/.gitkeep" ] || : > "$TARGET_DIR/$pasta/.gitkeep"
 done
-chmod +x "$TARGET_DIR/.delta-11/scripts/"*.sh 2>/dev/null || true
-echo -e "  ${GREEN}✓${NC} Scripts de operação em .delta-11/scripts/ (raiz do projeto fica limpa)"
-
-# ─── v5.2 (M-19): pasta canônica de docs do comandante ───
+mkdir -p "$DESTINO/ativacoes" "$DESTINO/scratch" "$DESTINO/logs/sub-agentes"
 mkdir -p "$TARGET_DIR/docs/comandante"
 
-# ─── v5.3: pastas canônicas de artefatos das Ondas 2 e 3 ───
-# Bugs, logs de autocrítica e decisões arquiteturais (ADR) precisam existir DESDE O DIA 1 —
-# sem isso, SHIELD grava BUG-001 num vazio, autocrítica cai fora do path esperado, ADR
-# some. Lição gravada no CLAUDE.md após Code Simplifier: pasta de sistema fora dos scripts
-# vira mudança fantasma. Fecha F3 da auditoria da v5.3.
-for pasta in ".delta-11/bugs" ".delta-11/logs/autocritica" ".delta-11/memoria/decisoes"; do
-    mkdir -p "$TARGET_DIR/$pasta"
-    cat > "$TARGET_DIR/$pasta/.gitkeep" << 'GITKEEP'
-Pasta canônica do sistema Δ-11 — não apagar.
-Vazia até a primeira gravação (ADR, bug report ou log de autocrítica).
-Detalhes: .delta-11/protocolos/regras-inviolaveis.md Regra 16.
-GITKEEP
+# ─── Scripts de operação em .delta-11/scripts/ (C-053) ─────────
+mkdir -p "$DESTINO/scripts"
+for script in $SCRIPTS_DE_OPERACAO; do
+    if [ -f "$SCRIPT_DIR/$script" ]; then
+        cp "$SCRIPT_DIR/$script" "$DESTINO/scripts/$script"
+        chmod +x "$DESTINO/scripts/$script"
+    fi
 done
+echo -e "  ${GREEN}✓${NC} Scripts de operação em .delta-11/scripts/ (a raiz do projeto fica limpa)"
 
-# ─── v5.2: hooks ativos desde o primeiro dia (gap fechado) ───
-# Antes, projetos novos nasciam SEM .claude/settings.json — hooks só chegavam
-# no primeiro sincronizar.sh. Agora nascem com todos os hooks ligados.
+# ─── Vigias (hooks) ligados desde o primeiro dia ───────────────
+MODELO_SETTINGS="$ORIGEM/templates/settings-hooks.json"
 mkdir -p "$TARGET_DIR/.claude"
-if [ ! -f "$TARGET_DIR/.claude/settings.json" ]; then
-    cp "$SCRIPT_DIR/.delta-11/templates/settings-hooks.json" "$TARGET_DIR/.claude/settings.json"
-    echo -e "  ${GREEN}✓${NC} Hooks ativados (.claude/settings.json criado do template)"
+if [ -f "$MODELO_SETTINGS" ]; then
+    if [ ! -f "$TARGET_DIR/.claude/settings.json" ]; then
+        cp "$MODELO_SETTINGS" "$TARGET_DIR/.claude/settings.json"
+        echo -e "  ${GREEN}✓${NC} Vigias ativados (.claude/settings.json criado do modelo)"
+    else
+        echo -e "  ${YELLOW}⚠${NC} O projeto já tinha .claude/settings.json — não mexi nele."
+        echo "     Rode o sincronizar.sh para trocar os vigias do Δ-11 pelos do modelo (os seus ficam)."
+    fi
 fi
 
-# ─── v5.4 (Estágio 0 — F5): bootstrap do gotchas.md ───
-# Quem corrige bug (SCOUT, SHIELD) precisa escrever aqui. Se não existe o arquivo
-# no dia 1, o primeiro gotcha é gravado num vazio e o agente não sabe o formato.
-# Fecha F5 da auditoria da v5.3 (gotchas.md nascia só após primeiro bug).
-if [ ! -f "$TARGET_DIR/.delta-11/memoria/gotchas.md" ]; then
-    cp "$SCRIPT_DIR/.delta-11/templates/gotchas-inicial.md" "$TARGET_DIR/.delta-11/memoria/gotchas.md"
-    echo -e "  ${GREEN}✓${NC} gotchas.md criado em .delta-11/memoria/ (bootstrap F5)"
+# ─── .gitignore com proteção de segredos e do estado de execução (C-147) ───
+GITIGNORE="$TARGET_DIR/.gitignore"
+FALTANDO=""
+for linha in ".env" ".env.*" "!.env.example" "*.pem" "*.key" "credentials.json" \
+             ".claude/settings.local.json" ".DS_Store" \
+             ".delta-11/activity-log.md" ".delta-11/monitor-status.json" ".delta-11/monitor-data.js" \
+             ".delta-11/pulsos-data.js" ".delta-11/ativacoes/" ".delta-11/locks/*" "!.delta-11/locks/.gitkeep" \
+             ".delta-11/scratch/*" "!.delta-11/scratch/README.md" ".delta-11/logs/sub-agentes/*.log" \
+             ".claude/worktrees/" ".delta-11.antigo-*/" "CLAUDE.md.antigo-*"; do
+    if [ ! -f "$GITIGNORE" ] || ! grep -Fxq -- "$linha" "$GITIGNORE"; then
+        FALTANDO="${FALTANDO}${linha}"$'\n'
+    fi
+done
+if [ -n "$FALTANDO" ]; then
+    {
+        [ -s "$GITIGNORE" ] && echo ""
+        echo "# ─── Formação Δ-11 (v6.3): segredos e estado de execução nunca vão ao GitHub ───"
+        printf '%s' "$FALTANDO"
+    } >> "$GITIGNORE"
+    echo -e "  ${GREEN}✓${NC} .gitignore protege senhas, chaves e o estado de execução"
 fi
 
-# Limpar os dados do kanban (começar do zero)
-cat > "$TARGET_DIR/.delta-11/kanban-data.js" << 'EOF'
-window.KANBAN_DATA = {
-  projeto: "",
-  complexidade: "",
-  fase_atual: "",
-  ultima_atualizacao: "",
-  agente_atualizador: "",
-  a_fazer: {
-    ATLAS: [], CRONOS: [], FRONT: [], PIXEL: [],
-    FORM: [], BACK: [], ENGINE: [], VAULT: [],
-    SHIELD: [], SCOUT: []
-  },
-  fazendo: [],
-  revisao: [],
-  concluido: [],
-  bloqueado: []
-};
+# ─── Registro central (C-049) ──────────────────────────────────
+registrar_projeto() {
+    if command -v jq &> /dev/null; then
+        if [ ! -f "$REGISTRY" ]; then
+            jq -n --arg fonte "$SCRIPT_DIR" '{version: "6.3", source: $fonte, projects: []}' > "$REGISTRY"
+        fi
+        local tmp
+        tmp=$(mktemp "${REGISTRY}.XXXXXX")
+        if jq --arg p "$TARGET_DIR" '.projects = (((.projects // []) + [$p]) | unique)' "$REGISTRY" > "$tmp"; then
+            mv "$tmp" "$REGISTRY"
+            return 0
+        fi
+        rm -f "$tmp"
+        return 1
+    elif command -v python3 &> /dev/null; then
+        python3 - "$REGISTRY" "$TARGET_DIR" "$SCRIPT_DIR" << 'PY'
+import json, os, sys, tempfile
+registro, projeto, fonte = sys.argv[1:4]
+dados = {"version": "6.3", "source": fonte, "projects": []}
+if os.path.exists(registro):
+    with open(registro, encoding="utf-8") as f:
+        dados = json.load(f)
+lista = dados.get("projects") or []
+if projeto not in lista:
+    lista.append(projeto)
+dados["projects"] = sorted(set(lista))
+pasta = os.path.dirname(os.path.abspath(registro))
+fd, tmp = tempfile.mkstemp(dir=pasta)
+with os.fdopen(fd, "w", encoding="utf-8") as f:
+    json.dump(dados, f, ensure_ascii=False, indent=2)
+os.replace(tmp, registro)
+PY
+        return $?
+    fi
+    return 1
+}
+if registrar_projeto; then
+    echo -e "  ${GREEN}✓${NC} Projeto anotado no registro central ($REGISTRY)"
+else
+    echo -e "  ${YELLOW}⚠${NC} Não consegui anotar o projeto no registro central (instale o jq: brew install jq)"
+fi
+
+# ─── Memória entre projetos (D38) ──────────────────────────────
+if [ ! -f "$APRENDIZADOS" ]; then
+    mkdir -p "$(dirname "$APRENDIZADOS")"
+    cat > "$APRENDIZADOS" << 'EOF'
+# Aprendizados entre projetos — Formação Δ-11
+
+> Lições que valem para QUALQUER projeto. O ATLAS lê este arquivo na Fase 0 e na Fase 2.
+> O CRONOS acrescenta de 3 a 5 lições ao fim de cada ciclo e na Fase 7.
+> Formato de cada lição: `- [AAAA-MM-DD] [projeto] lição em uma frase — por quê`.
+
+## Lições
 EOF
+    echo -e "  ${GREEN}✓${NC} Memória entre projetos criada em $APRENDIZADOS"
+fi
 
-# Limpar o kanban.md (template limpo)
-# Manter o template mas sem dados preenchidos
-
-# Limpar memórias individuais (não deve ter nenhuma)
-find "$TARGET_DIR/.delta-11/memoria" -name "*-estado.md" -delete 2>/dev/null || true
-
-# Resetar project-core.md para template limpo
-# (o ATLAS preencherá na Fase 2)
-
-FILE_COUNT=$(find "$TARGET_DIR" -path "$TARGET_DIR/.git" -prune -o -type f -print | wc -l | xargs)
-
-echo -e "  ${GREEN}✓${NC} ${FILE_COUNT} arquivos copiados"
+FILE_COUNT=$(find "$DESTINO" -type f | wc -l | xargs)
+echo -e "  ${GREEN}✓${NC} ${FILE_COUNT} arquivos de sistema instalados"
 echo ""
 
 # Abrir no VS Code se disponível
 if command -v code &> /dev/null; then
-    read -p "  Abrir no VS Code? (s/n): " OPEN_VSCODE
+    read -r -p "  Abrir no VS Code? (s/n): " OPEN_VSCODE || OPEN_VSCODE="n"
     if [[ "$OPEN_VSCODE" == "s" || "$OPEN_VSCODE" == "S" ]]; then
         code "$TARGET_DIR"
         echo -e "  ${GREEN}✓${NC} VS Code aberto"
@@ -188,8 +311,8 @@ echo ""
 echo -e "${GREEN}${BOLD}  ✓ Projeto pronto!${NC}"
 echo ""
 echo -e "  ${BOLD}Próximo passo:${NC}"
-echo -e "  1. Abra uma janela do Claude Code"
-echo -e "  2. Digite: ${CYAN}d11${NC}"
+echo -e "  1. Abra o Claude Code na pasta do projeto"
+echo -e "  2. Digite: ${CYAN}d11${NC} (o painel abre sozinho)"
 echo -e "  3. Descreva o que quer construir"
 echo ""
 echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"

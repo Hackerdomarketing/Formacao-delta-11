@@ -1,19 +1,35 @@
 #!/usr/bin/env bash
 # ════════════════════════════════════════════════════════════════
-# FORMAÇÃO Δ-11 — Suíte de Testes Automatizada do Sistema
+# FORMAÇÃO Δ-11 — Suíte de Testes Automatizada do Sistema (v6.4)
 # ════════════════════════════════════════════════════════════════
 #
-# Filosofia (v5.4 — Estágio 0): a infra de teste CRESCE a cada
-# estágio do plano de execução. Todo estágio adiciona pelo menos 1
-# teste e fecha com 100% verde antes de avançar.
+# Filosofia: a infra de teste CRESCE a cada versão. Toda mudança
+# adiciona pelo menos 1 teste e fecha com 100% verde.
 #
 # Uso:
-#   bash .delta-11/tests/rodar-todos.sh           # roda tudo
-#   bash .delta-11/tests/rodar-todos.sh --rapido  # só os hooks
+#   bash .delta-11/tests/rodar-todos.sh                      # roda tudo
+#   bash .delta-11/tests/rodar-todos.sh --rapido             # só os hooks
 #   bash .delta-11/tests/rodar-todos.sh --hook pre-criacao-arquivo
+#   bash .delta-11/tests/rodar-todos.sh --pasta protocolos   # uma pasta só
 #
-# Saída: linha por teste [OK] / [FAIL] + total X/Y no fim.
-# Exit code: 0 se todos passaram, 1 se algum falhou.
+# Pastas rodadas (nesta ordem): hooks, templates, conhecimento,
+# protocolos, operativos, scripts. Funções comuns: tests/framework/.
+#
+# Saída de cada teste: .delta-11/scratch/AAAA-MM-DD-testes-delta11/
+# (D21 — nada em /tmp). A saída de um teste que passou é apagada; a de
+# um teste que falhou fica lá para leitura (o gc-locks limpa em 7 dias).
+#
+# Isolamento: os testes rodam com HOME, DELTA11_REGISTRY e
+# DELTA11_SEARCH_PATHS apontando para uma pasta temporária dentro do
+# scratch — nenhum teste toca no $HOME real nem no registro real de
+# projetos (~/.delta-11-registry.json).
+#
+# Todos os testes rodam ANTES do resumo. Se o teste do hook
+# pre-criacao-arquivo falhar, o aviso de segurança aparece em destaque
+# no fim — mas os outros testes rodam do mesmo jeito (antes a suíte
+# parava ali e o relatório ficava incompleto — C-131).
+#
+# Exit code: 0 se todos passaram, 1 se algum falhou, 2 uso errado.
 # ════════════════════════════════════════════════════════════════
 
 set -u
@@ -28,22 +44,33 @@ NC='\033[0m'
 
 # Caminhos
 TESTS_DIR="$(cd "$(dirname "$0")" && pwd)"
-HOOKS_DIR="$(cd "$TESTS_DIR/../hooks" && pwd)"
-TEMPLATES_DIR="$(cd "$TESTS_DIR/../templates" && pwd)"
-PROJECTS_DIR="$(cd "$TESTS_DIR/../.." && pwd)"
+DELTA_DIR="$(cd "$TESTS_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$DELTA_DIR/.." && pwd)"
+PASTAS_DE_TESTE=(hooks templates conhecimento protocolos operativos scripts)
+
+# Pasta de saída (D21): .delta-11/scratch/AAAA-MM-DD-testes-delta11/
+OUTPUT_DIR="$DELTA_DIR/scratch/$(date +%Y-%m-%d)-testes-delta11"
+mkdir -p "$OUTPUT_DIR"
+ISOLATED_HOME="$(mktemp -d "$OUTPUT_DIR/home-isolado-XXXXXX")"
 
 # Contadores
 TOTAL=0
 PASSOU=0
 FALHOU=0
-
-# Lista dos testes que falharam (para resumo)
 FALHAS=()
+SEGURANCA_REGREDIU=false
 
 log_ok() { echo -e "  ${GREEN}[OK]${NC}   $1"; }
-log_fail() { echo -e "  ${RED}[FAIL]${NC} $1"; log_erro "$1"; }
-log_info() { echo -e "  ${CYAN}[..]${NC}  $1"; }
-log_erro() { FALHAS+=("$1"); }
+log_fail() { echo -e "  ${RED}[FAIL]${NC} $1"; }
+
+limpar_home_isolado() {
+    # Apaga só a pasta temporária criada acima (nunca uma variável vazia).
+    if [ -n "${ISOLATED_HOME:-}" ] && [ -d "$ISOLATED_HOME" ] && [[ "$ISOLATED_HOME" == "$OUTPUT_DIR"/home-isolado-* ]]; then
+        rm -rf "$ISOLATED_HOME"
+    fi
+    rmdir "$OUTPUT_DIR" 2>/dev/null || true
+}
+trap limpar_home_isolado EXIT
 
 rodar_teste() {
     local script="$1"
@@ -51,72 +78,69 @@ rodar_teste() {
     TOTAL=$((TOTAL + 1))
 
     if [ ! -f "$script" ]; then
-        log_fail "$desc — script nao encontrado: $script"
+        log_fail "$desc — script não encontrado: $script"
+        FALHAS+=("$desc")
         FALHOU=$((FALHOU + 1))
         return
     fi
 
-    # Detectar interpretador pela extensão
     local cmd
     case "$script" in
         *.test.py) cmd=(python3 "$script") ;;
-        *.test.sh) cmd=(bash "$script") ;;
         *)         cmd=(bash "$script") ;;
     esac
 
-    # IMPORTANTE: roda do RAIZ do repo, não da pasta tests/.
-    # Os testes calculam paths relativos à raiz; se rodarmos de tests/,
-    # os caminhos ficam errados e os testes falsificam o resultado.
-    if (cd "$PROJECTS_DIR" && "${cmd[@]}") >/tmp/delta11-test-$$.out 2>&1; then
+    local saida
+    saida="$OUTPUT_DIR/$(basename "$(dirname "$script")")--$(basename "$script").out"
+
+    # Roda a partir da RAIZ do projeto (os testes calculam caminhos a partir dela)
+    # e com HOME/registro isolados.
+    if (cd "$REPO_ROOT" && \
+        HOME="$ISOLATED_HOME" \
+        DELTA11_REGISTRY="$ISOLATED_HOME/.delta-11-registry.json" \
+        DELTA11_SEARCH_PATHS="$ISOLATED_HOME" \
+        "${cmd[@]}") >"$saida" 2>&1; then
         log_ok "$desc"
         PASSOU=$((PASSOU + 1))
+        rm -f "$saida"
     else
-        log_fail "$desc — ver /tmp/delta11-test-$$.out"
-        echo -e "      ${YELLOW}saida:${NC}"
-        sed 's/^/        /' /tmp/delta11-test-$$.out | head -20
+        log_fail "$desc — saída completa: ${saida#"$REPO_ROOT"/}"
+        echo -e "      ${YELLOW}saída:${NC}"
+        sed 's/^/        /' "$saida" | head -20
+        FALHAS+=("$desc")
         FALHOU=$((FALHOU + 1))
-
-        # Fail-fast: se o teste do hook pre-criacao-arquivo falhar, PARAR.
-        # Razao: ele é guarda de SEGURANCA do sistema. Se regrediu (como
-        # aconteceu em 2026-07-10 — sincronizar.sh trouxe versao antiga de
-        # outro projeto), todos os outros testes podem dar falso OK ou
-        # falso FAIL dependendo do estado. Melhor parar e investigar.
         if [[ "$desc" == *"pre-criacao-arquivo"* ]]; then
-            echo ""
-            echo -e "${RED}${BOLD}════════════════════════════════════════════════════════════${NC}"
-            echo -e "${RED}${BOLD}  FAIL-FAST: hook pre-criacao-arquivo regrediu.${NC}"
-            echo -e "${RED}${BOLD}  A suíte para aqui — investigar antes de continuar.${NC}"
-            echo -e "${RED}${BOLD}════════════════════════════════════════════════════════════${NC}"
-            echo ""
-            echo "Possíveis causas:"
-            echo "  1. sincronizar.sh trouxe versão antiga de outro projeto"
-            echo "  2. git pull trouxe versão antiga (raro — checar git log)"
-            echo "  3. Hook foi editado manualmente e regrediu"
-            echo ""
-            echo "Recuperação:"
-            echo "  git checkout HEAD -- .delta-11/hooks/pre-criacao-arquivo.py"
-            echo "  bash .delta-11/tests/rodar-todos.sh --hooks pre-criacao-arquivo"
-            exit 1
+            SEGURANCA_REGREDIU=true
         fi
     fi
-    rm -f /tmp/delta11-test-$$.out
+}
+
+rodar_pasta() {
+    local pasta="$1"
+    local f
+    echo -e "${BOLD}[$pasta]${NC}"
+    if [ ! -d "$TESTS_DIR/$pasta" ]; then
+        echo -e "  ${YELLOW}(pasta tests/$pasta não existe)${NC}"
+        echo ""
+        return
+    fi
+    for f in "$TESTS_DIR/$pasta/"*.test.*; do
+        [ -f "$f" ] || continue
+        rodar_teste "$f" "$pasta/$(basename "$f" | sed -E 's/\.test\.(py|sh)$//')"
+    done
+    echo ""
 }
 
 banner() {
     echo -e "${CYAN}${BOLD}════════════════════════════════════════════════════════════${NC}"
-    echo -e "${CYAN}${BOLD}  Formação Δ-11 — Suíte de Testes v5.4${NC}"
+    echo -e "${CYAN}${BOLD}  Formação Δ-11 — Suíte de Testes v6.4${NC}"
     echo -e "${CYAN}${BOLD}════════════════════════════════════════════════════════════${NC}"
     echo ""
 }
 
 resumo() {
-    local cor
-    if [ "$FALHOU" -eq 0 ]; then
-        cor="$GREEN"
-    else
-        cor="$RED"
-    fi
-    echo ""
+    local cor="$GREEN"
+    [ "$FALHOU" -eq 0 ] || cor="$RED"
     echo -e "${cor}${BOLD}════════════════════════════════════════════════════════════${NC}"
     echo -e "${cor}${BOLD}  Resultado: ${PASSOU}/${TOTAL} OK${NC}"
     if [ "$FALHOU" -gt 0 ]; then
@@ -124,72 +148,79 @@ resumo() {
         for f in "${FALHAS[@]}"; do
             echo -e "${RED}    - $f${NC}"
         done
+        echo -e "  Saídas dos que falharam: ${OUTPUT_DIR#"$REPO_ROOT"/}/"
     fi
     echo -e "${cor}${BOLD}════════════════════════════════════════════════════════════${NC}"
+
+    if [ "$SEGURANCA_REGREDIU" = true ]; then
+        echo ""
+        echo -e "${RED}${BOLD}  ATENÇÃO: o hook de SEGURANÇA pre-criacao-arquivo regrediu.${NC}"
+        echo -e "${RED}${BOLD}  Investigue ANTES de confiar no resto do resultado.${NC}"
+        echo "  Possíveis causas:"
+        echo "    1. sincronizar.sh trouxe versão antiga de outro projeto"
+        echo "    2. git pull trouxe versão antiga (raro — checar git log)"
+        echo "    3. o hook foi editado e regrediu"
+        echo "  Recuperação:"
+        echo "    git checkout HEAD -- .delta-11/hooks/pre-criacao-arquivo.py"
+        echo "    bash .delta-11/tests/rodar-todos.sh --hook pre-criacao-arquivo"
+    fi
+}
+
+terminar() {
+    resumo
+    [ "$FALHOU" -eq 0 ] && exit 0
+    exit 1
 }
 
 # ─── Filtros CLI ────────────────────────────────────────────────
 MODO="${1:-todos}"
-HOOK_FILTRO="${2:-}"
+FILTRO="${2:-}"
 
 case "$MODO" in
-    --rapido|--hooks)
+    --rapido|--hooks|--hook)
         banner
-        echo -e "${BOLD}Modo: somente hooks${NC}"
-        echo ""
-        if [ -n "$HOOK_FILTRO" ]; then
-            for f in "$TESTS_DIR/hooks/"$HOOK_FILTRO".test.py" "$TESTS_DIR/hooks/"$HOOK_FILTRO".test.sh"; do
-                [ -f "$f" ] && rodar_teste "$f" "hook $HOOK_FILTRO"
+        if [ -n "$FILTRO" ]; then
+            echo -e "${BOLD}Modo: hook $FILTRO${NC}"
+            echo ""
+            achou=false
+            for f in "$TESTS_DIR/hooks/$FILTRO.test.py" "$TESTS_DIR/hooks/$FILTRO.test.sh"; do
+                if [ -f "$f" ]; then
+                    rodar_teste "$f" "hooks/$FILTRO"
+                    achou=true
+                fi
             done
+            if [ "$achou" = false ]; then
+                echo -e "${RED}Nenhum teste encontrado para o hook '$FILTRO' em tests/hooks/.${NC}"
+                exit 2
+            fi
+            echo ""
         else
-            for f in "$TESTS_DIR/hooks/"*.test.*; do
-                [ -f "$f" ] || continue
-                rodar_teste "$f" "$(basename "$f" | sed -E 's/\.(test\.(py|sh))$//')"
-            done
+            echo -e "${BOLD}Modo: somente hooks${NC}"
+            echo ""
+            rodar_pasta hooks
         fi
-        resumo
-        [ "$FALHOU" -eq 0 ]
-        exit $?
+        terminar
+        ;;
+    --pasta)
+        banner
+        if [ -z "$FILTRO" ] || [ ! -d "$TESTS_DIR/$FILTRO" ]; then
+            echo "Uso: bash $0 --pasta <${PASTAS_DE_TESTE[*]}>"
+            exit 2
+        fi
+        rodar_pasta "$FILTRO"
+        terminar
         ;;
     todos|--all|"")
         banner
-        echo -e "${BOLD}Modo: suite completa${NC}"
+        echo -e "${BOLD}Modo: suíte completa${NC}"
         echo ""
-        echo -e "${BOLD}[hooks]${NC}"
-        for f in "$TESTS_DIR/hooks/"*.test.*; do
-            [ -f "$f" ] || continue
-            rodar_teste "$f" "$(basename "$f" | sed -E 's/\.(test\.(py|sh))$//')"
+        for pasta in "${PASTAS_DE_TESTE[@]}"; do
+            rodar_pasta "$pasta"
         done
-        echo ""
-        echo -e "${BOLD}[templates]${NC}"
-        for f in "$TESTS_DIR/templates/"*.test.*; do
-            [ -f "$f" ] || continue
-            rodar_teste "$f" "$(basename "$f" | sed -E 's/\.(test\.(py|sh))$//')"
-        done
-        echo ""
-        echo -e "${BOLD}[conhecimento]${NC}"
-        for f in "$TESTS_DIR/conhecimento/"*.test.*; do
-            [ -f "$f" ] || continue
-            rodar_teste "$f" "$(basename "$f" | sed -E 's/\.(test\.(py|sh))$//')"
-        done
-        echo ""
-        echo -e "${BOLD}[protocolos]${NC}"
-        for f in "$TESTS_DIR/protocolos/"*.test.*; do
-            [ -f "$f" ] || continue
-            rodar_teste "$f" "$(basename "$f" | sed -E 's/\.(test\.(py|sh))$//')"
-        done
-        echo ""
-        echo -e "${BOLD}[scripts]${NC}"
-        for f in "$TESTS_DIR/scripts/"*.test.*; do
-            [ -f "$f" ] || continue
-            rodar_teste "$f" "$(basename "$f" | sed -E 's/\.(test\.(py|sh))$//')"
-        done
-        resumo
-        [ "$FALHOU" -eq 0 ]
-        exit $?
+        terminar
         ;;
     *)
-        echo "Uso: bash $0 [todos|--rapido|--hooks [hook-nome]]"
+        echo "Uso: bash $0 [todos | --rapido | --hook <nome-do-hook> | --pasta <pasta>]"
         exit 2
         ;;
 esac

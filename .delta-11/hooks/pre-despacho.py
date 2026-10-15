@@ -1,89 +1,53 @@
 #!/usr/bin/env python3
 """
-Hook PreToolUse do Delta-11 v5: bloqueia o despacho de um agente executor
-quando o brief (prompt da chamada do Agent tool) ultrapassa 2.000 tokens.
+Vigia PreToolUse "pre-despacho" — Delta-11 v6.3 (2026-10-14). C-016, C-184.
 
-Materializa o objetivo central da v5: forçar GRANULARIZAÇÃO em mais ondas
-com janelas de contexto limpas. O limite NÃO é "escreva briefs menores"
-— é "se você precisa de mais de 2.000 tokens pra explicar uma tarefa,
-QUEBRE em mais ondas, cada uma com seu próprio agente novo de contexto
-limpo".
+Bloqueia o despacho de um agente EXECUTOR quando o brief (o `prompt` da chamada do
+Agent tool) passa do limite `brief_max_tokens` (padrao 4.000 tokens, em
+.delta-11/.config-limites.json — D36). O recado nao e "escreva briefs menores": e
+"DIVIDA em sub-tarefas irmas PARALELAS" (v6.4 — V3), cada uma com um agente novo de contexto limpo.
 
-Cross-platform: macOS, Linux, Windows. Requer Python 3.8+.
+Registro: PreToolUse com matcher "Agent|Task" (o Agent tool ja se chamou Task).
 
-Invocação:
-  PreToolUse matcher = "Task"  (o nome interno do Agent tool no Claude Code)
-  command = python3 .delta-11/hooks/pre-despacho.py
+Logica:
+  1. So age quando a ferramenta e Agent/Task.
+  2. Identifica o alvo: campo `name` (ex.: "back-onda-2" -> BACK), linha
+     "Agente: NOME" no prompt, ou nome de sub-agente na descricao/prompt.
+  3. ATLAS, CRONOS e sub-agentes sao isentos. Alvo desconhecido passa.
+  4. Executor (VAULT, BACK, ENGINE, FRONT, PIXEL, FORM, SHIELD, SCOUT): conta
+     tokens (4 caracteres = 1 token) e bloqueia (exit 2) acima do limite.
 
-Lógica:
-  1. Lê o evento JSON via stdin
-  2. Verifica se a tool é Task (Agent)
-  3. Extrai o prompt do tool_input
-  4. Identifica o agente-alvo pelo nome no prompt ("Agente: NOME") OU
-     pelo campo `subagent_type` / `name`
-  5. Se alvo é ATLAS, CRONOS ou sub-agente → exit 0 (liberado)
-  6. Se alvo é um dos 8 executores → conta tokens do prompt
-  7. Se tokens > 2.000 → exit 2 (bloqueia + instruir CRONOS a quebrar em
-     mais ondas)
-  8. Caso contrário → exit 0
-
-Exit codes:
-  0 = pode prosseguir
-  2 = BLOQUEAR
-  1 = erro interno (não bloqueia — loga e deixa passar)
-
-Política de calibração v5:
-  LIMITE_TOKENS_EXECUTOR = 2.000 (decisão do comandante 2026-06-23)
-  APROXIMACAO_TOKEN = 4 chars/token (mesmo padrão do pre-selo.py)
+Erro interno: libera a acao, registra ERRO-INTERNO no activity-log e avisa no
+stderr (exit 1) — ver _comum.run.
 """
 
 from __future__ import annotations
 
-import json
+import os
 import re
 import sys
-from datetime import datetime
-from pathlib import Path
 
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _comum as comum  # noqa: E402
 
-LIMITE_TOKENS_EXECUTOR = 2000
-APROXIMACAO_CHARS_POR_TOKEN = 4
+HOOK = "pre-despacho"
+APROXIMACAO_CHARS_POR_TOKEN = comum.CHARS_POR_TOKEN
 
-AGENTES_EXECUTORES = {
-    "BACK", "FRONT", "PIXEL", "FORM",
-    "ENGINE", "VAULT", "SHIELD", "SCOUT",
-}
+AGENTES_EXECUTORES = set(comum.EXECUTORES_COM_SHIELD)
 
 # Isentos: ATLAS (arquiteto), CRONOS (orquestrador), e todos os sub-agentes
 AGENTES_ISENTOS = {"ATLAS", "CRONOS"}
-SUBAGENTES_NOMES = {
-    "build-validator", "contract-tester",
-    "code-architect", "schema-validator", "verify-app",
-    "fresh-reviewer", "cold-start-tester", "impact-mapper",
-    "tool-provisioner",
-}
+SUBAGENTES_NOMES = set(comum.SUB_AGENTES)
 
-ACTIVITY_LOG = Path(".delta-11/activity-log.md")
+
+def limite_tokens() -> int:
+    """D36: brief_max_tokens em .delta-11/.config-limites.json (padrao 4000)."""
+    return int(comum.limits()["brief_max_tokens"])
 
 
 def log_activity(mensagem: str) -> None:
-    try:
-        ACTIVITY_LOG.parent.mkdir(parents=True, exist_ok=True)
-        timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-        with ACTIVITY_LOG.open("a", encoding="utf-8") as fh:
-            fh.write(f"[{timestamp}] pre-despacho: {mensagem}\n")
-    except OSError:
-        pass
-
-
-def read_hook_event() -> dict:
-    raw = sys.stdin.read().strip()
-    if not raw:
-        return {}
-    try:
-        return json.loads(raw)
-    except json.JSONDecodeError:
-        return {}
+    comum.log(HOOK, mensagem)
 
 
 def eh_despacho_de_agente(event: dict) -> bool:
@@ -98,38 +62,8 @@ def obter_prompt(event: dict) -> str:
 
 
 def identificar_alvo(event: dict, prompt: str) -> str:
-    """
-    Tenta identificar quem é o agente-alvo do despacho.
-    Ordem:
-    1. Campo `name` ou `subagent_type` do tool_input (ex: "engine-onda-2")
-    2. Linha "Agente: NOME" no prompt
-    3. "" se não conseguir
-    """
-    tool_input = event.get("tool_input") or {}
-
-    # 1. Campo name
-    nome = tool_input.get("name", "")
-    if nome:
-        # name vem em minúsculo tipo "engine-onda-2"
-        # Extrair a parte do nome do agente
-        match = re.match(r"([a-z]+)", nome.lower())
-        if match:
-            candidato = match.group(1).upper()
-            if candidato in AGENTES_EXECUTORES or candidato in AGENTES_ISENTOS:
-                return candidato
-
-    # 2. Linha "Agente: NOME" no prompt
-    match = re.search(r"Agente:\s*([A-Z_-]+)", prompt)
-    if match:
-        return match.group(1).strip()
-
-    # 3. Sub-agente? Procura nome de sub-agente no prompt/description
-    description = (tool_input.get("description", "") or "").lower()
-    for sub in SUBAGENTES_NOMES:
-        if sub in description or sub in prompt.lower():
-            return sub  # retorna em minúsculo pra distinguir
-
-    return ""
+    """Alvo do despacho — regra unica em _comum.dispatch_target."""
+    return comum.dispatch_target(event)
 
 
 def contar_tokens_aproximado(texto: str) -> int:
@@ -139,49 +73,50 @@ def contar_tokens_aproximado(texto: str) -> int:
 
 
 def bloquear_despacho(alvo: str, tokens: int, prompt_preview: str) -> int:
-    excesso = tokens - LIMITE_TOKENS_EXECUTOR
+    excesso = tokens - limite_tokens()
+    log_activity(f"BLOQUEIO: despacho de {alvo} com {tokens} tokens > {limite_tokens()}")
     print(
-        f"[pre-despacho] BLOQUEIO v5 — Granularização forçada\n"
+        f"[pre-despacho] BLOQUEIO {comum.VERSAO} — Granularização forçada\n"
         f"\n"
         f"Você (CRONOS) está tentando despachar {alvo} com um brief de\n"
-        f"{tokens} tokens. Limite duro para executores: {LIMITE_TOKENS_EXECUTOR} tokens.\n"
+        f"{tokens} tokens. Limite duro para executores: {limite_tokens()} tokens.\n"
         f"Excesso: {excesso} tokens.\n"
         f"\n"
         f"NÃO suba o limite. NÃO compacte o brief só pra passar. Em vez disso:\n"
         f"\n"
-        f"  QUEBRE A ONDA EM MAIS ONDAS.\n"
+        f"  DIVIDA EM SUB-TAREFAS IRMÃS PARALELAS (v6.4 — V3).\n"
         f"\n"
-        f"Princípio da v5: cada onda dispara um agente NOVO com contexto LIMPO.\n"
-        f"Se você precisa de mais de {LIMITE_TOKENS_EXECUTOR} tokens pra explicar\n"
+        f"Cada irmã é um agente NOVO, com contexto LIMPO, na sua própria worktree,\n"
+        f"disparadas JUNTAS na mesma mensagem (nunca 'ondas em série' por tamanho).\n"
+        f"Se você precisa de mais de {limite_tokens()} tokens pra explicar\n"
         f"uma tarefa, ela provavelmente é COMPLEXA DEMAIS pra um único brief.\n"
-        f"Divida em 2-3 tarefas menores, cada uma virando uma onda separada.\n"
+        f"Só fica em série se uma irmã depender da outra (dependência declarada).\n"
         f"\n"
         f"Como aplicar:\n"
-        f"  1. Pegue as 5 seções do mini-plano (Produzir / Recorte / Critérios /\n"
-        f"     Dependências / Limites de Escopo) e veja qual está engordando.\n"
-        f"  2. Se 'Recorte da fase anterior' é grande, divida a tarefa em duas:\n"
-        f"     a primeira foca em sub-domínio A, a segunda em sub-domínio B.\n"
-        f"  3. Se 'Critérios de sucesso' tem 8+ itens, vire 2-3 ondas com 3 critérios\n"
-        f"     cada.\n"
-        f"  4. Cada nova onda terá seu próprio mini-plano enxuto e seu agente nasce\n"
-        f"     com contexto limpo.\n"
+        f"  1. Pegue as 6 seções do mini-plano (Objetivo da onda / Recorte da fase\n"
+        f"     anterior / Tarefas / Critérios de aceite / Limites de escopo /\n"
+        f"     Convenções — D17) e veja qual está engordando.\n"
+        f"  2. Se 'Recorte da fase anterior' é grande, divida em irmãs: T-XXXa no\n"
+        f"     sub-domínio A e T-XXXb no sub-domínio B, disparadas juntas.\n"
+        f"  3. Se 'Critérios de aceite' tem 8+ itens, divida em 2-3 irmãs com 3\n"
+        f"     critérios cada.\n"
+        f"  4. Cada irmã tem seu mini-plano enxuto, com a linha 'Sub-tarefa irmã de:'.\n"
         f"\n"
-        f"Por que o limite duro: na v4.0.x isso era diagnóstico (warning), e na\n"
-        f"prática briefs foram inflando sem você perceber. Na v5 vira freio.\n"
+        f"Por que o limite duro: na v4.0.x isso era diagnóstico (aviso) e, na\n"
+        f"prática, os briefs foram inflando sem ninguém perceber. Desde a v5 é freio.\n"
         f"\n"
         f"Início do brief que foi bloqueado (primeiros 300 chars):\n"
         f"{prompt_preview[:300]}...\n"
         f"\n"
-        f"Agentes ISENTOS deste limite: ATLAS, CRONOS, todos os sub-agentes\n"
-        f"(build-validator, contract-tester, code-architect,\n"
-        f"fresh-reviewer, cold-start-tester, etc.).",
+        f"Agentes ISENTOS deste limite: ATLAS, CRONOS e todos os sub-agentes\n"
+        f"({', '.join(sorted(SUBAGENTES_NOMES))}).",
         file=sys.stderr,
     )
     return 2
 
 
 def main() -> int:
-    event = read_hook_event()
+    event = comum.read_event()
 
     if not eh_despacho_de_agente(event):
         return 0
@@ -211,21 +146,14 @@ def main() -> int:
 
     # Alvo é executor — checa tokens
     tokens = contar_tokens_aproximado(prompt)
-    if tokens <= LIMITE_TOKENS_EXECUTOR:
+    if tokens <= limite_tokens():
         log_activity(
-            f"Despacho de {alvo} OK ({tokens} tokens ≤ {LIMITE_TOKENS_EXECUTOR})"
+            f"Despacho de {alvo} OK ({tokens} tokens ≤ {limite_tokens()})"
         )
         return 0
 
-    log_activity(
-        f"Despacho de {alvo} BLOQUEADO ({tokens} tokens > {LIMITE_TOKENS_EXECUTOR})"
-    )
     return bloquear_despacho(alvo, tokens, prompt)
 
 
 if __name__ == "__main__":
-    try:
-        sys.exit(main())
-    except Exception as exc:  # noqa: BLE001
-        log_activity(f"ERRO no hook: {exc}")
-        sys.exit(1)
+    comum.run(main, HOOK)

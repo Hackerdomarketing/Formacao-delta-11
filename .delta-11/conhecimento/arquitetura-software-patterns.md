@@ -47,24 +47,28 @@ CERTO: Identificar o nucleo minimo que ja entrega valor (MVP real)
 
 ## 2. Classificacao de Complexidade (Score)
 
-### 2.1 Criterios de Pontuacao
+> **Régua oficial (D14): `protocolos/classificacao.md`.** 5 critérios (telas e rotas, integrações externas, modelo
+> de dados, tempo real, segurança), cada um de 1 a 3 pontos; soma de 5 a 15. **BAIXA 5–8** (líderes acumulam
+> papéis), **MÉDIA 9–12**, **ALTA 13–15**. A Fase 2.5 (mini-planos) é obrigatória em TODO projeto, qualquer que
+> seja o score. Não use outra escala.
 
-| Criterio | 1-3 (Baixo) | 4-6 (Medio) | 7-10 (Alto) |
-|----------|-------------|-------------|-------------|
-| Paginas | 1-5 telas | 6-15 telas | 16+ telas |
-| Roles de usuario | 1 tipo | 2-3 tipos | 4+ tipos (admin, moderador, etc) |
-| Integrações | 0-1 servico | 2-3 servicos | 4+ servicos |
-| Dados | CRUD simples | Relacoes complexas | Real-time, filas, cache |
-| Autenticacao | Login basico | Multi-role + permissoes | SSO, MFA, tokens por recurso |
-| Pagamento | Nenhum | Checkout unico | Assinaturas, split, metering |
-| Deploy | Vercel simples | Vercel + Supabase | Multi-servico + CI/CD |
+### 2.1 Sinais que ajudam a pontuar cada critério
+
+| Sinal observado | Puxa para cima o critério |
+|----------|-------------|
+| Muitos papéis de usuário (admin, moderador, cliente) | Segurança e Telas e rotas |
+| Pagamento (assinatura, split, metering) | Integrações externas e Segurança |
+| Filas, cache, edição ao vivo | Tempo real |
+| SSO, MFA, tokens por recurso | Segurança |
+| Tabelas com muitas relações | Modelo de dados |
 
 ### 2.2 Impacto do Score na Equipe
 
 ```
-Score 1-3: BACK acumula ENGINE + VAULT, FRONT acumula PIXEL + FORM
-Score 4-6: BACK lidera ENGINE, FRONT lidera PIXEL + FORM
-Score 7-10: Todos os 10 agentes ativos, Phase 2.5 obrigatoria
+BAIXA (5–8):   BACK acumula ENGINE + VAULT, FRONT acumula PIXEL + FORM
+MÉDIA (9–12):  todos os 10 agentes; BACK lidera ENGINE, FRONT lidera PIXEL + FORM
+ALTA (13–15):  todos os 10 com monitoramento reforçado do CRONOS (Code Architect)
+Em todos: CRONOS ativo e Fase 2.5 obrigatória
 ```
 
 ### 2.3 Erros Comuns na Classificacao
@@ -82,7 +86,7 @@ CERTO: Separar MVP (score real) de roadmap futuro (score projetado)
 
 ## 3. Padroes de Arquitetura por Complexidade
 
-### 3.1 Projeto Simples (Score 1-3)
+### 3.1 Projeto Simples (BAIXA, 5–8)
 
 ```
 Stack:
@@ -105,7 +109,7 @@ src/
     database.ts     ← tipos gerados do Supabase
 ```
 
-### 3.2 Projeto Medio (Score 4-6)
+### 3.2 Projeto Medio (MÉDIA, 9–12)
 
 ```
 Stack:
@@ -137,7 +141,7 @@ src/
   types/
 ```
 
-### 3.3 Projeto Complexo (Score 7-10)
+### 3.3 Projeto Complexo (ALTA, 13–15)
 
 ```
 Stack:
@@ -175,14 +179,14 @@ VALIDACAO:
   - regra 2
 SAIDA SUCESSO (200/201):
   { campo: tipo }
-SAIDA ERRO:
-  400 — { error: "mensagem" } — validacao falhou
-  401 — { error: "nao autenticado" }
-  403 — { error: "sem permissao" }
-  404 — { error: "nao encontrado" }
-  409 — { error: "conflito" } — recurso ja existe
-  429 — { error: "muitas requisicoes" }
-  500 — { error: "erro interno" }
+SAIDA ERRO (formato unico D13: { "error": { "code", "message", "details" } }):
+  400 — VALIDATION_ERROR — validacao falhou ou campo faltando (nunca 422)
+  401 — UNAUTHORIZED — nao autenticado
+  403 — FORBIDDEN — sem permissao
+  404 — NOT_FOUND — nao encontrado
+  409 — CONFLICT — recurso ja existe
+  429 — RATE_LIMITED — muitas requisicoes
+  500 — INTERNAL_ERROR — erro interno
 ```
 
 ### 4.2 Regras Inviolaveis de Contrato
@@ -281,41 +285,18 @@ CREATE POLICY profiles_select_all ON profiles
 
 ### 6.1 Timeout + Retry + Circuit Breaker
 
-```typescript
-// Configuracao padrao por tipo de servico
-const TIMEOUTS = {
-  database: 5000,      // 5s — query lenta = problema
-  payment: 30000,      // 30s — Stripe pode demorar
-  email: 10000,        // 10s — envio de email
-  external_api: 10000, // 10s — APIs de terceiros
-  file_upload: 60000,  // 60s — uploads podem ser grandes
-}
+**Valores oficiais (D19) — tabela única em `protocolos/regras-codigo.md` §3:** banco 5 s · API externa 10 s ·
+chamada interna 3 s · 3 novas tentativas com espera crescente (1 s, 2 s, 4 s) · circuit breaker abre após 5 falhas
+e fecha após 60 s. Repetir em 408, 429 e 5xx; nunca repetir 400, 401, 403, 404 e 409.
 
-const RETRY = {
-  max_attempts: 3,
-  backoff: 'exponential', // 1s, 2s, 4s
-  retryable_codes: [408, 429, 500, 502, 503, 504],
-  non_retryable: [400, 401, 403, 404, 409],
-}
-```
+Se uma integração precisar de valor diferente (ex.: pagamento ou upload grande), o ATLAS registra a exceção e o
+motivo no project-core (decisões técnicas) e no artefato de tempos-limite da Fase 3.5 — nunca só no código.
+Código pronto: `nextjs-api-patterns.md` seção 8.
 
 ### 6.2 Inicializacao Segura de Servicos
 
-```typescript
-// ERRADO — crash se variavel ausente (executa no import)
-const stripe = new Stripe(process.env.STRIPE_KEY!)
-
-// CERTO — inicializacao on-demand, erro claro
-let _stripe: Stripe | null = null
-function getStripe(): Stripe {
-  if (!_stripe) {
-    const key = process.env.STRIPE_KEY
-    if (!key) throw new Error('STRIPE_KEY nao configurada')
-    _stripe = new Stripe(key)
-  }
-  return _stripe
-}
-```
+Serviço externo é inicializado sob demanda, dentro da função, nunca no topo do módulo (`getStripe()`). Fonte única
+do padrão e do código: `backend-integracao-patterns.md` seção 5.
 
 ### 6.3 Graceful Degradation
 

@@ -1,6 +1,6 @@
 # React + Next.js 15 — Referência Curta para Componentes
 
-> **Esta é a base CURTA.** A versão COMPLETA (16 fontes, 44 claims, 45 armadilhas, 22 padrões, 32 anti-padrões, 5 árvores de debugging) vive em `~/.claude/skills/react-next/` (skill global instalada em v5.4 Estágio 6.1).
+> **Apêndice curto da skill `react-next` (v6.3, 2026-10-14).** Complementa — não substitui — as bases oficiais de FRONT (`react-component-patterns.md`), PIXEL (`tailwind-animation-patterns.md`) e FORM (`react-form-patterns.md`). A versão COMPLETA (16 fontes, 44 claims, 45 armadilhas, 22 padrões, 32 anti-padrões, 5 árvores de debugging) vive em `~/.claude/skills/react-next/` (skill global instalada em v5.4 Estágio 6.1).
 >
 > **Quando consultar esta base vs a skill:**
 > - Esta base: lembrar onde colocar 'use client'; checklist de 10 perguntas antes de commitar; anti-padrões comuns
@@ -70,16 +70,16 @@ O componente precisa de state, effect, ou event handler?
 
 | Situação | Vá para |
 |---|---|
-| Criar primeiro Server Component vs Client | skill `01-fundamentos.md` §Server Components |
-| "useEffect com deps erradas" | skill `08-debugging-reativo.md` §Infinite loop |
-| "Hydration mismatch" | skill `08-debugging-reativo.md` §Hydration |
-| Implementar form com Server Action | skill `05-server-actions.md` (sessão 6.2) |
-| "Bundle está grande" | skill `06-performance.md` (sessão 6.2) |
-| Code review rápido de PR | skill `10-heuristicas-bolso.md` (sessão 6.4) |
-| 22 padrões de implementação | skill `03-patterns-corretos.md` |
-| 32 anti-padrões com casos reais | skill `04-anti-patterns.md` |
-| Testar Server Components | skill `07-testing.md` (sessão 6.3) |
-| Onboarding (entender o "por que") | skill `references/_mental-model.md` (sessão 6.4) |
+| Criar primeiro Server Component vs Client | skill `references/01-fundamentos-react-next.md` §Server Components |
+| "useEffect com deps erradas" | skill `references/08-debugging-reativo.md` §Infinite loop |
+| "Hydration mismatch" | skill `references/08-debugging-reativo.md` §Hydration |
+| Implementar form com Server Action | skill `references/05-server-actions.md` (sessão 6.2) |
+| "Bundle está grande" | skill `references/06-performance.md` (sessão 6.2) |
+| Code review rápido de PR | skill `references/10-heuristicas-bolso.md` (sessão 6.4) |
+| 22 padrões de implementação | skill `references/03-patterns-corretos.md` |
+| 32 anti-padrões com casos reais | skill `references/04-anti-patterns.md` |
+| Testar Server Components | skill `references/07-testing.md` (sessão 6.3) |
+| Onboarding (entender o "por que") | skill `references/01-fundamentos-react-next.md` (modelo mental Server × Client) |
 
 ## 6. Quem cuida de UI/React no projeto
 
@@ -90,7 +90,7 @@ O componente precisa de state, effect, ou event handler?
 | **FORM** | Forms multi-step, validação complexa, upload |
 | **ENGINE** | Server Actions que fazem mutations, lógica de negócio |
 | **SHIELD** | Code review de PR com componente novo (checagem dos 10 anti-padrões) |
-| **Comandante** | Reporta "tela branca" / "componente quebrou" para o time |
+| **SCOUT** | Diagnostica "tela branca" / "componente quebrou" (o relato do comandante vira bug report pelo CRONOS) |
 
 ---
 
