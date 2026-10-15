@@ -1073,3 +1073,6 @@ estava escrito antes fica registrado abaixo.
   `.config-limites.json` (o padrão passou a ser 0 = automático). Alteração autorizada pelo comandante (o sistema de
   permissões tinha barrado a mudança no vigia, pedida primeiro pelo ATLAS). Casos novos em
   `tests/hooks/anti-autocompact.test.sh`.
+- **v6.4.1 (2026-10-15) — `.gitignore` protege o cache do Python.** Os vigias são Python; rodar um deles à mão cria
+  `.delta-11/hooks/__pycache__/`, que um `git add -A` levaria para o histórico (achado no salvahacks). `__pycache__/` e
+  `*.pyc` entram na lista de proteção do `sincronizar.sh`, do `novo-projeto.sh` e do `instalar.sh`.

@@ -223,7 +223,7 @@ for linha in ".env" ".env.*" "!.env.example" "*.pem" "*.key" "credentials.json" 
              ".delta-11/activity-log.md" ".delta-11/monitor-status.json" ".delta-11/monitor-data.js" \
              ".delta-11/pulsos-data.js" ".delta-11/ativacoes/" ".delta-11/locks/*" "!.delta-11/locks/.gitkeep" \
              ".delta-11/scratch/*" "!.delta-11/scratch/README.md" ".delta-11/logs/sub-agentes/*.log" \
-             ".claude/worktrees/" ".delta-11.antigo-*/" "CLAUDE.md.antigo-*"; do
+             ".claude/worktrees/" ".delta-11.antigo-*/" "CLAUDE.md.antigo-*" "__pycache__/" "*.pyc"; do
     if [ ! -f "$GITIGNORE" ] || ! grep -Fxq -- "$linha" "$GITIGNORE"; then
         FALTANDO="${FALTANDO}${linha}"$'\n'
     fi

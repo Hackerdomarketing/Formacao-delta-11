@@ -123,7 +123,7 @@ LINHAS_GITIGNORE=(
     ".delta-11/activity-log.md" ".delta-11/monitor-status.json" ".delta-11/monitor-data.js"
     ".delta-11/pulsos-data.js" ".delta-11/ativacoes/" ".delta-11/locks/*" "!.delta-11/locks/.gitkeep"
     ".delta-11/scratch/*" "!.delta-11/scratch/README.md" ".delta-11/logs/sub-agentes/*.log"
-    ".claude/worktrees/"
+    ".claude/worktrees/" "__pycache__/" "*.pyc"
 )
 FALTANDO=()
 for linha in "${LINHAS_GITIGNORE[@]}"; do

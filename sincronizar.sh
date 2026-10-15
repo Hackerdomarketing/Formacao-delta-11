@@ -412,6 +412,8 @@ LINHAS_GITIGNORE=(
     "!.delta-11/scratch/README.md"
     ".delta-11/logs/sub-agentes/*.log"
     ".claude/worktrees/"
+    "__pycache__/"
+    "*.pyc"
 )
 
 garantir_gitignore() {
