@@ -196,6 +196,8 @@ O D-11 funciona como **Lovable** (autônomo), não como supervisor:
   worktree (o SHIELD lê as worktrees por caminho absoluto).
 - **Modelo por papel (D26):** o CRONOS lê `.delta-11/perfis/[AGENTE].json` e passa `model` no disparo. Opus: ATLAS,
   CRONOS e SHIELD. Sonnet: demais executores e sub-agentes. Os perfis também listam ferramentas e base de conhecimento.
+  **Se trocar algum agente para Haiku:** o vigia de contexto (`anti-autocompact.py`) usa 200 mil tokens para ele
+  (alerta em 170 mil), sozinho; os demais continuam com 1 milhão. Regra do comandante (2026-10-15).
 - **CRONOS auto-retoma.** Contexto esgotado do CRONOS → ele mesmo dispara a nova sessão pelo Agent tool.
 - **Selo Experiencial:** rodado pelo sub-agente `qa-ui-tandem` (`.delta-11/sub-agentes/qa-ui-tandem.md`, Tandem
   Browser). O comandante só vê o relatório PASS/FAIL.
@@ -258,7 +260,7 @@ projeto é montado a partir dele. Se esta tabela e o template divergirem, vale o
 | 12 | `fase-ritmo-checker.py` | PreToolUse (Edit\|Write) | No selo da Fase 3.5 ("Fase 3.5 selada" no kanban), bloqueia se faltarem os 10 artefatos `ritmo-temporal-NN-*.md`; do Ciclo 2 em diante aceita o checklist `ritmo-temporal-checklist-ciclo-N.md` (V9) |
 | 13 | `fase-consciencia-checker.py` | PreToolUse (Edit\|Write) | No selo da Fase 4.5, bloqueia se faltarem os 5 entregáveis `consciencia-NN-*.md`; do Ciclo 2 em diante aceita o checklist `consciencia-checklist-ciclo-N.md` (V9) |
 | 14 | `fase-descanso-checker.py` | PreToolUse (Edit\|Write) | No selo da Fase 7, bloqueia se faltarem os 10 entregáveis `descanso-NN-*.md`; o teste supremo (2 semanas) só é exigido no selo final "Fase 7 consagrada", nunca para abrir o ciclo seguinte (V10) |
-| 15 | `anti-autocompact.py` | PreToolUse (Edit\|Write\|Agent\|Task\|Bash) | Bloqueia quando a conversa passa de ~85% do limite → aplique o Protocolo de Contexto Esgotado. **v6.4.1:** limite único de 1 milhão de tokens para todos os agentes (alerta em 850 mil), sem lista de modelos — modelo novo não exige mudar o vigia; o projeto pode mudar `contexto_janela_tokens` e `contexto_alerta_pct` no `.config-limites.json` |
+| 15 | `anti-autocompact.py` | PreToolUse (Edit\|Write\|Agent\|Task\|Bash) | Bloqueia quando a conversa passa de ~85% do limite → aplique o Protocolo de Contexto Esgotado. **v6.4.1:** limite único de 1 milhão de tokens para todos os agentes (alerta em 850 mil), sem lista de modelos — modelo novo não exige mudar o vigia; **única exceção: agente que usar Haiku = 200 mil** (alerta em 170 mil, só para aquele agente); o projeto pode mudar `contexto_janela_tokens` e `contexto_alerta_pct` no `.config-limites.json` |
 | 16 | `anti-stash.py` | PreToolUse (Edit\|Write) | Bloqueia CONCLUÍDO no kanban com `git stash list` não vazio |
 | 17 | `shield-aprovado.py` | PreToolUse (Edit\|Write) | Bloqueia CONCLUÍDO de executor sem a linha `[SHIELD] APROVADO T-XXX [AGENTE]` dentro de `janela_horas` |
 | 18 | `urls-validas.py` | PreToolUse (Edit\|Write) | Bloqueia URL malformada; aceita `localhost`, `127.0.0.1` e `*.local`; ignora aspas e crases em volta |

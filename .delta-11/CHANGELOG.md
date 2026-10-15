@@ -1082,3 +1082,8 @@ estava escrito antes fica registrado abaixo.
   `contexto_janela_tokens` = 1.000.000 por padrão para todos os agentes (alerta em 850 mil), sem lista de modelos; o
   projeto que usar um modelo de janela menor ajusta o número no `.config-limites.json`. O Claude Code não informa a
   janela aos vigias (documentação oficial: só a barra de status recebe `context_window`), por isso o número é fixo.
+- **v6.4.1 (2026-10-15) — exceção do Haiku no `anti-autocompact.py`.** Pedido do comandante: agente que usar Haiku
+  (nome do modelo na conversa contém "haiku") tem janela de 200 mil (alerta em 170 mil), só ele; os demais seguem com
+  1 milhão. Fica no vigia (automático), e não no `.config-limites.json`, porque esse arquivo vale para o projeto
+  inteiro: baixar o número para 200 mil travaria de novo os agentes em Opus e Sonnet. Aviso também em CLAUDE.md
+  ("Modelo por papel") e em `protocolos/comunicacao.md`.

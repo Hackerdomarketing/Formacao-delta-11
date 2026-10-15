@@ -81,7 +81,9 @@ conversa_modelo "$SUB" 860000 claude-sonnet-5-5
 espera 2 "sonnet-5-5 com 860 mil (>85% de 1 milhao): bloqueia" "$(ev_sub Bash tool_input.command=ls)"
 stderr_contem "modelo claude-sonnet-5-5"
 conversa_modelo "$SUB" 180000 claude-haiku-5-5
-espera 0 "qualquer modelo com 180 mil (sem lista de modelos): passa" "$(ev_sub Bash tool_input.command=ls)"
+espera 2 "agente em Haiku com 180 mil (regra do comandante: Haiku = 200 mil): bloqueia" "$(ev_sub Bash tool_input.command=ls)"
+conversa_modelo "$SUB" 160000 claude-haiku-5-5
+espera 0 "agente em Haiku com 160 mil (abaixo de 170 mil): passa" "$(ev_sub Bash tool_input.command=ls)"
 conversa_modelo "$SUB" 180000 modelo-desconhecido-x
 espera 0 "modelo NOVO que nao existia quando o vigia foi escrito, 180 mil: passa" "$(ev_sub Bash tool_input.command=ls)"
 echo '{"contexto_janela_tokens": 200000}' > .delta-11/.config-limites.json

@@ -19,7 +19,9 @@ compactacao anterior). Nao mede mais um pedaco de texto isolado.
     (padrao 1.000.000), alerta em `contexto_alerta_pct` (padrao 85 % = 850 mil).
     O projeto pode mudar os dois no .config-limites.json (ex.: um projeto que use
     um modelo de janela menor). Nao ha lista de modelos: modelo novo da Anthropic
-    nao exige mudar o vigia (decisao do comandante, 2026-10-15). Os agentes do
+    nao exige mudar o vigia (decisao do comandante, 2026-10-15). UNICA excecao,
+    tambem do comandante: agente que usar Haiku (o nome do modelo na conversa
+    contem "haiku") = 200.000 (alerta em 170 mil); vale so para aquele agente. Os agentes do
     Delta-11 usam Opus e Sonnet, que chegaram a 966 mil e 723 mil tokens nas
     conversas reais. Antes da v6.4.1 o padrao era 200.000 e travava CRONOS e SHIELD
     logo depois de nascer (laco de retomadas no salvahacks, 2026-10-15).
@@ -50,6 +52,7 @@ import _comum as comum  # noqa: E402
 
 HOOK = "anti-autocompact"
 JANELA_GRANDE = 1_000_000
+JANELA_HAIKU = 200_000  # agente que usar Haiku (familia de janela menor): 200 mil, alerta em 170 mil
 LEITURA_MAXIMA_BYTES = 4 * 1024 * 1024
 FERRAMENTAS_SEMPRE_LIBERADAS = {"Agent", "Task", "SendMessage", "Read", "Glob", "Grep"}
 
@@ -159,6 +162,8 @@ def main() -> int:
         return 0
     limites = comum.limits()
     janela = int(limites["contexto_janela_tokens"])
+    if modelo and "haiku" in modelo.lower():
+        janela = min(janela, JANELA_HAIKU)  # regra do comandante: agente em Haiku = 200 mil
     if tokens > janela:
         janela = max(janela, JANELA_GRANDE)
     limite = int(janela * float(limites["contexto_alerta_pct"]) / 100.0)

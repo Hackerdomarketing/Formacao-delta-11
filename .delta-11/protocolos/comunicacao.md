@@ -39,6 +39,7 @@ Agent(
 - **CRONOS**: SEMPRE sem worktree, `name: "cronos"`, `NASCEU_EM_WORKTREE: nao`. A auto-retomada do CRONOS também é sem worktree e com `name: "cronos"`.
 - **SHIELD revisor**: sem worktree. Lê o código das worktrees pelo caminho absoluto que o CRONOS passa no prompt.
 - **Modelo por papel**: o CRONOS lê `perfis/[AGENTE].json` e passa `model` no disparo (opus: ATLAS, CRONOS, SHIELD; sonnet: demais executores e sub-agentes).
+  Se algum agente for trocado para Haiku, o vigia de contexto usa 200 mil tokens para ele (alerta em 170 mil); os demais seguem com 1 milhão.
 - **Onda inteira de uma vez (v6.4)**: o CRONOS dispara TODOS os agentes independentes da onda na MESMA mensagem — várias chamadas `Agent` juntas, todas com `run_in_background: true` —, até `paralelo_max` (padrão 5, em `.delta-11/.config-limites.json`). Acabou o "lança 3, espera 1, lança mais 2".
 - **Fila por vaga**: se a onda tem mais tarefas que o limite, assim que UM agente termina (notificação automática), o próximo da fila sai NA HORA. Nunca se espera a rodada inteira acabar.
 - **Em série, só o mesmo arquivo ou dependência declarada (V5)**: (a) dois agentes que precisam editar o MESMO arquivo (zona igual na tabela de zonas do CLAUDE.md, ou arquivo com trava); (b) dependência declarada (uma tarefa precisa do resultado da outra). Todo o resto roda junto.
