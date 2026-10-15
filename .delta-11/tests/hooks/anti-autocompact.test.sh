@@ -63,5 +63,31 @@ conversa "$SUB" 120000
 echo '{"contexto_alerta_pct": 50}' > .delta-11/.config-limites.json
 espera 2 "contexto_alerta_pct=50 no .config-limites.json: 120 mil ja bloqueia" "$(ev_sub Bash tool_input.command=ls)"
 
+# v6.4.1 — janela AUTOMATICA pelo modelo gravado na conversa (message.model)
+conversa_modelo() {  # $1 arquivo, $2 tokens, $3 modelo
+    python3 - "$1" "$2" "$3" <<'PY'
+import json, sys
+caminho, tokens, modelo = sys.argv[1], int(sys.argv[2]), sys.argv[3]
+with open(caminho, "w") as f:
+    f.write(json.dumps({"type": "assistant", "message": {"model": modelo, "usage": {"input_tokens": 1000, "cache_read_input_tokens": tokens - 1000}}}) + "\n")
+PY
+}
+rm -f .delta-11/.config-limites.json
+conversa_modelo "$SUB" 180000 claude-sonnet-5-5
+espera 0 "sonnet-5-5 com 180 mil (janela de 1 milhao): passa — fim do laco de retomadas" "$(ev_sub Bash tool_input.command=ls)"
+conversa_modelo "$SUB" 180000 claude-opus-5-5
+espera 0 "opus-5-5 com 180 mil: passa" "$(ev_sub Bash tool_input.command=ls)"
+conversa_modelo "$SUB" 860000 claude-sonnet-5-5
+espera 2 "sonnet-5-5 com 860 mil (>85% de 1 milhao): bloqueia" "$(ev_sub Bash tool_input.command=ls)"
+stderr_contem "modelo claude-sonnet-5-5"
+conversa_modelo "$SUB" 180000 claude-haiku-5-5
+espera 2 "haiku com 180 mil (janela presumida de 200 mil): bloqueia" "$(ev_sub Bash tool_input.command=ls)"
+conversa_modelo "$SUB" 180000 modelo-desconhecido-x
+espera 2 "modelo desconhecido com 180 mil: cautela, bloqueia" "$(ev_sub Bash tool_input.command=ls)"
+echo '{"contexto_janela_tokens": 200000}' > .delta-11/.config-limites.json
+conversa_modelo "$SUB" 180000 claude-sonnet-5-5
+espera 2 "projeto FORCA 200 mil no .config-limites.json: vale o projeto, bloqueia" "$(ev_sub Bash tool_input.command=ls)"
+rm -f .delta-11/.config-limites.json
+
 espera 0 "evento vazio: passa" ""
 fim

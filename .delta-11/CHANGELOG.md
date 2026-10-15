@@ -1063,3 +1063,13 @@ estava escrito antes fica registrado abaixo.
     principal, mas o `kanban-data.js` e o `pulsos-data.js` continuam dizendo "em andamento". Na sessão nova, o vigia
     avisa quais são esses itens e manda conferir o disco antes de redisparar ou de esperar por eles.
   Testes: `tests/hooks/sistema-no-historico.test.sh` e `tests/hooks/retomada-apos-queda.test.sh`. Total: 36 vigias.
+- **v6.4.1 (2026-10-15) — fim do laço de retomadas: o `anti-autocompact.py` usa a janela do MODELO.** O padrão fixo
+  de 200 mil tokens (alerta em 170 mil) travava CRONOS e SHIELD logo depois de nascer: só as leituras obrigatórias
+  (CLAUDE.md, operativo, kanban, project-core) passam de 120 mil. Cada retomada relia tudo e era travada de novo
+  (salvahacks, 2026-10-15: 3 bloqueios seguidos; o ATLAS diagnosticou). Medição nas conversas reais do comandante:
+  sonnet-5-5 chegou a 723 mil e opus-5-5 a 966 mil sem problema. Agora a janela vem do `message.model` da própria
+  conversa: Claude 5 (opus, sonnet, fable), opus 4.7/4.8 e sonnet 4.6 = 1 milhão (alerta em 850 mil); haiku ou modelo
+  desconhecido = 200 mil (cautela). O projeto ainda pode forçar um valor com `contexto_janela_tokens` > 0 no
+  `.config-limites.json` (o padrão passou a ser 0 = automático). Alteração autorizada pelo comandante (o sistema de
+  permissões tinha barrado a mudança no vigia, pedida primeiro pelo ATLAS). Casos novos em
+  `tests/hooks/anti-autocompact.test.sh`.
