@@ -706,6 +706,106 @@ def phase_artifacts(prefixo: str, total: int) -> tuple[list[int], list[int], lis
     return sorted(presentes), faltando, nomes
 
 
+# ─── Ciclo atual e ciclo leve (v6.4 — V9) ──────────────────────────────────
+# Todo projeto tem 7 ciclos de entrega (Regra dos 7 Ciclos, ATLAS.md) e cada
+# ciclo passa pelas 13 fases. Do Ciclo 2 em diante, as Fases 3.5 e 4.5 podem
+# entregar UM checklist de 1 pagina em vez dos documentos completos:
+#   memoria/decisoes/AAAA-MM-DD-<prefixo>-checklist-ciclo-N.md
+CICLO_ATUAL_RE = re.compile(r"\*{0,2}Ciclo\s+atual:?\*{0,2}\s*:?\s*\*{0,2}\s*(\d+)", re.IGNORECASE)
+CICLO_NUMERO_RE = re.compile(r"\bCiclo\s*(\d+)", re.IGNORECASE)
+FASE_ATUAL_JS_RE = re.compile(r"""\bfase_atual\s*:\s*(["'`])(.*?)\1""")
+
+
+def cycle_in_text(texto: str | None) -> int | None:
+    """Numero de "Ciclo N" num trecho de texto (o primeiro), ou None."""
+    achado = CICLO_NUMERO_RE.search(texto or "")
+    return int(achado.group(1)) if achado and int(achado.group(1)) >= 1 else None
+
+
+def current_cycle(kanban_texto: str | None = None) -> int:
+    """
+    Numero do ciclo atual. Ordem de leitura:
+      1. `**Ciclo atual:** N` no kanban.md (o texto dado ou, sem ele, o do disco);
+      2. "Ciclo N" na linha `**Fase atual:**` do kanban.md;
+      3. "Ciclo N" no campo `fase_atual` do kanban-data.js;
+      4. sem informacao: 1 (o ciclo mais exigente — documentos completos).
+    """
+    if kanban_texto is None:
+        kanban_texto = read_text(delta_dir() / "kanban.md")
+    for linha in kanban_texto.splitlines():
+        achado = CICLO_ATUAL_RE.search(linha)
+        if achado and int(achado.group(1)) >= 1:
+            return int(achado.group(1))
+    numero = cycle_in_text(current_phase(kanban_texto))
+    if numero:
+        return numero
+    achado = FASE_ATUAL_JS_RE.search(read_text(delta_dir() / "kanban-data.js"))
+    numero = cycle_in_text(achado.group(2)) if achado else None
+    return numero or 1
+
+
+_SEM_MUDANCA_RE = re.compile(r"\bsem\s+mudan[çc]as?\b|\bn[ãa]o\s+se\s+aplica\b", re.IGNORECASE)
+_MUDANCA_RE = re.compile(r"\bmud(?:ou|an[çc]as?)\s*[:—–-]\s*\S", re.IGNORECASE)
+
+
+def _item_number_re(numero: int) -> re.Pattern:
+    """Linha que comeca pelo numero do item: "| 01 |", "- 01.", "01)", "**01** —"."""
+    return re.compile(
+        rf"^\s*(?:[-*+]\s*)?(?:\[[ xX]\]\s*)?(?:\|\s*)?(?:\*\*)?0?{numero}(?:\*\*)?\s*(?:[|.):—–]|-\s)",
+        re.IGNORECASE,
+    )
+
+
+def cycle_checklist(prefixo: str, ciclo: int, itens: dict[int, str]) -> tuple[str | None, list[tuple[int, str]]]:
+    """
+    Checklist do ciclo leve em memoria/decisoes/ (`...-<prefixo>-checklist-ciclo-N.md`).
+    Retorna (nome do arquivo, pendencias). Sem arquivo (ou so arquivo vazio): (None, []).
+    Pendencia = (numero do item, motivo). Cada item precisa de uma linha (com o numero
+    ou o slug) que diga "sem mudanca" / "nao se aplica" ou "mudou: <o que mudou>"; os
+    marcadores [..] do modelo nao contam. Se a linha cita um documento completo
+    (`<prefixo>-NN-...md`), ele precisa existir e nao estar vazio.
+    O vigia NAO julga se a mudanca era grande o bastante para exigir documento
+    completo: quem confere isso e o SHIELD (protocolos fase-ritmo e fase-consciencia).
+    """
+    pasta = delta_dir() / "memoria" / "decisoes"
+    nome_re = re.compile(
+        rf"(?:^|-){re.escape(prefixo)}-checklist-ciclo-0*{int(ciclo)}(?!\d)[^/]*\.md$", re.IGNORECASE
+    )
+    citado_re = re.compile(rf"{re.escape(prefixo)}-(\d{{2}})-[A-Za-z0-9._-]*?\.md", re.IGNORECASE)
+    presentes = set(phase_artifacts(prefixo, len(itens))[0])
+    try:
+        arquivos = sorted(pasta.iterdir()) if pasta.is_dir() else []
+    except OSError:
+        arquivos = []
+    melhor: tuple[str | None, list[tuple[int, str]]] = (None, [])
+    for arquivo in arquivos:
+        if not arquivo.is_file() or not nome_re.search(arquivo.name):
+            continue
+        texto = read_text(arquivo)
+        if not texto.strip():
+            continue
+        linhas = texto.splitlines()
+        pendencias: list[tuple[int, str]] = []
+        for numero, slug in sorted(itens.items()):
+            por_numero = _item_number_re(numero)
+            candidatas = [l for l in linhas if por_numero.search(l)]
+            if not candidatas:  # sem linha numerada: procura o slug
+                candidatas = [l for l in linhas if slug.lower() in l.lower()]
+            candidatas = [PLACEHOLDER_RE.sub(" ", l) for l in candidatas]
+            respondidas = [l for l in candidatas if _SEM_MUDANCA_RE.search(l) or _MUDANCA_RE.search(l)]
+            if not candidatas:
+                pendencias.append((numero, "item ausente no checklist"))
+            elif not respondidas:
+                pendencias.append((numero, 'sem resposta ("sem mudança" ou "mudou: ...")'))
+            else:
+                citados = {int(n) for l in respondidas for n in citado_re.findall(l)}
+                if any(n not in presentes for n in citados):
+                    pendencias.append((numero, "cita documento completo que nao existe (ou esta vazio)"))
+        if melhor[0] is None or len(pendencias) < len(melhor[1]):
+            melhor = (arquivo.name, pendencias)
+    return melhor
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # Testes de contrato (validar-contratos-fim-fase e validar-deploy)
 # ═══════════════════════════════════════════════════════════════════════════
