@@ -91,4 +91,11 @@ for n in 01 02 03 04 05 06 07 08 09 10; do echo "conteudo" > "$DEC/2026-10-14-ri
 espera 2 "Ciclo 2 só com os 10 documentos do Ciclo 1, sem checklist do ciclo atual: bloqueia (v6.4)" "$(selo_no_ciclo "**Ciclo atual:** 2")"
 checklist_ritmo "$DEC/2026-10-15-ritmo-temporal-checklist-ciclo-2.md" ""
 espera 2 "Ciclo 2: checklist COMEÇADO e incompleto bloqueia mesmo com documentos antigos" "$(selo_no_ciclo "**Ciclo atual:** 2")"
+# Documentos COMPLETOS feitos no ciclo atual (citam "Ciclo N") também liberam o selo (caso real: salvahacks, Ciclo 5)
+rm -f "$DEC"/*-checklist-ciclo-2.md
+for n in 01 02 03 04 05 06 07 08 09 10; do echo "Recorte do Ciclo 2: conteudo" > "$DEC/2026-10-15-ritmo-temporal-$n-item.md"; done
+espera 0 "Ciclo 2 sem checklist, mas com os 10 documentos completos do Ciclo 2: passa" "$(selo_no_ciclo "**Ciclo atual:** 2")"
+log_contem "fase-ritmo-checker.*documentos completos do ciclo"
+echo "conteudo sem ciclo" > "$DEC/2026-10-15-ritmo-temporal-07-item.md"
+espera 2 "Ciclo 2: 9 documentos do ciclo + 1 sem citar o ciclo: bloqueia" "$(selo_no_ciclo "**Ciclo atual:** 2")"
 fim

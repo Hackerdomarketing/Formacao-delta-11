@@ -694,14 +694,16 @@ def current_phase(texto: str) -> str | None:
     return None
 
 
-def phase_artifacts(prefixo: str, total: int) -> tuple[list[int], list[int], list[str]]:
+def phase_artifacts(prefixo: str, total: int, ciclo: int | None = None) -> tuple[list[int], list[int], list[str]]:
     """
     Entregaveis de fase em memoria/decisoes/ com nome `...<prefixo>-NN-*.md`.
     Retorna (numeros presentes, numeros faltando de 1..total, nomes encontrados).
-    Arquivo vazio nao conta.
+    Arquivo vazio nao conta. Com `ciclo`, so conta o documento que cita "Ciclo N"
+    no texto (documento completo feito NESTE ciclo, e nao herdado de um anterior).
     """
     pasta = delta_dir() / "memoria" / "decisoes"
     padrao = re.compile(rf"(?:^|-){re.escape(prefixo)}-(\d{{2}})(?:-|\.md$)", re.IGNORECASE)
+    do_ciclo = re.compile(rf"\bCiclo\s*0*{int(ciclo)}(?!\d)", re.IGNORECASE) if ciclo else None
     presentes: set[int] = set()
     nomes: list[str] = []
     try:
@@ -719,6 +721,8 @@ def phase_artifacts(prefixo: str, total: int) -> tuple[list[int], list[int], lis
             vazio = arquivo.stat().st_size == 0
         except OSError:
             vazio = True
+        if do_ciclo and not vazio and not do_ciclo.search(read_text(arquivo)):
+            continue
         if 1 <= numero <= total and not vazio:
             presentes.add(numero)
             nomes.append(arquivo.name)

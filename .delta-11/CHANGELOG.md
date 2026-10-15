@@ -1036,3 +1036,9 @@ estava escrito antes fica registrado abaixo.
   e o da v5.4 perdeu o passo `ls -la /tmp/*.skill` (os pacotes das skills eram temporários);
   "Quem escreve" deixa de citar CRONOS e ATLAS (este arquivo é de sistema, mantido na fonte oficial e sobrescrito nos
   projetos pelo `sincronizar.sh`).
+- **v6.4.1 (2026-10-15) — ciclo leve aceita documentos completos do ciclo atual.** Na v6.4, do Ciclo 2 em diante, os
+  vigias `fase-ritmo-checker.py` e `fase-consciencia-checker.py` só aceitavam o checklist do ciclo: um projeto que fez
+  os 10 (ou 5) documentos COMPLETOS no próprio ciclo (caso real: salvahacks, Ciclo 5, documentos de 14/10) seria
+  bloqueado no selo. Agora esses documentos também liberam o selo, desde que cada um cite "Ciclo N" no texto;
+  documentos herdados de ciclos anteriores continuam não valendo. `_comum.phase_artifacts` ganhou o parâmetro `ciclo`.
+  Testes novos nos dois arquivos de `tests/hooks/`; conferido com uma cópia dos documentos reais do salvahacks.

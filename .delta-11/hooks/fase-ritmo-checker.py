@@ -109,6 +109,11 @@ def main() -> int:
                 f"selo da Fase 3.5 do Ciclo {ciclo}: checklist com {len(pendencias)} item(ns) pendente(s)",
             )
         if not checklist:
+            # Documentos COMPLETOS feitos neste ciclo (citam "Ciclo N") valem mais que o checklist: liberam o selo.
+            _do_ciclo, faltando_do_ciclo, _nomes = comum.phase_artifacts(PREFIXO, len(ARTEFATOS), ciclo)
+            if not faltando_do_ciclo:
+                comum.log(HOOK, f"OK: selo da Fase 3.5 do Ciclo {ciclo} com os documentos completos do ciclo")
+                return 0
             # v6.4 (integração): do Ciclo 2 em diante, documentos completos de ciclos anteriores NÃO substituem o
             # checklist do ciclo atual (senão o vigia liberaria sempre: os documentos do Ciclo 1 continuam na pasta).
             return comum.block(
@@ -116,7 +121,8 @@ def main() -> int:
                 f"Selo da Fase 3.5 do Ciclo {ciclo} sem o checklist do ciclo atual (ciclo leve, V9).\n"
                 f"Crie memoria/decisoes/AAAA-MM-DD-ritmo-temporal-checklist-ciclo-{ciclo}.md a partir de\n"
                 "templates/ritmo-temporal-checklist-template.md: um item por linha, 'sem mudança' ou 'mudou: ...'\n"
-                "(item que o ciclo mexeu cita o documento completo novo).",
+                "(item que o ciclo mexeu cita o documento completo novo).\n"
+                f"Ou: todos os documentos completos, cada um citando 'Ciclo {ciclo}' no texto.",
                 f"selo da Fase 3.5 do Ciclo {ciclo} sem checklist do ciclo",
             )
     if not faltando:

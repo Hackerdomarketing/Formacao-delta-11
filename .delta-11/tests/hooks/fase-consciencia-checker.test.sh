@@ -60,4 +60,10 @@ espera 2 "Ciclo 2 com checklist sem resposta no item 03: bloqueia" "$(selo_no_ci
 stderr_contem "03. motor-regras"
 checklist_consciencia "$DEC/2026-10-15-consciencia-checklist-ciclo-2.md" "mudou: regra nova de desconto em business-rules/can-apply-discount.ts"
 espera 0 "item 03 com a mudança descrita: passa" "$(selo_no_ciclo "**Ciclo atual:** 2")"
+# Documentos COMPLETOS feitos no ciclo atual (citam "Ciclo N") também liberam o selo (caso real: salvahacks, Ciclo 5)
+rm -f "$DEC"/*-checklist-ciclo-2.md
+for n in 01 02 03 04 05; do echo "Recorte do Ciclo 2: conteudo" > "$DEC/2026-10-15-consciencia-$n-item.md"; done
+espera 0 "Ciclo 2 sem checklist, mas com os 5 entregáveis completos do Ciclo 2: passa" "$(selo_no_ciclo "**Ciclo atual:** 2")"
+echo "conteudo sem ciclo" > "$DEC/2026-10-15-consciencia-03-item.md"
+espera 2 "Ciclo 2: 4 entregáveis do ciclo + 1 sem citar o ciclo: bloqueia" "$(selo_no_ciclo "**Ciclo atual:** 2")"
 fim

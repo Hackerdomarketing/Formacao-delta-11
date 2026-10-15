@@ -202,6 +202,7 @@ Todo projeto tem 7 ciclos de entrega e cada ciclo passa pelas 13 fases (Regra do
 **O que o vigia confere sozinho (`fase-ritmo-checker.py`):**
 - no Ciclo 1: os 10 documentos (o checklist NÃO os substitui);
 - do Ciclo 2 em diante: o checklist do ciclo atual como equivalente (e obrigatório: documentos de ciclos anteriores não o substituem) aos 10 documentos — os 10 itens presentes, cada um respondido, e todo documento completo citado existindo. Checklist do ciclo começado e incompleto bloqueia o selo.
+- do Ciclo 2 em diante, sem checklist: os 10 documentos completos FEITOS NO CICLO ATUAL também liberam o selo (cada arquivo cita "Ciclo N" no texto). Quem preferiu fazer tudo completo não precisa do checklist; documentos herdados de ciclos anteriores continuam não valendo.
 
 **O que o vigia NÃO consegue conferir:** se uma mudança era grande o bastante para exigir o documento completo. Quem confere isso é o **SHIELD**, na revisão da fase: para cada linha "mudou", ele decide se a área foi mexida (filas, cache, CI/CD, dependência externa nova) e, se foi, exige o documento completo antes de aprovar.
 
