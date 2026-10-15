@@ -43,7 +43,7 @@ rm -rf "$DELTA/hooks/__pycache__"
 if python3 - "$DELTA/.config-limites.json" <<'PY'
 import json, sys
 d = json.load(open(sys.argv[1]))
-esperado = {"brief_max_tokens": 2000, "produto_max_tokens": 500, "paralelo_max": 3, "janela_horas": 4, "lock_horas": 2}
+esperado = {"brief_max_tokens": 4000, "produto_max_tokens": 500, "paralelo_max": 5, "janela_horas": 4, "lock_horas": 2}
 sys.exit(0 if d == esperado else 1)
 PY
 then ok ".config-limites.json com os valores do D36"; else err ".config-limites.json ausente ou diferente do D36"; fi

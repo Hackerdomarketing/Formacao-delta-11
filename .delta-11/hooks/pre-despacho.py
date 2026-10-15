@@ -3,9 +3,9 @@
 Vigia PreToolUse "pre-despacho" — Delta-11 v6.3 (2026-10-14). C-016, C-184.
 
 Bloqueia o despacho de um agente EXECUTOR quando o brief (o `prompt` da chamada do
-Agent tool) passa do limite `brief_max_tokens` (padrao 2.000 tokens, em
+Agent tool) passa do limite `brief_max_tokens` (padrao 4.000 tokens, em
 .delta-11/.config-limites.json — D36). O recado nao e "escreva briefs menores": e
-"QUEBRE em mais ondas", cada uma com um agente novo de contexto limpo.
+"DIVIDA em sub-tarefas irmas PARALELAS" (v6.4 — V3), cada uma com um agente novo de contexto limpo.
 
 Registro: PreToolUse com matcher "Agent|Task" (o Agent tool ja se chamou Task).
 
@@ -42,7 +42,7 @@ SUBAGENTES_NOMES = set(comum.SUB_AGENTES)
 
 
 def limite_tokens() -> int:
-    """D36: brief_max_tokens em .delta-11/.config-limites.json (padrao 2000)."""
+    """D36: brief_max_tokens em .delta-11/.config-limites.json (padrao 4000)."""
     return int(comum.limits()["brief_max_tokens"])
 
 
@@ -84,23 +84,23 @@ def bloquear_despacho(alvo: str, tokens: int, prompt_preview: str) -> int:
         f"\n"
         f"NÃO suba o limite. NÃO compacte o brief só pra passar. Em vez disso:\n"
         f"\n"
-        f"  QUEBRE A ONDA EM MAIS ONDAS.\n"
+        f"  DIVIDA EM SUB-TAREFAS IRMÃS PARALELAS (v6.4 — V3).\n"
         f"\n"
-        f"Princípio da v5: cada onda dispara um agente NOVO com contexto LIMPO.\n"
+        f"Cada irmã é um agente NOVO, com contexto LIMPO, na sua própria worktree,\n"
+        f"disparadas JUNTAS na mesma mensagem (nunca 'ondas em série' por tamanho).\n"
         f"Se você precisa de mais de {limite_tokens()} tokens pra explicar\n"
         f"uma tarefa, ela provavelmente é COMPLEXA DEMAIS pra um único brief.\n"
-        f"Divida em 2-3 tarefas menores, cada uma virando uma onda separada.\n"
+        f"Só fica em série se uma irmã depender da outra (dependência declarada).\n"
         f"\n"
         f"Como aplicar:\n"
         f"  1. Pegue as 6 seções do mini-plano (Objetivo da onda / Recorte da fase\n"
         f"     anterior / Tarefas / Critérios de aceite / Limites de escopo /\n"
         f"     Convenções — D17) e veja qual está engordando.\n"
-        f"  2. Se 'Recorte da fase anterior' é grande, divida a tarefa em duas:\n"
-        f"     a primeira foca em sub-domínio A, a segunda em sub-domínio B.\n"
-        f"  3. Se 'Critérios de aceite' tem 8+ itens, vire 2-3 ondas com 3 critérios\n"
-        f"     cada.\n"
-        f"  4. Cada nova onda terá seu próprio mini-plano enxuto e seu agente nasce\n"
-        f"     com contexto limpo.\n"
+        f"  2. Se 'Recorte da fase anterior' é grande, divida em irmãs: T-XXXa no\n"
+        f"     sub-domínio A e T-XXXb no sub-domínio B, disparadas juntas.\n"
+        f"  3. Se 'Critérios de aceite' tem 8+ itens, divida em 2-3 irmãs com 3\n"
+        f"     critérios cada.\n"
+        f"  4. Cada irmã tem seu mini-plano enxuto, com a linha 'Sub-tarefa irmã de:'.\n"
         f"\n"
         f"Por que o limite duro: na v4.0.x isso era diagnóstico (aviso) e, na\n"
         f"prática, os briefs foram inflando sem ninguém perceber. Desde a v5 é freio.\n"
