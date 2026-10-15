@@ -57,6 +57,17 @@ Versão atual **v6.3** (184 problemas corrigidos; códigos D1–D39 = decisões 
   `.delta-11/.config-limites.json` (D25, D36). Painel abre sozinho e mostra o sinal de quem trabalha em worktree (D27, D28).
 - **Fonte oficial:** `~/Documents/VSCODE/Formacao-delta-11`.
 
+## v6.4 — Velocidade (2026-10-15)
+
+Objetivo: até 5 agentes trabalhando AO MESMO TEMPO, sem perder worktrees, testes de contrato, SHIELD antes do merge e travas (decisões V1–V12 no `.delta-11/CHANGELOG.md`):
+
+- **Onda inteira de uma vez (V1, V2):** o CRONOS dispara todos os agentes independentes da onda na MESMA mensagem, com `run_in_background: true`, até `paralelo_max` (padrão 5). Passou do limite → fila por vaga: um agente termina, o próximo sai na hora.
+- **Tarefa grande vira irmãs paralelas (V3, V4):** `brief_max_tokens` = 4.000; o que não couber vira sub-tarefas que rodam juntas, cada uma na sua worktree.
+- **Em série só (V5):** dois agentes no MESMO arquivo ou dependência declarada. Mais nada.
+- **Revisão por onda (V6, V7):** o executor roda build-validator e contract-tester juntos; o CRONOS dispara UM SHIELD por onda (ou um por zona, em paralelo), e a onda seguinte já trabalha enquanto ele revisa.
+- **Revisores de fase juntos (V8):** fresh-reviewer, cold-start-testers e qa-ui-tandem em segundo plano, ao mesmo tempo.
+- **Ciclo leve (V9, V10):** do Ciclo 2 em diante, Fases 2.3/2.4 só para o que é novo e checklists de 1 página nas Fases 3.5 e 4.5; as 2 semanas da Fase 7 correm em paralelo com o ciclo seguinte.
+
 ---
 
 ## 🚧 VOCÊ NÃO É UM AGENTE Δ-11? LEIA ISTO ANTES DE CRIAR QUALQUER ARQUIVO (v5.2)
@@ -141,7 +152,8 @@ transforma os contratos em testes em `tests/contracts/`) é a última etapa da F
 executor sabe que as Fases 3.5, 4.5 e 7 existem e que podem receber tarefas nelas. Detalhes de cada fase:
 `.delta-11/protocolos/fluxo-zero-ao-lancamento.md`.
 
-**Teste supremo do Dia 7:** o sistema opera **2 semanas** sem o criador. Vale em todo lugar.
+**Teste supremo do Dia 7:** o sistema opera **2 semanas** sem o criador. Vale em todo lugar. Essas 2 semanas correm em
+paralelo com o ciclo seguinte: elas seguram só o selo final da Fase 7, não a abertura do próximo ciclo (v6.4 — V10).
 
 **Os 3 Princípios Fundamentais:**
 1. **Ordem Inegociável** — cada camada só existe depois da anterior. Fases sequenciais, com travas via hooks.
@@ -153,7 +165,7 @@ executor sabe que as Fases 3.5, 4.5 e 7 existem e que podem receber tarefas nela
 | Mecanismo | O que é | Onde está | Vigia |
 |---|---|---|---|
 | M1 | Mini-plano por agente (6 seções) | `planos/[AGENTE]-plan.md`, feito pelo CRONOS na Fase 2.5 | — (Regra 13) |
-| M2 | Métrica de contexto: brief de executor ≤ 2.000 tokens | prompt de disparo do CRONOS | `pre-despacho.py` |
+| M2 | Métrica de contexto: brief de executor ≤ `brief_max_tokens` (4.000 tokens na v6.4) | prompt de disparo do CRONOS | `pre-despacho.py` |
 | M3 | Verificação de escopo | revisão do SHIELD (`operativos/SHIELD.md`) | `shield-aprovado.py` |
 | M4 | Produto × história: `-produto.md` ≤ 500 tokens (executores) | `memoria/[NOME]-produto.md` + `-historia.md` | `pre-selo.py`, `produto-atualizado.py` |
 | M4b | Cold-start-tester: alguém sem contexto consegue continuar a partir do produto? | `sub-agentes/cold-start-tester.md` (selo) | — |
@@ -170,7 +182,8 @@ Se você é um agente D-11 e um hook te bloqueou, a mensagem no stderr é didát
 O D-11 funciona como **Lovable** (autônomo), não como supervisor:
 
 - **Disparar é a regra.** O CRONOS usa o `Agent tool` nativo com `run_in_background: true`; executores rodam com
-  `isolation: "worktree"`. Ninguém pede ao comandante para abrir janela, abrir sessão, copiar ou colar bloco, rodar
+  `isolation: "worktree"`. A onda inteira sai na MESMA mensagem (várias chamadas `Agent` juntas), até `paralelo_max`
+  (padrão 5); o que passar do limite entra na fila e sai na primeira vaga livre (v6.4). Ninguém pede ao comandante para abrir janela, abrir sessão, copiar ou colar bloco, rodar
   script de disparo ou "ativar" um agente à mão.
 - **Quem dispara quem (D5):**
   - O **ATLAS** dispara SOMENTE o CRONOS (uma vez, ao final da Fase 2).
@@ -225,7 +238,7 @@ projeto é montado a partir dele. Se esta tabela e o template divergirem, vale o
 - Formato único de linha no `activity-log.md`: `- [AAAA-MM-DDTHH:MM:SSZ] [nome-do-hook] [AGENTE] mensagem`.
 - Tempo-limite em SEGUNDOS: 5 s padrão; `validar-contratos-fim-fase` e `validar-deploy` 120 s.
 - Limites lidos de `.delta-11/.config-limites.json` (valores padrão se o arquivo faltar):
-  `{"brief_max_tokens":2000,"produto_max_tokens":500,"paralelo_max":3,"janela_horas":4,"lock_horas":2}`.
+  `{"brief_max_tokens":4000,"produto_max_tokens":500,"paralelo_max":5,"janela_horas":4,"lock_horas":2}` (v6.4).
   Para mudar um limite, edite só esse arquivo.
 - Código de saída 2 = bloqueio; a mensagem vai para o agente. Atenda; nunca contorne.
 
@@ -242,9 +255,9 @@ projeto é montado a partir dele. Se esta tabela e o template divergirem, vale o
 | 9 | `pre-selo.py` | PreToolUse (Edit\|Write) | Bloqueia o selo se o `-produto.md` de um executor passar de `produto_max_tokens` (M4) |
 | 10 | `validar-contratos-fim-fase.py` | PreToolUse (Edit\|Write) | Roda os testes de contrato antes de uma conclusão de fase no kanban (até 120 s) |
 | 11 | `validar-arquitetura-vs-modelos.py` | PreToolUse (Edit\|Write) | Bloqueia a conclusão da Fase 3 sem a validação retroativa "Dia 2 ← Dia 3" = SUSTENTA |
-| 12 | `fase-ritmo-checker.py` | PreToolUse (Edit\|Write) | No selo da Fase 3.5 ("Fase 3.5 selada" no kanban), bloqueia se faltarem os 10 artefatos `ritmo-temporal-NN-*.md` |
-| 13 | `fase-consciencia-checker.py` | PreToolUse (Edit\|Write) | No selo da Fase 4.5, bloqueia se faltarem os 5 entregáveis `consciencia-NN-*.md` |
-| 14 | `fase-descanso-checker.py` | PreToolUse (Edit\|Write) | No selo da Fase 7, bloqueia se faltarem os 10 entregáveis `descanso-NN-*.md` + o teste supremo (2 semanas) |
+| 12 | `fase-ritmo-checker.py` | PreToolUse (Edit\|Write) | No selo da Fase 3.5 ("Fase 3.5 selada" no kanban), bloqueia se faltarem os 10 artefatos `ritmo-temporal-NN-*.md`; do Ciclo 2 em diante aceita o checklist `ritmo-temporal-checklist-ciclo-N.md` (V9) |
+| 13 | `fase-consciencia-checker.py` | PreToolUse (Edit\|Write) | No selo da Fase 4.5, bloqueia se faltarem os 5 entregáveis `consciencia-NN-*.md`; do Ciclo 2 em diante aceita o checklist `consciencia-checklist-ciclo-N.md` (V9) |
+| 14 | `fase-descanso-checker.py` | PreToolUse (Edit\|Write) | No selo da Fase 7, bloqueia se faltarem os 10 entregáveis `descanso-NN-*.md`; o teste supremo (2 semanas) só é exigido no selo final "Fase 7 consagrada", nunca para abrir o ciclo seguinte (V10) |
 | 15 | `anti-autocompact.py` | PreToolUse (Edit\|Write\|Agent\|Task\|Bash) | Bloqueia quando a conversa passa de ~85% do limite → aplique o Protocolo de Contexto Esgotado |
 | 16 | `anti-stash.py` | PreToolUse (Edit\|Write) | Bloqueia CONCLUÍDO no kanban com `git stash list` não vazio |
 | 17 | `shield-aprovado.py` | PreToolUse (Edit\|Write) | Bloqueia CONCLUÍDO de executor sem a linha `[SHIELD] APROVADO T-XXX [AGENTE]` dentro de `janela_horas` |
@@ -371,7 +384,7 @@ Se `CURRENT_TOP` ≠ repo principal → siga normal, você está numa worktree.
 4. Leia `.delta-11/memoria/[SEU-NOME]-produto.md` (se existir) para saber onde parou. O `-historia.md` só se precisar
    do porquê de algo. O `[SEU-NOME]-estado.md` antigo é legado: leia se existir, nunca escreva.
 5. **MÉTRICA DE CONSUMO DE CONTEXTO (M2):** o hook `pre-despacho.py` bloqueia o disparo se o brief de um executor
-   passar de `brief_max_tokens` (2.000). Você (executor) não precisa contar — a guarda é técnica. ATLAS, CRONOS e
+   passar de `brief_max_tokens` (4.000). Você (executor) não precisa contar — a guarda é técnica. ATLAS, CRONOS e
    sub-agentes: sem limite.
 6. Apresente-se brevemente (o ATLAS ao comandante; os demais ao CRONOS) e comece a trabalhar
 7. **Monitoramento automático:** cada ação sua atualiza o seu pulso na pasta principal (`heartbeat.sh`) e o painel
@@ -418,7 +431,7 @@ A partir da v4.0 Onda 2 da Formação Δ-11, **o AppleScript deixa de ser usado 
 ### Dispatch via SDK nativo
 
 CRONOS dispara agentes de execução usando o `Agent tool` nativo do Claude Code com:
-- `run_in_background: true` — paralelismo real (até `paralelo_max`, padrão 3, agentes simultâneos)
+- `run_in_background: true` — paralelismo real (até `paralelo_max`, padrão 5, agentes simultâneos, disparados na mesma mensagem)
 - `isolation: "worktree"` — cada executor nasce em uma branch Git isolada
 - `SendMessage` para mensagens entre o CRONOS e os agentes nomeados
 - **Aviso automático de término:** quando um sub-agente termina, o CRONOS recebe a notificação (`<task-notification>`)
@@ -448,7 +461,7 @@ Agentes em worktree acessam os arquivos compartilhados pelo **PATH ABSOLUTO do r
 
 ### Merge guiado pelo contract-tester
 
-No final de cada onda, CRONOS consolida todas as worktrees na branch principal. Se surgir conflito, CRONOS usa os testes de contrato como **árbitro objetivo**:
+Quando o SHIELD da onda devolve o resultado, o CRONOS consolida as worktrees APROVADAS na branch principal (a onda seguinte continua trabalhando enquanto isso — v6.4). Se surgir conflito, CRONOS usa os testes de contrato como **árbitro objetivo**:
 - Versão que passa nos testes vence
 - Ambas passam ou ambas falham → o CRONOS dispara o ATLAS para decidir (decisão de contrato)
 - Detalhes em `.delta-11/protocolos/merge-guiado-contratos.md`
@@ -483,7 +496,7 @@ O comandante pode enviar estes comandos curtos durante o trabalho:
 | `vigilante` | Verifique o status do monitoramento: leia `.delta-11/monitor-status.json` (o painel lê a mesma informação em `.delta-11/monitor-data.js`) e informe ao comandante se há alertas (agentes mortos, travados, ou tarefas órfãs) |
 | `retomar` | Leia seu `-produto.md` (e `ativacoes/retomada-[SEU-NOME].txt`, se existir) e continue de onde parou |
 | `aprovar` | O comandante aprovou o que você apresentou |
-| `modo automatico` | **(PADRÃO.)** Grave `automatico` em `.delta-11/.modo-selo`. O CRONOS avança sozinho de fase SE a cadeia de selo (SHIELD + Fresh Reviewer + Cold Start Tester + qa-ui-tandem) ficar verde. Se algo falhar, o CRONOS dispara as correções e roda a cadeia de novo; o comandante só é chamado nas 3 situações. |
+| `modo automatico` | **(PADRÃO.)** Grave `automatico` em `.delta-11/.modo-selo`. O CRONOS avança sozinho de fase SE a cadeia de selo (SHIELD + Fresh Reviewer + Cold Start Tester + qa-ui-tandem, os três revisores juntos em segundo plano) ficar verde. Se algo falhar, o CRONOS dispara as correções e roda a cadeia de novo; o comandante só é chamado nas 3 situações. |
 | `modo manual` | (Opcional.) Grave `manual` em `.delta-11/.modo-selo`. O CRONOS para na fronteira de cada fase e espera `aprovar`. |
 | `aprovar automatico ate fase X` | Grave `automatico-ate-X` em `.delta-11/.modo-selo`. O CRONOS avança sozinho até a Fase X e, nela, espera `aprovar`. |
 | `d11` | Se seguido de descrição de projeto: ative o ATLAS para iniciar planejamento |
@@ -619,7 +632,8 @@ tem? Execute o **Protocolo de Fase Concluída**.
 
 ## PROTOCOLO DE FINALIZAÇÃO DE TAREFA (obrigatório para todos os agentes)
 
-Ao concluir qualquer tarefa, execute SEMPRE estes passos, nesta ordem: **1a → 1b → 3.4 → 3.5 → 3.7 → 3.8 → 3.9 → 4 → 5**.
+Ao concluir qualquer tarefa, execute SEMPRE estes passos, nesta ordem: **1a → 1b → 3.4 → 3.5 + 3.7 (juntos) → 3.8 → 3.9 → 4 → 5**.
+(v6.4 — V6: o 3.5 e o 3.7 são disparados JUNTOS, na mesma mensagem, os dois com `run_in_background: true`; espere os dois.)
 (Os antigos Passos 2 e 3 — atualizar `kanban.md` e `kanban-data.js` — passaram ao CRONOS na v6.3. O Passo 3.6 — Code
 Simplifier — foi removido em 2026-07-05. A numeração foi mantida para não quebrar referências.)
 
@@ -672,14 +686,14 @@ Esse script é o **Golden Path** — o caminho correto feito mais fácil que o i
 
 **Passo 3.4 — Autocrítica do autor (obrigatório para agentes que escrevem código) — v5.3**
 
-Antes de disparar o build-validator, PARE e execute as 2 paradas de autocrítica:
+Antes de disparar o build-validator e o contract-tester, PARE e execute as 2 paradas de autocrítica:
 
 **Parada 1 — após escrever o código, ANTES de rodar validações:**
 - Liste **≥ 3 bugs prováveis** no código que você acabou de escrever, com cenário CONCRETO ("race condition se dois usuários atualizam o mesmo registro ao mesmo tempo" — genérico tipo "pode ter erro" NÃO vale)
 - Liste **≥ 3 casos extremos** (entrada vazia, valor no limite, usuário sem permissão, serviço externo caindo no meio da operação)
 - Para CADA item listado: corrija agora OU transforme em teste
 
-**Parada 2 — após build/testes passarem, ANTES do contract-tester:**
+**Parada 2 — após o build e os testes locais passarem, ANTES de disparar o build-validator e o contract-tester:**
 1. Os casos extremos da Parada 1 viraram testes?
 2. Sobrou valor fixado na mão (hardcoded) que deveria ser configuração/variável de ambiente?
 3. Sobrou `console.log` de debug, TODO órfão, código comentado ou import não usado?
@@ -691,11 +705,11 @@ Agentes que NÃO escrevem código (ATLAS, CRONOS) não precisam deste passo.
 
 **Passo 3.5 — Validação de build (obrigatório para agentes que escrevem código)**
 
-Se você escreve ou modifica código (VAULT, BACK, ENGINE, FRONT, PIXEL, FORM, SCOUT), dispare o sub-agente `build-validator` ANTES de dar a tarefa por concluída:
+Se você escreve ou modifica código (VAULT, BACK, ENGINE, FRONT, PIXEL, FORM, SCOUT), dispare o sub-agente `build-validator` ANTES de dar a tarefa por concluída — **na MESMA mensagem em que dispara o `contract-tester` do Passo 3.7** (v6.4 — V6):
 
 1. Leia o arquivo `.delta-11/sub-agentes/build-validator.md`
-2. Use a ferramenta Agent para disparar um sub-agente do tipo `general-purpose` com o conteúdo desse arquivo como prompt, incluindo no início: "Projeto em: [caminho do projeto]. Rode os checks agora."
-3. Analise o relatório retornado:
+2. Use a ferramenta Agent para disparar um sub-agente do tipo `general-purpose`, com `run_in_background: true`, `description: "build-validator T-XXX"` e o conteúdo desse arquivo como prompt, incluindo no início: "Sub-agente: .delta-11/sub-agentes/build-validator.md. Projeto em: [caminho do projeto]. Executor que disparou: [SEU-NOME]. Rode os checks agora."
+3. Espere os DOIS relatórios (build-validator e contract-tester) e analise cada um:
    - Se **PASS** (incluindo testes de contrato passando): continue
    - Se **FAIL — Testes de Contrato**: corrija IMEDIATAMENTE antes de qualquer outra coisa. O teste indica exatamente o que o contrato exige e o código não entregou.
    - Se **FAIL com outros blockers**: corrija os problemas ANTES de seguir
@@ -708,10 +722,10 @@ Agentes que NÃO escrevem código (ATLAS, CRONOS) não precisam deste passo.
 
 **Passo 3.7 — Testes de contrato (obrigatório para agentes que escrevem código)**
 
-Se você escreve ou modifica código (VAULT, BACK, ENGINE, FRONT, PIXEL, FORM, SCOUT), dispare o sub-agente `contract-tester` APÓS o build-validator passar e ANTES de pedir a revisão do SHIELD:
+Se você escreve ou modifica código (VAULT, BACK, ENGINE, FRONT, PIXEL, FORM, SCOUT), dispare o sub-agente `contract-tester` JUNTO com o build-validator (mesma mensagem, os dois em segundo plano — v6.4, V6) e ANTES de pedir a revisão do SHIELD. Se um dos dois falhar, corrija e rode os dois de novo:
 
 1. Leia o arquivo `.delta-11/sub-agentes/contract-tester.md`
-2. Use a ferramenta Agent para disparar um sub-agente do tipo `general-purpose` com o conteúdo desse arquivo como prompt, incluindo no início: "Projeto em: [caminho do projeto]. Agente: [SEU-NOME]. Arquivos modificados nesta tarefa: [lista de arquivos]. Gere E rode os testes de contrato do que mudou e devolva o resultado."
+2. Use a ferramenta Agent para disparar um sub-agente do tipo `general-purpose`, com `run_in_background: true`, `description: "contract-tester T-XXX"` e o conteúdo desse arquivo como prompt, incluindo no início: "Sub-agente: .delta-11/sub-agentes/contract-tester.md. Projeto em: [caminho do projeto]. Executor que disparou: [SEU-NOME]. Arquivos modificados nesta tarefa: [lista de arquivos]. Gere E rode os testes de contrato do que mudou e devolva o resultado." (Não escreva "Agente: [SEU-NOME]" no prompt: o `pre-despacho.py` trataria o disparo como de executor e aplicaria o limite do brief.)
 3. O contract-tester **gera e também RODA** os testes de contrato do que mudou (D12) e devolve PASS/FAIL com os desvios. Analise o relatório:
    - Se houver desvio entre implementação e contrato: corrija ANTES de avançar. NÃO peça revisão.
    - Se conforme: registre a linha `contract-tester: PASS / ...` no seu `-produto.md` e continue
@@ -726,7 +740,8 @@ Vale para VAULT, BACK, ENGINE, FRONT, PIXEL, FORM e SCOUT:
 
 1. Envie `SendMessage` ao CRONOS informando que a tarefa T-[ID] está pronta para revisão pelo SHIELD, com os arquivos modificados, o que foi feito e o caminho do seu `-produto.md`.
 2. **NÃO crie arquivo `.txt` de pedido de revisão.** O registro é o seu `-produto.md` + o kanban (que o CRONOS atualiza).
-3. O CRONOS move a tarefa para REVISÃO e dispara o SHIELD (sem worktree). Você NÃO dispara o SHIELD.
+3. O CRONOS move a tarefa para REVISÃO e a coloca na revisão da onda: quando os executores da onda terminam, ele
+   dispara UM SHIELD (sem worktree) para a onda inteira, ou um por zona em paralelo (v6.4 — V6). Você NÃO dispara o SHIELD.
 4. O SHIELD grava no activity-log `[SHIELD] APROVADO T-XXX [AGENTE]` ou `[SHIELD] REPROVADO T-XXX [AGENTE] motivo`.
    Só com `APROVADO` o CRONOS move a tarefa para CONCLUÍDO (o vigia `shield-aprovado.py` confere). Se reprovar, o
    SHIELD descreve as correções e o CRONOS as distribui.
@@ -835,15 +850,17 @@ antigos. Cor de cada agente pela idade do último sinal: verde até 2 min, amare
    LOCK_DIR="[REPO_PRINCIPAL]/.delta-11/ativacoes/.trava-fase-[N]"; if mkdir "$LOCK_DIR" 2>/dev/null; then echo "CRONOS $(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$LOCK_DIR/owner"; echo "TRAVA_OK"; else echo "TRAVA_EXISTE"; fi
    ```
    `TRAVA_EXISTE` → outra sessão já está fazendo a transição; não faça nada.
-2. **Selo da fase** (Protocolo do Viu que Era Bom, em `operativos/CRONOS.md`): cadeia SHIELD → Fresh Reviewer →
-   Cold Start Tester (M4b) → `qa-ui-tandem`, com o orçamento de selos N-1 + N-2 (M5).
+2. **Selo da fase** (Protocolo do Viu que Era Bom, em `operativos/CRONOS.md`): SHIELD → revisores de fase JUNTOS, na
+   mesma mensagem e com `run_in_background: true` (Fresh Reviewer + um Cold Start Tester por `-produto.md` (M4b) +
+   `qa-ui-tandem`); o CRONOS espera todos e consolida (v6.4 — V8). Orçamento de selos N-1 + N-2 (M5).
 3. **Leia `.delta-11/.modo-selo`:** `automatico` (padrão) → abra a próxima fase; `manual` → peça `aprovar` ao
    comandante (pergunta permitida, ver "Quando falar com o comandante"); `automatico-ate-X` → avance sozinho até a Fase X e, nela, peça `aprovar`.
 4. **Abra a próxima fase:** registre a abertura em `memoria/CRONOS-abertura-fase-[N].md` (nunca no project-core),
-   atualize `fase_atual` e `mensagem_cronos` no `kanban-data.js` e dispare os agentes da próxima fase pelo Agent tool
-   (PROTOCOLO DE DISPATCH abaixo), respeitando paralelismo e ordem de prioridade.
+   atualize `fase_atual` e `mensagem_cronos` no `kanban-data.js` e dispare a primeira onda da próxima fase pelo Agent
+   tool, toda na mesma mensagem (PROTOCOLO DE DISPATCH abaixo), na ordem de prioridade.
 5. **Fim de ciclo e Fase 7:** acrescente 3 a 5 lições, com nome do projeto e data, em
-   `~/.delta-11/aprendizados-entre-projetos.md` (memória entre projetos, D38).
+   `~/.delta-11/aprendizados-entre-projetos.md` (memória entre projetos, D38). O ciclo seguinte abre sem esperar as
+   2 semanas do teste supremo; o selo final da Fase 7 vem quando elas terminam (v6.4 — V10).
 6. Se o Agent tool falhar, siga o FALLBACK do PROTOCOLO DE DISPATCH.
 
 **REGRA CRÍTICA:** para saber quais agentes entram na próxima fase, consulte `.delta-11/protocolos/fluxo-zero-ao-lancamento.md` e a tabela de agentes por complexidade no operativo do ATLAS.
@@ -906,7 +923,7 @@ memória limpa. Nada requer você agora."
 
 ---
 
-## PROTOCOLO DE DISPATCH DE AGENTES — v6.3 (via SDK nativo)
+## PROTOCOLO DE DISPATCH DE AGENTES — v6.4 (via SDK nativo)
 
 O dispatch de agentes usa o **Agent tool nativo do Claude Code**, não AppleScript. Funciona igual em macOS, Linux, Windows, Claude Code no terminal ou na extensão VS Code.
 
@@ -918,6 +935,11 @@ O dispatch de agentes usa o **Agent tool nativo do Claude Code**, não AppleScri
 - **Executores NUNCA disparam outros agentes** — sempre enviam `SendMessage` para o CRONOS e ele decide o próximo passo
 
 ### COMO DISPARAR
+
+**A onda inteira na MESMA mensagem (v6.4 — V1):** o CRONOS coloca várias chamadas `Agent` juntas numa só resposta,
+todas com `run_in_background: true`, até `paralelo_max` (padrão 5). Exemplo de uma onda: `Agent(vault-onda-1)`,
+`Agent(front-onda-1)` e `Agent(engine-onda-1-auth)` na mesma mensagem. Mais tarefas que vagas → fila; cada notificação
+de término libera uma vaga, preenchida na hora com o próximo da fila. Nunca "dispara um, espera, dispara outro".
 
 **Executor (com worktree):**
 
@@ -937,18 +959,20 @@ Agent(
 
 ```
 Agent(
-  description: "Ativação [CRONOS | SHIELD revisão T-XXX | ATLAS replanejamento]",
+  description: "Ativação [CRONOS | SHIELD revisão da onda N | ATLAS replanejamento]",
   subagent_type: "general-purpose",
   model: "opus",
   run_in_background: true,
-  name: "[cronos | shield-revisao-t-xxx | atlas-replanejamento]",
+  name: "[cronos | shield-onda-[N] (ou shield-onda-[N]-[zona]) | atlas-replanejamento]",
   prompt: "[prompt de ativação, com NASCEU_EM_WORKTREE: nao]"
 )
 ```
 
 **Parâmetros explicados:**
 
-- `run_in_background: true` — o agente roda em paralelo sem bloquear quem disparou. Máximo `paralelo_max` (padrão 3) simultâneos.
+- `run_in_background: true` — o agente roda em paralelo sem bloquear quem disparou. Vale para TODO disparo, inclusive
+  SHIELD, ATLAS e os revisores de fase (fresh-reviewer, cold-start-tester, qa-ui-tandem — V8). Até `paralelo_max`
+  (padrão 5) simultâneos, disparados na mesma mensagem.
 - `isolation: "worktree"` — só para executores. Cria worktree Git isolada. Código fica isolado; kanban, project-core e memória ficam no repo principal.
 - `model` — vem do perfil do agente (D26).
 - `name` — identificador único, usado em `SendMessage({to: "<name>"})`. O CRONOS se chama sempre `cronos`.
@@ -1011,7 +1035,8 @@ Depois: comece a primeira tarefa do mini-plano
 
 Ao concluir cada tarefa (Protocolo de Finalização):
 1a -produto.md (com a linha autocritica:) → 1b -historia.md → 3.4 autocrítica →
-3.5 build-validator → 3.7 contract-tester (gera e roda) → 3.8 SendMessage ao CRONOS pedindo o SHIELD →
+3.5 build-validator + 3.7 contract-tester (gera e roda) JUNTOS, os dois em segundo plano
+(run_in_background: true) → espere os dois → 3.8 SendMessage ao CRONOS: pronto para a revisão do SHIELD da onda →
 3.9 libere as travas. Commite na branch da worktree.
 NÃO faça merge sozinho — o CRONOS orquestra. NÃO edite o kanban — o CRONOS atualiza.
 ```
@@ -1040,11 +1065,18 @@ NÃO faça merge sozinho — o CRONOS orquestra. NÃO edite o kanban — o CRONO
 com o resultado. Reaja a ela; não fique em laço de espera. Depois de cada aviso, o CRONOS confere os arquivos
 (`-produto.md`, logs) e atualiza o kanban.
 
-**Fim da onda — merge:** CRONOS consolida todas as worktrees seguindo `.delta-11/protocolos/merge-guiado-contratos.md`, usando o contract-tester como árbitro objetivo em caso de conflito.
+**Fim da onda — revisão e merge (v6.4 — V6, V7):** quando os executores da onda terminam, o CRONOS dispara UM SHIELD
+para a onda inteira (ou um por zona, em paralelo) e, na mesma mensagem, as tarefas da onda seguinte que não dependem
+dela. O SHIELD grava APROVADO/REPROVADO POR TAREFA (D33). O CRONOS junta só as APROVADAS, seguindo
+`.delta-11/protocolos/merge-guiado-contratos.md`, com o contract-tester como árbitro objetivo em caso de conflito.
+Reprovação vira tarefa de correção na próxima vaga livre.
 
-### REGRAS DE PARALELISMO (inalteradas)
+### REGRAS DE PARALELISMO (v6.4 — V5)
 
-Agentes trabalham em ZONAS. Dois agentes em zonas diferentes podem rodar em paralelo. Mesma zona = sequencial.
+Agentes trabalham em ZONAS. A regra padrão é PARALELO: até `paralelo_max` (padrão 5) agentes ao mesmo tempo, cada
+executor na sua worktree. Ficam em série SÓ dois casos: dois agentes que precisam editar o MESMO arquivo (mesma zona
+com arquivo em comum nos mini-planos, ou trava em `locks/`) e dependência declarada (uma tarefa precisa do resultado
+da outra). Mesma zona com arquivos diferentes roda em paralelo.
 
 | Zona | Inclui | Agentes típicos |
 |------|--------|-----------------|
@@ -1058,19 +1090,23 @@ Agentes trabalham em ZONAS. Dois agentes em zonas diferentes podem rodar em para
 
 Regras:
 1. Zonas diferentes → PARALELO
-2. Mesma zona → SEQUENCIAL
-3. SHIELD pode rodar em paralelo com qualquer agente — só lê e testa
-4. SCOUT nunca roda em paralelo com o agente cujo código está corrigindo
+2. Mesma zona, arquivos diferentes → PARALELO (cada um na sua worktree; o merge junta)
+3. MESMO arquivo (mesma zona com arquivo em comum, ou trava ativa) → SEQUENCIAL
+4. Dependência declarada (campo "Depende de" do kanban) → SEQUENCIAL
+5. SHIELD revisor roda em paralelo com qualquer agente — só lê e testa; revisa por onda, enquanto a onda seguinte
+   já trabalha
+6. SCOUT nunca roda em paralelo com o agente cujo código está corrigindo (é o mesmo arquivo)
 
 ### ORDEM DE PRIORIDADE NO DISPARO
 
-Quando CRONOS dispara múltiplos agentes para a próxima fase:
+É a ordem da FILA, não uma série: as tarefas prontas saem todas juntas até `paralelo_max`, e esta ordem decide quem
+pega as primeiras vagas e quem sai primeiro quando uma vaga se libera:
 
 1. **VAULT** — Sempre primeiro. Banco que todos dependem.
 2. **BACK / ENGINE** — Rotas que o frontend consome.
 3. **FRONT** — Estrutura de layout que PIXEL e FORM preenchem.
 4. **PIXEL + FORM** — Podem ser paralelos entre si (zonas diferentes).
-5. **SHIELD** — Pode iniciar a qualquer momento para testar o que já está pronto.
+5. **SHIELD** — Revisa cada onda quando os executores dela terminam (um por onda, ou um por zona em paralelo).
 6. **SCOUT** — Sob demanda quando erro é detectado.
 7. **ATLAS** — Só é disparado quando há bloqueio de contrato ou arquitetura, ou replanejamento.
 
