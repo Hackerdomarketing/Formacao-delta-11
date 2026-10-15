@@ -25,5 +25,5 @@
   ],
   "knowledge_fetch": [],
   "isolation_quando_escreve_codigo": "worktree",
-  "nota_despacho": "Revisor: sem worktree (lê as worktrees por caminho absoluto). Quando o CRONOS o dispara para ESCREVER infraestrutura (CI/CD, observabilidade, backup, DR), usa isolation_quando_escreve_codigo."
+  "nota_despacho": "Revisor: sem worktree (lê as worktrees por caminho absoluto). v6.4: revisa a ONDA — um disparo por onda (ou um por zona, vários SHIELD em paralelo, cada um com name próprio, ex.: shield-servidor), com a lista de tarefas, worktrees e branches; grava APROVADO/REPROVADO por tarefa e não segura a próxima onda independente. Quando o CRONOS o dispara para ESCREVER infraestrutura (CI/CD, observabilidade, backup, DR), usa isolation_quando_escreve_codigo."
 }
