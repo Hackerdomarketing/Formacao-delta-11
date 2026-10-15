@@ -32,6 +32,11 @@
           },
           {
             "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/retomada-apos-queda.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/abrir-painel.sh\"",
             "timeout": 5
           }
@@ -177,6 +182,11 @@
           {
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/3-tentativas-shield.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/sistema-no-historico.py\"",
             "timeout": 5
           }
         ]

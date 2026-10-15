@@ -1053,3 +1053,13 @@ estava escrito antes fica registrado abaixo.
   sonnet, `decisoes-tecnicas.md` §6) voltava ao padrão a cada sincronização (já tinha acontecido na v6.2). Agora o
   resto do perfil vem da fonte e o `model` que o projeto já tinha é preservado; a saída avisa "modelo do projeto
   mantido". Casos novos em `tests/scripts/sincronizar.test.sh`.
+- **v6.4.1 (2026-10-15) — 2 vigias novos, nascidos da retomada do salvahacks depois do reinício do Mac** (o ATLAS
+  percebeu os dois furos sozinho; agora o sistema percebe):
+  - `sistema-no-historico.py` (PreToolUse `Agent|Task`): a worktree nasce do último COMMIT, não do disco. Regras do
+    sistema atualizadas e não commitadas (depois de um `sincronizar.sh`, por exemplo) fariam os agentes em worktree
+    lerem as regras antigas. O vigia bloqueia o despacho em worktree e mostra o comando que commita só os arquivos de
+    sistema (o código do projeto não entra).
+  - `retomada-apos-queda.py` (SessionStart, exceto a volta da compactação): os agentes morrem junto com a sessão
+    principal, mas o `kanban-data.js` e o `pulsos-data.js` continuam dizendo "em andamento". Na sessão nova, o vigia
+    avisa quais são esses itens e manda conferir o disco antes de redisparar ou de esperar por eles.
+  Testes: `tests/hooks/sistema-no-historico.test.sh` e `tests/hooks/retomada-apos-queda.test.sh`. Total: 36 vigias.

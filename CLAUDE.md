@@ -225,8 +225,8 @@ você é o CRONOS) ou o Bash tool (você é um agente com ferramentas), ou avise
 Princípio (v6.2, reafirmado em 2026-08-11): **"proteção que depende de agente obedecer prompt NÃO é proteção; toda
 regra crítica precisa de hook técnico"**.
 
-**Onde estão:** 34 vigias em `.delta-11/hooks/` (32 até a v6.2 + 2 novos da v6.3: `abrir-painel.sh` e
-`fim-subagente.sh`). O registro oficial é `.delta-11/templates/settings-hooks.json`; o `.claude/settings.json` de cada
+**Onde estão:** 36 vigias em `.delta-11/hooks/` (32 até a v6.2 + 2 novos da v6.3: `abrir-painel.sh` e
+`fim-subagente.sh` + 2 novos da v6.4.1: `sistema-no-historico.py` e `retomada-apos-queda.py`). O registro oficial é `.delta-11/templates/settings-hooks.json`; o `.claude/settings.json` de cada
 projeto é montado a partir dele. Se esta tabela e o template divergirem, vale o template.
 
 **Regras comuns (D25, D30, D36):**
@@ -278,6 +278,8 @@ projeto é montado a partir dele. Se esta tabela e o template divergirem, vale o
 | 32 | `on-stop.sh` | Stop | Grava o registro de fim de sessão (`morte-[AGENTE].json`) para o monitor |
 | 33 | `release-locks.js` | Stop | Libera as travas criadas pela sessão |
 | 34 | `fim-subagente.sh` | SubagentStop | **v6.3.** Grava `logs/sub-agentes/AAAAMMDDTHHMMSSZ-[agent_type].log` (agent_id + última mensagem): é a prova que o `forca-despacho.py` aceita |
+| 35 | `sistema-no-historico.py` | PreToolUse `Agent\|Task` | **v6.4.1.** Despacho com `isolation: "worktree"` e regras do sistema (CLAUDE.md, settings, operativos, protocolos, perfis...) alteradas e NÃO commitadas na pasta principal → bloqueia: a worktree nasce do último commit e o agente leria as regras antigas. Mostra o comando que commita só os arquivos de sistema |
+| 36 | `retomada-apos-queda.py` | SessionStart | **v6.4.1.** Sessão nova (não vale para a volta da compactação): avisa quais agentes o `kanban-data.js` e o `pulsos-data.js` ainda dão como trabalhando — eles morreram com a sessão anterior. Conferir o disco antes de redisparar ou de esperar |
 
 **Formatos que os vigias leem (D33, D35):**
 - Aprovação do SHIELD, no activity-log: `[SHIELD] APROVADO T-XXX [AGENTE]` ou `[SHIELD] REPROVADO T-XXX [AGENTE] motivo`.
@@ -1161,7 +1163,7 @@ Se o Agent tool nativo falhar (versão antiga de Claude Code, erro de permissão
 ├── sub-agentes/               ← Validadores e auxiliares (10 arquivos)
 ├── conhecimento/              ← Bases de conhecimento dos agentes
 ├── templates/                 ← Modelos em branco (inclui settings-hooks.json, o registro dos vigias)
-├── hooks/                     ← Os 34 vigias automáticos
+├── hooks/                     ← Os 36 vigias automáticos
 ├── scripts/                   ← task-done.sh, vigilante.sh, monitor-delta11.sh
 ├── ativacoes/                 ← ACKs, pulsos, avisos, arquivos de retomada
 ├── locks/                     ← Travas de arquivo (pastas .lock)
@@ -1333,7 +1335,7 @@ CLAUDE.md                                    ← protocolo mestre
                                                schema-validator, tool-provisioner, verify-app)
 .delta-11/templates/*                        ← templates (inclui settings-hooks.json)
 .delta-11/conhecimento/*.md                  ← bases de conhecimento
-.delta-11/hooks/*                            ← 34 vigias
+.delta-11/hooks/*                            ← 36 vigias
 .delta-11/scripts/*.sh                       ← task-done.sh, vigilante.sh, monitor-delta11.sh
 .delta-11/tests/                             ← testes do sistema
 .delta-11/CHANGELOG*.md                      ← história das versões
