@@ -1,4 +1,4 @@
-# REGRAS INVIOLÁVEIS — FORMAÇÃO Δ-11 (v6.3)
+# REGRAS INVIOLÁVEIS — FORMAÇÃO Δ-11 (v6.4)
 
 Esta é a **lista oficial**: 17 regras, com esta numeração. "Violar a Regra N" sempre se refere a este arquivo. O CLAUDE.md mostra as mesmas 17, uma linha cada, ou remete para cá. Nenhum agente pode quebrá-las sob nenhuma circunstância.
 
@@ -15,7 +15,7 @@ O project-core (`memoria/project-core.md` e as fatias em `memoria/project-core/`
 Todo agente tenta no máximo 3 vezes antes de escalar ao CRONOS. Se o SCOUT não corrigiu um erro em 3 tentativas, ele para obrigatoriamente e avisa o CRONOS. O CRONOS dispara um NOVO SCOUT com contexto limpo (só o resumo do problema). Depois de 6 falhas no total, o CRONOS dispara o ATLAS e, se preciso, avisa o comandante. SCOUT nunca dispara SCOUT. Detalhes em `correcao-de-erros.md`.
 
 ## 5. TESTES NÃO SÃO OPCIONAIS
-Nenhuma funcionalidade está concluída sem aprovação do SHIELD. Todos os executores (VAULT, BACK, ENGINE, FRONT, PIXEL, FORM, SCOUT) passam pela revisão. A aprovação é a linha `[SHIELD] APROVADO T-XXX [AGENTE]` no activity-log; reprovação é `[SHIELD] REPROVADO T-XXX [AGENTE] motivo`. Sem testes, sem conclusão.
+Nenhuma funcionalidade está concluída sem aprovação do SHIELD. Todos os executores (VAULT, BACK, ENGINE, FRONT, PIXEL, FORM, SCOUT) passam pela revisão, que é feita por onda, com veredito por tarefa. A aprovação é a linha `[SHIELD] APROVADO T-XXX [AGENTE]` no activity-log; reprovação é `[SHIELD] REPROVADO T-XXX [AGENTE] motivo`. O SHIELD reprova código e contrato (o que é falso, contradiz o contrato ou deixa risco técnico), nunca a redação de um documento. Sem testes, sem conclusão.
 
 ## 6. CADA AGENTE ATUALIZA SUA MEMÓRIA; SÓ O CRONOS ATUALIZA O KANBAN
 Ao terminar qualquer tarefa, o agente OBRIGATORIAMENTE atualiza `memoria/[NOME]-produto.md` (o que existe agora; até 500 tokens para executores) e acrescenta ao `memoria/[NOME]-historia.md` (diário). Depois avisa o CRONOS por `SendMessage`. Só o CRONOS escreve `kanban.md` e `kanban-data.js`. O antigo `[NOME]-estado.md` é legado: pode ser lido, nunca escrito.
@@ -34,10 +34,10 @@ O deploy para produção nunca acontece automaticamente: é publicação externa
 
 ## 11. SUB-AGENTES OBRIGATÓRIOS NÃO SÃO OPCIONAIS
 - `build-validator` APÓS cada tarefa de código (Passo 3.5).
-- `contract-tester` APÓS o build-validator passar, em cada tarefa de código (Passo 3.7): gera E roda os testes de contrato do que mudou.
+- `contract-tester` JUNTO com o build-validator, em cada tarefa de código (Passo 3.7; os dois em segundo plano, e o executor espera os dois): gera E roda os testes de contrato do que mudou.
 - `code-architect` AO FINAL da Fase 4, antes de avançar.
 - `verify-app` ANTES de deploy (Fase 6).
-- Cadeia de selo ao fim de cada fase: `fresh-reviewer` → `cold-start-tester` (um por `-produto.md`) → `qa-ui-tandem` (quando há interface navegável).
+- Revisores de selo ao fim de cada fase, disparados JUNTOS e em segundo plano: `fresh-reviewer` + `cold-start-tester` (um por `-produto.md`) + `qa-ui-tandem` (quando há interface navegável).
 - `tool-provisioner` na Fase 2.4.
 
 Sem exceção. A lista completa e quem dispara cada um está em `sub-agentes.md`.

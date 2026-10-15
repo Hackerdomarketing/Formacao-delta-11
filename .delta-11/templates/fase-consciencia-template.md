@@ -8,6 +8,10 @@
 >
 > **Quando NÃO aplicar:** projetos genuinamente sem PII/multi-usuário (ver protocolo `fase-consciencia.md`).
 >
+> **Ciclo 1 x Ciclos 2 a 7 (v6.4):** no Ciclo 1, os 5 entregáveis são escritos com este modelo. Do Ciclo 2 em diante,
+> a fase entrega UM checklist de 1 página (`templates/consciencia-checklist-template.md`), e este modelo só é usado
+> para o item cuja área o ciclo MEXE (autenticação nova, tabela nova com dado pessoal, operação crítica nova).
+>
 > **Referência conceitual:** `.delta-11/conhecimento/metodologia-genesis-camadas.md` → Dia 6.
 > **Protocolo formal:** `.delta-11/protocolos/fase-consciencia.md`.
 > **Skills globais (integrar, NÃO duplicar):** `~/.claude/skills/supabase-rls/`, `~/.claude/skills/owasp-top10/`.
@@ -182,6 +186,6 @@ Alternativas descartadas:
 
 ---
 
-**Versão do template:** v6.3 (2026-10-14) — LGPD Art. 38 para o RIPD, exemplo sem Prisma, nomes em inglês. Antes: v6.0.0 (2026-07-12)
+**Versão do template:** v6.4 (2026-10-15) — ciclo leve (Ciclo 2 em diante usa o checklist). Antes: v6.3 (2026-10-14) — LGPD Art. 38 para o RIPD, exemplo sem Prisma, nomes em inglês; v6.0.0 (2026-07-12)
 **Local canônico:** `.delta-11/templates/fase-consciencia-template.md`
 **Proveniência:** criado na Etapa 6B do plano Nível 3 Profundo (auditoria 2026-07-10)

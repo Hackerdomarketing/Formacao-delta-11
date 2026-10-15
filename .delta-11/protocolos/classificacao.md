@@ -1,4 +1,4 @@
-# CLASSIFICAÇÃO DE PROJETOS — FORMAÇÃO Δ-11 (v6.3)
+# CLASSIFICAÇÃO DE PROJETOS — FORMAÇÃO Δ-11 (v6.4)
 
 Esta é a **régua única** de complexidade do sistema. Qualquer outro arquivo que fale de pontuação de complexidade usa estes números.
 
@@ -22,7 +22,7 @@ Esta é a **régua única** de complexidade do sistema. Qualquer outro arquivo q
 | 9–12 | MÉDIA | Todos os 10 (ATLAS, CRONOS, FRONT, PIXEL, FORM, BACK, ENGINE, VAULT, SHIELD, SCOUT sob demanda) |
 | 13–15 | ALTA | Todos os 10, com acompanhamento reforçado do CRONOS pelo sub-agente `code-architect` |
 
-Em qualquer faixa, o CRONOS dispara no máximo 3 agentes ao mesmo tempo (`paralelo_max` em `.delta-11/.config-limites.json`), em ondas. O comandante não abre nada: todo disparo é do CRONOS.
+Em qualquer faixa, o CRONOS dispara a onda inteira de uma vez — todos os agentes independentes, na mesma mensagem —, até `paralelo_max` agentes ao mesmo tempo (padrão 5, em `.delta-11/.config-limites.json`); acima disso, a fila anda por vaga. O comandante não abre nada: todo disparo é do CRONOS.
 
 ## PARA QUE O SCORE SERVE
 

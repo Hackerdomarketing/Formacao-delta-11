@@ -1,4 +1,4 @@
-# FLUXO DO ZERO AO LANÇAMENTO — FORMAÇÃO Δ-11 (v6.3)
+# FLUXO DO ZERO AO LANÇAMENTO — FORMAÇÃO Δ-11 (v6.4)
 
 ## AS 13 FASES OBRIGATÓRIAS
 
@@ -19,6 +19,27 @@ Sete delas são os **7 Dias** da Metodologia Gênesis (`.delta-11/conhecimento/m
 As outras seis (1, 2.3, 2.4, 2.5, 5 e 6) são **fases de apoio**: ficam fora dos Dias, preparam ou conferem o Dia vizinho e não mudam a ordem dos Dias. O **Passo 2.7** (SHIELD gera os testes de contrato) é um passo dentro da Fase 2, não uma fase própria.
 
 **Como os agentes rodam (v6.3):** ninguém abre sessão, janela ou terminal à mão. O ATLAS dispara SOMENTE o CRONOS. O CRONOS dispara todos os outros (executores, SHIELD, SCOUT, sub-agentes e, quando preciso, o próprio ATLAS) com o Agent tool. Executores rodam com `isolation: "worktree"`; CRONOS e SHIELD revisor rodam sem worktree. Detalhes em `.delta-11/protocolos/comunicacao.md`.
+
+**Velocidade (v6.4):** tudo o que pode rodar junto roda junto.
+- **Onda inteira de uma vez:** o CRONOS dispara TODOS os agentes independentes da onda na MESMA mensagem (várias chamadas `Agent`, todas com `run_in_background: true`), até `paralelo_max` (padrão 5, em `.delta-11/.config-limites.json`).
+- **Fila por vaga:** se a onda tem mais tarefas que o limite, assim que UM agente termina, o próximo da fila sai na hora. Nunca se espera a rodada inteira.
+- **Tarefa grande vira tarefas paralelas:** brief acima de `brief_max_tokens` (padrão 4000) é dividido por sub-domínio em agentes irmãos que rodam AO MESMO TEMPO, cada um na sua worktree.
+- **Só fica em sequência:** (a) dois agentes que precisam editar o MESMO arquivo (mesma zona ou trava); (b) dependência declarada (uma tarefa precisa do resultado da outra). Mais nada.
+- **Revisão sem fila indiana:** o executor roda o `build-validator` e o `contract-tester` juntos; o SHIELD revisa a ONDA inteira (veredito por tarefa); enquanto ele revisa a onda N, a onda N+1 já roda nas tarefas que não dependem da N; os revisores de fim de fase saem juntos, em segundo plano. Detalhes nas Fases 4 e em "Como uma fase é selada".
+
+**Ciclos (v6.4 — ciclo leve):** todo projeto tem 7 ciclos de entrega (Regra dos 7 Ciclos, `operativos/ATLAS.md`) e **cada ciclo passa pelas 13 fases**. O **Ciclo 1** faz todas as fases completas. Do **Ciclo 2 em diante**, quatro fases ficam leves, porque o que elas produzem já existe e só precisa ser revisto:
+
+| Fase | Ciclo 1 | Ciclos 2 a 7 |
+|---|---|---|
+| 2.3 — Pesquisa Técnica | pesquisa todas as tecnologias | só tecnologia NOVA no ciclo; sem nenhuma, uma linha "sem tecnologia nova" no `planos/CRONOS-sequenciamento.md` do ciclo |
+| 2.4 — Provisionamento | todas as ferramentas | só se entrar ferramenta nova (senão, uma linha "sem ferramenta nova" no mesmo plano) |
+| 3.5 — Ritmo Temporal | 10 documentos completos | UM checklist de 1 página `memoria/decisoes/AAAA-MM-DD-ritmo-temporal-checklist-ciclo-N.md` (10 itens: "sem mudança" ou a mudança em até 3 linhas) |
+| 4.5 — Consciência | 5 documentos completos | UM checklist de 1 página `memoria/decisoes/AAAA-MM-DD-consciencia-checklist-ciclo-N.md` (5 itens) |
+| 7 — Descanso | 10 entregáveis + 2 semanas de observação | idem; as 2 semanas correm EM PARALELO com o ciclo seguinte (ver Fase 7) |
+
+- **Se o ciclo MEXE na área** (cria filas novas, muda a autenticação, cria operação que pede aprovação...), o item afetado ganha o **documento completo**, e o resto fica no checklist.
+- **O número do ciclo** fica no kanban, na linha `**Ciclo atual:** N` (e o CRONOS escreve "Ciclo N" no `fase_atual` do `kanban-data.js`). Sem essa informação, os vigias tratam o projeto como Ciclo 1 (o mais exigente).
+- **Quem confere o quê:** os vigias `fase-ritmo-checker.py` e `fase-consciencia-checker.py` aceitam o checklist do ciclo atual como equivalente aos documentos a partir do Ciclo 2. O que o vigia não consegue julgar — se uma mudança era grande o bastante para exigir o documento completo — o **SHIELD** confere na revisão da fase.
 
 **Quando o comandante é chamado:** só nas 3 situações de sempre — (1) decisão de negócio ou de escopo que só ele pode tomar; (2) credencial, conta, pagamento ou CAPTCHA; (3) risco de perda de dados ou publicação externa (deploy). E, se o projeto estiver em `modo manual` (`.delta-11/.modo-selo`), na fronteira entre fases, com o comando `aprovar`. O padrão é `automatico`.
 
@@ -93,7 +114,9 @@ O ATLAS define tudo: contratos de interface de programação de aplicações com
 
 ### FASE 2.3 — PESQUISA TÉCNICA (apoio — obrigatória em todo projeto)
 
-**Quem:** CRONOS + até 3 sub-agentes de pesquisa disparados por ele (Agent tool, `subagent_type: "general-purpose"`)
+**Quem:** CRONOS + sub-agentes de pesquisa disparados por ele (Agent tool, `subagent_type: "general-purpose"`), todos de uma vez, até `paralelo_max` (padrão 5)
+
+**Ciclo 2 em diante (ciclo leve):** só pesquisa tecnologia NOVA no ciclo. Sem tecnologia nova, o CRONOS escreve uma linha "sem tecnologia nova" no `planos/CRONOS-sequenciamento.md` do ciclo e segue.
 
 Antes de montar mini-planos ou disparar qualquer agente de execução, o CRONOS pesquisa documentação oficial atualizada das tecnologias escolhidas pelo ATLAS.
 
@@ -102,7 +125,7 @@ Antes de montar mini-planos ou disparar qualquer agente de execução, o CRONOS 
 **Processo:**
 
 1. CRONOS extrai do project-core a lista completa de tecnologias (Next.js, Supabase, Stripe, React Hook Form, Zod, etc.)
-2. CRONOS dispara sub-agentes de pesquisa em paralelo (até 3 simultâneos) usando o MCP Context7 se disponível, senão WebSearch + WebFetch
+2. CRONOS dispara os sub-agentes de pesquisa na MESMA mensagem, todos em segundo plano (um por tecnologia, até `paralelo_max`; acima disso, fila por vaga), usando o MCP Context7 se disponível, senão WebSearch + WebFetch
 3. Cada sub-agente retorna: versão estável mais recente, mudanças incompatíveis das últimas 3 versões, descontinuações ativas, armadilhas conhecidas, padrões atuais vs antigos, links para docs oficiais
 4. CRONOS consolida tudo em `.delta-11/memoria/pesquisa-tecnica.md`
 5. Se a pesquisa revelar problema crítico (biblioteca descontinuada, CVE ativo, padrão substituído), o CRONOS PARA o sequenciamento e dispara o ATLAS para reavaliar a escolha técnica. O comandante só é avisado se a troca exigir decisão de negócio (ex.: trocar por um serviço pago)
@@ -115,6 +138,8 @@ Antes de montar mini-planos ou disparar qualquer agente de execução, o CRONOS 
 ### FASE 2.4 — PROVISIONAMENTO DE FERRAMENTAS (apoio — obrigatória em todo projeto)
 
 **Quem:** CRONOS + sub-agente `tool-provisioner` (disparado pelo CRONOS)
+
+**Ciclo 2 em diante (ciclo leve):** só roda se entrar ferramenta nova no ciclo. Sem ferramenta nova, uma linha "sem ferramenta nova" no `planos/CRONOS-sequenciamento.md` do ciclo.
 
 Depois da pesquisa técnica e ANTES dos mini-planos, o CRONOS dispara o `tool-provisioner`, que transforma a lista de ferramentas do projeto em capacidade VERIFICADA:
 
@@ -149,7 +174,11 @@ Esta fase existe para evitar que agentes "pensem enquanto fazem". O CRONOS monta
    6. Convenções (decisões técnicas e armadilhas aplicáveis, achados da pesquisa)
 
    e inclui o checklist do ciclo interno de 7 sub-etapas (`.delta-11/protocolos/ciclo-interno-7d.md`).
-5. **CRONOS monta as ondas de ativação** (ONDA 1, ONDA 2, ONDA 3) e documenta em `.delta-11/planos/CRONOS-sequenciamento.md`
+5. **CRONOS monta as ondas de ativação** (ONDA 1, ONDA 2, ONDA 3) e documenta em `.delta-11/planos/CRONOS-sequenciamento.md`. Regras das ondas (v6.4):
+   - uma onda reúne TODAS as tarefas que podem rodar juntas; ela sai inteira de uma vez (até `paralelo_max`, padrão 5; acima disso, fila por vaga);
+   - só vai para a onda seguinte a tarefa que edita o MESMO arquivo de outra ou que tem dependência declarada;
+   - tarefa cujo brief passa de `brief_max_tokens` (padrão 4000) vira sub-tarefas por sub-domínio que rodam AO MESMO TEMPO (agentes irmãos, cada um com sua worktree) — nunca "2 ondas em série";
+   - trabalho da mesma área e do mesmo agente fica junto na mesma tarefa (menos agentes, cada um com mais contexto útil).
 6. **CRONOS pode disparar o `code-architect`** para validar se os mini-planos seguem a arquitetura do project-core (opcional, útil em projetos grandes)
 7. **CRONOS sela a fase e dispara a ONDA 1.** Em `modo manual`, apresenta o sequenciamento ao comandante na fronteira da fase e espera `aprovar`.
 
@@ -205,10 +234,13 @@ O VAULT cria o banco de dados, autenticação, e políticas de segurança. O SHI
 
 **Resultado:** os 10 artefatos acima existem como arquivos `.delta-11/memoria/decisoes/AAAA-MM-DD-ritmo-temporal-<NN>-<slug>.md` (um por artefato, `<NN>` de 01 a 10), cada um com pelo menos: descrição, escolha tecnológica, justificativa, referência à documentação. **Nenhum agente de funcionalidade começa antes dos 10 artefatos estarem presentes.**
 
+**Ciclo 2 em diante (ciclo leve):** em vez dos 10 documentos, UM checklist de 1 página `memoria/decisoes/AAAA-MM-DD-ritmo-temporal-checklist-ciclo-N.md` (modelo `templates/ritmo-temporal-checklist-template.md`), com os 10 itens, cada um "sem mudança" ou a mudança em até 3 linhas. Item cuja área o ciclo MEXE (fila nova, cache novo, mudança no CI/CD) ganha o documento completo. O vigia aceita o checklist do ciclo atual; o SHIELD confere se cada mudança grande ganhou o seu documento completo.
+
 **Quem sela:** o BACK (líder técnico da Fundação) declara **SUSTENTA** ao CRONOS por `SendMessage` (e no `BACK-produto.md`); o CRONOS registra no kanban; o SHIELD revisa; o CRONOS roda a cadeia de selo. Em `modo manual`, o comandante digita `aprovar`. Selo provisório permite iniciar a Fase 4.
 
 **Arquivos relacionados:**
 - `.delta-11/templates/fase-ritmo-template.md` — modelo dos 10 artefatos
+- `.delta-11/templates/ritmo-temporal-checklist-template.md` — checklist de 1 página (Ciclo 2 em diante)
 - `.delta-11/protocolos/fase-ritmo.md` — protocolo detalhado
 - Hook bloqueante: `fase-ritmo-checker.py`
 
@@ -218,11 +250,11 @@ O VAULT cria o banco de dados, autenticação, e políticas de segurança. O SHI
 
 ### FASE 4 — DESENVOLVIMENTO (Dia 5 — Habitantes)
 
-**Quem:** agentes de execução definidos pela complexidade (com worktree, até 3 por vez, em ondas) + CRONOS (sempre, orquestrando) + SHIELD (revisão contínua)
+**Quem:** agentes de execução definidos pela complexidade (com worktree; a onda inteira sai de uma vez, até `paralelo_max` — padrão 5 — ao mesmo tempo, e a fila anda por vaga) + CRONOS (sempre, orquestrando) + SHIELD (revisão por onda)
 
 Cada agente já tem seu mini-plano em `.delta-11/planos/[AGENTE]-plan.md` (criado pelo CRONOS na Fase 2.5) e **DEVE seguir exatamente o mini-plano**. Qualquer desvio precisa ser aprovado pelo CRONOS (que pode disparar o `code-architect` para avaliar impacto).
 
-O SHIELD testa CONTINUAMENTE conforme as funcionalidades são entregues (não espera o final).
+O SHIELD testa CONTINUAMENTE conforme as ondas são entregues (não espera o final da fase).
 
 **Ciclo de cada tarefa (ordem única para todos os executores):**
 ```
@@ -237,14 +269,21 @@ FINALIZAÇÃO
   Passo 1a   atualizar memoria/[NOME]-produto.md (com a linha "autocritica: <caminho>")
   Passo 1b   acrescentar ao memoria/[NOME]-historia.md
   Passo 3.4  autocrítica (2 paradas) em .delta-11/logs/autocritica/
-  Passo 3.5  build-validator
-  Passo 3.7  contract-tester (gera E roda os testes de contrato do que mudou)
-  Passo 3.8  SendMessage ao CRONOS pedindo a revisão do SHIELD
+  Passo 3.5  build-validator    ┐ disparados JUNTOS, os dois com run_in_background: true;
+  Passo 3.7  contract-tester    ┘ o executor espera os dois (o 3.7 gera E roda os testes do que mudou)
+  Passo 3.8  SendMessage ao CRONOS (payload curto + -produto.md)
   Passo 3.9  liberar as travas
-DEPOIS (CRONOS)
-  dispara o SHIELD → SHIELD grava "[SHIELD] APROVADO T-XXX [AGENTE]" ou
-  "[SHIELD] REPROVADO T-XXX [AGENTE] motivo" no activity-log → CRONOS atualiza o kanban
+DEPOIS (CRONOS) — por ONDA, não por tarefa
+  quando os executores da onda terminam, dispara UM SHIELD para a onda inteira
+  (onda grande: vários SHIELD em paralelo, um por zona) → o SHIELD grava, POR TAREFA,
+  "[SHIELD] APROVADO T-XXX [AGENTE]" ou "[SHIELD] REPROVADO T-XXX [AGENTE] motivo"
+  no activity-log → CRONOS atualiza o kanban e faz o merge só das APROVADAS
+  enquanto isso: a onda N+1 já roda nas tarefas que não dependem de código da onda N
 ```
+
+**Pipeline de ondas (v6.4):** enquanto o SHIELD revisa a onda N, o CRONOS já dispara a onda N+1 nas tarefas que NÃO dependem de nada da onda N. Só esperam o APROVADO as tarefas que dependem de código da onda N. O merge na pasta principal continua só para tarefas com `[SHIELD] APROVADO` (`merge-guiado-contratos.md`). Reprovação vira tarefa de correção na próxima vaga livre.
+
+**O que o SHIELD reprova (v6.4):** código e contrato — o que é falso, contradiz o contrato ou deixa um risco técnico. Erro de redação em documento (português, formatação, sinônimo) NUNCA reprova: vira observação no relatório.
 
 O executor NÃO escreve no `kanban.md` nem no `kanban-data.js`: só o CRONOS escreve neles.
 
@@ -263,7 +302,7 @@ Se o CRONOS percebe que um agente está demorando muito ou fazendo muitos commit
 
 A varredura preventiva completa do SCOUT acontece depois, ao fim da Fase 4.5, para cobrir também o código da Consciência (Dia 6).
 
-**Resultado:** Todas as funcionalidades implementadas, aprovadas uma a uma pelo SHIELD e auditadas arquiteturalmente. Problemas encontrados são corrigidos antes de avançar.
+**Resultado:** Todas as funcionalidades implementadas, aprovadas pelo SHIELD (revisão por onda, veredito por tarefa) e auditadas arquiteturalmente. Problemas encontrados são corrigidos antes de avançar.
 
 ---
 
@@ -297,10 +336,13 @@ A varredura preventiva completa do SCOUT acontece depois, ao fim da Fase 4.5, pa
 
 **Quem sela:** SHIELD (auditoria + limite de requisições + teste cruzado). O CRONOS roda a cadeia de selo. Em `modo manual`, o comandante digita `aprovar`. Selo permite iniciar a Fase 5.
 
-**Resultado:** os 5 entregáveis verificados com evidência (arquivos `.delta-11/memoria/decisoes/AAAA-MM-DD-consciencia-<NN>-<slug>.md`, `<NN>` de 01 a 05). Autenticação e autorização testadas com casos positivos e negativos. Logs de auditoria verificados como imutáveis. Limite de requisições ativo em todos os endpoints críticos. Fluxo LGPD testado de ponta a ponta.
+**Ciclo 2 em diante (ciclo leve):** em vez dos 5 documentos, UM checklist de 1 página `memoria/decisoes/AAAA-MM-DD-consciencia-checklist-ciclo-N.md` (modelo `templates/consciencia-checklist-template.md`), com os 5 itens, cada um "sem mudança" ou a mudança em até 3 linhas. Item cuja área o ciclo MEXE (autenticação nova, tabela nova com dado pessoal, operação crítica nova) ganha o documento completo. O vigia aceita o checklist do ciclo atual; o SHIELD confere se cada mudança grande ganhou o seu documento completo e refaz o teste cruzado.
+
+**Resultado:** os 5 entregáveis verificados com evidência (arquivos `.delta-11/memoria/decisoes/AAAA-MM-DD-consciencia-<NN>-<slug>.md`, `<NN>` de 01 a 05; do Ciclo 2 em diante, o checklist do ciclo). Autenticação e autorização testadas com casos positivos e negativos. Logs de auditoria verificados como imutáveis. Limite de requisições ativo em todos os endpoints críticos. Fluxo LGPD testado de ponta a ponta.
 
 **Arquivos relacionados:**
 - `.delta-11/templates/fase-consciencia-template.md` — modelo dos 5 entregáveis
+- `.delta-11/templates/consciencia-checklist-template.md` — checklist de 1 página (Ciclo 2 em diante)
 - `.delta-11/protocolos/fase-consciencia.md` — protocolo detalhado
 - Hook bloqueante: `fase-consciencia-checker.py`
 
@@ -339,7 +381,7 @@ Somente se AMBOS os sub-agentes retornarem PASS e o Sentry estiver ativo, o depl
 ### FASE 7 — DESCANSO CONSAGRADO (Dia 7 — vayechulu, vayishbot)
 
 **Quem:** SHIELD (pipeline, runbooks, monitoramento, release) + VAULT (backup e recuperação do banco) + BACK/ENGINE e FRONT (documentação técnica e onboarding) + ATLAS (documentação de domínio, disparado pelo CRONOS) + SCOUT (simulação de incidentes), orquestrados pelo CRONOS + Comandante (responde ao teste supremo). Papel de cada um: ver a tabela "PAPEL DE CADA AGENTE NAS FASES 3.5, 4.5 E 7" abaixo.
-**Duração:** período de observação de 2 semanas em produção antes do selo final.
+**Duração:** período de observação de 2 semanas em produção antes do selo final. **As 2 semanas correm EM PARALELO com o ciclo seguinte (v6.4):** quando os 10 entregáveis estão conferidos, o CRONOS registra "Fase 7 entregue — observação de 2 semanas até AAAA-MM-DD" e já abre o próximo ciclo (`**Ciclo atual:** N+1`). O selo final do Dia 7 ("Fase 7 consagrada") é dado quando as 2 semanas terminam, sem impedir que o ciclo seguinte ande.
 
 **Por que esta fase existe (v6.0):** antes da v6.0, o sistema TERMINAVA na Fase 6 com "Sistema em produção". Mas o Dia 7 da Metodologia Gênesis não é "terminar" — é **consagrar**. Os verbos hebraicos *vayechulu* (foram consumados) e *vayishbot* (cessou intencionalmente) descrevem o momento em que o sistema atinge operação autônoma. Sem a Fase 7, o criador vira refém: cada bug precisa dele, cada funcionalidade nova precisa dele, cada incidente às 3h da manhã precisa dele. A Fase 7 existe para **selar** o sistema em estado de operação autônoma.
 
@@ -366,7 +408,7 @@ O prazo é **2 semanas** — o mesmo em todo o sistema. Se SIM → Dia 7 selado.
 
 **Incidente durante o período de observação:** é tratado DENTRO da Fase 7 (não existe "Fase 7.5"). Ver a seção "Incidente durante o período de observação" em `.delta-11/protocolos/fase-descanso.md`.
 
-**Quem sela:** o comandante responde ao teste supremo (ele é o "criador" que se afasta) e o SHIELD confere os 10 entregáveis. O selo **só é declarado** após 2 semanas de operação estável em produção.
+**Quem sela:** o comandante responde ao teste supremo (ele é o "criador" que se afasta) e o SHIELD confere os 10 entregáveis. O selo final **só é declarado** após 2 semanas de operação estável em produção; o vigia `fase-descanso-checker.py` exige o registro do teste supremo SÓ para esse selo final — "Fase 7 iniciada/entregue" e a abertura do ciclo seguinte não travam.
 
 **Memória entre projetos:** ao fechar a Fase 7 (e ao fim de cada ciclo), o CRONOS acrescenta de 3 a 5 lições ao arquivo `~/.delta-11/aprendizados-entre-projetos.md`, com o nome do projeto e a data. É esse arquivo que o ATLAS lê nas Fases 0 e 2 do próximo projeto.
 
@@ -405,16 +447,16 @@ Em projetos de BAIXA complexidade, o BACK faz também o papel de ENGINE e VAULT,
 
 ## COMO UMA FASE É SELADA (todas)
 
-1. Todas as tarefas da fase com `[SHIELD] APROVADO` no activity-log.
-2. O CRONOS dispara o `fresh-reviewer` (olhos virgens).
-3. O CRONOS dispara o `cold-start-tester`, uma vez para cada `[AGENTE]-produto.md` da fase.
-4. Se a fase tem interface navegável, o CRONOS dispara o `qa-ui-tandem` (selo experiencial pelo Tandem Browser).
+1. Todas as tarefas da fase com `[SHIELD] APROVADO` no activity-log. O SHIELD aprova ou reprova por código e contrato; erro de redação em documento nunca reprova.
+2. Os revisores de fase saem JUNTOS, na MESMA mensagem e todos em segundo plano (`run_in_background: true`): o `fresh-reviewer` (olhos virgens), um `cold-start-tester` para cada `[AGENTE]-produto.md` da fase e, se a fase tem interface navegável, o `qa-ui-tandem` (selo experiencial pelo Tandem Browser).
+3. O CRONOS espera TODOS terminarem (notificação automática de cada um) e consolida os resultados. Nenhum revisor roda em primeiro plano e nenhum espera o outro.
+4. Problema crítico de qualquer revisor → tarefa de correção; os outros resultados continuam valendo.
 5. Os hooks de fase conferem os critérios objetivos (`pre-selo.py`, `validar-contratos-fim-fase.py`, `contraposicao-checker.py` e o checker da fase, quando houver).
 6. Modo `automatico` (padrão): tudo verde → o CRONOS escreve `memoria/CRONOS-abertura-fase-N.md` e abre a próxima fase sozinho. Qualquer sinal vermelho → o CRONOS cria tarefas de correção e a fase volta para execução. Modo `manual`: o CRONOS mostra o relatório ao comandante e espera `aprovar`.
 
 ---
 
-## RESUMO DAS 13 FASES DO FLUXO (v6.3)
+## RESUMO DAS 13 FASES DO FLUXO (v6.4)
 
 ```
 Fase  Nome                              Dia da Criação
@@ -433,7 +475,7 @@ Fase  Nome                              Dia da Criação
 7     Descanso Consagrado               Dia 7 — Descanso (teste supremo de 2 semanas)
 ```
 
-**Princípio 1 (Ordem Inegociável):** respeitado. Cada Dia só começa após o anterior selado; as fases de apoio ficam entre os Dias sem trocar a ordem deles.
+**Princípio 1 (Ordem Inegociável):** respeitado. Dentro de um ciclo, cada Dia só começa após o anterior selado; as fases de apoio ficam entre os Dias sem trocar a ordem deles. A única sobreposição é ENTRE ciclos: as 2 semanas de observação do Dia 7 de um ciclo correm junto com o começo do ciclo seguinte (v6.4), e o selo final do Dia 7 vem quando elas terminam.
 
 **Princípio 2 (Selagem por critérios):** cada Dia tem critério objetivo de selo. O Dia 2 tem selagem provisória com validação retroativa obrigatória pelo Dia 3.
 

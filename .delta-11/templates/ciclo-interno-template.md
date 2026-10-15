@@ -86,7 +86,8 @@ Tipo de tarefa: {{funcionalidade|correcao-de-bug|performance|seguranca|refatorac
 | {{T-NNN}} | {{TAREFA}} | {{PATHS}} | {{DEPENDENCIA}} | {{QUEM_ESPERA}} |
 
 **Paralelismo:** {{AGENTES-QUE-RODAM-JUNTO}}
-**Quem dispara:** sempre o CRONOS (D5) — `Agent tool` com `run_in_background: true` e `isolation: "worktree"` para executores
+**Sequência (só se houver):** {{MESMO-ARQUIVO-OU-DEPENDENCIA-DECLARADA}}
+**Quem dispara:** sempre o CRONOS (D5) — a onda INTEIRA na mesma mensagem, `Agent tool` com `run_in_background: true` e `isolation: "worktree"` para executores, até `paralelo_max` (padrão 5); acima disso, fila por vaga
 ```
 
 **Entregável esperado:** mapa de paralelismo. Se fase é single-ator, escreva "(fase é 1 agente, paralelismo não se aplica)".
@@ -123,10 +124,10 @@ Tipo de tarefa: {{funcionalidade|correcao-de-bug|performance|seguranca|refatorac
 **→ Vai no checklist do ciclo interno (linha 5) do mini-plano.**
 
 ```markdown
-- **SHIELD** — revisão de toda tarefa de executor (Passo 3.8, pedida ao CRONOS por SendMessage)
+- **SHIELD** — revisão por ONDA, com veredito por tarefa (o CRONOS dispara um SHIELD para a onda; onda grande, um por zona). Julga código e contrato, não a redação dos documentos
 - **Code Architect** — disparado pelo CRONOS ao final da Fase 4
 - **SCOUT** — varredura completa ao final da Fase 4
-- **Fresh Reviewer → Cold Start Tester → qa-ui-tandem (Selo Experiencial)** — fim de cada fase, pelo CRONOS
+- **Fresh Reviewer + Cold Start Tester + qa-ui-tandem (Selo Experiencial)** — fim de cada fase, pelo CRONOS, disparados JUNTOS e em segundo plano
 - **Comandante** — só decisões de negócio/escopo (D4) e, no `modo manual`, o selo da fase
 
 **Quem NÃO pode revisar:**
@@ -146,11 +147,11 @@ Tipo de tarefa: {{funcionalidade|correcao-de-bug|performance|seguranca|refatorac
 
 ```markdown
 **Cadeia obrigatória por tarefa:**
-- `build-validator` (Passo 3.5)
-- `contract-tester` — gera E roda os testes de contrato do que mudou (Passo 3.7)
+- `build-validator` (Passo 3.5) e `contract-tester` (Passo 3.7 — gera E roda os testes de contrato do que mudou),
+  disparados JUNTOS, os dois em segundo plano
 **Cadeia de fase:**
 - `code-architect` e `SCOUT` (final da Fase 4)
-- `fresh-reviewer` → `cold-start-tester` → `qa-ui-tandem` (fim de cada fase)
+- `fresh-reviewer` + `cold-start-tester` + `qa-ui-tandem` (fim de cada fase, todos juntos)
 - `verify-app` (antes de deploy)
 
 **Cenários adversariais que o teste deve cobrir:**
@@ -249,6 +250,6 @@ feita no próprio modelo, não depende de o CRONOS lembrar.
 
 ---
 
-**Versão do template:** v6.3 (2026-10-14) — antes v6.0.0 (2026-07-12)
+**Versão do template:** v6.4 (2026-10-15) — onda inteira de uma vez, revisão por onda, revisores juntos. Antes: v6.3 (2026-10-14), v6.0.0 (2026-07-12)
 **Local canônico:** `.delta-11/templates/ciclo-interno-template.md`
 **Proveniência:** criado na Etapa 8B do plano Nível 3 Profundo (auditoria 2026-07-10)

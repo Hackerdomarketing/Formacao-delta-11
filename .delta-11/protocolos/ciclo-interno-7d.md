@@ -43,11 +43,16 @@ A Metodologia Gênesis afirma que cada um dos 7 dias "segue o mesmo ciclo intern
 
 **O que:** quando há múltiplos especialistas a executar a fase, eles rodam **em paralelo**, não em fila. Sem isso, fases viram gargalo sequencial.
 
-**Mecanismo no D-11:** o CRONOS dispara os executores via `Agent tool` com `run_in_background: true` e `isolation: "worktree"`. Até 3 agentes simultâneos (`paralelo_max` em `.delta-11/.config-limites.json`). Cada agente recebe seu mini-plano independente.
+**Mecanismo no D-11 (execução paralela REAL — v6.4):**
+- O CRONOS dispara TODOS os executores independentes da onda na MESMA mensagem: várias chamadas `Agent tool` juntas, todas com `run_in_background: true` e `isolation: "worktree"`, até `paralelo_max` (padrão 5, em `.delta-11/.config-limites.json`). Cada agente recebe seu mini-plano independente.
+- Se a onda tem mais tarefas que o limite, a fila anda POR VAGA: assim que UM agente termina, o próximo sai na hora — nunca se espera a rodada inteira.
+- Tarefa grande demais para um brief (`brief_max_tokens`, padrão 4000) vira sub-tarefas por sub-domínio que rodam AO MESMO TEMPO (agentes irmãos), não ondas em série.
+- Só fica em sequência: dois agentes que editam o MESMO arquivo (mesma zona ou trava) e dependência declarada. Mais nada.
+- A revisão também não faz fila: o executor roda `build-validator` e `contract-tester` juntos; o SHIELD revisa a onda inteira; a onda seguinte já roda enquanto ele revisa (nas tarefas que não dependem da anterior).
 
 **Atenção:** paralelismo não é anarquia. Cada agente ainda segue seu mini-plano com escopo bem definido (seção 5, Limites de escopo).
 
-**Erro comum:** executar agentes em série "para evitar confusão". Mata velocidade.
+**Erro comum:** executar agentes em série "para evitar confusão", ou em conta-gotas (lança alguns, espera um terminar, lança mais). Mata velocidade: o contexto do CRONOS já está protegido pelo retorno curto de cada executor (payload + `-produto.md` ≤ 500 tokens).
 
 ### Sub-etapa 4 — Comunicação entre executores dentro do escopo da fase
 
@@ -65,7 +70,7 @@ A Metodologia Gênesis afirma que cada um dos 7 dias "segue o mesmo ciclo intern
 
 **O que:** alguém **de fora** (sem contexto de construção) verifica se o resultado faz sentido para quem chega de fora. Sem isso, auto-aprovação e contaminações passam.
 
-**Mecanismo no D-11:** o `SHIELD` revisa cada tarefa concluída (linha `[SHIELD] APROVADO T-XXX [AGENTE]`). Ao fim de cada fase, o CRONOS dispara o `fresh-reviewer` (olhos virgens) e o `cold-start-tester`; ao final da Fase 4, também o `code-architect` (auditoria arquitetural).
+**Mecanismo no D-11:** o `SHIELD` revisa a onda inteira e dá o veredito de cada tarefa (linha `[SHIELD] APROVADO T-XXX [AGENTE]`); ele julga código e contrato, não a redação dos documentos. Ao fim de cada fase, o CRONOS dispara JUNTOS, em segundo plano, o `fresh-reviewer` (olhos virgens), os `cold-start-tester` e o `qa-ui-tandem`; ao final da Fase 4, também o `code-architect` (auditoria arquitetural).
 
 **Pergunta concreta:** "Quem pode olhar isso sem ter construído e dizer se faz sentido?"
 
@@ -75,7 +80,7 @@ A Metodologia Gênesis afirma que cada um dos 7 dias "segue o mesmo ciclo intern
 
 **O que:** alguém **encarregado de tentar quebrar** o resultado, sem alinhamento com o autor. Sem isso, bugs sutis passam.
 
-**Mecanismo no D-11:** cada executor roda a cadeia obrigatória de sub-agentes por tarefa (`build-validator` no Passo 3.5 + `contract-tester` no Passo 3.7, que gera E roda os testes de contrato). Ao fim da Fase 4.5 (antes da Fase 5), o CRONOS dispara o `SCOUT` para a varredura completa de todo o código.
+**Mecanismo no D-11:** cada executor roda os sub-agentes obrigatórios por tarefa, os dois juntos e em segundo plano (`build-validator` no Passo 3.5 + `contract-tester` no Passo 3.7, que gera E roda os testes de contrato). Ao fim da Fase 4.5 (antes da Fase 5), o CRONOS dispara o `SCOUT` para a varredura completa de todo o código.
 
 **Pergunta concreta:** "O que pode dar errado aqui que o autor não previu?"
 
@@ -102,16 +107,16 @@ Cada fase do D-11 executa as 7 sub-etapas. Como o protocolo é replicável:
 | 0 — Descoberta | roteiro de perguntas do ATLAS (+ aprendizados entre projetos) | contexto da Fase 0 | descoberta + produto em paralelo | conversa entre ATLAS e comandante | releitura do documento de visão | comandante questiona superficialidade | comandante aprova a visão (decisão de negócio) |
 | 1 — Classificação | régua de `classificacao.md` | só o PRD e a visão | (fase é 1 agente) | N/A | ATLAS confere cada critério | testar o score contra o caso mais exigente | classificação registrada no project-core |
 | 2 — Arquitetura | plano + limites de contexto | ATLAS escreve as fatias do project-core | desenho em paralelo (componentes, esquemas) | retorno cruzado entre seções | SHIELD revisa contratos (disparado pelo CRONOS) | contract-tester (Passo 2.7) | selo provisório; confirmado no Dia 3 |
-| 2.3 — Pesquisa Técnica | plano de pesquisa | brief dos sub-agentes | até 3 sub-agentes em paralelo | consolidação no `pesquisa-tecnica.md` | CRONOS revisa | busca por armadilhas e CVEs | CRONOS declara completa |
-| 2.4 — Provisionamento | plano de ferramentas | brief do tool-provisioner | provisiona CADA ferramenta | relatório único | CRONOS revisa | testa falhas com chamada real | CRONOS sela; comandante só entrega credenciais |
+| 2.3 — Pesquisa Técnica | plano de pesquisa (Ciclo 2+: só tecnologia nova) | brief dos sub-agentes | todos os sub-agentes de uma vez (até `paralelo_max`) | consolidação no `pesquisa-tecnica.md` | CRONOS revisa | busca por armadilhas e CVEs | CRONOS declara completa |
+| 2.4 — Provisionamento | plano de ferramentas (Ciclo 2+: só ferramenta nova) | brief do tool-provisioner | provisiona CADA ferramenta | relatório único | CRONOS revisa | testa falhas com chamada real | CRONOS sela; comandante só entrega credenciais |
 | 2.5 — Sequenciamento | plano de ondas | mini-planos por agente | cronograma paralelo | dependências cruzadas | code-architect (opcional) | teste a seco do plano | CRONOS sela (`modo manual`: comandante aprova) |
 | 3 — Fundação | mini-plano do VAULT | mini-plano VAULT (+ SHIELD em paralelo) | VAULT executa + SHIELD prepara | avisos pelo CRONOS | SHIELD revisa migrations | schema-validator + tentar quebrar o esquema | SHIELD APROVADO + SUSTENTA do Dia 2 |
-| 3.5 — Ritmo | mini-planos da Fase 3.5 | BACK, ENGINE, VAULT, SHIELD com artefatos próprios | até 3 em paralelo | avisos pelo CRONOS | SHIELD revisa os 10 | SCOUT derruba uma dependência | **10 artefatos** + SUSTENTA do BACK |
-| 4 — Desenvolvimento | mini-planos por agente | até 3 executores por vez, em ondas | execução paralela | avisos pelo CRONOS | SHIELD revisa cada tarefa + code-architect no fim | build-validator + contract-tester por tarefa | SHIELD APROVADO em todas + cadeia de selo |
-| 4.5 — Consciência | mini-planos da Fase 4.5 | VAULT, ENGINE, FORM/PIXEL | até 3 em paralelo | alinham regras de negócio via CRONOS | SHIELD revisa segurança | varredura completa do SCOUT (tenta contornar) | **5 entregáveis** + selo do SHIELD |
+| 3.5 — Ritmo | mini-planos da Fase 3.5 | BACK, ENGINE, VAULT, SHIELD com artefatos próprios | todos de uma vez (até `paralelo_max`) | avisos pelo CRONOS | SHIELD revisa os 10 | SCOUT derruba uma dependência | **10 artefatos** (Ciclo 2+: checklist de 1 página) + SUSTENTA do BACK |
+| 4 — Desenvolvimento | mini-planos por agente | a onda inteira de uma vez (até `paralelo_max`), fila por vaga | execução paralela real | avisos pelo CRONOS | SHIELD revisa por onda (veredito por tarefa) + code-architect no fim | build-validator + contract-tester juntos por tarefa | SHIELD APROVADO em todas + revisores de selo |
+| 4.5 — Consciência | mini-planos da Fase 4.5 | VAULT, ENGINE, FORM/PIXEL | todos de uma vez (até `paralelo_max`) | alinham regras de negócio via CRONOS | SHIELD revisa segurança | varredura completa do SCOUT (tenta contornar) | **5 entregáveis** (Ciclo 2+: checklist de 1 página) + selo do SHIELD |
 | 5 — Testes Integração | plano de E2E | contextos isolados | (fase é 1 agente) | N/A | fresh-reviewer + qa-ui-tandem | tentar quebrar fluxos | E2E verdes |
 | 6 — Preparação | plano de deploy | contexto de produção | (fase é 1 agente) | N/A | SHIELD audita segurança | verify-app pré-deploy | Sentry ativo + comandante aprova o deploy |
-| 7 — Descanso | plano de consagração | 10 entregáveis distribuídos | até 3 em paralelo | avisos pelo CRONOS | fresh-reviewer + pessoa nova (onboarding) | SCOUT simula incidentes; monitor detecta autonomia | **10 entregáveis + teste supremo de 2 semanas** |
+| 7 — Descanso | plano de consagração | 10 entregáveis distribuídos | todos de uma vez (até `paralelo_max`) | avisos pelo CRONOS | fresh-reviewer + pessoa nova (onboarding) | SCOUT simula incidentes; monitor detecta autonomia | **10 entregáveis + teste supremo de 2 semanas** (correndo junto com o ciclo seguinte) |
 
 ## O template `ciclo-interno-template.md` e o mini-plano
 
@@ -143,8 +148,8 @@ Mudanças aqui passam por:
 3. Decisão via ADR (raro — protocolo raramente muda)
 4. Atualização deste arquivo + template
 
-**Versão do protocolo:** v6.3 (2026-10-14) — Correção Geral. Criado na v6.0.0 (2026-07-12).
+**Versão do protocolo:** v6.4 (2026-10-15) — Velocidade: sub-etapa 3 com execução paralela real. Criado na v6.0.0 (2026-07-12).
 **Manutenção:** manter sincronizado com `metodologia-genesis-camadas.md` (seção "O Ciclo Interno de 7 Sub-Etapas") e com `fluxo-zero-ao-lancamento.md` (que define selagem por fase).
 
 ---
-*Mudanças neste protocolo são registradas no CHANGELOG (última: v6.3).*
+*Mudanças neste protocolo são registradas no CHANGELOG (última: v6.4).*

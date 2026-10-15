@@ -7,6 +7,7 @@
 > - Fluxo principal: `.delta-11/protocolos/fluxo-zero-ao-lancamento.md` → seção "FASE 3.5 — RITMO TEMPORAL"
 > - Base conceitual: `.delta-11/conhecimento/metodologia-genesis-camadas.md` → Dia 4 (Os Astros — o Ritmo Temporal do Sistema)
 > - Template dos 10 artefatos: `.delta-11/templates/fase-ritmo-template.md`
+> - Checklist de 1 página do ciclo leve (Ciclo 2 em diante): `.delta-11/templates/ritmo-temporal-checklist-template.md`
 > - Hook bloqueante: `.delta-11/hooks/fase-ritmo-checker.py`
 > - Quem faz cada artefato: `fluxo-zero-ao-lancamento.md` → tabela "PAPEL DE CADA AGENTE NAS FASES 3.5, 4.5 E 7"
 
@@ -29,6 +30,8 @@ A Fase 3.5 **não se aplica** em um número muito pequeno de casos. É mais hone
 Em QUALQUER outro caso (incluindo MVP, produto real, sistema interno, B2B, B2C), **a Fase 3.5 é obrigatória**.
 
 ## Os 10 artefatos do Dia 4 — declaração completa
+
+No **Ciclo 1** cada artefato é um documento completo; do **Ciclo 2 em diante**, veja "Ciclo leve" mais abaixo.
 
 Cada artefato vira um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-ritmo-temporal-<NN>-<slug>.md` (`<NN>` de 01 a 10; modelo em `fase-ritmo-template.md`). Cada arquivo tem pelo menos: descrição, escolha tecnológica, justificativa, link para documentação.
 
@@ -173,7 +176,7 @@ Use o template `.delta-11/templates/fase-ritmo-template.md` para preencher cada 
 
 A Fase 3.5 consagra com:
 - **BACK** — líder técnico da fase (quem coordena os 10 artefatos; em BAIXA complexidade, faz também a parte do ENGINE e do VAULT)
-- **SHIELD** — revisa os 10 artefatos
+- **SHIELD** — revisa os 10 artefatos (no ciclo leve: o checklist e os documentos completos das áreas que o ciclo mexeu). Revisa o conteúdo técnico — o que é falso, contradiz o contrato ou deixa risco técnico; erro de redação (português, formatação, sinônimo) nunca reprova
 - **CRONOS** — roda a cadeia de selo (`fluxo-zero-ao-lancamento.md` → "Como uma fase é selada")
 
 Sem o SUSTENTA do BACK e a aprovação do SHIELD, a Fase 4 (Desenvolvimento) NÃO pode começar. O hook `fase-ritmo-checker.py` bloqueia a transição automaticamente.
@@ -183,6 +186,26 @@ Sem o SUSTENTA do BACK e a aprovação do SHIELD, a Fase 4 (Desenvolvimento) NÃ
 Os 10 arquivos `.delta-11/memoria/decisoes/...` existem, cada um com pelo menos 4 seções preenchidas (descrição, escolha, justificativa, link). O BACK (líder técnico da Fundação) declara "Fase 3.5 selada" com a resposta **SUSTENTA** ao CRONOS, por `SendMessage` e no `BACK-produto.md`; o CRONOS registra no kanban. Em modo `automatico`, o CRONOS abre a Fase 4 quando a cadeia de selo está verde; em `modo manual`, o comandante digita `aprovar`.
 
 A partir daí, a Fase 4 pode começar com a confiança de que os habitats do Dia 5 têm ritmo temporal para governá-los.
+
+## Ciclo leve (Ciclo 2 em diante — v6.4)
+
+Todo projeto tem 7 ciclos de entrega e cada ciclo passa pelas 13 fases (Regra dos 7 Ciclos, `operativos/ATLAS.md`). A Fase 3.5 do **Ciclo 1** constrói o ritmo do sistema do zero: os **10 documentos completos** acima. Nos **Ciclos 2 a 7**, o ritmo já existe; a fase só confere o que o ciclo mudou nele.
+
+**O que se entrega do Ciclo 2 em diante:** UM checklist de 1 página, `.delta-11/memoria/decisoes/AAAA-MM-DD-ritmo-temporal-checklist-ciclo-N.md` (modelo `templates/ritmo-temporal-checklist-template.md`). Ele tem os 10 itens, numerados de 01 a 10, e cada um diz:
+- `sem mudança` (ou `não se aplica`); ou
+- `mudou: <o que mudou>`, em até 3 linhas.
+
+**Quando o ciclo MEXE na área** — cria filas novas, troca a estratégia de cache, muda o CI/CD, liga uma dependência externa nova que precisa de circuit breaker — o item afetado ganha o **documento completo** (`AAAA-MM-DD-ritmo-temporal-<NN>-<slug>.md`, modelo `fase-ritmo-template.md`), e a linha dele no checklist cita o arquivo. O resto continua no checklist.
+
+**De onde vem o número do ciclo:** da linha `**Ciclo atual:** N` do kanban (ou "Ciclo N" na linha `**Fase atual:**`, ou no `fase_atual` do `kanban-data.js`). Quem escreve é o CRONOS, ao abrir o ciclo. Sem essa informação, vale o Ciclo 1.
+
+**O que o vigia confere sozinho (`fase-ritmo-checker.py`):**
+- no Ciclo 1: os 10 documentos (o checklist NÃO os substitui);
+- do Ciclo 2 em diante: o checklist do ciclo atual como equivalente aos 10 documentos — os 10 itens presentes, cada um respondido, e todo documento completo citado existindo. Checklist do ciclo começado e incompleto bloqueia o selo.
+
+**O que o vigia NÃO consegue conferir:** se uma mudança era grande o bastante para exigir o documento completo. Quem confere isso é o **SHIELD**, na revisão da fase: para cada linha "mudou", ele decide se a área foi mexida (filas, cache, CI/CD, dependência externa nova) e, se foi, exige o documento completo antes de aprovar.
+
+**Critério de selo no ciclo leve:** checklist do ciclo completo + documentos completos das áreas mexidas + revisão do SHIELD + SUSTENTA do BACK. O resto da cadeia de selo é igual.
 
 ## Relação com o Roadmap dos 7 Ciclos
 
@@ -196,8 +219,8 @@ Este protocolo evolui conforme o sistema amadurece. Mudanças aqui passam por:
 3. Decisão via ADR
 4. Atualização deste arquivo + template + hook + testes
 
-**Versão do protocolo:** v6.3 (2026-10-14) — Correção Geral. Criado na v6.0.0 (2026-07-11).
+**Versão do protocolo:** v6.4 (2026-10-15) — Velocidade: ciclo leve do Ciclo 2 em diante. Criado na v6.0.0 (2026-07-11).
 **Manutenção:** manter sincronizado com `metodologia-genesis-camadas.md` (Dia 4) e `fase-ritmo-template.md`.
 
 ---
-*Mudanças neste protocolo são registradas no CHANGELOG (última: v6.3).*
+*Mudanças neste protocolo são registradas no CHANGELOG (última: v6.4).*

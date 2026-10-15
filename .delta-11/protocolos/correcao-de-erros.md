@@ -1,4 +1,4 @@
-# PROTOCOLO DE CORREÇÃO DE ERROS — FORMAÇÃO Δ-11 (v6.3)
+# PROTOCOLO DE CORREÇÃO DE ERROS — FORMAÇÃO Δ-11 (v6.4)
 
 ## FLUXO
 
@@ -18,9 +18,10 @@ O agente de diagnóstico lê: as fatias do project-core / o project-core (SCOUT 
     ↓
 Gera duas análises: conservadora e abrangente → executa a mais adequada
     ↓
-Passa pela rotina de finalização (build-validator → contract-tester → SendMessage ao CRONOS)
+Passa pela rotina de finalização (build-validator + contract-tester juntos → SendMessage ao CRONOS)
     ↓
-O CRONOS dispara o SHIELD para revisar a correção
+A correção entra na revisão do SHIELD da onda (o CRONOS não espera a onda toda se a correção
+bloqueia outras tarefas: dispara o SHIELD só para ela)
     ↓
 APROVADO? → o CRONOS atualiza o kanban. Fim.
 REPROVADO? → nova tentativa (o SCOUT tem no máximo 3)
@@ -45,6 +46,15 @@ Nenhum agente dispara outro agente por conta própria. Quem dispara o agente de 
 4. Salve o mesmo contexto em `.delta-11/ativacoes/erro-[DESTINO].txt` (registro e retomada — o arquivo é a fonte de verdade; a mensagem é só o aviso).
 5. O CRONOS decide quem disparar (FRONT/PIXEL, SCOUT ou ATLAS) e com qual prompt.
 6. Continue trabalhando em outras tarefas enquanto o agente de diagnóstico resolve.
+
+## O QUE O SHIELD REPROVA (v6.4)
+
+O SHIELD revisa **código e contrato**, não a redação de documentos. Reprova só o que:
+- é **falso** (o código não faz o que o `-produto.md` ou o documento diz que faz);
+- **contradiz o contrato** (project-core, testes de contrato, formato único de erro);
+- deixa um **risco técnico** (segurança, perda de dados, condição de corrida, limite de código estourado, teste faltando).
+
+Erro de texto em documento — português, formatação, sinônimo, ordem das seções — **NUNCA reprova**. O SHIELD anota como observação no relatório e aprova. Assim nenhuma tarefa volta para a fila por causa de vírgula.
 
 ## CATEGORIAS DE ALTERAÇÃO
 

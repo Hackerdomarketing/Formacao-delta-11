@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Vigia da Fase 4.5 (Consciencia Dominante, Dia 6) — Delta-11 v6.3 (2026-10-14). C-015, C-026.
+Vigia da Fase 4.5 (Consciencia Dominante, Dia 6) — Delta-11 v6.4 (2026-10-15). C-015, C-026, V9.
 
 Principio de Selagem: a Fase 4.5 so pode ser SELADA com os 5 entregaveis do Dia 6
 em `.delta-11/memoria/decisoes/` da pasta principal, um por numero (C-026):
@@ -16,6 +16,18 @@ da fase, por exemplo "Fase 4.5 selada", "[SELO 4.5]", "Dia 6 selado",
 "[CONSCIÊNCIA] ... SELO" (protocolos/fase-consciencia.md: "SHIELD declara 'Fase
 4.5 selada' no kanban"). Concluir as tarefas que produzem os entregaveis nao e
 bloqueado.
+
+Ciclo leve (v6.4 — V9): do Ciclo 2 em diante, o checklist de 1 pagina do ciclo
+vale como equivalente aos 5 documentos:
+  AAAA-MM-DD-consciencia-checklist-ciclo-N.md
+com os 5 itens, cada um "sem mudança" ou "mudou: <ate 3 linhas>" (modelo:
+templates/consciencia-checklist-template.md). O numero do ciclo vem da linha do
+selo ("Ciclo N"), senao do kanban (`**Ciclo atual:** N` ou "Ciclo N" na Fase
+atual) ou do `fase_atual` do kanban-data.js; sem informacao, Ciclo 1. No Ciclo 1
+o checklist NAO vale. Checklist do ciclo atual COMECADO e incompleto bloqueia.
+Limite conhecido: quando o ciclo MEXE na area (muda a autenticacao, cria fluxo
+de aprovacao novo...), o item afetado precisa do documento completo — isso o
+vigia nao julga; quem confere e o SHIELD (protocolos/fase-consciencia.md).
 
 Erro interno: libera a acao, registra ERRO-INTERNO no activity-log e avisa no
 stderr (exit 1) — ver _comum.run.
@@ -39,13 +51,29 @@ ENTREGAVEIS = {
 }
 
 
-def message(selo: list[str], faltando: list[int], nomes: list[str]) -> str:
+CHECKLIST_MODELO = ".delta-11/templates/consciencia-checklist-template.md"
+
+
+def message(selo: list[str], faltando: list[int], nomes: list[str], ciclo: int = 1,
+            checklist: str | None = None, pendencias: list[tuple[int, str]] | None = None) -> str:
     texto = (
-        f"[{HOOK}] BLOQUEIO {comum.VERSAO} — Selo da Fase 4.5 (Consciencia Dominante, Dia 6)\n"
+        f"[{HOOK}] BLOQUEIO {comum.VERSAO} — Selo da Fase 4.5 (Consciencia Dominante, Dia 6) — Ciclo {ciclo}\n"
         f"\n"
         f"Linha que declara o selo: {selo[0][:160]}\n"
-        f"Presentes: {len(ENTREGAVEIS) - len(faltando)} de {len(ENTREGAVEIS)}. Faltam:\n"
     )
+    if ciclo >= 2:
+        if checklist and pendencias:
+            texto += f"\nO checklist do Ciclo {ciclo} ({checklist}) esta incompleto:\n"
+            texto += "".join(f"  {n:02d}. {ENTREGAVEIS[n]} — {motivo}\n" for n, motivo in pendencias)
+            texto += "\nComplete esses itens e declare o selo de novo.\n"
+            return texto
+        texto += (
+            f"\nCiclo {ciclo} (ciclo leve): basta UM checklist de 1 pagina com os 5 itens:\n"
+            f"  .delta-11/memoria/decisoes/AAAA-MM-DD-{PREFIXO}-checklist-ciclo-{ciclo}.md\n"
+            f"  (modelo: {CHECKLIST_MODELO})\n"
+            f"Ou, no lugar dele, os 5 documentos completos abaixo.\n\n"
+        )
+    texto += f"Presentes: {len(ENTREGAVEIS) - len(faltando)} de {len(ENTREGAVEIS)}. Faltam:\n"
     texto += "".join(
         f"  {n:02d}. {ENTREGAVEIS[n]}  -> .delta-11/memoria/decisoes/AAAA-MM-DD-{PREFIXO}-{n:02d}-{ENTREGAVEIS[n]}.md\n"
         for n in faltando
@@ -67,11 +95,25 @@ def main() -> int:
     selo = comum.declares_seal(comum.new_lines(antes, depois), FASE)
     if not selo:
         return 0
+    ciclo = comum.cycle_in_text(selo[0]) or comum.current_cycle(depois)
     _presentes, faltando, nomes = comum.phase_artifacts(PREFIXO, len(ENTREGAVEIS))
+    if ciclo >= 2:
+        checklist, pendencias = comum.cycle_checklist(PREFIXO, ciclo, ENTREGAVEIS)
+        if checklist and not pendencias:
+            comum.log(HOOK, f"OK: selo da Fase 4.5 do Ciclo {ciclo} com o checklist {checklist} (ciclo leve)")
+            return 0
+        if checklist and pendencias:
+            return comum.block(
+                HOOK, message(selo, faltando, nomes, ciclo, checklist, pendencias),
+                f"selo da Fase 4.5 do Ciclo {ciclo}: checklist com {len(pendencias)} item(ns) pendente(s)",
+            )
     if not faltando:
-        comum.log(HOOK, "OK: selo da Fase 4.5 com os 5 entregaveis")
+        comum.log(HOOK, f"OK: selo da Fase 4.5 do Ciclo {ciclo} com os 5 entregaveis")
         return 0
-    return comum.block(HOOK, message(selo, faltando, nomes), f"selo da Fase 4.5 com {len(faltando)} entregavel(is) faltando")
+    return comum.block(
+        HOOK, message(selo, faltando, nomes, ciclo),
+        f"selo da Fase 4.5 do Ciclo {ciclo} com {len(faltando)} entregavel(is) faltando",
+    )
 
 
 if __name__ == "__main__":

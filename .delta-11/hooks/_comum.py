@@ -67,9 +67,9 @@ SUB_AGENTES = {
 
 # ─── Limites (D36) ──────────────────────────────────────────────────────────
 LIMITES_PADRAO = {
-    "brief_max_tokens": 2000,
+    "brief_max_tokens": 4000,
     "produto_max_tokens": 500,
-    "paralelo_max": 3,
+    "paralelo_max": 5,
     "janela_horas": 4,
     "lock_horas": 2,
 }
@@ -344,14 +344,32 @@ def identify_agent(evento: dict | None = None, fallback_latest_ack: bool = True)
     return latest_ack_agent(de_outros)
 
 
+SUB_AGENTE_LINHA_RE = re.compile(
+    r"^[ \t>*_-]*Sub-agente\**\s*:\s*[`*]*\s*(?:\S*/)?([a-z][a-z-]*?)(?:\.md)?\b[`*]*",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+
+def _first_sub_agent(texto: str) -> str:
+    """Sub-agente citado PRIMEIRO no texto (posicao, nao ordem alfabetica)."""
+    texto = texto.lower()
+    posicoes = [(texto.find(sub), sub) for sub in SUB_AGENTES if sub in texto]
+    return min(posicoes)[1] if posicoes else ""
+
+
 def dispatch_target(evento: dict) -> str:
     """
     Alvo de um disparo do Agent tool (Agent/Task). Ordem:
       1. campo `name` (ex.: "back-onda-2" -> BACK; "cronos" -> CRONOS);
       2. `subagent_type` que ja e nome Delta-11;
-      3. linha "Agente: NOME" no prompt;
-      4. nome de sub-agente (em minusculas) na descricao ou no prompt.
+      3. nome de sub-agente na `description` (o primeiro citado);
+      4. linha "Sub-agente: .../<nome>.md" do prompt;
+      5. linha "Agente: NOME" no prompt;
+      6. o primeiro nome de sub-agente citado no resto do prompt.
     "" se nao identificar.
+    v6.4: os passos 3 e 4 vem antes do resto do prompt. Antes, a busca olhava o
+    prompt inteiro em ordem alfabetica e um contract-tester (cujo texto cita o
+    build-validator) aparecia como "build-validator".
     """
     entrada = tool_input(evento)
     nome = str(entrada.get("name") or "")
@@ -362,14 +380,16 @@ def dispatch_target(evento: dict) -> str:
     if tipo in TODOS_OS_AGENTES:
         return tipo
     prompt = str(entrada.get("prompt") or "")
+    sub = _first_sub_agent(str(entrada.get("description") or ""))
+    if sub:
+        return sub
+    for achado in SUB_AGENTE_LINHA_RE.finditer(prompt):
+        if achado.group(1).lower() in SUB_AGENTES:
+            return achado.group(1).lower()
     achado = re.search(r"Agente:\s*([A-Z_-]+)", prompt)
     if achado:
         return achado.group(1).strip()
-    descricao = str(entrada.get("description") or "").lower()
-    for sub in sorted(SUB_AGENTES):
-        if sub in descricao or sub in prompt.lower():
-            return sub
-    return ""
+    return _first_sub_agent(prompt)
 
 
 def is_main_session(evento: dict | None = None) -> bool:
@@ -704,6 +724,106 @@ def phase_artifacts(prefixo: str, total: int) -> tuple[list[int], list[int], lis
             nomes.append(arquivo.name)
     faltando = [n for n in range(1, total + 1) if n not in presentes]
     return sorted(presentes), faltando, nomes
+
+
+# ─── Ciclo atual e ciclo leve (v6.4 — V9) ──────────────────────────────────
+# Todo projeto tem 7 ciclos de entrega (Regra dos 7 Ciclos, ATLAS.md) e cada
+# ciclo passa pelas 13 fases. Do Ciclo 2 em diante, as Fases 3.5 e 4.5 podem
+# entregar UM checklist de 1 pagina em vez dos documentos completos:
+#   memoria/decisoes/AAAA-MM-DD-<prefixo>-checklist-ciclo-N.md
+CICLO_ATUAL_RE = re.compile(r"\*{0,2}Ciclo\s+atual:?\*{0,2}\s*:?\s*\*{0,2}\s*(\d+)", re.IGNORECASE)
+CICLO_NUMERO_RE = re.compile(r"\bCiclo\s*(\d+)", re.IGNORECASE)
+FASE_ATUAL_JS_RE = re.compile(r"""\bfase_atual\s*:\s*(["'`])(.*?)\1""")
+
+
+def cycle_in_text(texto: str | None) -> int | None:
+    """Numero de "Ciclo N" num trecho de texto (o primeiro), ou None."""
+    achado = CICLO_NUMERO_RE.search(texto or "")
+    return int(achado.group(1)) if achado and int(achado.group(1)) >= 1 else None
+
+
+def current_cycle(kanban_texto: str | None = None) -> int:
+    """
+    Numero do ciclo atual. Ordem de leitura:
+      1. `**Ciclo atual:** N` no kanban.md (o texto dado ou, sem ele, o do disco);
+      2. "Ciclo N" na linha `**Fase atual:**` do kanban.md;
+      3. "Ciclo N" no campo `fase_atual` do kanban-data.js;
+      4. sem informacao: 1 (o ciclo mais exigente — documentos completos).
+    """
+    if kanban_texto is None:
+        kanban_texto = read_text(delta_dir() / "kanban.md")
+    for linha in kanban_texto.splitlines():
+        achado = CICLO_ATUAL_RE.search(linha)
+        if achado and int(achado.group(1)) >= 1:
+            return int(achado.group(1))
+    numero = cycle_in_text(current_phase(kanban_texto))
+    if numero:
+        return numero
+    achado = FASE_ATUAL_JS_RE.search(read_text(delta_dir() / "kanban-data.js"))
+    numero = cycle_in_text(achado.group(2)) if achado else None
+    return numero or 1
+
+
+_SEM_MUDANCA_RE = re.compile(r"\bsem\s+mudan[çc]as?\b|\bn[ãa]o\s+se\s+aplica\b", re.IGNORECASE)
+_MUDANCA_RE = re.compile(r"\bmud(?:ou|an[çc]as?)\s*[:—–-]\s*\S", re.IGNORECASE)
+
+
+def _item_number_re(numero: int) -> re.Pattern:
+    """Linha que comeca pelo numero do item: "| 01 |", "- 01.", "01)", "**01** —"."""
+    return re.compile(
+        rf"^\s*(?:[-*+]\s*)?(?:\[[ xX]\]\s*)?(?:\|\s*)?(?:\*\*)?0?{numero}(?:\*\*)?\s*(?:[|.):—–]|-\s)",
+        re.IGNORECASE,
+    )
+
+
+def cycle_checklist(prefixo: str, ciclo: int, itens: dict[int, str]) -> tuple[str | None, list[tuple[int, str]]]:
+    """
+    Checklist do ciclo leve em memoria/decisoes/ (`...-<prefixo>-checklist-ciclo-N.md`).
+    Retorna (nome do arquivo, pendencias). Sem arquivo (ou so arquivo vazio): (None, []).
+    Pendencia = (numero do item, motivo). Cada item precisa de uma linha (com o numero
+    ou o slug) que diga "sem mudanca" / "nao se aplica" ou "mudou: <o que mudou>"; os
+    marcadores [..] do modelo nao contam. Se a linha cita um documento completo
+    (`<prefixo>-NN-...md`), ele precisa existir e nao estar vazio.
+    O vigia NAO julga se a mudanca era grande o bastante para exigir documento
+    completo: quem confere isso e o SHIELD (protocolos fase-ritmo e fase-consciencia).
+    """
+    pasta = delta_dir() / "memoria" / "decisoes"
+    nome_re = re.compile(
+        rf"(?:^|-){re.escape(prefixo)}-checklist-ciclo-0*{int(ciclo)}(?!\d)[^/]*\.md$", re.IGNORECASE
+    )
+    citado_re = re.compile(rf"{re.escape(prefixo)}-(\d{{2}})-[A-Za-z0-9._-]*?\.md", re.IGNORECASE)
+    presentes = set(phase_artifacts(prefixo, len(itens))[0])
+    try:
+        arquivos = sorted(pasta.iterdir()) if pasta.is_dir() else []
+    except OSError:
+        arquivos = []
+    melhor: tuple[str | None, list[tuple[int, str]]] = (None, [])
+    for arquivo in arquivos:
+        if not arquivo.is_file() or not nome_re.search(arquivo.name):
+            continue
+        texto = read_text(arquivo)
+        if not texto.strip():
+            continue
+        linhas = texto.splitlines()
+        pendencias: list[tuple[int, str]] = []
+        for numero, slug in sorted(itens.items()):
+            por_numero = _item_number_re(numero)
+            candidatas = [l for l in linhas if por_numero.search(l)]
+            if not candidatas:  # sem linha numerada: procura o slug
+                candidatas = [l for l in linhas if slug.lower() in l.lower()]
+            candidatas = [PLACEHOLDER_RE.sub(" ", l) for l in candidatas]
+            respondidas = [l for l in candidatas if _SEM_MUDANCA_RE.search(l) or _MUDANCA_RE.search(l)]
+            if not candidatas:
+                pendencias.append((numero, "item ausente no checklist"))
+            elif not respondidas:
+                pendencias.append((numero, 'sem resposta ("sem mudança" ou "mudou: ...")'))
+            else:
+                citados = {int(n) for l in respondidas for n in citado_re.findall(l)}
+                if any(n not in presentes for n in citados):
+                    pendencias.append((numero, "cita documento completo que nao existe (ou esta vazio)"))
+        if melhor[0] is None or len(pendencias) < len(melhor[1]):
+            melhor = (arquivo.name, pendencias)
+    return melhor
 
 
 # ═══════════════════════════════════════════════════════════════════════════

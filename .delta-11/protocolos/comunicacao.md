@@ -1,4 +1,4 @@
-# PROTOCOLO DE COMUNICAÇÃO — FORMAÇÃO Δ-11 (v6.3)
+# PROTOCOLO DE COMUNICAÇÃO — FORMAÇÃO Δ-11 (v6.4)
 
 ## COMO OS AGENTES SE COMUNICAM
 
@@ -16,7 +16,7 @@ Cada agente roda como **sub-agente disparado pelo CRONOS** com o Agent tool do C
 | **ATLAS** | SOMENTE o CRONOS (ao fim da Fase 2, ou quando foi chamado e terminou) | Escreve no project-core (só ele escreve) e no `ATLAS-produto.md` |
 | **CRONOS** | Executores (VAULT, BACK, ENGINE, FRONT, PIXEL, FORM), SHIELD, SCOUT, sub-agentes, e o ATLAS quando há bloqueio de contrato/arquitetura ou replanejamento | Escreve kanban, mini-planos, `CRONOS-abertura-fase-N.md`; manda `SendMessage` aos agentes nomeados |
 | **Executores** | Ninguém (só os próprios sub-agentes de validação: `build-validator`, `contract-tester`) | `SendMessage` ao CRONOS + `[NOME]-produto.md` |
-| **SHIELD** | Os sub-agentes de validação dele (`contract-tester` no Passo 2.7, `schema-validator`, `verify-app`) | Linha `[SHIELD] APROVADO T-XXX [AGENTE]` ou `[SHIELD] REPROVADO T-XXX [AGENTE] motivo` no activity-log + `SendMessage` ao CRONOS |
+| **SHIELD** | Os sub-agentes de validação dele (`contract-tester` no Passo 2.7, `schema-validator`, `verify-app`) | Revisa a ONDA inteira e grava uma linha POR TAREFA: `[SHIELD] APROVADO T-XXX [AGENTE]` ou `[SHIELD] REPROVADO T-XXX [AGENTE] motivo` no activity-log + `SendMessage` ao CRONOS |
 | **SCOUT** | Ninguém. SCOUT nunca dispara SCOUT | `SendMessage` ao CRONOS |
 
 Quando o ATLAS precisa que o SHIELD revise contratos, ele **registra o pedido** no `ATLAS-produto.md` e o **CRONOS dispara o SHIELD**. Quando um executor descobre algo que afeta outro executor, ele avisa o **CRONOS**, que repassa ao agente afetado (por `SendMessage`, usando o `name` dele) ou, se mexer no contrato, dispara o ATLAS.
@@ -39,8 +39,19 @@ Agent(
 - **CRONOS**: SEMPRE sem worktree, `name: "cronos"`, `NASCEU_EM_WORKTREE: nao`. A auto-retomada do CRONOS também é sem worktree e com `name: "cronos"`.
 - **SHIELD revisor**: sem worktree. Lê o código das worktrees pelo caminho absoluto que o CRONOS passa no prompt.
 - **Modelo por papel**: o CRONOS lê `perfis/[AGENTE].json` e passa `model` no disparo (opus: ATLAS, CRONOS, SHIELD; sonnet: demais executores e sub-agentes).
-- **Paralelo**: no máximo 3 agentes ao mesmo tempo (`paralelo_max` em `.delta-11/.config-limites.json`). Zonas diferentes podem rodar juntas; mesma zona, em sequência (tabela de zonas no CLAUDE.md).
-- **Resultado**: quando um sub-agente termina, o CRONOS recebe a notificação automática do Claude Code. Não é preciso ficar perguntando.
+- **Onda inteira de uma vez (v6.4)**: o CRONOS dispara TODOS os agentes independentes da onda na MESMA mensagem — várias chamadas `Agent` juntas, todas com `run_in_background: true` —, até `paralelo_max` (padrão 5, em `.delta-11/.config-limites.json`). Acabou o "lança 3, espera 1, lança mais 2".
+- **Fila por vaga**: se a onda tem mais tarefas que o limite, assim que UM agente termina (notificação automática), o próximo da fila sai NA HORA. Nunca se espera a rodada inteira acabar.
+- **Em série, só o mesmo arquivo ou dependência declarada (V5)**: (a) dois agentes que precisam editar o MESMO arquivo (zona igual na tabela de zonas do CLAUDE.md, ou arquivo com trava); (b) dependência declarada (uma tarefa precisa do resultado da outra). Todo o resto roda junto.
+- **Tarefa grande**: brief acima de `brief_max_tokens` (padrão 4000) vira sub-tarefas por sub-domínio que rodam AO MESMO TEMPO (agentes irmãos, cada um na sua worktree), não ondas em série.
+- **Resultado**: quando um sub-agente termina, o CRONOS recebe a notificação automática do Claude Code. Não é preciso ficar perguntando. Ao receber a notificação, o CRONOS lê SÓ o retorno curto: o payload JSON do Passo 3.8 e o `-produto.md` (≤ 500 tokens). Relatório longo fica no log e só é aberto se houver problema — é isso que protege o contexto do CRONOS, não o conta-gotas.
+
+### Revisão por onda e pipeline (v6.4)
+
+- **Executor:** faz a autocrítica (3.4) e dispara o `build-validator` (3.5) e o `contract-tester` (3.7) JUNTOS, os dois com `run_in_background: true`, e espera os dois. Depois avisa o CRONOS (3.8).
+- **CRONOS → SHIELD:** o CRONOS NÃO dispara um SHIELD por tarefa. Quando os executores da onda terminam, ele dispara UM SHIELD que revisa a onda inteira, com a lista de tarefas, worktrees e branches no prompt. Onda grande: vários SHIELD em paralelo, um por zona. O SHIELD grava o veredito POR TAREFA (formato acima).
+- **Pipeline:** enquanto o SHIELD revisa a onda N, o CRONOS já dispara a onda N+1 nas tarefas que NÃO dependem de nada da onda N. Só esperam o APROVADO as tarefas que dependem de código da onda N.
+- **Merge:** só tarefas com `[SHIELD] APROVADO` entram na pasta principal (`merge-guiado-contratos.md`). Reprovação vira tarefa de correção na próxima vaga livre.
+- **O que reprova:** código e contrato — o que é falso, contradiz o contrato ou deixa risco técnico. Erro de redação em documento (português, formatação, sinônimo) NUNCA reprova; vira observação.
 
 ---
 
@@ -70,7 +81,7 @@ Quando um agente tem algo para o project-core, ele escreve na seção `PROPOSTAS
 
 `SendMessage` manda mensagem a um sub-agente nomeado (o `name` do disparo) e também serve para retomar um sub-agente que parou. Não precisa de Agent Teams.
 
-**Executor → CRONOS** (fim de tarefa, Passo 3.8 — pede a revisão do SHIELD; NÃO cria arquivo `.txt` de pedido):
+**Executor → CRONOS** (fim de tarefa, Passo 3.8 — entra na revisão do SHIELD da onda; NÃO cria arquivo `.txt` de pedido). É o retorno curto que o CRONOS lê ao ser notificado:
 
 ```json
 {
@@ -92,7 +103,7 @@ A mesma informação já está no `ENGINE-produto.md` (Passo 1a). A mensagem só
 **Outras mensagens comuns:**
 - Executor → CRONOS: erro que não resolveu em 3 tentativas (ver `correcao-de-erros.md`), contexto esgotado, dependência descoberta, proposta para o project-core.
 - CRONOS → agente nomeado: "o contrato mudou, releia a fatia X" (junto com `ativacoes/contrato-alterado-[AGENTE].txt`), "retome a tarefa T-XXX", "a revisão do SHIELD reprovou: motivo".
-- SHIELD → CRONOS: resultado da revisão (o registro oficial é a linha no activity-log).
+- SHIELD → CRONOS: resultado da revisão da onda, com o veredito de cada tarefa (o registro oficial são as linhas no activity-log).
 
 ---
 
@@ -108,12 +119,11 @@ A mesma informação já está no `ENGINE-produto.md` (Passo 1a). A mensagem só
 - **1a** — atualiza `[NOME]-produto.md` (com a linha `autocritica: <caminho>`).
 - **1b** — acrescenta ao `[NOME]-historia.md`.
 - **3.4** — autocrítica em 2 paradas, salva em `.delta-11/logs/autocritica/`.
-- **3.5** — `build-validator`.
-- **3.7** — `contract-tester` (gera E roda os testes de contrato do que mudou).
-- **3.8** — `SendMessage` ao CRONOS pedindo a revisão do SHIELD.
+- **3.5 e 3.7, juntos** — `build-validator` e `contract-tester` (que gera E roda os testes de contrato do que mudou) disparados na MESMA mensagem, os dois com `run_in_background: true`; o executor espera os dois. FAIL de qualquer um → corrige e roda de novo.
+- **3.8** — `SendMessage` ao CRONOS com o payload curto (a revisão do SHIELD é feita por onda).
 - **3.9** — libera as travas (apaga as próprias pastas em `.delta-11/locks/`).
 
-Todos os executores (VAULT, BACK, ENGINE, FRONT, PIXEL, FORM, SCOUT) passam pela revisão do SHIELD. A tarefa só vira CONCLUÍDA no kanban — escrita pelo CRONOS — depois da linha `[SHIELD] APROVADO T-XXX [AGENTE]`.
+Todos os executores (VAULT, BACK, ENGINE, FRONT, PIXEL, FORM, SCOUT) passam pela revisão do SHIELD, que é feita por onda e dá o veredito por tarefa. A tarefa só vira CONCLUÍDA no kanban — escrita pelo CRONOS — depois da linha `[SHIELD] APROVADO T-XXX [AGENTE]`.
 
 ---
 
@@ -198,7 +208,7 @@ Validação falhou ou campo faltando = HTTP **400** com `code: "VALIDATION_ERROR
 
 ## 9. ESQUEMA DE BANCO CONGELADO
 
-Durante uma onda, o esquema de banco NÃO MUDA. Agentes podem confiar na estabilidade. Mudanças seguem o mesmo processo do contrato (seção 7, via ATLAS). Lembrete: o project-core é a verdade do contrato; as migrations são a verdade do banco implementado; se divergirem, é bug para o ATLAS decidir.
+Durante uma onda, o esquema de banco NÃO MUDA (no pipeline de ondas, isso vale para a onda que está rodando e para a que está em revisão). Agentes podem confiar na estabilidade. Mudanças seguem o mesmo processo do contrato (seção 7, via ATLAS). Lembrete: o project-core é a verdade do contrato; as migrations são a verdade do banco implementado; se divergirem, é bug para o ATLAS decidir.
 
 ---
 
