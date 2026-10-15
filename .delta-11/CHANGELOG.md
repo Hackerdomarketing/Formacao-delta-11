@@ -1048,3 +1048,8 @@ estava escrito antes fica registrado abaixo.
   Agora só é cópia se a raiz não tiver NADA além dos arquivos do próprio sistema (`RAIZ_DO_SISTEMA`). E as ferramentas
   da fonte (`sincronizar.sh`, `instalar.sh`, `novo-projeto.sh`) que sobraram na raiz dos projetos saem de lá (só as que
   são do Δ-11; um arquivo do usuário com o mesmo nome é preservado). Caso novo em `tests/scripts/sincronizar.test.sh`.
+- **v6.4.1 (2026-10-15) — a sincronização mantém o modelo que o projeto escolheu para cada agente.** Os
+  `perfis/*.json` eram copiados inteiros da fonte, e o campo `model` (decisão do projeto: no salvahacks, SHIELD =
+  sonnet, `decisoes-tecnicas.md` §6) voltava ao padrão a cada sincronização (já tinha acontecido na v6.2). Agora o
+  resto do perfil vem da fonte e o `model` que o projeto já tinha é preservado; a saída avisa "modelo do projeto
+  mantido". Casos novos em `tests/scripts/sincronizar.test.sh`.

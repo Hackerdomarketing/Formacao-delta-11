@@ -67,6 +67,9 @@ echo "<html>painel</html>" > "$FONTE/.delta-11/painel.html"
 echo "automatico" > "$FONTE/.delta-11/.modo-selo"
 echo "# Gotchas do Projeto" > "$FONTE/.delta-11/templates/gotchas-inicial.md"
 echo "skill nova" > "$FONTE/skills/skill-de-teste/SKILL.md"
+mkdir -p "$FONTE/.delta-11/perfis"
+echo '{"agent":"SHIELD","model":"opus","versao":"6.4","ferramentas":["nova.sh"]}' > "$FONTE/.delta-11/perfis/SHIELD.json"
+echo '{"agent":"BACK","model":"sonnet","versao":"6.4"}' > "$FONTE/.delta-11/perfis/BACK.json"
 cat > "$FONTE/.delta-11/templates/settings-hooks.json" <<'EOF'
 {"hooks":{"Stop":[{"matcher":"","hooks":[{"type":"command","command":"python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/release-locks.py\"","timeout":5}]}],
  "PreToolUse":[{"matcher":"Write","hooks":[{"type":"command","command":"python3 \"$CLAUDE_PROJECT_DIR/.delta-11/hooks/vigia-novo.py\"","timeout":5}]}]}}
@@ -78,6 +81,8 @@ mkdir -p "$PA/.delta-11/memoria" "$PA/.delta-11/scripts" "$PA/.claude"
 echo "manual" > "$PA/.delta-11/.modo-selo"
 echo "# meu kanban com tarefas" > "$PA/.delta-11/kanban.md"
 echo "minha memoria" > "$PA/.delta-11/memoria/ATLAS-produto.md"
+mkdir -p "$PA/.delta-11/perfis"
+echo '{"agent":"SHIELD","model":"sonnet","versao":"6.2"}' > "$PA/.delta-11/perfis/SHIELD.json"  # decisão do projeto
 printf '#!/bin/bash\n# FORMAÇÃO Δ-11 — task-done antigo\n' > "$PA/task-done.sh"
 printf '#!/bin/bash\n# FORMAÇÃO Δ-11 — disparar\n' > "$PA/disparar.sh"
 printf '#!/bin/bash\n# FORMAÇÃO Δ-11 — disparar\n' > "$PA/.delta-11/scripts/disparar.sh"
@@ -173,6 +178,10 @@ for c in "$COPIA" "$CLONE" "$ATUAL"; do
     [ -e "$c/CLAUDE.md" ] && err "4: cópia do sistema tratada como projeto: $c"
 done
 ok "4: cópias, clones e sistema-atual não foram tocados (C-057)"
+P="$PA/.delta-11/perfis/SHIELD.json"
+[ "$(jq -r .model "$P")" = "sonnet" ] && ok "4: modelo escolhido pelo projeto (SHIELD = sonnet) foi mantido" || err "4: a sincronização trocou o modelo do projeto"
+[ "$(jq -r .versao "$P")" = "6.4" ] && [ "$(jq -r '.ferramentas[0]' "$P")" = "nova.sh" ] && ok "4: o resto do perfil veio da fonte" || err "4: o perfil não foi atualizado"
+[ "$(jq -r .model "$PA/.delta-11/perfis/BACK.json")" = "sonnet" ] && ok "4: perfil novo chega com o modelo da fonte" || err "4: perfil novo sem modelo"
 [ -f "$ANTIGO/CLAUDE.md" ] && ok "4: projeto real com sobras do sistema na raiz É sincronizado" || err "4: projeto real com CHANGELOG + sincronizar.sh foi tratado como cópia"
 [ -e "$ANTIGO/sincronizar.sh" ] && err "4: sincronizar.sh velho do Δ-11 continua na raiz do projeto" || ok "4: sincronizar.sh velho saiu da raiz do projeto"
 [ -f "$ANTIGO/instalar.sh" ] && ok "4: instalar.sh do USUÁRIO (não é do Δ-11) foi preservado" || err "4: apagou um instalar.sh do usuário"

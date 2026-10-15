@@ -29,6 +29,8 @@
 #     pastas canônicas (scratch, evidencias/screenshots, logs/sub-agentes)
 #   - task-done.sh, monitor-delta11.sh, vigilante.sh  →  .delta-11/scripts/
 #     (C-053; as cópias velhas na raiz do projeto são retiradas)
+#   - perfis/*.json: vêm da fonte, MAS o campo "model" que o projeto já
+#     tinha é mantido (o modelo de cada agente é decisão do projeto — v6.4.1)
 #   - .claude/settings.json: os vigias (hooks) do Δ-11 são SUBSTITUÍDOS
 #     pelos do modelo; vigias do usuário são preservados (C-058)
 #
@@ -463,7 +465,7 @@ aplicar_removidos() {
 
 sincronizar_destino() {
     local destino="$1"
-    local copiados=0 ignorados=0 par src_rel dst_rel src dst
+    local copiados=0 ignorados=0 par src_rel dst_rel src dst modelo_mantido perfil_mesclado
 
     if [ -z "$destino" ] || [ ! -d "$destino" ]; then
         echo -e "    ${RED}x Pasta não encontrada: $destino${NC}"
@@ -488,9 +490,27 @@ sincronizar_destino() {
         dst_rel="${par#*|}"
         src="$SOURCE/$src_rel"
         dst="$destino/$dst_rel"
+        modelo_mantido=""
+        perfil_mesclado=""
+
+        # Perfis: o MODELO é escolha do projeto (ex.: salvahacks decidiu SHIELD = sonnet). O resto do perfil vem da
+        # fonte, mas o campo "model" que o projeto já tinha é preservado — senão cada sincronização desfaz a decisão.
+        if [[ "$dst_rel" == .delta-11/perfis/*.json ]] && [ -f "$dst" ]; then
+            local modelo_projeto modelo_fonte
+            modelo_projeto=$(jq -r '.model // empty' "$dst" 2>/dev/null) || modelo_projeto=""
+            modelo_fonte=$(jq -r '.model // empty' "$src" 2>/dev/null) || modelo_fonte=""
+            if [ -n "$modelo_projeto" ] && [ "$modelo_projeto" != "$modelo_fonte" ]; then
+                perfil_mesclado=$(mktemp)
+                if jq --arg m "$modelo_projeto" '.model = $m' "$src" > "$perfil_mesclado" 2>/dev/null; then
+                    src="$perfil_mesclado"
+                    modelo_mantido="$modelo_projeto"
+                fi
+            fi
+        fi
 
         if [ -f "$dst" ] && cmp -s "$src" "$dst"; then
             ignorados=$((ignorados + 1))
+            [ -n "$perfil_mesclado" ] && rm -f "$perfil_mesclado"
             continue
         fi
 
@@ -507,6 +527,10 @@ sincronizar_destino() {
                 chmod +x "$dst"
             fi
         fi
+        if [ -n "$modelo_mantido" ]; then
+            echo -e "    ${GREEN}= $dst_rel${NC}: modelo do projeto mantido (\"$modelo_mantido\")"
+        fi
+        [ -n "$perfil_mesclado" ] && rm -f "$perfil_mesclado"
         copiados=$((copiados + 1))
     done
 
