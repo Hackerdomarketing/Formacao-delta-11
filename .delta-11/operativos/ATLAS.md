@@ -717,6 +717,8 @@ NÃO inclua o `project-core.md` principal no mini-plano dos executores — eles 
 
 Use os nomes de agente da tabela AGENTES POR COMPLEXIDADE: na BAIXA (5 a 8 pontos), as tarefas de PIXEL e FORM vão para o FRONT e as de ENGINE e VAULT vão para o BACK.
 
+**O campo "Depende de" decide o paralelismo (v6.4):** o CRONOS dispara JUNTAS, ao mesmo tempo, todas as tarefas sem dependência; só ficam em série as que dependem de outra ou editam o mesmo arquivo. Preencha "Depende de" só quando a tarefa precisa do RESULTADO da outra (ex.: a rota precisa da tabela) — nunca "por ordem" ou "por segurança". E junte numa tarefa só o trabalho da mesma área e do mesmo agente: menos tarefas grandes e bem recortadas valem mais que muitas pequenas.
+
 10. **DISPARAR O CRONOS — OBRIGATÓRIO EM TODO PROJETO (v6.3):**
 
    **ATLAS define o QUE construir e COMO funcionar. CRONOS orquestra o TRABALHO a partir daqui — revisão dos contratos pelo SHIELD, pesquisa técnica, mini-planos, sequenciamento, disparo de agentes, monitoramento. Sempre. Independente de score.**
