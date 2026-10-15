@@ -1,4 +1,4 @@
-# PROTOCOLO DE MERGE GUIADO POR CONTRATOS — FORMAÇÃO Δ-11 (v6.3)
+# PROTOCOLO DE MERGE GUIADO POR CONTRATOS — FORMAÇÃO Δ-11 (v6.4)
 
 ## Contexto
 
@@ -31,9 +31,9 @@ Consequência prática: o agente, na worktree dele, acessa os arquivos compartil
 Quando um agente finaliza as tarefas da onda atual, ele segue a rotina de finalização (ver `comunicacao.md`, seção 4):
 
 1. Atualiza `[NOME]-produto.md` e `[NOME]-historia.md` na pasta principal (Passos 1a e 1b).
-2. Faz a autocrítica e roda a cadeia de sub-agentes: `build-validator` (3.5) e `contract-tester` (3.7, gera E roda os testes do que mudou).
+2. Faz a autocrítica e dispara JUNTOS, em segundo plano, o `build-validator` (3.5) e o `contract-tester` (3.7, gera E roda os testes do que mudou); espera os dois.
 3. **Commita** na branch da worktree.
-4. Envia `SendMessage` ao CRONOS pedindo a revisão do SHIELD (3.8), com o payload:
+4. Envia `SendMessage` ao CRONOS (3.8) com o payload curto — a revisão do SHIELD é feita por onda:
    ```json
    {
      "agente": "ENGINE",
@@ -48,14 +48,19 @@ Quando um agente finaliza as tarefas da onda atual, ele segue a rotina de finali
    ```
 5. Libera as próprias travas (3.9).
 
-O agente NÃO escreve no kanban e NÃO faz merge. O CRONOS dispara o SHIELD, registra o resultado no kanban e orquestra o merge.
+O agente NÃO escreve no kanban e NÃO faz merge. Quando os executores da onda terminam, o CRONOS dispara UM SHIELD para a onda inteira (onda grande: vários SHIELD em paralelo, um por zona), registra o resultado de cada tarefa no kanban e orquestra o merge.
 
-### 2. CRONOS recebe e tenta merge automático
+### 2. CRONOS recebe e tenta merge automático — merge por ONDA, só tarefas APROVADAS (v6.4)
 
-O CRONOS só faz merge de branch cujas tarefas têm a linha `[SHIELD] APROVADO T-XXX [AGENTE]` no activity-log. Quando todas as worktrees da onda estão aprovadas:
+O merge é feito **uma vez por onda**, depois da revisão do SHIELD da onda, e **só entra a branch cujas tarefas têm TODAS a linha `[SHIELD] APROVADO T-XXX [AGENTE]`** no activity-log:
+- **Branch toda aprovada** → entra no merge desta onda.
+- **Branch com alguma tarefa REPROVADA** → fica FORA deste merge, sem travar as outras. A correção vira tarefa na próxima vaga livre (o CRONOS retoma o mesmo executor por `SendMessage`, na mesma worktree e branch, ou dispara um novo sobre ela); depois do APROVADO, a branch entra no merge seguinte.
+- **Pipeline:** enquanto o SHIELD revisa a onda N e o CRONOS faz este merge, a onda N+1 já pode estar rodando nas tarefas que não dependem da onda N. As worktrees dela nasceram antes deste merge — por isso só vão para o pipeline tarefas SEM dependência de código da onda N, e o merge delas usa o mesmo árbitro abaixo.
+
+Passos:
 
 1. O CRONOS trabalha na pasta principal (nunca tenta merge dentro de uma worktree).
-2. Para cada worktree, na ordem do caminho crítico:
+2. Para cada worktree APROVADA da onda, na ordem do caminho crítico:
    ```bash
    git merge --no-ff delta-11/[nome-da-branch]
    ```
@@ -114,9 +119,9 @@ Depois de resolver todos os conflitos:
 1. `git add` nos arquivos resolvidos
 2. `git commit` (commit de merge)
 3. Rodar `npm run test:contracts` **uma vez no resultado do merge** — deve passar
-4. Se passar, a onda está consolidada. Se não passar, reverter o merge e tratar como caso 4 (SCOUT, via `correcao-de-erros.md`)
+4. Se passar, a onda está consolidada (as branches aprovadas dela). Se não passar, reverter o merge e tratar como caso 4 (SCOUT, via `correcao-de-erros.md`)
 5. O activity-log recebe o registro do merge + decisões tomadas (formato único: `- [AAAA-MM-DDTHH:MM:SSZ] [merge-guiado] [CRONOS] mensagem`)
-6. Apagar as worktrees concluídas e a pasta temporária do merge:
+6. Apagar as worktrees mergeadas (as que ficaram de fora por reprovação continuam até o merge seguinte) e a pasta temporária do merge:
    ```bash
    git worktree remove delta-11-[agente]-[onda]
    git branch -d delta-11/[agente]-[onda]

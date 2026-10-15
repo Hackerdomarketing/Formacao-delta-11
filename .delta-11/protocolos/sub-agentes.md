@@ -1,4 +1,4 @@
-# PROTOCOLO DE SUB-AGENTES — FORMAÇÃO Δ-11 (v6.3)
+# PROTOCOLO DE SUB-AGENTES — FORMAÇÃO Δ-11 (v6.4)
 
 ## O QUE SÃO SUB-AGENTES
 
@@ -10,6 +10,8 @@ Diferença chave:
 
 Os sub-agentes podem ler o project-core inteiro (a restrição de leitura por fatias vale só para os executores).
 
+**Em paralelo e em segundo plano (v6.4):** todo sub-agente é disparado com `run_in_background: true`. Quando há mais de um para disparar no mesmo momento, eles saem JUNTOS, na MESMA mensagem: o `build-validator` e o `contract-tester` de cada tarefa (Passos 3.5 e 3.7); e os revisores de fim de fase — `fresh-reviewer`, um `cold-start-tester` por `-produto.md` e o `qa-ui-tandem`. Quem disparou espera TODOS (a notificação de cada um chega sozinha) e então consolida. Nenhum revisor roda em primeiro plano e nenhum espera o outro terminar para começar.
+
 ---
 
 ## OS 10 SUB-AGENTES
@@ -19,15 +21,15 @@ Cada um tem um arquivo em `.delta-11/sub-agentes/`. A tabela diz quem dispara e 
 | # | Sub-agente | Quem dispara | Quando roda |
 |---|---|---|---|
 | 1 | `build-validator` | Cada executor (VAULT, BACK, ENGINE, FRONT, PIXEL, FORM, SCOUT); SHIELD na Fase 6 | Passo 3.5 de toda tarefa de código; antes do deploy |
-| 2 | `contract-tester` | SHIELD (Passo 2.7); cada executor (Passo 3.7); CRONOS (depois que o ATLAS altera o project-core) | Fim da Fase 2; toda tarefa de código; após mudança de contrato |
+| 2 | `contract-tester` | SHIELD (Passo 2.7); cada executor (Passo 3.7, junto com o build-validator); CRONOS (depois que o ATLAS altera o project-core) | Fim da Fase 2; toda tarefa de código; após mudança de contrato |
 | 3 | `code-architect` | CRONOS | Fim da Fase 4 (obrigatório); Fase 2.5 e durante a execução (sob demanda) |
 | 4 | `verify-app` | SHIELD | Fase 6, antes do deploy, depois do merge da onda |
 | 5 | `schema-validator` | SHIELD | Antes de criar/alterar SQL de teste ou seeds; depois de migration nova; quando o ATLAS altera o esquema |
 | 6 | `impact-mapper` | CRONOS (só a pedido) | Depois que o ATLAS altera o project-core e o CRONOS quer saber o impacto no código pronto |
-| 7 | `fresh-reviewer` | CRONOS | Fim de cada fase, depois de todas as tarefas aprovadas pelo SHIELD |
-| 8 | `cold-start-tester` | CRONOS | Fim de cada fase, depois do fresh-reviewer — um disparo por `[AGENTE]-produto.md` |
+| 7 | `fresh-reviewer` | CRONOS | Fim de cada fase, depois de todas as tarefas aprovadas pelo SHIELD — junto com os outros revisores de fase |
+| 8 | `cold-start-tester` | CRONOS | Fim de cada fase, junto com o fresh-reviewer — um disparo por `[AGENTE]-produto.md`, todos ao mesmo tempo |
 | 9 | `tool-provisioner` | CRONOS | Fase 2.4; e quando uma integração nova entra no projeto |
-| 10 | `qa-ui-tandem` | CRONOS | Fim de cada fase com interface navegável, depois do cold-start-tester (selo experiencial) |
+| 10 | `qa-ui-tandem` | CRONOS | Fim de cada fase com interface navegável, junto com o fresh-reviewer e os cold-start-tester (selo experiencial) |
 
 ---
 
@@ -36,7 +38,7 @@ Cada um tem um arquivo em `.delta-11/sub-agentes/`. A tabela diz quem dispara e 
 **Arquivo:** `.delta-11/sub-agentes/build-validator.md`
 
 **Quem dispara e quando:**
-- Cada executor que escreve código (VAULT, BACK, ENGINE, FRONT, PIXEL, FORM, SCOUT), no **Passo 3.5** de toda tarefa, dentro da própria worktree.
+- Cada executor que escreve código (VAULT, BACK, ENGINE, FRONT, PIXEL, FORM, SCOUT), no **Passo 3.5** de toda tarefa, dentro da própria worktree — na MESMA mensagem do `contract-tester` (3.7), os dois em segundo plano.
 - O SHIELD, na Fase 6, antes do deploy.
 
 **O que faz:** roda typecheck, lint, build e testes (incluindo os de contrato, se existirem); verifica vulnerabilidades (`npm audit`); procura segredos expostos; valida o `.gitignore`; aplica os limites de código como bloqueio.
@@ -55,7 +57,7 @@ O contract-tester **gera E roda** os testes de contrato e devolve o resultado. �
 
 **Quem dispara e quando:**
 1. **Geração inicial — Passo 2.7 (SHIELD):** ao fim da Fase 2, depois que o ATLAS salvou os contratos e o SHIELD terminou a revisão. Gera `tests/contracts/` a partir do project-core e roda uma vez.
-2. **Por tarefa — Passo 3.7 (cada executor):** depois que o build-validator passou. Gera os testes do que mudou na tarefa, roda e devolve PASS/FAIL. Vale também para o SCOUT ao corrigir bug.
+2. **Por tarefa — Passo 3.7 (cada executor):** junto com o build-validator (Passo 3.5), na mesma mensagem, os dois em segundo plano; o executor espera os dois. Gera os testes do que mudou na tarefa, roda e devolve PASS/FAIL. Vale também para o SCOUT ao corrigir bug. Se o build-validator falhar, o executor corrige e roda os dois de novo.
 3. **Depois de mudança no project-core (CRONOS):** o hook `regenerar-contratos.py` não dispara mais nada — ele só calcula o hash e grava `.delta-11/ativacoes/contratos-desatualizados.txt` (hash novo + hora). Quando o ATLAS termina as edições, o CRONOS dispara o contract-tester UMA vez para regenerar e rodar os testes e apaga o aviso.
 
 **Uso dos testes sem disparar o sub-agente:**
@@ -141,7 +143,7 @@ O contract-tester **gera E roda** os testes de contrato e devolve o resultado. �
 
 **Quem dispara:** o CRONOS (único disparador).
 
-**Quando:** ao final de cada fase, depois que todas as tarefas têm `[SHIELD] APROVADO` e ANTES do selo.
+**Quando:** ao final de cada fase, depois que todas as tarefas têm `[SHIELD] APROVADO` e ANTES do selo. Sai na MESMA mensagem dos `cold-start-tester` e do `qa-ui-tandem`, em segundo plano.
 
 **O que faz:** recebe APENAS o caminho do projeto e a fase atual. NÃO lê project-core, mini-planos, memória de agentes nem contratos — é VIRGEM de contexto. Usa a aplicação como um usuário real e reporta o que quebra, o que incomoda, o que parece mal acabado ou genérico.
 
@@ -157,7 +159,7 @@ O contract-tester **gera E roda** os testes de contrato e devolve o resultado. �
 
 **Quem dispara:** o CRONOS (único disparador).
 
-**Quando:** ao final de cada fase, DEPOIS do fresh-reviewer e ANTES do selo. Um disparo POR `[AGENTE]-produto.md` da fase.
+**Quando:** ao final de cada fase, JUNTO com o fresh-reviewer e ANTES do selo. Um disparo POR `[AGENTE]-produto.md` da fase — todos na mesma mensagem, em segundo plano (ele lê só o `-produto.md`, então não depende do resultado do fresh-reviewer).
 
 **O que faz:** recebe APENAS o caminho de UM `[AGENTE]-produto.md`. Responde 4 perguntas (o que existe; o que a próxima fase pode usar; o que NÃO existe nem vai existir; qual a próxima tarefa) e dá a confiança de cada resposta (ALTA/BAIXA/IMPOSSÍVEL).
 
@@ -191,7 +193,7 @@ O contract-tester **gera E roda** os testes de contrato e devolve o resultado. �
 
 **Quem dispara:** o CRONOS.
 
-**Quando:** ao fim de cada fase que tem interface navegável, depois do cold-start-tester e antes do selo. Roda nos dois modos: em `automatico` o resultado decide o selo; em `manual` o relatório vai ao comandante junto com o pedido de `aprovar`.
+**Quando:** ao fim de cada fase que tem interface navegável, JUNTO com o fresh-reviewer e os cold-start-tester (mesma mensagem, em segundo plano) e antes do selo. Roda nos dois modos: em `automatico` o resultado decide o selo; em `manual` o relatório vai ao comandante junto com o pedido de `aprovar`.
 
 **O que faz:** percorre, pelo Tandem Browser MCP, os fluxos críticos que o CRONOS gerou a partir do project-core (roteiro em `.delta-11/templates/selo-experiencial-template.md`), confere o estado esperado de cada passo e guarda a evidência. Não pergunta nada ao comandante.
 
@@ -206,7 +208,7 @@ O contract-tester **gera E roda** os testes de contrato e devolve o resultado. �
 | build-validator | Após cada tarefa de código (Passo 3.5) | 3, 3.5, 4, 4.5, 5 | Executor dono da tarefa | SIM |
 | build-validator | Antes do deploy | 6 | SHIELD | SIM |
 | contract-tester — geração inicial | Fim da Fase 2 (Passo 2.7) | 2 | SHIELD | SIM |
-| contract-tester — por tarefa | Após o build-validator (Passo 3.7) | 3 em diante | Executor dono da tarefa | SIM |
+| contract-tester — por tarefa | Junto com o build-validator (Passo 3.7) | 3 em diante | Executor dono da tarefa | SIM |
 | contract-tester — após mudança no project-core | Uma vez, quando o ATLAS termina as edições | Qualquer | CRONOS | SIM |
 | Testes de contrato — fim de fase | Antes de cada transição de fase | Qualquer | Hook `validar-contratos-fim-fase.py` | SIM — bloqueia a transição |
 | Testes de contrato — antes de deploy | Ao pedir deploy | 6 | Hook `validar-deploy.py` | SIM — bloqueia o deploy |
@@ -215,8 +217,8 @@ O contract-tester **gera E roda** os testes de contrato e devolve o resultado. �
 | verify-app | Antes de deploy | 6 | SHIELD | SIM |
 | schema-validator | SQL de teste, migration nova, esquema alterado | 3 em diante | SHIELD | SIM |
 | impact-mapper | Mudança de contrato com código já escrito | Qualquer | CRONOS (a pedido) | Quando o CRONOS pede |
-| fresh-reviewer | Fim de cada fase | Todas com algo para usar | CRONOS | SIM |
-| cold-start-tester | Fim de cada fase, 1 por `-produto.md` | Todas com `-produto.md` | CRONOS | SIM |
+| fresh-reviewer | Fim de cada fase (junto com os outros revisores) | Todas com algo para usar | CRONOS | SIM |
+| cold-start-tester | Fim de cada fase, 1 por `-produto.md`, todos juntos | Todas com `-produto.md` | CRONOS | SIM |
 | tool-provisioner | Fase 2.4 + integração nova | 2.4 | CRONOS | SIM se há integrações externas |
 | qa-ui-tandem | Fim de cada fase com interface | Fases com interface navegável | CRONOS | SIM |
 
@@ -231,14 +233,16 @@ Agent(
   description: "[NOME-DO-SUB-AGENTE] — [propósito] — T-XXX",
   subagent_type: "general-purpose",
   model: "sonnet",                      ← todos os sub-agentes rodam em sonnet (perfis/)
-  run_in_background: false,             ← quem dispara espera o relatório
+  run_in_background: true,              ← sempre em segundo plano; a notificação chega sozinha
   prompt: "[conteúdo de .delta-11/sub-agentes/[NOME].md] + contexto específico
            (caminho do projeto, tarefa, arquivos, fase)"
 )
 ```
 
+Vários sub-agentes no mesmo momento (3.5 + 3.7; revisores de fim de fase) = várias chamadas `Agent` na MESMA mensagem. Quem disparou espera a notificação de TODOS antes de agir.
+
 Depois:
-1. Leia o relatório retornado.
+1. Leia o relatório retornado (de cada um).
 2. Salve o relatório completo em `.delta-11/logs/sub-agentes/[AAAA-MM-DD]-[sub-agente]-[AGENTE]-[T-XXX].md` (Regra 17). O hook do evento `SubagentStop` grava sozinho a prova `logs/sub-agentes/AAAAMMDDTHHMMSSZ-[agent_type].log`.
 3. Escreva a linha-resumo no seu `-produto.md` (`<sub-agente>: <PASS|FAIL> / <métrica chave>`).
 4. Aja conforme o resultado (corrigir, aprovar, replanejar, avisar o CRONOS).
@@ -393,10 +397,10 @@ O CRONOS acrescenta de 3 a 5 lições ao arquivo `~/.delta-11/aprendizados-entre
 ## REGRAS DE OURO
 
 1. **build-validator** = SEMPRE após código (Passo 3.5).
-2. **contract-tester** = SEMPRE após o build-validator (Passo 3.7) — gera E roda.
+2. **contract-tester** = SEMPRE junto com o build-validator (Passo 3.7, os dois em segundo plano) — gera E roda.
 3. **code-architect** = SEMPRE ao final da Fase 4 + sob demanda do CRONOS.
 4. **verify-app** = SEMPRE antes de deploy.
-5. **Cadeia de selo** = fresh-reviewer → cold-start-tester → qa-ui-tandem ao fim de cada fase.
+5. **Revisores de selo** = fresh-reviewer + cold-start-tester (um por `-produto.md`) + qa-ui-tandem, disparados JUNTOS e em segundo plano ao fim de cada fase; o CRONOS espera todos e consolida.
 6. **Sub-agentes NUNCA decidem sozinhos** — eles reportam, quem disparou decide.
 7. **O CRONOS usa o code-architect para INFORMAR decisões de gestão**; decisão de arquitetura continua sendo do ATLAS.
 

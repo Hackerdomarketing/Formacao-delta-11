@@ -2,13 +2,14 @@
 Tipo de tarefa: funcionalidade | correção-de-bug | performance | segurança | refatoração
 (o SHIELD usa o tipo para exigir a evidência mínima correspondente)
 
-> **Template v6.3 (2026-10-14) — Mini-plano de agente executor (Mecanismo M1, D17).**
+> **Template v6.4 (2026-10-15) — Mini-plano de agente executor (Mecanismo M1, D17).**
 > - **Arquivo:** `.delta-11/planos/[AGENTE]-plan.md` — UM por agente, sobrescrito a cada onda.
 > - **Histórico:** antes de sobrescrever, o CRONOS move a versão anterior para
 >   `.delta-11/planos/arquivo/[AGENTE]-plan-fase-[N]-onda-[N].md`. Nenhum outro nome de plano existe.
 > - **Quem escreve:** só o CRONOS (Fase 2.5 ou replanejamento). O agente executor lê e segue; não edita.
-> - **LIMITE:** o brief de despacho derivado deste plano não passa de 2.000 tokens (`brief_max_tokens` em
->   `.delta-11/.config-limites.json`; o hook `pre-despacho.py` bloqueia).
+> - **LIMITE:** o brief de despacho derivado deste plano não passa de `brief_max_tokens` (padrão 4000 tokens, em
+>   `.delta-11/.config-limites.json`; o hook `pre-despacho.py` bloqueia). Passou? O CRONOS divide a tarefa em
+>   sub-tarefas por sub-domínio que rodam AO MESMO TEMPO (agentes irmãos), nunca em ondas em série (v6.4).
 > - **Ciclo interno:** a seção final "Checklist do ciclo interno" é obrigatória (protocolo
 >   `protocolos/ciclo-interno-7d.md`, guia por sub-etapa em `templates/ciclo-interno-template.md`).
 > - **Rastreabilidade:** toda afirmação técnica carrega `[Fonte: arquivo#seção]`. Informação que não está em
@@ -45,13 +46,17 @@ está pronto para você construir em cima].
 |---|---|---|---|---|
 | T-[NNN] | [ação] | `src/...` | [T-NNN de AGENTE + como verificar que está pronta] | [T-NNN de AGENTE] |
 
-**Paralelismo:** [quem roda junto com você nesta onda — ou "sozinho nesta onda"].
+**Paralelismo:** [quem roda junto com você nesta onda — a onda inteira é disparada de uma vez — ou "sozinho nesta onda"].
+**Sequência (só se houver):** [arquivo que você divide com outro agente, ou dependência declarada — senão, "nenhuma"].
+**Sub-tarefa irmã de (opcional — só quando a tarefa grande foi dividida, v6.4):** `Sub-tarefa irmã de: T-XXX |
+Meu sub-domínio: [...] | Irmão: [AGENTE] T-XXXb — [...]` (os irmãos rodam AO MESMO TEMPO, cada um na sua worktree;
+o que é do sub-domínio do irmão fica fora do seu escopo — seção 5).
 **Avise por SendMessage ao CRONOS se descobrir:** [ex.: divergência de schema, contrato ambíguo, mudança de escopo].
 
 ## 4. Critérios de aceite
 
-[Verificáveis por máquina ou por evidência. Máximo 6 — se precisar de mais, a onda é grande demais: o CRONOS
-quebra em mais ondas.]
+[Verificáveis por máquina ou por evidência. Máximo 6 — se precisar de mais, a tarefa é grande demais: o CRONOS
+divide em sub-tarefas paralelas (agentes irmãos), não em mais ondas.]
 
 - [ ] [critério 1 — mensurável] — verificável por: [comando, teste ou evidência]
 - [ ] `tsc --noEmit` 0 erros · build PASS · `npm run test:contracts` sem regressão (adaptar ao stack)

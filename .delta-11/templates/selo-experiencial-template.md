@@ -1,6 +1,6 @@
-# 🔍 SELO EXPERIENCIAL — Fase [N] (v6.3 — executado pelo sub-agente qa-ui-tandem)
+# 🔍 SELO EXPERIENCIAL — Fase [N] (v6.4 — executado pelo sub-agente qa-ui-tandem)
 
-> **Template v6.3 (2026-10-14).** O selo é EXECUTADO pelo sub-agente `qa-ui-tandem`
+> **Template v6.4 (2026-10-15).** O selo é EXECUTADO pelo sub-agente `qa-ui-tandem`
 > (`.delta-11/sub-agentes/qa-ui-tandem.md`), que opera o produto num navegador real — o Tandem Browser, pela API
 > HTTP em `http://localhost:8765` — e devolve PASS / FAIL / BLOQUEADO com screenshots. Se o Tandem não estiver
 > rodando, o sub-agente usa o Playwright e avisa no relatório.
@@ -15,11 +15,13 @@
 
 ## Quem executa este selo
 
-**Sub-agente `qa-ui-tandem`** — disparado pelo CRONOS via `Agent tool`, sem worktree, ao final da cadeia
-automática de fim de fase:
+**Sub-agente `qa-ui-tandem`** — disparado pelo CRONOS via `Agent tool`, sem worktree, depois que todas as
+tarefas da fase têm `[SHIELD] APROVADO`. Ele sai JUNTO com os outros revisores de fase (v6.4), na mesma mensagem e
+em segundo plano; o CRONOS espera todos e consolida:
 
 ```
-SHIELD → Fresh Reviewer → Cold Start Tester → qa-ui-tandem (Selo Experiencial)
+SHIELD APROVADO em todas → [ Fresh Reviewer + Cold Start Tester (um por -produto.md) + qa-ui-tandem ] → selo
+                             (todos juntos, run_in_background: true)
 ```
 
 ```
@@ -27,7 +29,7 @@ Agent(
   description: "qa-ui-tandem — Selo Fase [N]",
   subagent_type: "general-purpose",
   model: "sonnet",
-  run_in_background: false,
+  run_in_background: true,
   prompt: "[conteúdo de .delta-11/sub-agentes/qa-ui-tandem.md]
 Projeto em: [caminho absoluto da pasta principal]. Fase: [N].
 Roteiro: .delta-11/planos/selo-experiencial-fase-[N].md. URL base: [http://localhost:3000].
@@ -100,3 +102,5 @@ ou decisão de negócio — e pede a MENOR ação possível (ex.: "crie uma cont
 - ✅ Adicionado: modo `automatico` como padrão; `modo manual` só por escolha do comandante
 - ✅ v6.3: endpoints reais da API HTTP do Tandem, alternativa com Playwright, veredito BLOQUEADO, caminho do
   roteiro preenchido e das evidências
+- ✅ v6.4: o qa-ui-tandem sai JUNTO com o fresh-reviewer e os cold-start-tester, em segundo plano
+  (`run_in_background: true`) — não espera mais os outros revisores terminarem
