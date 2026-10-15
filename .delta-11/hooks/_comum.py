@@ -67,9 +67,9 @@ SUB_AGENTES = {
 
 # ─── Limites (D36) ──────────────────────────────────────────────────────────
 LIMITES_PADRAO = {
-    "brief_max_tokens": 2000,
+    "brief_max_tokens": 4000,
     "produto_max_tokens": 500,
-    "paralelo_max": 3,
+    "paralelo_max": 5,
     "janela_horas": 4,
     "lock_horas": 2,
 }
@@ -344,14 +344,32 @@ def identify_agent(evento: dict | None = None, fallback_latest_ack: bool = True)
     return latest_ack_agent(de_outros)
 
 
+SUB_AGENTE_LINHA_RE = re.compile(
+    r"^[ \t>*_-]*Sub-agente\**\s*:\s*[`*]*\s*(?:\S*/)?([a-z][a-z-]*?)(?:\.md)?\b[`*]*",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+
+def _first_sub_agent(texto: str) -> str:
+    """Sub-agente citado PRIMEIRO no texto (posicao, nao ordem alfabetica)."""
+    texto = texto.lower()
+    posicoes = [(texto.find(sub), sub) for sub in SUB_AGENTES if sub in texto]
+    return min(posicoes)[1] if posicoes else ""
+
+
 def dispatch_target(evento: dict) -> str:
     """
     Alvo de um disparo do Agent tool (Agent/Task). Ordem:
       1. campo `name` (ex.: "back-onda-2" -> BACK; "cronos" -> CRONOS);
       2. `subagent_type` que ja e nome Delta-11;
-      3. linha "Agente: NOME" no prompt;
-      4. nome de sub-agente (em minusculas) na descricao ou no prompt.
+      3. nome de sub-agente na `description` (o primeiro citado);
+      4. linha "Sub-agente: .../<nome>.md" do prompt;
+      5. linha "Agente: NOME" no prompt;
+      6. o primeiro nome de sub-agente citado no resto do prompt.
     "" se nao identificar.
+    v6.4: os passos 3 e 4 vem antes do resto do prompt. Antes, a busca olhava o
+    prompt inteiro em ordem alfabetica e um contract-tester (cujo texto cita o
+    build-validator) aparecia como "build-validator".
     """
     entrada = tool_input(evento)
     nome = str(entrada.get("name") or "")
@@ -362,14 +380,16 @@ def dispatch_target(evento: dict) -> str:
     if tipo in TODOS_OS_AGENTES:
         return tipo
     prompt = str(entrada.get("prompt") or "")
+    sub = _first_sub_agent(str(entrada.get("description") or ""))
+    if sub:
+        return sub
+    for achado in SUB_AGENTE_LINHA_RE.finditer(prompt):
+        if achado.group(1).lower() in SUB_AGENTES:
+            return achado.group(1).lower()
     achado = re.search(r"Agente:\s*([A-Z_-]+)", prompt)
     if achado:
         return achado.group(1).strip()
-    descricao = str(entrada.get("description") or "").lower()
-    for sub in sorted(SUB_AGENTES):
-        if sub in descricao or sub in prompt.lower():
-            return sub
-    return ""
+    return _first_sub_agent(prompt)
 
 
 def is_main_session(evento: dict | None = None) -> bool:
