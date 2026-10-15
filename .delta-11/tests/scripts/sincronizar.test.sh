@@ -97,6 +97,11 @@ COPIA="$DELTA11_SEARCH_PATHS/copia-do-sistema"  # C-057
 mkdir -p "$COPIA/.delta-11" "$COPIA/boilerplate-delta-11-nextjs"
 CLONE="$DELTA11_SEARCH_PATHS/clone-do-sistema"
 mkdir -p "$CLONE/.delta-11"; echo "# changelog" > "$CLONE/.delta-11/CHANGELOG.md"; echo "#!/bin/bash" > "$CLONE/sincronizar.sh"
+ANTIGO="$DELTA11_SEARCH_PATHS/projeto-de-instalador-antigo"  # projeto real com sobras do sistema na raiz
+mkdir -p "$ANTIGO/.delta-11" "$ANTIGO/src"; echo "# changelog" > "$ANTIGO/.delta-11/CHANGELOG.md"
+printf '#!/bin/bash\n# FORMAÇÃO Δ-11 — Sincronizar (cópia velha)\n' > "$ANTIGO/sincronizar.sh"
+printf '#!/bin/bash\n# instalador do usuario, sem relacao com o sistema\n' > "$ANTIGO/instalar.sh"
+echo "export const app = 1" > "$ANTIGO/src/app.ts"
 ATUAL="$DELTA11_SEARCH_PATHS/construcao-delta-11/sistema-atual"
 mkdir -p "$ATUAL/.delta-11"
 
@@ -168,6 +173,10 @@ for c in "$COPIA" "$CLONE" "$ATUAL"; do
     [ -e "$c/CLAUDE.md" ] && err "4: cópia do sistema tratada como projeto: $c"
 done
 ok "4: cópias, clones e sistema-atual não foram tocados (C-057)"
+[ -f "$ANTIGO/CLAUDE.md" ] && ok "4: projeto real com sobras do sistema na raiz É sincronizado" || err "4: projeto real com CHANGELOG + sincronizar.sh foi tratado como cópia"
+[ -e "$ANTIGO/sincronizar.sh" ] && err "4: sincronizar.sh velho do Δ-11 continua na raiz do projeto" || ok "4: sincronizar.sh velho saiu da raiz do projeto"
+[ -f "$ANTIGO/instalar.sh" ] && ok "4: instalar.sh do USUÁRIO (não é do Δ-11) foi preservado" || err "4: apagou um instalar.sh do usuário"
+[ -f "$ANTIGO/src/app.ts" ] && ok "4: código do projeto intacto" || err "4: código do projeto sumiu"
 
 S="$PA/.claude/settings.json"
 if jq -e '.model == "opus"' "$S" >/dev/null \

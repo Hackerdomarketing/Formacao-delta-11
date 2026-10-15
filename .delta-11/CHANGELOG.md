@@ -1042,3 +1042,9 @@ estava escrito antes fica registrado abaixo.
   bloqueado no selo. Agora esses documentos também liberam o selo, desde que cada um cite "Ciclo N" no texto;
   documentos herdados de ciclos anteriores continuam não valendo. `_comum.phase_artifacts` ganhou o parâmetro `ciclo`.
   Testes novos nos dois arquivos de `tests/hooks/`; conferido com uma cópia dos documentos reais do salvahacks.
+- **v6.4.1 (2026-10-15) — `sincronizar.sh` não pula mais projeto real criado por instalador antigo.** A regra C-057
+  tratava como "cópia do sistema" toda pasta com `.delta-11/CHANGELOG.md` + `sincronizar.sh` na raiz; projetos reais
+  cujo instalador antigo copiou tudo para a raiz (scanner-de-desvantagens-v3, cofre-de-keys) ficavam sem atualização.
+  Agora só é cópia se a raiz não tiver NADA além dos arquivos do próprio sistema (`RAIZ_DO_SISTEMA`). E as ferramentas
+  da fonte (`sincronizar.sh`, `instalar.sh`, `novo-projeto.sh`) que sobraram na raiz dos projetos saem de lá (só as que
+  são do Δ-11; um arquivo do usuário com o mesmo nome é preservado). Caso novo em `tests/scripts/sincronizar.test.sh`.

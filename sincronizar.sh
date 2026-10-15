@@ -17,7 +17,8 @@
 #   - worktrees de agentes (.claude/worktrees/...);
 #   - cópias e clones do próprio sistema: pasta com
 #     boilerplate-delta-11-nextjs/, ou com .delta-11/CHANGELOG.md
-#     + sincronizar.sh na raiz, ou com .delta-11/.e-copia-do-sistema,
+#     + sincronizar.sh na raiz E nada além dos arquivos do sistema
+#     (v6.4.1), ou com .delta-11/.e-copia-do-sistema,
 #     e a pasta construcao-delta-11/sistema-atual.
 #
 # O que ELE SINCRONIZA (arquivos de sistema, por cima):
@@ -101,6 +102,11 @@ PASTAS_DE_SISTEMA="operativos protocolos sub-agentes templates conhecimento hook
 
 # Scripts de operação: na fonte ficam na raiz; nos projetos, em .delta-11/scripts/
 SCRIPTS_DE_OPERACAO="task-done.sh monitor-delta11.sh vigilante.sh"
+# Ferramentas da FONTE que instaladores antigos copiavam para a raiz dos projetos: saem dos projetos
+# (rodar uma cópia velha de dentro do projeto usava regras antigas). Só a fonte oficial as executa.
+SCRIPTS_DA_FONTE="sincronizar.sh instalar.sh novo-projeto.sh"
+# Tudo o que pode existir na raiz de uma CÓPIA do sistema (qualquer outra coisa = projeto de verdade).
+RAIZ_DO_SISTEMA=".claude .delta-11 .git .gitignore .DS_Store .vscode CLAUDE.md AGENTS.md GUIA-DO-COMANDANTE.md README.md LICENSE disparar.sh instalar.sh monitor-delta11.sh novo-projeto.sh sincronizar.sh task-done.sh vigilante.sh com.delta11.monitor.plist golden-baselines boilerplate-delta-11-nextjs"
 
 # ─── Argumentos ────────────────────────────────────────────────
 
@@ -172,7 +178,21 @@ e_copia_do_sistema() {
     # C-057: verdadeiro (0) se a pasta é uma cópia/clone do PRÓPRIO sistema
     local pasta="$1"
     [ -d "$pasta/boilerplate-delta-11-nextjs" ] && return 0
-    [ -f "$pasta/.delta-11/CHANGELOG.md" ] && [ -f "$pasta/sincronizar.sh" ] && return 0
+    # CHANGELOG + sincronizar.sh na raiz só indica cópia se a pasta NÃO tem mais nada além dos arquivos do
+    # próprio sistema. Projeto de verdade criado por instalador antigo (que copiava tudo para a raiz) também tem
+    # esses dois arquivos, mas tem o seu próprio conteúdo (código, docs...) e precisa ser sincronizado.
+    if [ -f "$pasta/.delta-11/CHANGELOG.md" ] && [ -f "$pasta/sincronizar.sh" ]; then
+        local item nome
+        for item in "$pasta"/* "$pasta"/.[!.]*; do
+            [ -e "$item" ] || continue
+            nome=$(basename "$item")
+            case " $RAIZ_DO_SISTEMA " in
+                *" $nome "*) ;;
+                *) return 1 ;;  # tem conteúdo próprio: é projeto
+            esac
+        done
+        return 0
+    fi
     [ -f "$pasta/.delta-11/.e-copia-do-sistema" ] && return 0
     case "$pasta" in
         */construcao-delta-11/sistema-atual|*/construcao-delta-11/sistema-atual/*) return 0 ;;
@@ -521,6 +541,23 @@ sincronizar_destino() {
             ls -l "$alvo" | sed 's/^/        /'
             rm -f "$alvo"
         fi
+    done
+
+    # 3b. Ferramentas da fonte copiadas por instaladores antigos (sincronizar/instalar/novo-projeto)
+    for s in $SCRIPTS_DA_FONTE; do
+        alvo="$destino/$s"
+        [ -f "$alvo" ] || continue
+        if ! sed -n '1,25p' "$alvo" 2>/dev/null | grep -E "Δ-11|D-11|DELTA-11|Delta-11" > /dev/null; then
+            continue
+        fi
+        if [ "$DRY_RUN" = true ]; then
+            echo -e "    ${RED}- $s${NC} (sairia da raiz: é ferramenta da fonte oficial, não do projeto)"
+        else
+            echo -e "    ${RED}- retirando da raiz (ferramenta da fonte oficial, não do projeto):${NC}"
+            ls -l "$alvo" | sed 's/^/        /'
+            rm -f "$alvo"
+        fi
+        copiados=$((copiados + 1))
     done
 
     # 4. C-054: arquivos que saíram da fonte
