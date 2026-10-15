@@ -19,6 +19,67 @@
 
 ---
 
+## v6.4 (2026-10-15) — Velocidade
+
+### Por que essa versão existe
+
+O Rafa notou que a v6.x é muito mais lenta que a v3 (que abria até 5 agentes ao mesmo tempo). A medição dos
+registros reais do salvahacks (14/10, v6.2) mostrou: nas fases de planejamento e papelada, **38,7% do tempo ativo
+sem nenhum agente trabalhando e média de 0,98 agente por vez**; no dia inteiro, 13,2% parado e média 1,88. As causas
+estavam no texto do CRONOS, não no Claude Code:
+- conta-gotas da Regra 6 ("lance 3, AGUARDE 1, lance 2…");
+- tarefa grande virando "2 ondas em série";
+- revisores de fase em primeiro plano, um a um;
+- uma revisão do SHIELD por tarefa, travando a próxima;
+- papelada completa das Fases 3.5 e 4.5 em todo ciclo.
+
+### O que mudou (decisões V1–V12)
+
+| Código | Decisão |
+|---|---|
+| V1 | Onda inteira disparada na MESMA mensagem; fila por vaga (quando um termina, o próximo sai na hora) |
+| V2 | `paralelo_max` = 5 (era 3) |
+| V3 | Tarefa grande vira sub-tarefas IRMÃS paralelas, não ondas em série |
+| V4 | `brief_max_tokens` = 4000 (era 2000); juntar trabalho da mesma área e do mesmo agente |
+| V5 | Em série só o mesmo arquivo ou dependência declarada; mesma zona com arquivos diferentes roda em paralelo |
+| V6 | 3.5 + 3.7 juntos em segundo plano; UM SHIELD por onda (ou um por zona, em paralelo), veredito por tarefa |
+| V7 | Pipeline: a onda N+1 independente começa enquanto o SHIELD revisa a onda N; merge só das APROVADAS |
+| V8 | Revisores de fase (fresh-reviewer, cold-start-tester, qa-ui-tandem) juntos, em segundo plano |
+| V9 | Ciclo leve: do Ciclo 2 em diante, Fases 3.5 e 4.5 = checklist de 1 página do ciclo atual (obrigatório; documentos de ciclos anteriores não substituem); 2.3 e 2.4 só para o que é novo |
+| V10 | As 2 semanas da Fase 7 correm em paralelo com o ciclo seguinte; só o selo final exige o teste supremo |
+| V11 | O SHIELD reprova código e contrato, nunca a redação de documento |
+| V12 | `ferramentas/medir-paralelismo.py`: mede tempo parado, média e pico de agentes simultâneos |
+
+Também: o `dispatch_target` (vigias) identifica o sub-agente certo; o prompt do contract-tester/build-validator abre
+com "Sub-agente:" (antes "Agente: X" fazia o pre-despacho aplicar o limite de executor por engano).
+
+### Teste ao vivo (Claude Code 2.1.299, 2026-10-15)
+
+O mesmo pedido (5 tarefas independentes reais: criar função + teste e rodar `node`), um Claude Code no papel de
+CRONOS, com a Regra 6 de cada versão, medido pela V12:
+
+| | v6.3 (regra antiga) | v6.4 |
+|---|---|---|
+| Pico de agentes simultâneos | 3 | **5** |
+| Média de agentes simultâneos | 0,73 | **1,05** |
+| Tempo total | ~1 min 19 s | **57 s** |
+
+(No teste, cada tarefa dura ~15 s e o CRONOS leva ~30 s lendo as instruções; em ondas reais, com tarefas de minutos,
+o ganho do disparo único cresce: 5 tarefas de 15 min ≈ 2 rodadas na v6.3 contra 1 na v6.4.)
+
+### Como testar
+
+```bash
+HOME="$(mktemp -d)" bash .delta-11/tests/rodar-todos.sh        # esperado: 80/80 OK
+python3 .delta-11/ferramentas/medir-paralelismo.py <projeto> --desde <ISO> --sem-processos-separados --sem-aninhados
+```
+
+### Pendências conhecidas
+- Medir uma fase de construção real inteira na v6.4 (salvahacks, depois da troca) e comparar com os números de 14/10.
+- N-011 (agentes visíveis) e N-012/N-013 (metodologia) continuam abertos.
+
+---
+
 ## v6.3 (2026-10-14) — Correção Geral
 
 **Versão anterior:** v6.2 (2026-08-11) — Behavioral Hooks (commit `35f6ebd`).
