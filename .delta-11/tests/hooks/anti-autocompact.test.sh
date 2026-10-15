@@ -28,8 +28,8 @@ conversa "$SESSAO" 50000
 conversa "$SUB" 50000
 espera 0 "sub-agente com 50 mil tokens: passa" "$(ev_sub Edit tool_input.file_path=$CODIGO tool_input.old_string=a tool_input.new_string=b)"
 
-conversa "$SUB" 180000
-espera 2 "sub-agente com 180 mil tokens (>85% de 200 mil): bloqueia Edit de codigo" "$(ev_sub Edit tool_input.file_path=$CODIGO tool_input.old_string=a tool_input.new_string=b)"
+conversa "$SUB" 900000
+espera 2 "sub-agente com 900 mil tokens (>85% de 1 milhao): bloqueia Edit de codigo" "$(ev_sub Edit tool_input.file_path=$CODIGO tool_input.old_string=a tool_input.new_string=b)"
 stderr_contem "SendMessage"
 espera 2 "...e bloqueia Bash" "$(ev_sub Bash tool_input.command=ls)"
 espera 0 "...mas deixa gravar o produto.md (salvar o estado)" "$(ev_sub Write tool_input.file_path=$TEST_DIR/.delta-11/memoria/BACK-produto.md tool_input.content=estado)"
@@ -41,7 +41,7 @@ GRANDE="$TEST_DIR/grande.txt"; python3 -c "print('x'*800000)" > "$GRANDE"
 espera 0 "conteudo de 800 mil caracteres com contexto pequeno: passa" "$(ev_sub Write tool_input.file_path=$CODIGO tool_input.content=@$GRANDE)"
 
 # A medicao e a do PROPRIO sub-agente, nao a da sessao principal
-conversa "$SESSAO" 190000
+conversa "$SESSAO" 900000
 conversa "$SUB" 30000
 espera 0 "sessao principal cheia nao trava o sub-agente com contexto pequeno" "$(ev_sub Bash tool_input.command=ls)"
 
@@ -49,7 +49,7 @@ espera 0 "sessao principal cheia nao trava o sub-agente com contexto pequeno" "$
 espera 0 "sem conversa do sub-agente: libera" "$(evento tool_name=Bash transcript_path=$SESSAO agent_id=desconhecido tool_input.command=ls)"
 
 # Sessao principal (sem agent_id) so registra AVISO
-espera 0 "sessao principal com 190 mil: nao bloqueia o comandante" "$(evento tool_name=Bash transcript_path=$SESSAO tool_input.command=ls)"
+espera 0 "sessao principal com 900 mil: nao bloqueia o comandante" "$(evento tool_name=Bash transcript_path=$SESSAO tool_input.command=ls)"
 log_contem "\[anti-autocompact\] \[MAIN\] AVISO"
 
 # Janela de 1 milhao: uso acima de 200 mil prova janela grande
@@ -59,11 +59,11 @@ conversa "$SUB" 900000
 espera 2 "900 mil tokens num modelo de 1 milhao: bloqueia" "$(ev_sub Bash tool_input.command=ls)"
 
 # Limite configuravel (.config-limites.json — D36)
-conversa "$SUB" 120000
+conversa "$SUB" 600000
 echo '{"contexto_alerta_pct": 50}' > .delta-11/.config-limites.json
-espera 2 "contexto_alerta_pct=50 no .config-limites.json: 120 mil ja bloqueia" "$(ev_sub Bash tool_input.command=ls)"
+espera 2 "contexto_alerta_pct=50 no .config-limites.json: 600 mil ja bloqueia" "$(ev_sub Bash tool_input.command=ls)"
 
-# v6.4.1 — janela AUTOMATICA pelo modelo gravado na conversa (message.model)
+# v6.4.1 — UMA janela para todos (1 milhao): sem lista de modelos (decisao do comandante)
 conversa_modelo() {  # $1 arquivo, $2 tokens, $3 modelo
     python3 - "$1" "$2" "$3" <<'PY'
 import json, sys
@@ -81,9 +81,9 @@ conversa_modelo "$SUB" 860000 claude-sonnet-5-5
 espera 2 "sonnet-5-5 com 860 mil (>85% de 1 milhao): bloqueia" "$(ev_sub Bash tool_input.command=ls)"
 stderr_contem "modelo claude-sonnet-5-5"
 conversa_modelo "$SUB" 180000 claude-haiku-5-5
-espera 2 "haiku com 180 mil (janela presumida de 200 mil): bloqueia" "$(ev_sub Bash tool_input.command=ls)"
+espera 0 "qualquer modelo com 180 mil (sem lista de modelos): passa" "$(ev_sub Bash tool_input.command=ls)"
 conversa_modelo "$SUB" 180000 modelo-desconhecido-x
-espera 2 "modelo desconhecido com 180 mil: cautela, bloqueia" "$(ev_sub Bash tool_input.command=ls)"
+espera 0 "modelo NOVO que nao existia quando o vigia foi escrito, 180 mil: passa" "$(ev_sub Bash tool_input.command=ls)"
 echo '{"contexto_janela_tokens": 200000}' > .delta-11/.config-limites.json
 conversa_modelo "$SUB" 180000 claude-sonnet-5-5
 espera 2 "projeto FORCA 200 mil no .config-limites.json: vale o projeto, bloqueia" "$(ev_sub Bash tool_input.command=ls)"

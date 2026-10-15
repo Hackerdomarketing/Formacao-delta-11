@@ -75,7 +75,7 @@ LIMITES_PADRAO = {
 }
 # Chaves opcionais (nao precisam estar no arquivo; valem estes padroes)
 LIMITES_OPCIONAIS = {
-    "contexto_janela_tokens": 0,        # 0 = automatico pelo modelo (anti-autocompact); > 0 = forcado pelo projeto
+    "contexto_janela_tokens": 1000000,  # memoria de curto prazo do agente (Opus/Sonnet atuais = 1 milhao); o projeto pode mudar
     "contexto_alerta_pct": 85,          # % a partir da qual o anti-autocompact trava
 }
 ARQUIVO_LIMITES = ".config-limites.json"

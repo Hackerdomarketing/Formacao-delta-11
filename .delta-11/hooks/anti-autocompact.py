@@ -15,17 +15,14 @@ compactacao anterior). Nao mede mais um pedaco de texto isolado.
   - Dentro de um sub-agente (evento com `agent_id`), procura a conversa do proprio
     sub-agente (`.../subagents/agent-<agent_id>.jsonl`). Se nao achar, NAO bloqueia
     (nao da para medir com seguranca) e registra no diario.
-  - Janela do modelo (v6.4.1): AUTOMATICA pelo modelo gravado na propria conversa
-    (`message.model`). Familias com 1 milhao de tokens: Claude 5 (opus, sonnet,
-    fable), opus 4.7/4.8 e sonnet 4.6 — medido nas conversas reais do comandante
-    em 2026-10-15 (sonnet-5-5 chegou a 723 mil, opus-5-5 a 966 mil). Modelo
-    desconhecido ou haiku: 200.000 (cautela). O projeto pode FORCAR um valor com
-    `contexto_janela_tokens` > 0 no .config-limites.json. Alerta em
-    `contexto_alerta_pct` (padrao 85 %). Se o uso observado ja passou da janela
-    calculada, o modelo tem janela grande e o calculo usa 1.000.000.
-    Antes da v6.4.1 o padrao fixo era 200.000: CRONOS e SHIELD eram travados logo
-    depois de nascer (so as leituras obrigatorias passam de 120 mil) e entravam em
-    laco de retomadas (salvahacks, 2026-10-15).
+  - Janela (v6.4.1): UM numero so para todos os agentes, `contexto_janela_tokens`
+    (padrao 1.000.000), alerta em `contexto_alerta_pct` (padrao 85 % = 850 mil).
+    O projeto pode mudar os dois no .config-limites.json (ex.: um projeto que use
+    um modelo de janela menor). Nao ha lista de modelos: modelo novo da Anthropic
+    nao exige mudar o vigia (decisao do comandante, 2026-10-15). Os agentes do
+    Delta-11 usam Opus e Sonnet, que chegaram a 966 mil e 723 mil tokens nas
+    conversas reais. Antes da v6.4.1 o padrao era 200.000 e travava CRONOS e SHIELD
+    logo depois de nascer (laco de retomadas no salvahacks, 2026-10-15).
 
 Registro: PreToolUse com matcher "Edit|Write|Agent|Task|Bash".
 O que bloqueia: trabalho novo — editar
@@ -44,7 +41,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import sys
 from pathlib import Path
 
@@ -82,16 +78,6 @@ def transcript_for(evento: dict) -> Path | None:
     except OSError:
         pass
     return None
-
-
-JANELA_PADRAO = 200_000
-# Modelos com janela de 1 milhao (medido nas conversas reais em 2026-10-15). Haiku fica de fora.
-MODELOS_JANELA_GRANDE = re.compile(r"claude-(?:(?:opus|sonnet|fable)-5|opus-4-[78]|sonnet-4-6)", re.IGNORECASE)
-
-
-def window_for_model(modelo: str | None) -> int:
-    """Janela de contexto do modelo; desconhecido = 200 mil (cautela)."""
-    return JANELA_GRANDE if modelo and MODELOS_JANELA_GRANDE.search(modelo) else JANELA_PADRAO
 
 
 def context_tokens(transcricao: Path) -> int | None:
@@ -172,7 +158,7 @@ def main() -> int:
     if tokens is None:
         return 0
     limites = comum.limits()
-    janela = int(limites["contexto_janela_tokens"]) or window_for_model(modelo)
+    janela = int(limites["contexto_janela_tokens"])
     if tokens > janela:
         janela = max(janela, JANELA_GRANDE)
     limite = int(janela * float(limites["contexto_alerta_pct"]) / 100.0)

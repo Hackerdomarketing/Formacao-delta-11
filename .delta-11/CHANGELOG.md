@@ -1076,3 +1076,9 @@ estava escrito antes fica registrado abaixo.
 - **v6.4.1 (2026-10-15) — `.gitignore` protege o cache do Python.** Os vigias são Python; rodar um deles à mão cria
   `.delta-11/hooks/__pycache__/`, que um `git add -A` levaria para o histórico (achado no salvahacks). `__pycache__/` e
   `*.pyc` entram na lista de proteção do `sincronizar.sh`, do `novo-projeto.sh` e do `instalar.sh`.
+- **v6.4.1 (2026-10-15) — o `anti-autocompact.py` usa UM número só (substitui a entrada "janela do MODELO" acima).**
+  O comandante apontou que uma lista de nomes de modelos quebra a cada lançamento da Anthropic (modelo novo fora da
+  lista voltaria aos 200 mil e ao laço de retomadas, sem ninguém perceber), e que o Delta-11 não usa Haiku. Agora:
+  `contexto_janela_tokens` = 1.000.000 por padrão para todos os agentes (alerta em 850 mil), sem lista de modelos; o
+  projeto que usar um modelo de janela menor ajusta o número no `.config-limites.json`. O Claude Code não informa a
+  janela aos vigias (documentação oficial: só a barra de status recebe `context_window`), por isso o número é fixo.
