@@ -192,10 +192,24 @@ Cada entregável vira um arquivo `.delta-11/memoria/decisoes/AAAA-MM-DD-descanso
 
 Os 10 entregáveis acima são os **pré-requisitos** para o teste supremo rodar. Mas o teste supremo em si é **um entregável também**:
 
-- 2 semanas de operação estável em produção sem intervenção do criador (o período de observação começa quando o CRONOS confirma os 10 entregáveis)
+- 2 semanas de operação estável em produção sem intervenção do criador (o período de observação começa quando o CRONOS confirma os 10 entregáveis e registra "Fase 7 entregue" no kanban)
 - O comandante registra: "Resultado do teste supremo: [SIM / NÃO]" (o CRONOS faz a pergunta, em linguagem simples, ao fim das 2 semanas)
 - Se SIM → Dia 7 selado
 - Se NÃO → volta para Fases anteriores conforme o que falhou
+
+## A Fase 7 não trava o ciclo seguinte (v6.4)
+
+As 2 semanas de observação correm **em paralelo** com o ciclo seguinte. Esperar 2 semanas paradas a cada ciclo, sete vezes, seria tempo morto sem nenhum ganho: a observação só precisa do sistema rodando em produção, não de agentes parados.
+
+Como funciona:
+1. **Entregáveis conferidos:** o SHIELD confere os 10 entregáveis; o CRONOS registra no kanban "Fase 7 entregue — observação de 2 semanas até AAAA-MM-DD".
+2. **Ciclo seguinte aberto na hora:** o CRONOS muda `**Ciclo atual:**` para N+1 e abre a Fase 0/2 do novo ciclo. Nada disso espera o fim da observação.
+3. **Observação correndo:** o monitor (`monitor-delta11.sh`) e os alertas continuam vigiando a produção. Incidente segue a seção abaixo.
+4. **Selo final:** quando as 2 semanas terminam, o CRONOS faz a pergunta do teste supremo ao comandante; com o SIM, registra `**TESTE SUPREMO PASSOU** — 2 semanas sem intervenção` e "Fase 7 do Ciclo N consagrada". Esse é o selo FINAL do Dia 7.
+
+**O que o vigia `fase-descanso-checker.py` cobra:** os 10 entregáveis e o registro do teste supremo SÓ no selo final ("Fase 7 consagrada", "Dia 7 consagrado", "[SELO 7]"). Ele NÃO trava "Fase 7 iniciada", "Fase 7 entregue", a abertura do ciclo seguinte, nem uma linha que fala do selo no futuro ("será consagrada ao fim das 2 semanas").
+
+**Deploy do ciclo seguinte durante a observação:** um deploy planejado do novo ciclo (pelo pipeline, com o aval do comandante — Regra 10) não é "intervenção do criador" e não zera a contagem. O que zera é o criador ter de apagar incêndio (item 4 da seção abaixo). Se o deploy do novo ciclo causar o incidente, vale a mesma regra: o período recomeça depois da correção.
 
 ## Incidente durante o período de observação
 
@@ -215,10 +229,10 @@ Não existe "Fase 7.5". Incidente é um **acontecimento**, não uma camada da Cr
 - **FRONT** (com PIXEL e FORM) — documentação da interface (parte do 1) e o roteiro de onboarding (10)
 - **ATLAS** — documentação de domínio (2), disparado pelo CRONOS
 - **SCOUT** — simula os incidentes para testar os runbooks
-- **CRONOS** — orquestra, abre e fecha o período de observação, registra as lições entre projetos
+- **CRONOS** — orquestra, abre e fecha o período de observação (abrindo o ciclo seguinte sem esperar por ele), registra as lições entre projetos
 - **Comandante** — responde ao teste supremo e escolhe a pessoa nova do onboarding (só ele conhece as pessoas)
 
-A Fase 7 consagra com: os 10 entregáveis conferidos pelo SHIELD + o SIM do comandante no teste supremo. Sem os dois, a Fase 7 NÃO consagra.
+A Fase 7 consagra com: os 10 entregáveis conferidos pelo SHIELD + o SIM do comandante no teste supremo. Sem os dois, a Fase 7 NÃO consagra. O SHIELD confere a substância (o backup foi restaurado de verdade? o alerta tem dono?); erro de redação nos documentos nunca reprova.
 
 ## Memória entre projetos
 
@@ -252,8 +266,8 @@ Este protocolo evolui conforme o sistema amadurece. Mudanças aqui passam por:
 3. Decisão via ADR
 4. Atualização deste arquivo + template + hook + monitor-delta11.sh
 
-**Versão do protocolo:** v6.3 (2026-10-14) — Correção Geral. Criado na v6.0.0 (2026-07-12).
+**Versão do protocolo:** v6.4 (2026-10-15) — Velocidade: as 2 semanas correm em paralelo com o ciclo seguinte. Criado na v6.0.0 (2026-07-12).
 **Manutenção:** manter sincronizado com `metodologia-genesis-camadas.md` (Dia 7) e `fase-descanso-template.md`.
 
 ---
-*Mudanças neste protocolo são registradas no CHANGELOG (última: v6.3).*
+*Mudanças neste protocolo são registradas no CHANGELOG (última: v6.4).*

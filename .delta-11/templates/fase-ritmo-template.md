@@ -10,6 +10,10 @@
 >
 > **Quando NÃO preencher:** projetos descartáveis (ver protocolo `fase-ritmo.md` para lista completa).
 >
+> **Ciclo 1 x Ciclos 2 a 7 (v6.4):** no Ciclo 1, os 10 artefatos são escritos com este modelo. Do Ciclo 2 em diante,
+> a fase entrega UM checklist de 1 página (`templates/ritmo-temporal-checklist-template.md`), e este modelo só é usado
+> para o item cuja área o ciclo MEXE (fila nova, cache novo, mudança no CI/CD).
+>
 > **Referência conceitual:** `.delta-11/conhecimento/metodologia-genesis-camadas.md` → Dia 4 (Os Astros).
 > **Protocolo formal:** `.delta-11/protocolos/fase-ritmo.md`.
 
@@ -147,6 +151,6 @@ Alternativas descartadas:
 
 ---
 
-**Versão do template:** v6.3 (2026-10-14) — tempos-limite padrão (D19), nomes de código em inglês. Antes: v6.0.0 (2026-07-11)
+**Versão do template:** v6.4 (2026-10-15) — ciclo leve (Ciclo 2 em diante usa o checklist). Antes: v6.3 (2026-10-14) — tempos-limite padrão (D19), nomes de código em inglês; v6.0.0 (2026-07-11)
 **Local canônico:** `.delta-11/templates/fase-ritmo-template.md`
 **Proveniência:** criado na Etapa 5B do plano Nível 3 Profundo (auditoria 2026-07-10)

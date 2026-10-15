@@ -185,6 +185,17 @@ Toda fase (não importa qual) executa internamente o mesmo ciclo de 7 sub-etapas
 | 6 — Consciência | 5 entregáveis verificados | Auth + Authz testadas (casos positivos e negativos) | SHIELD (+ Comandante no `modo manual`) | — |
 | 7 — Descanso | 10 entregáveis + 2 semanas operação autônoma | Tag + backup testado + DR testado | Comandante + líder técnico | — |
 
+### Ciclo 1 completo, Ciclos 2 a 7 leves (v6.4)
+
+O projeto atravessa os 7 Dias **7 vezes** — uma por ciclo de entrega (Regra dos 7 Ciclos). A Ordem Inegociável vale dentro de cada ciclo, mas o que um Dia já construiu não precisa ser reconstruído do zero no ciclo seguinte:
+
+- **Ciclo 1:** todos os Dias com os entregáveis completos (os 10 artefatos do Dia 4, os 5 do Dia 6...).
+- **Ciclos 2 a 7:** o Dia 4 (Fase 3.5) e o Dia 6 (Fase 4.5) entregam UM checklist de 1 página cada (`templates/ritmo-temporal-checklist-template.md` e `templates/consciencia-checklist-template.md`): cada item diz "sem mudança" ou a mudança em até 3 linhas. Item cuja área o ciclo MEXE ganha o documento completo. As fases de apoio 2.3 e 2.4 só rodam para tecnologia ou ferramenta NOVA.
+- **Dia 7 entre ciclos:** as 2 semanas de observação de um ciclo correm junto com o começo do ciclo seguinte; o selo final do Dia 7 vem quando elas terminam.
+- **Selagem continua por critério objetivo:** os vigias aceitam o checklist do ciclo atual (a partir do Ciclo 2) como equivalente aos documentos; o SHIELD confere o que o vigia não consegue julgar (se a mudança exigia o documento completo).
+
+Detalhes: `protocolos/fluxo-zero-ao-lancamento.md` (seção "Ciclos"), `protocolos/fase-ritmo.md` e `protocolos/fase-consciencia.md` (seção "Ciclo leve"), `protocolos/fase-descanso.md` ("A Fase 7 não trava o ciclo seguinte").
+
 ---
 
 ## Os 4 Sinais de "Fazendo Certo"
@@ -238,6 +249,6 @@ As 3 skills globais instaladas em v5.4 cobrem parcialmente 3 dos 7 dias:
 
 ---
 
-**Versão do documento:** v6.3 (2026-10-14) — 13 fases, teste supremo de 2 semanas, `fase-luz-template.md` criado, sem hook de ciclo interno. Antes: v6.0.0 (2026-07-10)
+**Versão do documento:** v6.4 (2026-10-15) — ciclo leve do Ciclo 2 em diante; Dia 7 em paralelo com o ciclo seguinte. Antes: v6.3 (2026-10-14) — 13 fases, teste supremo de 2 semanas, `fase-luz-template.md` criado, sem hook de ciclo interno; v6.0.0 (2026-07-10)
 **Manutenção:** Este documento é a referência canônica da Metodologia Gênesis dentro do D-11. Mudanças aqui devem ser propostas via ADR com aprovação do Comandante.
 **Próxima revisão programada:** após 90 dias de uso em produção em pelo menos 1 projeto real.

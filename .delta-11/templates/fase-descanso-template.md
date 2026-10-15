@@ -6,7 +6,11 @@
 >
 > **Quem escreve:** SHIELD + Líder técnico + Comandante.
 >
-> **Quem sella:** Comandante (teste supremo) + Líder técnico (entregáveis).
+> **Quem sela:** Comandante (teste supremo) + Líder técnico (entregáveis).
+>
+> **A Fase 7 não trava o ciclo seguinte (v6.4):** com os 10 entregáveis conferidos, o CRONOS registra "Fase 7
+> entregue" e já abre o próximo ciclo. As 2 semanas do teste supremo correm em paralelo; o selo final ("Fase 7
+> consagrada") vem quando elas terminam. O vigia `fase-descanso-checker.py` só cobra o teste supremo nesse selo final.
 >
 > **Quando NÃO aplicar:** sistemas de playground, MVP descartável, demo didática. Ver protocolo para exceções.
 >
@@ -225,6 +229,6 @@ journalctl -u servico --since "10 min ago"
 
 ---
 
-**Versão do template:** v6.3 (2026-10-14) — modelo de runbook único (seção no fim), pasta `observability` em inglês. Antes: v6.0.0 (2026-07-12)
+**Versão do template:** v6.4 (2026-10-15) — as 2 semanas correm em paralelo com o ciclo seguinte. Antes: v6.3 (2026-10-14) — modelo de runbook único (seção no fim), pasta `observability` em inglês; v6.0.0 (2026-07-12)
 **Local canônico:** `.delta-11/templates/fase-descanso-template.md`
 **Proveniência:** criado na Etapa 7B do plano Nível 3 Profundo (auditoria 2026-07-10)
