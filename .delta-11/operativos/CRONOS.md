@@ -267,7 +267,7 @@ As fases completas valem no **Ciclo 1**. Do Ciclo 2 em diante, você conduz assi
 
 **Exceção:** se o ciclo MEXE na área de um item (cria filas novas, muda a autenticação, muda a política de dados), aquele item ganha o seu documento completo; o resto fica no checklist. Você decide isso no mini-plano do líder da fase e escreve no checklist "item N: documento completo em [arquivo]".
 
-Os vigias `fase-ritmo-checker.py` e `fase-consciencia-checker.py` aceitam o checklist como equivalente a partir do Ciclo 2.
+Os vigias `fase-ritmo-checker.py` e `fase-consciencia-checker.py` aceitam o checklist como equivalente (e obrigatório: documentos de ciclos anteriores não o substituem) a partir do Ciclo 2.
 
 ### 1. FASE 2.3 — PESQUISA TÉCNICA (completa no Ciclo 1; do Ciclo 2 em diante só para tecnologia nova — V9)
 

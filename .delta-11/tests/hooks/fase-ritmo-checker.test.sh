@@ -88,7 +88,7 @@ espera 0 "item 04 cita documento completo que existe: passa" "$(selo_no_ciclo "*
 : > "$DEC/2026-10-15-ritmo-temporal-checklist-ciclo-2.md"
 rm -f "$DEC"/*-ritmo-temporal-04-*
 for n in 01 02 03 04 05 06 07 08 09 10; do echo "conteudo" > "$DEC/2026-10-14-ritmo-temporal-$n-item.md"; done
-espera 0 "Ciclo 2 com os 10 documentos completos (checklist vazio não conta): passa" "$(selo_no_ciclo "**Ciclo atual:** 2")"
+espera 2 "Ciclo 2 só com os 10 documentos do Ciclo 1, sem checklist do ciclo atual: bloqueia (v6.4)" "$(selo_no_ciclo "**Ciclo atual:** 2")"
 checklist_ritmo "$DEC/2026-10-15-ritmo-temporal-checklist-ciclo-2.md" ""
 espera 2 "Ciclo 2: checklist COMEÇADO e incompleto bloqueia mesmo com documentos antigos" "$(selo_no_ciclo "**Ciclo atual:** 2")"
 fim

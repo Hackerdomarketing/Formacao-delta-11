@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ════════════════════════════════════════════════════════════════
-# FORMAÇÃO Δ-11 — Suíte de Testes Automatizada do Sistema (v6.3)
+# FORMAÇÃO Δ-11 — Suíte de Testes Automatizada do Sistema (v6.4)
 # ════════════════════════════════════════════════════════════════
 #
 # Filosofia: a infra de teste CRESCE a cada versão. Toda mudança
@@ -133,7 +133,7 @@ rodar_pasta() {
 
 banner() {
     echo -e "${CYAN}${BOLD}════════════════════════════════════════════════════════════${NC}"
-    echo -e "${CYAN}${BOLD}  Formação Δ-11 — Suíte de Testes v6.3${NC}"
+    echo -e "${CYAN}${BOLD}  Formação Δ-11 — Suíte de Testes v6.4${NC}"
     echo -e "${CYAN}${BOLD}════════════════════════════════════════════════════════════${NC}"
     echo ""
 }

@@ -165,7 +165,7 @@ Todo projeto tem 7 ciclos de entrega e cada ciclo passa pelas 13 fases (Regra do
 
 **De onde vem o número do ciclo:** da linha `**Ciclo atual:** N` do kanban (ou "Ciclo N" na linha `**Fase atual:**`, ou no `fase_atual` do `kanban-data.js`), escrita pelo CRONOS. Sem essa informação, vale o Ciclo 1.
 
-**O que o vigia confere sozinho (`fase-consciencia-checker.py`):** no Ciclo 1, os 5 documentos; do Ciclo 2 em diante, o checklist do ciclo atual como equivalente — os 5 itens presentes, cada um respondido, e todo documento completo citado existindo. Checklist do ciclo começado e incompleto bloqueia o selo.
+**O que o vigia confere sozinho (`fase-consciencia-checker.py`):** no Ciclo 1, os 5 documentos; do Ciclo 2 em diante, o checklist do ciclo atual como equivalente (e obrigatório: documentos de ciclos anteriores não o substituem) — os 5 itens presentes, cada um respondido, e todo documento completo citado existindo. Checklist do ciclo começado e incompleto bloqueia o selo.
 
 **O que o vigia NÃO consegue conferir:** se uma mudança era grande o bastante para exigir o documento completo. Quem confere é o **SHIELD**, na revisão da fase: para cada linha "mudou", ele decide se a área foi mexida e, se foi, exige o documento completo. O teste cruzado (o `audit_log` grava; a 6ª tentativa de login é recusada) é refeito em TODO ciclo, incluindo as rotas novas.
 

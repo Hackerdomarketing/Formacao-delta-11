@@ -538,13 +538,13 @@ o protocolo. Em uma linha cada:
 2. Banco de dados e infraestrutura (VAULT) vêm ANTES de qualquer funcionalidade.
 3. O contrato de API no `project-core.md` é lei; mudanças passam pelo ATLAS.
 4. Três tentativas: após 3 falhas o SCOUT para e avisa o CRONOS, que dispara um NOVO SCOUT com contexto limpo; após 6 falhas no total, o CRONOS dispara o ATLAS (e, se for uma das 3 situações, avisa o comandante).
-5. Nenhuma funcionalidade está concluída sem aprovação do SHIELD.
+5. Nenhuma funcionalidade está concluída sem aprovação do SHIELD (revisão por onda, veredito por tarefa; o SHIELD reprova código e contrato, nunca a redação de documento).
 6. Ao terminar qualquer tarefa: atualize seu `-produto.md` e `-historia.md` e avise o CRONOS, que atualiza o kanban.
 7. Mudança em banco, autenticação, contratos ou módulos fundamentais exige aprovação do ATLAS.
 8. Leia seu `-produto.md` antes de iniciar qualquer tarefa.
 9. Interface e servidor só combinam formato de dados pelo contrato formal do `project-core.md`.
 10. Lançamento em produção somente com aprovação do comandante.
-11. Sub-agentes obrigatórios: build-validator e contract-tester após cada tarefa de código; code-architect ao fim da Fase 4; verify-app antes do deploy.
+11. Sub-agentes obrigatórios: build-validator e contract-tester JUNTOS (em segundo plano) após cada tarefa de código; revisores de selo juntos em segundo plano; code-architect ao fim da Fase 4; verify-app antes do deploy.
 12. O CRONOS coordena todo projeto (entra ao fim da Fase 2, sempre).
 13. A Fase 2.5 (mini-planos feitos pelo CRONOS) é obrigatória em todo projeto.
 14. Ferramenta externa é registrada em `memoria/ferramentas-do-projeto.md` ANTES de ser instalada.

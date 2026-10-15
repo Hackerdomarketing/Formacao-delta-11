@@ -192,7 +192,7 @@ O projeto atravessa os 7 Dias **7 vezes** — uma por ciclo de entrega (Regra do
 - **Ciclo 1:** todos os Dias com os entregáveis completos (os 10 artefatos do Dia 4, os 5 do Dia 6...).
 - **Ciclos 2 a 7:** o Dia 4 (Fase 3.5) e o Dia 6 (Fase 4.5) entregam UM checklist de 1 página cada (`templates/ritmo-temporal-checklist-template.md` e `templates/consciencia-checklist-template.md`): cada item diz "sem mudança" ou a mudança em até 3 linhas. Item cuja área o ciclo MEXE ganha o documento completo. As fases de apoio 2.3 e 2.4 só rodam para tecnologia ou ferramenta NOVA.
 - **Dia 7 entre ciclos:** as 2 semanas de observação de um ciclo correm junto com o começo do ciclo seguinte; o selo final do Dia 7 vem quando elas terminam.
-- **Selagem continua por critério objetivo:** os vigias aceitam o checklist do ciclo atual (a partir do Ciclo 2) como equivalente aos documentos; o SHIELD confere o que o vigia não consegue julgar (se a mudança exigia o documento completo).
+- **Selagem continua por critério objetivo:** os vigias aceitam o checklist do ciclo atual (a partir do Ciclo 2) como equivalente (e obrigatório: documentos de ciclos anteriores não o substituem) aos documentos; o SHIELD confere o que o vigia não consegue julgar (se a mudança exigia o documento completo).
 
 Detalhes: `protocolos/fluxo-zero-ao-lancamento.md` (seção "Ciclos"), `protocolos/fase-ritmo.md` e `protocolos/fase-consciencia.md` (seção "Ciclo leve"), `protocolos/fase-descanso.md` ("A Fase 7 não trava o ciclo seguinte").
 

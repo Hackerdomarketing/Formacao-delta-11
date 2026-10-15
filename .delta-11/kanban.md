@@ -9,6 +9,7 @@
 
 **Projeto:** [nome do projeto — o CRONOS copia do plano do ATLAS]
 **Complexidade:** [BAIXA 5–8 / MÉDIA 9–12 / ALTA 13–15 pontos]
+**Ciclo atual:** [1 a 7 — o CRONOS atualiza ao abrir cada ciclo; os vigias das Fases 3.5 e 4.5 leem este número]
 **Fase atual:** [fase e onda, ex.: Fase 3 · onda 2 de 4]
 **Última atualização:** [data e hora ISO] — CRONOS
 

@@ -7,7 +7,7 @@ em `.delta-11/memoria/decisoes/` da pasta principal, um por numero:
   AAAA-MM-DD-ritmo-temporal-NN-<slug>.md   (NN = 01 a 10, arquivo nao vazio)
 
 Ciclo leve (v6.4 — V9): do Ciclo 2 em diante, o checklist de 1 pagina do ciclo
-vale como equivalente aos 10 documentos:
+vale como equivalente (e obrigatório: documentos de ciclos anteriores não o substituem) aos 10 documentos:
   AAAA-MM-DD-ritmo-temporal-checklist-ciclo-N.md
 com os 10 itens, cada um "sem mudança" ou "mudou: <ate 3 linhas>" (modelo:
 templates/ritmo-temporal-checklist-template.md). O numero do ciclo vem da linha
@@ -72,7 +72,7 @@ def message(selo: list[str], faltando: list[int], nomes: list[str], ciclo: int =
             f"\nCiclo {ciclo} (ciclo leve): basta UM checklist de 1 pagina com os 10 itens:\n"
             f"  .delta-11/memoria/decisoes/AAAA-MM-DD-{PREFIXO}-checklist-ciclo-{ciclo}.md\n"
             f"  (modelo: {CHECKLIST_MODELO})\n"
-            f"Ou, no lugar dele, os 10 documentos completos abaixo.\n\n"
+            f"(Os documentos de ciclos anteriores não substituem o checklist do ciclo atual.)\n\n"
         )
     texto += f"Presentes: {len(ARTEFATOS) - len(faltando)} de {len(ARTEFATOS)}. Faltam {len(faltando)}:\n"
     texto += "".join(
@@ -107,6 +107,17 @@ def main() -> int:
             return comum.block(
                 HOOK, message(selo, faltando, nomes, ciclo, checklist, pendencias),
                 f"selo da Fase 3.5 do Ciclo {ciclo}: checklist com {len(pendencias)} item(ns) pendente(s)",
+            )
+        if not checklist:
+            # v6.4 (integração): do Ciclo 2 em diante, documentos completos de ciclos anteriores NÃO substituem o
+            # checklist do ciclo atual (senão o vigia liberaria sempre: os documentos do Ciclo 1 continuam na pasta).
+            return comum.block(
+                HOOK,
+                f"Selo da Fase 3.5 do Ciclo {ciclo} sem o checklist do ciclo atual (ciclo leve, V9).\n"
+                f"Crie memoria/decisoes/AAAA-MM-DD-ritmo-temporal-checklist-ciclo-{ciclo}.md a partir de\n"
+                "templates/ritmo-temporal-checklist-template.md: um item por linha, 'sem mudança' ou 'mudou: ...'\n"
+                "(item que o ciclo mexeu cita o documento completo novo).",
+                f"selo da Fase 3.5 do Ciclo {ciclo} sem checklist do ciclo",
             )
     if not faltando:
         comum.log(HOOK, f"OK: selo da Fase 3.5 do Ciclo {ciclo} com os 10 artefatos")

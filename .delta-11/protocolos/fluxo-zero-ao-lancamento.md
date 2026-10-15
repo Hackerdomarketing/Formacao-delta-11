@@ -39,7 +39,7 @@ As outras seis (1, 2.3, 2.4, 2.5, 5 e 6) são **fases de apoio**: ficam fora dos
 
 - **Se o ciclo MEXE na área** (cria filas novas, muda a autenticação, cria operação que pede aprovação...), o item afetado ganha o **documento completo**, e o resto fica no checklist.
 - **O número do ciclo** fica no kanban, na linha `**Ciclo atual:** N` (e o CRONOS escreve "Ciclo N" no `fase_atual` do `kanban-data.js`). Sem essa informação, os vigias tratam o projeto como Ciclo 1 (o mais exigente).
-- **Quem confere o quê:** os vigias `fase-ritmo-checker.py` e `fase-consciencia-checker.py` aceitam o checklist do ciclo atual como equivalente aos documentos a partir do Ciclo 2. O que o vigia não consegue julgar — se uma mudança era grande o bastante para exigir o documento completo — o **SHIELD** confere na revisão da fase.
+- **Quem confere o quê:** os vigias `fase-ritmo-checker.py` e `fase-consciencia-checker.py` aceitam o checklist do ciclo atual como equivalente (e obrigatório: documentos de ciclos anteriores não o substituem) aos documentos a partir do Ciclo 2. O que o vigia não consegue julgar — se uma mudança era grande o bastante para exigir o documento completo — o **SHIELD** confere na revisão da fase.
 
 **Quando o comandante é chamado:** só nas 3 situações de sempre — (1) decisão de negócio ou de escopo que só ele pode tomar; (2) credencial, conta, pagamento ou CAPTCHA; (3) risco de perda de dados ou publicação externa (deploy). E, se o projeto estiver em `modo manual` (`.delta-11/.modo-selo`), na fronteira entre fases, com o comando `aprovar`. O padrão é `automatico`.
 
