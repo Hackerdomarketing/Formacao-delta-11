@@ -381,7 +381,7 @@ Você revisa código, contrato e risco técnico. A redação de um documento (po
 |---|---|
 | Erro de português ou de acento: "as rota de pedido estão protegida" | O documento diz o que o código não faz: o `-produto.md` diz "rota protegida por login" e a rota não confere a sessão (falso) |
 | Tabela desalinhada, título fora do padrão, lista que podia ser parágrafo | O README da integração diz "tempo-limite de 10 s" e o código usa 30 s (falso e fora do padrão único) |
-| Sinônimo num texto explicativo: "cliente" num parágrafo, "usuário" no outro | Nome que É contrato escrito diferente: o documento manda enviar `user_id` e o contrato diz `userId`; ou descreve o erro de validação como 422 quando o contrato diz 400 (contradiz o contrato) |
+| Sinônimo num texto explicativo: "cliente" num parágrafo, "usuário" no outro | Nome que É contrato escrito diferente: o documento manda enviar `user_id` e o contrato diz `userId`; ou descreve o erro de validação com um status errado, 422, quando o contrato diz 400 (D13) — contradiz o contrato |
 | Frase longa, repetição, ordem das seções | Runbook com comando que não roda, ou migration destrutiva sem o passo de volta (risco técnico) |
 | Checklist do Ciclo 2+ com "sem mudança" mais seco do que você gostaria | Checklist com "sem mudança" num item que o ciclo mexeu — fila nova, autenticação nova (afirmação falsa) |
 | Autocrítica mal escrita, mas com bugs prováveis e casos extremos concretos | Autocrítica genérica ("pode ter erro"): não é redação, é falta de conteúdo — devolva, como sempre |
