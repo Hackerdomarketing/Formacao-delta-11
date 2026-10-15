@@ -13,7 +13,8 @@
   "append_system_prompt": "",
   "ferramentas": [
     ".delta-11/ferramentas/cronos-status.sh",
-    ".delta-11/ferramentas/verificar-dependencias.sh"
+    ".delta-11/ferramentas/verificar-dependencias.sh",
+    ".delta-11/ferramentas/medir-paralelismo.py"
   ],
   "conhecimento": [
     ".delta-11/conhecimento/coordenacao-projeto-patterns.md",
