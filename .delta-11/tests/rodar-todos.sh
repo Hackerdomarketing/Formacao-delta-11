@@ -12,7 +12,7 @@
 #   bash .delta-11/tests/rodar-todos.sh --hook pre-criacao-arquivo
 #   bash .delta-11/tests/rodar-todos.sh --pasta protocolos   # uma pasta só
 #
-# Pastas rodadas (nesta ordem): hooks, templates, conhecimento,
+# Pastas rodadas (nesta ordem): hooks, motores, templates, conhecimento,
 # protocolos, operativos, scripts. Funções comuns: tests/framework/.
 #
 # Saída de cada teste: .delta-11/scratch/AAAA-MM-DD-testes-delta11/
@@ -46,7 +46,7 @@ NC='\033[0m'
 TESTS_DIR="$(cd "$(dirname "$0")" && pwd)"
 DELTA_DIR="$(cd "$TESTS_DIR/.." && pwd)"
 REPO_ROOT="$(cd "$DELTA_DIR/.." && pwd)"
-PASTAS_DE_TESTE=(hooks templates conhecimento protocolos operativos scripts)
+PASTAS_DE_TESTE=(hooks motores templates conhecimento protocolos operativos scripts)
 
 # Pasta de saída (D21): .delta-11/scratch/AAAA-MM-DD-testes-delta11/
 OUTPUT_DIR="$DELTA_DIR/scratch/$(date +%Y-%m-%d)-testes-delta11"

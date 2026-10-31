@@ -68,6 +68,12 @@ def _do_motor(nome: str, *args, **kwargs):
     return _MOTOR_PADRAO[nome](*args, **kwargs)
 
 
+# O evento lido pelo vigia. A fachada (`_comum.py`) preenche este valor
+# quando o agente le o evento; o nucleo usa so como PADRAO, quando nenhum
+# evento foi informado.
+_EVENTO_ATUAL: dict = {}
+
+
 # O comportamento padrao (Claude Code) para cada funcao do contrato, usado
 # quando nao ha adaptador registrado. E o mesmo do motor de referencia.
 def _padrao_event_cwd(evento: dict | None = None) -> Path:

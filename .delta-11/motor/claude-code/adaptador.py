@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -50,6 +51,10 @@ from nucleo import (  # noqa: E402
     load_links,
     read_text,
 )
+
+# O evento lido do stdin. As funcoes que recebem `evento=None` usam este
+# valor como PADRAO.
+_EVENTO_ATUAL: dict = {}
 
 
 def read_event() -> dict:

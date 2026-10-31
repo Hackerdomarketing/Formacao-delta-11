@@ -83,17 +83,21 @@ VERSAO = getattr(nucleo, "VERSAO", "v7-motor-multiempresa")
 # ─── Deteccao do motor ──────────────────────────────────────────────────────
 # Cada motor e identificado por uma marca que SO ele produz no payload.
 # O Claude Code nao tem marca exclusiva (e o padrao).
+#
+# A marca do Kilo e `kilo_agent_id` (o identificador da sessao do Agent
+# Manager). A do Codex e `turn_id`.
 _MARCAS = {
-    "codex": ("turn_id", "codex"),
-    "kilo": ("kilo_session_id", "kilo"),
+    "codex": ("turn_id",),
+    "kilo": ("kilo_agent_id",),
 }
 
 
 def _motor_do_evento(evento: dict) -> str:
     """Descobre o motor pelo payload do evento."""
-    for motor, (chave, _valor) in _MARCAS.items():
-        if evento.get(chave):
-            return motor
+    for motor, chaves in _MARCAS.items():
+        for chave in chaves:
+            if evento.get(chave):
+                return motor
     # O Codex tambem manda `permission_mode` e `transcript_path` com o
     # formato proprio dele; o Kilo manda `kilo_agent_id`.
     if evento.get("permission_mode") and evento.get("hook_event_name"):
