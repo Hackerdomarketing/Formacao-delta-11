@@ -33,6 +33,7 @@ Uso:
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import subprocess
@@ -116,13 +117,99 @@ def gerar(origem: dict) -> dict:
     return saida
 
 
+def mesclar(usuario: dict, modelo: dict) -> dict:
+    """
+    Mescla os hooks do modelo do Δ-11 com os hooks que ja estavam no
+    arquivo do usuario — SEM apagar os do usuario.
+
+    É a MESMA politica que o Claude Code usa no `.claude/settings.json`
+    (C-058): os hooks do Δ-11 entram; os outros ficam. Isso importa porque
+    o usuario pode ter hooks proprios (notificacoes, ferramentas de third
+    party) que NAO podem ser destruidos por uma sincronizacao.
+
+    Os hooks do Δ-11 sao reconhecidos pelo caminho `.delta-11/hooks/` no
+    comando. Se o arquivo do usuario ja tiver um hook do Δ-11 (de uma
+    sincronizacao anterior), ele e substituido pelo novo — e nao
+    duplicado.
+    """
+    def eh_do_delta11(handler: dict) -> bool:
+        return ".delta-11/hooks/" in str(handler.get("command", ""))
+
+    ph = usuario.get("hooks") or {}
+    mh = modelo.get("hooks") or {}
+
+    # Remove os hooks do Δ-11 que ja estavam no arquivo do usuario.
+    limpo: dict[str, list] = {}
+    for evento, grupos in ph.items():
+        grupos_limpos = []
+        for grupo in grupos:
+            handlers = [h for h in (grupo.get("hooks") or []) if not eh_do_delta11(h)]
+            if handlers:
+                novo = dict(grupo)
+                novo["hooks"] = handlers
+                grupos_limpos.append(novo)
+        if grupos_limpos:
+            limpo[evento] = grupos_limpos
+
+    # Junta: os do modelo primeiro, os do usuario depois.
+    eventos = list(dict.fromkeys(list(mh.keys()) + list(limpo.keys())))
+    resultado = dict(usuario)
+    hooks: dict[str, list] = {}
+    for evento in eventos:
+        grupos = list(mh.get(evento, []))
+        grupos.extend(limpo.get(evento, []))
+        if grupos:
+            hooks[evento] = grupos
+    resultado["hooks"] = hooks
+    if "description" in modelo:
+        resultado["description"] = modelo["description"]
+    return resultado
+
+
 def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Gera o hooks.json do Codex a partir do modelo do Δ-11.",
+    )
+    parser.add_argument(
+        "--mesclar",
+        help="Arquivo hooks.json existente para MESCLAR (em vez de gerar do zero).",
+    )
+    parser.add_argument(
+        "--saida",
+        help="Arquivo de saida. Sem isso, imprime na stdout.",
+    )
+    args = parser.parse_args()
+
     if not FONTE.is_file():
         print(f"ERRO: template do Claude Code nao encontrado em {FONTE}", file=sys.stderr)
         return 1
     origem = json.loads(FONTE.read_text(encoding="utf-8"))
-    resultado = gerar(origem)
-    print(json.dumps(resultado, ensure_ascii=False, indent=2))
+    modelo = gerar(origem)
+
+    if args.mesclar:
+        caminho = Path(args.mesclar)
+        if not caminho.is_file():
+            print(f"ERRO: arquivo para mesclar nao encontrado: {caminho}", file=sys.stderr)
+            return 1
+        try:
+            usuario = json.loads(caminho.read_text(encoding="utf-8"))
+        except ValueError as exc:
+            print(
+                f"ERRO: {caminho} nao e um JSON valido ({exc}). "
+                "NAO foi alterado — corija o JSON e rode de novo.",
+                file=sys.stderr,
+            )
+            return 1
+        resultado = mesclar(usuario, modelo)
+    else:
+        resultado = modelo
+
+    texto = json.dumps(resultado, ensure_ascii=False, indent=2)
+    if args.saida:
+        Path(args.saida).write_text(texto, encoding="utf-8")
+        print(f"hooks.json do Codex escrito em {args.saida}")
+    else:
+        print(texto)
     return 0
 
 

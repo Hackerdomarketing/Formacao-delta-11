@@ -1,4 +1,21 @@
+<!-- MOTOR:CODIGO-INICIO -->
+<!--
+  Seções do motor Claude Code (o motor de referência da Formação).
+
+  O texto original completo (12 seções, ~66 mil caracteres) também está
+  guardado em `.delta-11/motor/CLAUDE-original.md` — para consulta e para
+  os outros motores (Codex, Kilo), que recebem instruções específicas
+  deles no lugar destas seções.
+
+  A METODOLOGIA (as 7 camadas, as 17 regras invioláveis, o protocolo de
+  código, o painel, as correções aprendidas) NÃO está aqui: ela é a mesma
+  em todo motor e vive fora destes marcadores.
+-->
+
+
+
 ## ⚡ ATIVAÇÃO DELTA-11 — PRIORIDADE ABSOLUTA (LER ANTES DE TUDO)
+<!-- MOTOR:CODIGO-FIM -->
 
 <!-- MOTOR:INICIO -->
 
@@ -106,7 +123,24 @@ lote, marcado `[AJUSTE]`, com UM executor, sem validadores e sem SHIELD; quem ap
 resultado (`[COMANDANTE] APROVADO T-XXX`). O vigia `trilho-leve.py` garante que é só visual. Protocolo:
 `.delta-11/protocolos/trilho-leve.md`.
 
+<!-- MOTOR:CODIGO-INICIO -->
+<!--
+  Seções do motor Claude Code (o motor de referência da Formação).
+
+  O texto original completo (12 seções, ~66 mil caracteres) também está
+  guardado em `.delta-11/motor/CLAUDE-original.md` — para consulta e para
+  os outros motores (Codex, Kilo), que recebem instruções específicas
+  deles no lugar destas seções.
+
+  A METODOLOGIA (as 7 camadas, as 17 regras invioláveis, o protocolo de
+  código, o painel, as correções aprendidas) NÃO está aqui: ela é a mesma
+  em todo motor e vive fora destes marcadores.
+-->
+
+
+
 ## 🚧 VOCÊ NÃO É UM AGENTE Δ-11? LEIA ISTO ANTES DE CRIAR QUALQUER ARQUIVO (v5.2)
+<!-- MOTOR:CODIGO-FIM -->
 
 **Se você é um agente Δ-11 formal (ativado via `d11` ou bloco de ativação): pule esta seção.**
 
@@ -213,6 +247,22 @@ Se você é um agente D-11 e um hook te bloqueou, a mensagem no stderr é didát
 
 ---
 
+<!-- MOTOR:CODIGO-INICIO -->
+<!--
+  Seções do motor Claude Code (o motor de referência da Formação).
+
+  O texto original completo (12 seções, ~66 mil caracteres) também está
+  guardado em `.delta-11/motor/CLAUDE-original.md` — para consulta e para
+  os outros motores (Codex, Kilo), que recebem instruções específicas
+  deles no lugar destas seções.
+
+  A METODOLOGIA (as 7 camadas, as 17 regras invioláveis, o protocolo de
+  código, o painel, as correções aprendidas) NÃO está aqui: ela é a mesma
+  em todo motor e vive fora destes marcadores.
+-->
+
+
+
 ## 🤖 DISPATCH AUTÔNOMO (v6.1, ajustado na v6.3) — D-11 como Lovable
 
 O D-11 funciona como **Lovable** (autônomo), não como supervisor:
@@ -257,6 +307,23 @@ O D-11 funciona como **Lovable** (autônomo), não como supervisor:
 você é o CRONOS) ou o Bash tool (você é um agente com ferramentas), ou avise o CRONOS.
 
 ---
+
+<!-- MOTOR:CODIGO-FIM -->
+<!-- MOTOR:CODIGO-INICIO -->
+<!--
+  Seções do motor Claude Code (o motor de referência da Formação).
+
+  O texto original completo (12 seções, ~66 mil caracteres) também está
+  guardado em `.delta-11/motor/CLAUDE-original.md` — para consulta e para
+  os outros motores (Codex, Kilo), que recebem instruções específicas
+  deles no lugar destas seções.
+
+  A METODOLOGIA (as 7 camadas, as 17 regras invioláveis, o protocolo de
+  código, o painel, as correções aprendidas) NÃO está aqui: ela é a mesma
+  em todo motor e vive fora destes marcadores.
+-->
+
+
 
 ## 🛡️ VIGIAS AUTOMÁTICOS (HOOKS) — lista completa v6.3
 
@@ -332,6 +399,23 @@ aviso. O CRONOS roda o contract-tester UMA vez, depois que o ATLAS termina as ed
 **Cross-reference:** `.delta-11/CHANGELOG.md` entradas `v6.2 (2026-08-11)` (os 11 vigias comportamentais) e `v6.3`.
 
 ---
+
+<!-- MOTOR:CODIGO-FIM -->
+<!-- MOTOR:CODIGO-INICIO -->
+<!--
+  Seções do motor Claude Code (o motor de referência da Formação).
+
+  O texto original completo (12 seções, ~66 mil caracteres) também está
+  guardado em `.delta-11/motor/CLAUDE-original.md` — para consulta e para
+  os outros motores (Codex, Kilo), que recebem instruções específicas
+  deles no lugar destas seções.
+
+  A METODOLOGIA (as 7 camadas, as 17 regras invioláveis, o protocolo de
+  código, o painel, as correções aprendidas) NÃO está aqui: ela é a mesma
+  em todo motor e vive fora destes marcadores.
+-->
+
+
 
 ## PROTOCOLO DE ATIVAÇÃO
 
@@ -443,6 +527,23 @@ agente parado, tarefa órfã ou bloqueio. Resolva pelo Agent tool e apague o avi
 
 ---
 
+<!-- MOTOR:CODIGO-FIM -->
+<!-- MOTOR:CODIGO-INICIO -->
+<!--
+  Seções do motor Claude Code (o motor de referência da Formação).
+
+  O texto original completo (12 seções, ~66 mil caracteres) também está
+  guardado em `.delta-11/motor/CLAUDE-original.md` — para consulta e para
+  os outros motores (Codex, Kilo), que recebem instruções específicas
+  deles no lugar destas seções.
+
+  A METODOLOGIA (as 7 camadas, as 17 regras invioláveis, o protocolo de
+  código, o painel, as correções aprendidas) NÃO está aqui: ela é a mesma
+  em todo motor e vive fora destes marcadores.
+-->
+
+
+
 ## MUDANÇA ESTRUTURAL v4.0 — CRONOS ORQUESTRADOR EM TODO PROJETO
 
 A partir da v4.0 da Formação Δ-11:
@@ -465,7 +566,25 @@ Ver detalhes em: `.delta-11/operativos/CRONOS.md`, `.delta-11/operativos/ATLAS.m
 
 ---
 
+<!-- MOTOR:CODIGO-FIM -->
+<!-- MOTOR:CODIGO-INICIO -->
+<!--
+  Seções do motor Claude Code (o motor de referência da Formação).
+
+  O texto original completo (12 seções, ~66 mil caracteres) também está
+  guardado em `.delta-11/motor/CLAUDE-original.md` — para consulta e para
+  os outros motores (Codex, Kilo), que recebem instruções específicas
+  deles no lugar destas seções.
+
+  A METODOLOGIA (as 7 camadas, as 17 regras invioláveis, o protocolo de
+  código, o painel, as correções aprendidas) NÃO está aqui: ela é a mesma
+  em todo motor e vive fora destes marcadores.
+-->
+
+
+
 ## MUDANÇA ESTRUTURAL v4.0 Onda 2 — ARQUITETURA DUPLA WORKTREE + KANBAN
+<!-- MOTOR:CODIGO-FIM -->
 
 A partir da v4.0 Onda 2 da Formação Δ-11, **o AppleScript deixa de ser usado para dispatch**. Em substituição:
 
@@ -609,6 +728,22 @@ o protocolo. Em uma linha cada:
 
 ---
 
+<!-- MOTOR:CODIGO-INICIO -->
+<!--
+  Seções do motor Claude Code (o motor de referência da Formação).
+
+  O texto original completo (12 seções, ~66 mil caracteres) também está
+  guardado em `.delta-11/motor/CLAUDE-original.md` — para consulta e para
+  os outros motores (Codex, Kilo), que recebem instruções específicas
+  deles no lugar destas seções.
+
+  A METODOLOGIA (as 7 camadas, as 17 regras invioláveis, o protocolo de
+  código, o painel, as correções aprendidas) NÃO está aqui: ela é a mesma
+  em todo motor e vive fora destes marcadores.
+-->
+
+
+
 ## PROTOCOLO DE INÍCIO DE TAREFA (obrigatório para todos os agentes)
 
 Este é o ÚNICO protocolo de início de tarefa. ANTES de começar qualquer tarefa, execute nesta ordem:
@@ -671,7 +806,25 @@ tem? Execute o **Protocolo de Fase Concluída**.
 
 ---
 
+<!-- MOTOR:CODIGO-FIM -->
+<!-- MOTOR:CODIGO-INICIO -->
+<!--
+  Seções do motor Claude Code (o motor de referência da Formação).
+
+  O texto original completo (12 seções, ~66 mil caracteres) também está
+  guardado em `.delta-11/motor/CLAUDE-original.md` — para consulta e para
+  os outros motores (Codex, Kilo), que recebem instruções específicas
+  deles no lugar destas seções.
+
+  A METODOLOGIA (as 7 camadas, as 17 regras invioláveis, o protocolo de
+  código, o painel, as correções aprendidas) NÃO está aqui: ela é a mesma
+  em todo motor e vive fora destes marcadores.
+-->
+
+
+
 ## PROTOCOLO DE FINALIZAÇÃO DE TAREFA (obrigatório para todos os agentes)
+<!-- MOTOR:CODIGO-FIM -->
 
 Ao concluir qualquer tarefa, execute SEMPRE estes passos, nesta ordem: **1a → 1b → 3.4 → 3.5 + 3.7 (juntos) → 3.8 → 3.9 → 4 → 5**.
 (v6.4 — V6: o 3.5 e o 3.7 são disparados JUNTOS, na mesma mensagem, os dois com `run_in_background: true`; espere os dois.)
@@ -872,6 +1025,22 @@ antigos. Cor de cada agente pela idade do último sinal: verde até 2 min, amare
 
 ---
 
+<!-- MOTOR:CODIGO-INICIO -->
+<!--
+  Seções do motor Claude Code (o motor de referência da Formação).
+
+  O texto original completo (12 seções, ~66 mil caracteres) também está
+  guardado em `.delta-11/motor/CLAUDE-original.md` — para consulta e para
+  os outros motores (Codex, Kilo), que recebem instruções específicas
+  deles no lugar destas seções.
+
+  A METODOLOGIA (as 7 camadas, as 17 regras invioláveis, o protocolo de
+  código, o painel, as correções aprendidas) NÃO está aqui: ela é a mesma
+  em todo motor e vive fora destes marcadores.
+-->
+
+
+
 ## PROTOCOLO DE FASE CONCLUÍDA (quando um agente termina TODAS as suas tarefas)
 
 ### Se você é executor, SHIELD ou SCOUT
@@ -907,6 +1076,23 @@ antigos. Cor de cada agente pela idade do último sinal: verde até 2 min, amare
 **REGRA CRÍTICA:** para saber quais agentes entram na próxima fase, consulte `.delta-11/protocolos/fluxo-zero-ao-lancamento.md` e a tabela de agentes por complexidade no operativo do ATLAS.
 
 ---
+
+<!-- MOTOR:CODIGO-FIM -->
+<!-- MOTOR:CODIGO-INICIO -->
+<!--
+  Seções do motor Claude Code (o motor de referência da Formação).
+
+  O texto original completo (12 seções, ~66 mil caracteres) também está
+  guardado em `.delta-11/motor/CLAUDE-original.md` — para consulta e para
+  os outros motores (Codex, Kilo), que recebem instruções específicas
+  deles no lugar destas seções.
+
+  A METODOLOGIA (as 7 camadas, as 17 regras invioláveis, o protocolo de
+  código, o painel, as correções aprendidas) NÃO está aqui: ela é a mesma
+  em todo motor e vive fora destes marcadores.
+-->
+
+
 
 ## PROTOCOLO DE CONTEXTO ESGOTADO (OBRIGATÓRIO)
 
@@ -964,7 +1150,25 @@ memória limpa. Nada requer você agora."
 
 ---
 
+<!-- MOTOR:CODIGO-FIM -->
+<!-- MOTOR:CODIGO-INICIO -->
+<!--
+  Seções do motor Claude Code (o motor de referência da Formação).
+
+  O texto original completo (12 seções, ~66 mil caracteres) também está
+  guardado em `.delta-11/motor/CLAUDE-original.md` — para consulta e para
+  os outros motores (Codex, Kilo), que recebem instruções específicas
+  deles no lugar destas seções.
+
+  A METODOLOGIA (as 7 camadas, as 17 regras invioláveis, o protocolo de
+  código, o painel, as correções aprendidas) NÃO está aqui: ela é a mesma
+  em todo motor e vive fora destes marcadores.
+-->
+
+
+
 ## PROTOCOLO DE DISPATCH DE AGENTES — v6.4 (via SDK nativo)
+<!-- MOTOR:CODIGO-FIM -->
 
 O dispatch de agentes usa o **Agent tool nativo do Claude Code**, não AppleScript. Funciona igual em macOS, Linux, Windows, Claude Code no terminal ou na extensão VS Code.
 

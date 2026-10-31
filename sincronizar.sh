@@ -517,13 +517,39 @@ instalar_entrada_do_motor() {
         codex)
             mkdir -p "$destino/.codex"
             local gerador="$base/codex/gerar-hooks.py"
+            local hooks_dst="$destino/.codex/hooks.json"
             if [ -f "$gerador" ]; then
+                # MESCLA, nunca sobrescreve: o usuario pode ter hooks proprios
+                # (notificacoes, ferramentas de third party) no hooks.json —
+                # e uma sincronizacao nao pode destrui-los. Mesma politica do
+                # .claude/settings.json (C-058).
                 if [ "$DRY_RUN" = true ]; then
-                    echo -e "    ${GREEN}+ .codex/hooks.json${NC} (vigias do Δ-11 no motor Codex)"
+                    echo -e "    ${GREEN}+ .codex/hooks.json${NC} (vigias do Δ-11 no motor Codex, mesclado com os seus)"
+                elif [ -f "$hooks_dst" ]; then
+                    if python3 "$gerador" --mesclar "$hooks_dst" --saida "$hooks_dst.tmp" 2>/dev/null; then
+                        mv "$hooks_dst.tmp" "$hooks_dst"
+                        echo -e "    ${GREEN}~ .codex/hooks.json${NC} (vigias do Δ-11 mesclados com os seus; os seus foram mantidos)"
+                    else
+                        rm -f "$hooks_dst.tmp"
+                        echo -e "    ${RED}! .codex/hooks.json invalido — NAO foi alterado. Corrija o JSON e rode de novo.${NC}"
+                    fi
                 else
-                    python3 "$gerador" > "$destino/.codex/hooks.json" 2>/dev/null \
+                    python3 "$gerador" --saida "$hooks_dst" 2>/dev/null \
                         && echo -e "    ${GREEN}+ .codex/hooks.json${NC} (vigias do Δ-11 no motor Codex)" \
                         || echo -e "    ${RED}! nao consegui gerar .codex/hooks.json${NC}"
+                fi
+            fi
+            # O AGENTS.md: no Codex, quem le as instrucoes automaticamente em
+            # cada execucao e o AGENTS.md da raiz (o equivalente do CLAUDE.md).
+            local gerador_agents_md="$base/codex/gerar-agents-md.py"
+            if [ -f "$gerador_agents_md" ]; then
+                if [ "$DRY_RUN" = true ]; then
+                    echo -e "    ${GREEN}+ AGENTS.md${NC} (instrucoes do Codex, com o bloco do motor)"
+                else
+                    python3 "$gerador_agents_md" "$destino/AGENTS.md" \
+                        --motor codex >/dev/null 2>&1 \
+                        && echo -e "    ${GREEN}+ AGENTS.md${NC} (instrucoes do Codex, com o bloco do motor)" \
+                        || echo -e "    ${RED}! nao consegui gerar o AGENTS.md${NC}"
                 fi
             fi
             ;;
