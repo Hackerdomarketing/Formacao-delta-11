@@ -65,10 +65,38 @@ bash sincronizar.sh              # leva os arquivos de sistema a todos os projet
 
 O `sincronizar.sh` nunca mexe nos dados dos projetos (quadro de tarefas, memória, planos, modo de trabalho).
 
+### Motores (v7)
+
+O Δ-11 roda em três orquestradores, com **um núcleo só** (a metodologia é
+idêntica; muda como o motor executa o protocolo):
+
+| Motor | Hooks (vigias) | Como dispara |
+|---|---|---|
+| `claude-code` | nativos | `Agent` + `isolation: worktree` |
+| `codex` | nativos (mesmo formato) | `spawn_agent` |
+| `kilo` | **não tem** — usa o **portão** | Agent Manager |
+
+```bash
+bash sincronizar.sh --motor kilo     # instala a entrada do Kilo no projeto
+bash sincronizar.sh --motor codex    # gera o .codex/hooks.json
+bash sincronizar.sh                  # Claude Code (o padrão)
+```
+
+No motor **Kilo** (que não tem hooks), a proteção roda pelo portão:
+
+```bash
+python3 .delta-11/motor/porteiro/porteiro.py <vigia> <<< '<evento json>'
+python3 .delta-11/motor/porteiro/porteiro.py --auditar <<< '<evento json>'
+```
+
+O `--auditar` roda **todos** os vigias e relata o que bloquearia, sem
+bloquear — é a forma segura de conferir a proteção.
+
 ## Testes do sistema
 
 ```bash
 HOME="$(mktemp -d)" bash .delta-11/tests/rodar-todos.sh
+bash .delta-11/tests/motores/motores.test.sh   # só os três motores
 ```
 
 ## Documentação
@@ -76,6 +104,7 @@ HOME="$(mktemp -d)" bash .delta-11/tests/rodar-todos.sh
 - **[GUIA-DO-COMANDANTE.md](GUIA-DO-COMANDANTE.md)** — manual de uso em linguagem simples (comece por aqui)
 - **[.delta-11/CHANGELOG.md](.delta-11/CHANGELOG.md)** — história das versões e decisões D1–D39 da v6.3
 - **[CLAUDE.md](CLAUDE.md)** — manual completo que os agentes leem automaticamente
+- **[.delta-11/motor/CONTRATO.md](.delta-11/motor/CONTRATO.md)** — o contrato que todo motor novo precisa implementar
 
 ## Estrutura
 

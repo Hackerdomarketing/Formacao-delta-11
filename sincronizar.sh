@@ -430,6 +430,16 @@ LINHAS_GITIGNORE=(
     "!.delta-11/scratch/README.md"
     ".delta-11/logs/sub-agentes/*.log"
     ".claude/worktrees/"
+    # v7: o motor Kilo — o estado de execucao fica fora, mas a ENTRADA do
+    # motor (os 10 agentes em .kilo/agent/ e as permissoes) entra: e ela que
+    # os executores em worktree precisam ler.
+    ".kilo/agent-manager.json"
+    ".kilo/worktrees/"
+    ".kilo/permissoes.local.json"
+    ".codex/config.local.toml"
+    # O .last-update e reescrito a cada sincronizacao (timestamp + nota) —
+    # e estado local do projeto, nao parte do sistema.
+    ".delta-11/.last-update"
     "__pycache__/"
     "*.pyc"
 )

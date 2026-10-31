@@ -19,6 +19,141 @@
 
 ---
 
+## v7 (2026-10-31) — Motor multiempresa
+
+### Por que essa versão existe
+
+A Formação Δ-11 foi construída para o Claude Code, e o Claude Code é excelente
+nele: dispara os 37 vigias sozinho, cria worktree por um comando, tem
+`SendMessage` entre agentes. Mas um projeto pode não rodar no Claude Code — e
+nesse caso a única saída era rodar **sem** as proteções, o que a própria
+Formação proíbe ("proteção que depende de agente obedecer prompt NÃO é
+proteção").
+
+Medido (2026-10-31): de 945 linhas do `_comum.py`, **45 funções são portátil**
+e **13 dependem do motor**. Ou seja: 92% do motor era Claude-Code-específico
+por accidents de escrita, não por natureza. E o gargalo real era **um arquivo
+só**.
+
+### O que mudou
+
+**O motor virou uma camada.**
+
+```
+.delta-11/motor/
+├── nucleo/nucleo.py       a METODOLOGIA (45 funções) — igual em todo motor
+├── claude-code/adaptador.py   o motor original
+├── codex/adaptador.py         o Codex CLI
+├── kilo/adaptador.py          o Kilo
+├── porteiro/porteiro.py       o portão universal (motores sem hooks)
+└── CONTRATO.md                o contrato que todo adaptador implementa
+```
+
+`.delta-11/hooks/_comum.py` virou a **fachada**: junta núcleo + adaptador e
+entrega o resultado. Os vigias continuam `import _comum as comum` — nenhum
+deles mudou.
+
+**O contrato de bloqueio não mudou:** exit 2 + stderr. Por isso a **mesma
+bateria de 37 vigias serve para os três motores** — nenhum motor precisa de
+código próprio de bloqueio.
+
+**Três motores, uma fonte de verdade:**
+
+| Motor | Hooks | Como dispara | Entrada instalada |
+|---|---|---|---|
+| Claude Code | nativos | `Agent` + `isolation: worktree` | `.claude/settings.json` |
+| Codex CLI | nativos (mesmo formato) | `spawn_agent` | `.codex/hooks.json` |
+| Kilo | **não tem** | Agent Manager | `.kilo/agent/*.md` + `.kilo/permissoes.json` |
+
+**O motor escolhe-se pelo payload**, não por configuração: o Codex manda
+`turn_id`, o Kilo manda `kilo_agent_id`, o Claude Code não tem marca
+exclusiva (e é o padrão). A variável `DELTA11_MOTOR` sobrescreve, para
+depurar.
+
+**O PORTAO UNIVERSAL** (`.delta-11/motor/porteiro/porteiro.py`) é a solução
+para motores sem hooks. Contrato de CLI estável:
+
+```bash
+porteiro <vigia> <<< '<evento json>'   # exit 0 libera / exit 2 bloqueia
+porteiro --auditar <<< '<evento json>'  # roda TODOS os vigias e RELATA
+```
+
+O payload é o mesmo evento JSON que o Claude Code entrega nos hooks, então o
+**mesmo vigia** roda em todo motor. O modo `--auditar` é o que permite usar o
+Delta-11 em qualquer motor com segurança: em vez de depender de cada agente
+lembrar de chamar o vigia, o portão varre todos.
+
+**O CLAUDE.md deixou de ter 6 seções por motor.** As ~40 mil caracteres que
+descreviam o motor original foram trocadas por UM bloco entre marcadores
+(`<!-- MOTOR:INICIO -->` / `<!-- MOTOR:FIM -->`), gerado por
+`motor/gerar-bloco-motor.py`. A metodologia (as 7 camadas, as 17 regras
+invioláveis, o protocolo de código) não muda: ela é a mesma em todo motor.
+
+**O sincronizador ganhou `--motor`** (`claude-code | codex | kilo`): instala
+a entrada certa no projeto.
+
+**O motor Kilo ganhou a camada grossa das proteções** — as permissões
+nativas (`{action, resource, effect}`): `edit` é `deny` em `.delta-11/**`,
+`.claude/**` e `.git/**`; `git stash`/`push`/`reset --hard` são `deny`; todo
+despacho é `ask`; `external` é `deny`. Essas barreiras rodam **mesmo** se o
+agente esquecer do portão.
+
+### O que o Codex exigiu de diferente
+
+O Codex tem hooks com o **mesmo formato** do Claude Code, mas o payload é
+diferente: ele edita arquivos por `apply_patch`, e o **caminho vem dentro do
+patch** (não em `file_path`). O adaptador:
+
+- extrai o caminho do patch (`*** Update File: ...`);
+- reconstrói o conteúdo depois da edição (para os vigias que contam "o que
+  mudou" — kanban, selo, conclusão de tarefa);
+- **traduz o nome da ferramenta no limite do motor**: `apply_patch` vira
+  `Write` / `Edit` / `MultiEdit` conforme o patch. Nenhum vigia precisa saber
+  que o Codex existe.
+
+O caminho da variável de ambiente também muda: o Codex não tem
+`$CLAUDE_PROJECT_DIR`, então o gerador usa `$(git rev-parse --show-toplevel)`
+— que é o que a própria documentação do Codex recomenda.
+
+### Como testar
+
+```bash
+bash .delta-11/tests/rodar-todos.sh              # a suíte inteira (83/83)
+bash .delta-11/tests/motores/motores.test.sh     # só os motores (16/16)
+bash .delta-11/tests/rodar-todos.sh --pasta motores
+```
+
+O teste dos motores cobre: núcleo único (não uma cópia por motor), detecção
+dos três motores pelo payload, **os três bloqueando com exit 2** e com o
+motivo no stderr, o portão bloqueando e liberando, o modo auditoria
+relatando, e a tradução do patch do Codex.
+
+### Commits desta versão
+
+- `3321d4f` refactor(v7): separa o motor em nucleo portátil + adaptadores
+- `37e178b` feat(v7): motor Codex — adaptador, gerador de hooks e traducao de patch
+- `a87a037` feat(v7): motor Kilo — portao universal, adaptador, permissoes e agentes
+- `a81a9d5` feat(v7): bloco de motor no CLAUDE.md + entrada por motor no sincronizador
+
+### Lições desta versão
+
+1. **Acouplamento acidental se disfarça de design.** 92% do motor dependia
+   do Claude Code — mas por 13 funções que podiam ter nascido separadas. A
+   medição (contar funções, não linhas) é o que revelou isso.
+2. **O gargalo era um arquivo, não um sistema.** 945 linhas, 58 funções, e
+   só 13 tocavam o motor. Separar o arquivo resolveu 3 motores.
+3. **O contrato de bloqueio é o que permite compartilhar a bateria.** Exit 2
+   + stderr é o mesmo no Claude Code e no Codex — e o portão reproduz
+   exatamente esse contrato para quem não tem hooks.
+4. **Motor sem hook não é motor sem proteção.** O portão + as permissões
+   nativas fecham a lacuna: um dá a camada fina (vigias), o outro a camada
+   grossa (barreiras no próprio motor).
+5. **A extração automatica perde imports.** O `_EVENTO_ATUAL` e o `import re`
+   sumiram na extração e quebraram 4 testes. A suíte pegou — porque ela
+   existe.
+
+---
+
 ## v6.4 (2026-10-15) — Velocidade
 
 ### Por que essa versão existe
