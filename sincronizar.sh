@@ -100,7 +100,10 @@ else
 fi
 
 # Pastas de SISTEMA dentro de .delta-11/ (copiadas inteiras, recursivamente)
-PASTAS_DE_SISTEMA="operativos protocolos sub-agentes templates conhecimento hooks ferramentas perfis mcp tests"
+# `motor` (v7): o nucleo portátil + os adaptadores por orquestrador. Vai junto
+# com `hooks` porque a fachada `_comum.py` importa o motor do motor escolhido —
+# sem ele, os 37 vigias nao carregam e todo projeto quebra.
+PASTAS_DE_SISTEMA="operativos protocolos sub-agentes templates conhecimento hooks ferramentas perfis mcp tests motor"
 
 # Scripts de operação: na fonte ficam na raiz; nos projetos, em .delta-11/scripts/
 SCRIPTS_DE_OPERACAO="task-done.sh monitor-delta11.sh vigilante.sh"

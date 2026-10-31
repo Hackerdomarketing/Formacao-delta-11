@@ -51,6 +51,12 @@ novo_projeto() {
     fi
     mkdir -p "$d/.delta-11/ativacoes" "$d/.delta-11/locks" "$d/src"
     cp -R "$HOOKS_DIR" "$d/.delta-11/hooks"
+    # v7: o motor (nucleo + adaptadores) e parte do sistema — sem ele a
+    # fachada _comum.py nao carrega. Um projeto real TEM motor/.
+    if [ -d "$HOOKS_DIR/../motor" ]; then
+        mkdir -p "$d/.delta-11/motor"
+        cp -R "$HOOKS_DIR/../motor/." "$d/.delta-11/motor/" 2>/dev/null || true
+    fi
     echo "$d"
 }
 

@@ -46,6 +46,12 @@ novo_projeto() {
     mkdir -p "$TEST_DIR/.delta-11/memoria/decisoes" "$TEST_DIR/.delta-11/memoria/project-core" \
              "$TEST_DIR/.delta-11/ativacoes" "$TEST_DIR/.delta-11/logs/sub-agentes" \
              "$TEST_DIR/.delta-11/locks" "$TEST_DIR/.delta-11/scratch"
+    # v7: o motor (nucleo + adaptadores) e parte do sistema — sem ele a
+    # fachada _comum.py nao carrega. Um projeto real TEM motor/.
+    if [ -d "$HOOKS_DIR/../motor" ]; then
+        mkdir -p "$TEST_DIR/.delta-11/motor"
+        cp -R "$HOOKS_DIR/../motor/." "$TEST_DIR/.delta-11/motor/" 2>/dev/null || true
+    fi
     : > "$TEST_DIR/.delta-11/activity-log.md"
     export CLAUDE_PROJECT_DIR="$TEST_DIR"
     cd "$TEST_DIR" || exit 1

@@ -35,7 +35,10 @@ REGISTRY="${DELTA11_REGISTRY:-$HOME/.delta-11-registry.json}"
 APRENDIZADOS="$HOME/.delta-11/aprendizados-entre-projetos.md"
 
 # Pastas de SISTEMA dentro de .delta-11/ (as mesmas do sincronizar.sh)
-PASTAS_DE_SISTEMA="operativos protocolos sub-agentes templates conhecimento hooks ferramentas perfis mcp tests"
+# `motor` (v7): o nucleo portátil + os adaptadores por orquestrador. Vai junto
+# com `hooks` porque a fachada `_comum.py` importa o motor do motor escolhido —
+# sem ele, os 37 vigias nao carregam e todo projeto novo quebra.
+PASTAS_DE_SISTEMA="operativos protocolos sub-agentes templates conhecimento hooks ferramentas perfis mcp tests motor"
 SCRIPTS_DE_OPERACAO="task-done.sh monitor-delta11.sh vigilante.sh"
 
 # ─── Argumento ─────────────────────────────────────────────────

@@ -42,3 +42,7 @@ __pycache__/
 .delta-11/memoria/*-estado.md
 .delta-11/memoria/CRONOS-abertura-fase-*.md
 .claude/worktrees/
+
+# v7: o material de trabalho do refactor do motor nao vai para o Git
+.delta-11/motor/nucleo/_adaptador_base.py
+.delta-11/motor/nucleo/_comum_original.py.bak
