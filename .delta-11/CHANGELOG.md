@@ -134,6 +134,50 @@ relatando, e a tradução do patch do Codex.
 - `37e178b` feat(v7): motor Codex — adaptador, gerador de hooks e traducao de patch
 - `a87a037` feat(v7): motor Kilo — portao universal, adaptador, permissoes e agentes
 - `a81a9d5` feat(v7): bloco de motor no CLAUDE.md + entrada por motor no sincronizador
+- `e8a078f` docs(v7): CHANGELOG da v7 (motor multiempresa) + README com os motores
+- `d9ec2fd` fix(v7): o CLAUDE.md troca de motor de verdade, e o hooks.json do Codex mescla
+
+### Correcao posterior (v7.1, 2026-10-31)
+
+A v7 introduce o bloco de motor no CLAUDE.md, mas a implementacao **recebia**
+o bloco em vez de **trocar** o motor: as 12 secoes do motor original
+(~66 mil caracteres) continuavam no arquivo, dizendo "use a tool Agent" e
+"$CLAUDE_PROJECT_DIR" — instrucoes ERRADAS num motor que nao e o Claude
+Code. Um agente que lesse o arquivo inteiro receberia as duas ordens.
+
+Corrigido em `d9ec2fd`:
+  - as 12 secoes do motor estao marcadas (`<!-- MOTOR:CODIGO-INICIO -->`);
+  - o gerador troca o que esta entre elas pelo texto do motor pedido;
+  - a METODOLOGIA (as 7 camadas, as 17 regras inviolaveis, o protocolo de
+    codigo, o painel, as correcoes aprendidas) fica FORA dos marcadores e
+    nunca e tocada;
+  - o texto original do motor Claude Code esta guardado em
+    `.delta-11/motor/CLAUDE-original.md` — nada se perde, ele vira a
+    REFERENCIA (e continua no CLAUDE.md no motor Claude Code, porque sao
+    66 mil caracteres de conhecimento duro que ele precisa para despachar).
+
+O mesmo commit corrigiu um **BUG DE DESTRUIÇÃO**: o gerador do
+`.codex/hooks.json` sobrescrevia o arquivo do usuario. O Codex tem o mesmo
+formato do Claude Code, e ali a politica e MESCLAR (C-058) — os hooks do
+Δ-11 entram, os do usuario ficam. O gerador teria destruido o hook do
+Muxy que esta em `~/.codex/hooks.json`. Agora mescla (e e idempotente, e
+nao toca um JSON invalido).
+
+E o motor Codex ganhou o `AGENTS.md` — o equivalente do `CLAUDE.md` no
+Codex (o Codex nao le `CLAUDE.md`).
+
+Testes: `.delta-11/tests/motores/documentacao.test.sh` (26 verificacoes).
+Suíte completa: 85/85 OK.
+
+**Lição:** "testar" e "ler" são coisas diferentes. As duas falhas
+desta vez (o bloco que não trocava o motor, e o hooks.json que
+sobrescrevia) estavam **visíveis no código** e não foram vistas na leitura.
+A primeira só apareceu quando o teste comparou as seções entre os motores;
+a segunda, quando o teste leu o `~/.codex/hooks.json` de verdade.
+
+- `37e178b` feat(v7): motor Codex — adaptador, gerador de hooks e traducao de patch
+- `a87a037` feat(v7): motor Kilo — portao universal, adaptador, permissoes e agentes
+- `a81a9d5` feat(v7): bloco de motor no CLAUDE.md + entrada por motor no sincronizador
 
 ### Lições desta versão
 
