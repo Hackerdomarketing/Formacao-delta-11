@@ -1,5 +1,36 @@
 ## ⚡ ATIVAÇÃO DELTA-11 — PRIORIDADE ABSOLUTA (LER ANTES DE TUDO)
 
+<!-- MOTOR:INICIO -->
+
+## 🧭 MOTOR ATIVO: Claude Code
+
+Este projeto roda a Formação Δ-11 no motor **Claude Code**.
+A metodologia (as 7 camadas, as 17 regras inviolaveis, o protocolo de
+código, os templates) e a MESMA em todo motor. O que muda e COMO o motor
+executa o protocolo — e esta secao diz como.
+
+**Voce tem hooks nativos.** Os 37 vigias disparam sozinhos, antes de cada
+acao. Nao precisa chamar nada.
+
+| O protocolo fala em | Use |
+|---|---|
+| `Agent` tool com `isolation: "worktree"` | a tool `Agent`, com `isolation: "worktree"`, `run_in_background: true`, `name` |
+| `SendMessage` ao CRONOS | a tool `SendMessage` (destino: o `name` da sessao) |
+| `$CLAUDE_PROJECT_DIR` | a variavel de ambiente de mesmo nome |
+| `subagent_type: "general-purpose"` | `subagent_type: "general-purpose"` + `name: "<agente>-onda-<N>"` |
+
+Os hooks estao em `.claude/settings.json` (gerado de
+`.delta-11/templates/settings-hooks.json`).
+
+### A regra que vale em todo motor
+
+O `CLAUDE.md` desta pasta e o da Formacao (o motor trocou as secoes
+tecnicas por este bloco). O contexto permanente do PROJETO esta em
+`docs/contexto-do-projeto-kpi-metrics.md` (ou no arquivo que o projeto
+apontar). Leia os dois: este diz COMO trabalhar, aquele diz O QUE o produto e.
+
+<!-- MOTOR:FIM -->
+
 Se a mensagem do comandante contiver QUALQUER um destes termos:
 `d11` · `D11` · `d-11` · `D-11` · `delta 11` · `Delta 11` · `ativar delta`
 `ativar D-11` · `ativar Delta 11` · `ativar D11` · `formação delta` · `formacao delta` · `iniciar`

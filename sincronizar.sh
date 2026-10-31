@@ -61,10 +61,13 @@
 #   ./sincronizar.sh --diff             # compara fonte × projetos (não grava nada)
 #   ./sincronizar.sh --pull             # git pull na fonte antes de sincronizar
 #   ./sincronizar.sh --nota "mensagem"  # nota gravada no .last-update
+#   ./sincronizar.sh --motor kilo       # instala a entrada do motor escolhido
+#                                      # (claude-code | codex | kilo)
 #
 # Variáveis opcionais (usadas pelos testes):
 #   DELTA11_REGISTRY      caminho do registro (padrão ~/.delta-11-registry.json)
 #   DELTA11_SEARCH_PATHS  pastas de varredura separadas por ":"
+#   DELTA11_MOTOR         motor padrao quando --motor nao e passado
 #
 # REQUER: jq (brew install jq)
 #
@@ -87,6 +90,9 @@ DRY_RUN=false
 DO_PULL=false
 DO_DIFF=false
 NOTA=""
+# v7: o motor padrao e o Claude Code (o motor original da Formacao). O
+# `--motor` troca a entrada instalada no projeto.
+MOTOR="${DELTA11_MOTOR:-claude-code}"
 
 # ─── Pastas onde o script procura projetos com Δ-11 ──────────
 if [ -n "${DELTA11_SEARCH_PATHS:-}" ]; then
@@ -120,6 +126,15 @@ while [[ $# -gt 0 ]]; do
         --dry-run) DRY_RUN=true; shift ;;
         --pull) DO_PULL=true; shift ;;
         --diff) DO_DIFF=true; DRY_RUN=true; shift ;;
+        --motor)
+            # v7: qual motor roda neste projeto. Muda o que e instalado:
+            # claude-code -> .claude/settings.json (hooks nativos)
+            # codex        -> .codex/hooks.json (hooks nativos, outro formato)
+            # kilo         -> .kilo/agent/*.md + permissoes (sem hooks: portao)
+            if [ -z "${2:-}" ]; then
+                echo -e "${RED}--motor precisa de um valor (claude-code, codex, kilo)${NC}"; exit 1
+            fi
+            MOTOR="$2"; shift 2 ;;
         --nota)
             if [ -z "${2:-}" ]; then
                 echo -e "${RED}--nota precisa de um texto${NC}"; exit 1
@@ -466,6 +481,87 @@ aplicar_removidos() {
     return 0
 }
 
+# ─── v7: instalar a ENTRADA do motor ───────────────────────────────────────
+# Cada motor tem um jeito proprio de receber as protecoes e as regras:
+#
+#   claude-code  .claude/settings.json   (hooks nativos, ja instalado acima)
+#   codex        .codex/hooks.json       (hooks nativos, formato proprio)
+#   kilo         .kilo/agent/*.md + .kilo/permissoes.json
+#                 (SEM hooks: a protecao roda pelo PORTAO, e as permissoes
+#                  nativas do Kilo sao a camada grossa das protecoes)
+#
+# O CLAUDE.md do projeto tambem recebe o bloco do motor, para que o agente
+# saiba COMO executar o protocolo neste motor.
+instalar_entrada_do_motor() {
+    local destino="$1"
+    local motor="$2"
+    local base="$SOURCE/.delta-11/motor"
+
+    [ -d "$base" ] || return 0
+
+    case "$motor" in
+        claude-code)
+            # O .claude/settings.json ja foi mesclado acima (C-058). Aqui so
+            # se ajusta o bloco do motor no CLAUDE.md.
+            ;;
+        codex)
+            mkdir -p "$destino/.codex"
+            local gerador="$base/codex/gerar-hooks.py"
+            if [ -f "$gerador" ]; then
+                if [ "$DRY_RUN" = true ]; then
+                    echo -e "    ${GREEN}+ .codex/hooks.json${NC} (vigias do Δ-11 no motor Codex)"
+                else
+                    python3 "$gerador" > "$destino/.codex/hooks.json" 2>/dev/null \
+                        && echo -e "    ${GREEN}+ .codex/hooks.json${NC} (vigias do Δ-11 no motor Codex)" \
+                        || echo -e "    ${RED}! nao consegui gerar .codex/hooks.json${NC}"
+                fi
+            fi
+            ;;
+        kilo)
+            # Os agentes customizados do Kilo
+            local gerador_agentes="$base/kilo/gerar-agentes.py"
+            if [ -f "$gerador_agentes" ]; then
+                if [ "$DRY_RUN" = true ]; then
+                    echo -e "    ${GREEN}+ .kilo/agent/*.md${NC} (10 agentes do Δ-11)"
+                else
+                    mkdir -p "$destino/.kilo/agent"
+                    python3 "$gerador_agentes" "$destino/.kilo/agent" >/dev/null 2>&1 \
+                        && echo -e "    ${GREEN}+ .kilo/agent/*.md${NC} (10 agentes do Δ-11)" \
+                        || echo -e "    ${RED}! nao consegui gerar os agentes do Kilo${NC}"
+                fi
+            fi
+            # As permissoes nativas do Kilo
+            local gerador_perm="$base/kilo/gerar-permissoes.py"
+            if [ -f "$gerador_perm" ]; then
+                if [ "$DRY_RUN" = true ]; then
+                    echo -e "    ${GREEN}+ .kilo/permissoes.json${NC} (camada grossa das protecoes)"
+                else
+                    mkdir -p "$destino/.kilo"
+                    python3 "$gerador_perm" > "$destino/.kilo/permissoes.json" 2>/dev/null \
+                        && echo -e "    ${GREEN}+ .kilo/permissoes.json${NC} (camada grossa das protecoes)" \
+                        || echo -e "    ${RED}! nao consegui gerar as permissoes do Kilo${NC}"
+                fi
+            fi
+            ;;
+        *) echo -e "    ${YELLOW}! motor desconhecido: $motor (use claude-code, codex ou kilo)${NC}" ;;
+    esac
+
+    # O CLAUDE.md do projeto recebe o bloco do motor (o resto do arquivo,
+    # que e a metodologia, fica igual).
+    local gerador_bloco="$base/gerar-bloco-motor.py"
+    local claude_md="$destino/CLAUDE.md"
+    if [ -f "$gerador_bloco" ] && [ -f "$claude_md" ]; then
+        if [ "$DRY_RUN" = true ]; then
+            echo -e "    ${YELLOW}~ CLAUDE.md${NC} (bloco do motor: $motor)"
+        else
+            python3 "$gerador_bloco" "$motor" --fonte "$claude_md" --saida "$claude_md.tmp" 2>/dev/null \
+                && mv "$claude_md.tmp" "$claude_md" \
+                && echo -e "    ${YELLOW}~ CLAUDE.md${NC} (bloco do motor: $motor)" \
+                || { rm -f "$claude_md.tmp"; echo -e "    ${RED}! nao consegui atualizar o bloco do motor${NC}"; }
+        fi
+    fi
+}
+
 # ─── Sincronizar UM projeto ───────────────────────────────────
 
 sincronizar_destino() {
@@ -626,6 +722,10 @@ sincronizar_destino() {
 
     # 6. C-147: proteção do .gitignore
     garantir_gitignore "$destino"
+
+    # 7. v7: a entrada do motor (hooks do Codex, agentes e permissoes do
+    #    Kilo, bloco do motor no CLAUDE.md)
+    instalar_entrada_do_motor "$destino" "$MOTOR"
 
     if [ $copiados -eq 0 ]; then
         echo -e "    ${GREEN}OK Já estava atualizado${NC}"
