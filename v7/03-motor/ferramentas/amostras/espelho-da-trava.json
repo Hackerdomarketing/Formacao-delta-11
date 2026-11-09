@@ -1,0 +1,2337 @@
+{
+ "o_que_e": "O que cada gancho do motor respondeu, chamada a chamada, ao pulso da trava (testar-trava.py), no Claude Code: o código de saída, a saída e a frase de erro, sem a pasta temporária, a pasta pessoal e a hora. O pulso dos motores (testar-motores.py) exige a mesma resposta pelo tradutor de cada programa de agentes.",
+ "gravado_de": "a trava do commit 9c3e91f (antes do tradutor; chamada sem o programa, que ela não lê), pelo pulso da trava da etapa 1",
+ "chamadas": [
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/luz.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/cofre/chave.txt\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/src/telas/inicio.js\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel atlas não escreve em o código do produto (src/telas/inicio.js). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"NotebookEdit\", \"tool_input\": {\"notebook_path\": \"<TEMPORARIO>/produto/src/analise.ipynb\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel atlas não escreve em o código do produto (src/analise.ipynb). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.claude/hooks/delta-11/lugares.json\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel atlas não escreve em `.claude/` (.claude/hooks/delta-11/lugares.json). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Edit\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.claude/hooks/delta-11/trava.py\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"documentador\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel documentador não escreve em `.claude/` (.claude/hooks/delta-11/trava.py). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.claude/settings.json\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel atlas não escreve em `.claude/` (.claude/settings.json). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/registro/atalho.txt\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o arquivo <TEMPORARIO>/produto/.delta-11/registro/atalho.txt tem mais de um nome (link): escrita barrada. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/registro/simbolico.js\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel atlas não escreve em o código do produto (src/telas/inicio.js). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/registro/../../src/telas/inicio.js\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel atlas não escreve em o código do produto (src/telas/inicio.js). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.git/config\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel front não escreve em `.git/` (.git/config). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"~/.claude/settings.json\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel front não escreve fora da pasta em que trabalha (~/.claude/settings.json). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/src/telas/inicio.js\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/src/telas/alvo-do-link.js\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o arquivo <TEMPORARIO>/produto/src/telas/alvo-do-link.js tem mais de um nome (link): escrita barrada. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/src/telas/estilos/cores.css\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: src/telas/estilos/cores.css não fica nas pastas do território de front (.delta-11/regras/enderecos.txt). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/src/telas/estilos/cores.css\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"pixel\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"~/.claude/projects/qualquer/conversa.jsonl\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: as conversas gravadas do Claude Code guardam o que cada agente viu (inclusive segredos e testes): ninguém as lê. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/banco/migracoes/1.sql\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: banco/migracoes/1.sql não fica nas pastas do território de front (.delta-11/regras/enderecos.txt). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/package.json\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"back\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/package.json\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"vault\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: package.json não fica nas pastas do território de vault (.delta-11/regras/enderecos.txt). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Edit\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/banco/migracoes/1.sql\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"scout\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-3/linhas/front-1.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-3/linhas/pixel-1.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel front só escreve na própria linha (.delta-11/quadro/camada-3/linhas/pixel-1.md é de outro). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-3/briefs/front-2.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel front não escreve em `.delta-11/quadro/<X>/` (.delta-11/quadro/camada-3/briefs/front-2.md). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-3/briefs/front-2.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-3/abertura.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel cronos não escreve em `.delta-11/quadro/<X>/abertura.md` (.delta-11/quadro/camada-3/abertura.md). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-3/abertura.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"arquiteto\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/regras/enderecos.txt\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"arquiteto\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/regras/enderecos.txt\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel front não escreve em `.delta-11/regras/enderecos.txt` (.delta-11/regras/enderecos.txt). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-3/selo.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel cronos não escreve em `.delta-11/quadro/<X>/selo.md` (.delta-11/quadro/camada-3/selo.md). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-3/selo.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/teste-guardado/camada-1.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Edit\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/src/telas/inicio.js\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel destruidor não escreve em o código do produto (src/telas/inicio.js). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/registro/revisor.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/estado/camada-3.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"documentador\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/leitor/camada-1/x.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"leitor-do-teste\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel leitor-do-teste não escreve em `.delta-11/leitor/` (.delta-11/leitor/camada-1/x.md). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.claude/worktrees/agent-candidata1/src/telas/coracao.js\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto/.claude/worktrees/agent-candidata1\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.claude/worktrees/agent-candidata1/banco/x.sql\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto/.claude/worktrees/agent-candidata1\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: banco/x.sql não fica nas pastas do território de front (.delta-11/regras/enderecos.txt). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.claude/worktrees/agent-candidata1/src/telas/coracao.js\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel front não escreve em `.claude/` (.claude/worktrees/agent-candidata1/src/telas/coracao.js). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/teste-guardado/camada-1.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel cronos não lê `.delta-11/teste-guardado/`. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/teste-guardado/camada-1.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/cofre/chave.txt\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel front não lê `.delta-11/cofre/`. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/cofre/chave.txt\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"back\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-3/briefs/front-2.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel revisor não lê `.delta-11/quadro/<X>/`. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/motor/modelos/testes-do-fruto.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Grep\", \"tool_input\": {\"pattern\": \"x\", \"path\": \"<TEMPORARIO>/produto\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel revisor não busca em na raiz: ali dentro há `.delta-11/luz.md`, que não é dele. Busque numa pasta mais funda (do código, ou `.delta-11/quadro/`, por exemplo). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Grep\", \"tool_input\": {\"pattern\": \"x\", \"path\": \"<TEMPORARIO>/produto/src\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Glob\", \"tool_input\": {\"pattern\": \"**/*.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel revisor não busca em na raiz: ali dentro há `.delta-11/luz.md`, que não é dele. Busque numa pasta mais funda (do código, ou `.delta-11/quadro/`, por exemplo). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Grep\", \"tool_input\": {\"pattern\": \"x\", \"path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-3\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel destruidor não lê `.delta-11/quadro/<X>/`. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-3/linhas/front-1.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel destruidor não lê `.delta-11/quadro/<X>/linhas/<nome>-<n>.md`. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-3/inimigos.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/luz.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"leitor-do-teste\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o leitor-do-teste só lê dentro de .delta-11/leitor/camada-1/. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/leitor/camada-1/luz-compacta.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"leitor-do-teste\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Grep\", \"tool_input\": {\"pattern\": \"x\", \"path\": \"<TEMPORARIO>/produto\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"npm test 2>&1 | tail -20\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"node -e \\\"[1].map(x => x)\\\"\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"echo conserto > src/telas/inicio.js\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o terminal do destruidor é vigiado: não grava arquivo, não copia, não apaga e não mexe no git. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"curl -s localhost:3000 > /tmp/resposta.html\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"git commit -am selo\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o terminal do selador é vigiado: não grava arquivo, não copia, não apaga e não mexe no git. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sed -i '' s/a/b/ src/x.js\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o terminal do selador é vigiado: não grava arquivo, não copia, não apaga e não mexe no git. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"cat .delta-11/quadro/camada-3/quadro.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o revisor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"cp src/a.js src/b.js\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o terminal do selador é vigiado: não grava arquivo, não copia, não apaga e não mexe no git. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"npm install && npm run build > build.log\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"arquiteto\", \"prompt\": \"x\", \"run_in_background\": false}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"arquiteto\", \"prompt\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o arquiteto é chamado em primeiro plano: diga run_in_background: false (sem isso o Claude Code o põe em segundo plano). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"cronos\", \"prompt\": \"Conduza .delta-11/quadro/camada-4/: leia a abertura.\", \"run_in_background\": true}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"cronos\", \"prompt\": \"Conduza a camada.\", \"run_in_background\": true}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: a mensagem que liga o CRONOS diz a pasta do quadro: 'Conduza .delta-11/quadro/<X>/'. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"cronos\", \"prompt\": \"Conduza .delta-11/quadro/camada-3/.\", \"run_in_background\": true}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o CRONOS de camada-3 está trabalhando nesta conversa: mande o recado por mensagem (SendMessage para a1cronos3). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"cronos\", \"prompt\": \"Conduza .delta-11/quadro/pedido-7/.\", \"run_in_background\": true}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o CRONOS de pedido-7 trabalha em outra conversa aberta nesta pasta; espere ela terminar. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"cronos\", \"prompt\": \"Conduza .delta-11/quadro/camada-8/.\", \"run_in_background\": true}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"SendMessage\", \"tool_input\": {\"to\": \"a1cronos3\", \"message\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"SendMessage\", \"tool_input\": {\"to\": \"a2fim\", \"message\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: um CRONOS de pedido-7 trabalha em outra conversa aberta: não acorde o desta; espere a outra terminar. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"cronos\", \"prompt\": \"Conduza .delta-11/quadro/camada-9/.\", \"run_in_background\": true}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: um CRONOS acabou de ser ligado nesta conversa e ainda não começou: ligue um por vez. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"SendMessage\", \"tool_input\": {\"to\": \"a9outro\", \"message\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o ATLAS só manda mensagem a um CRONOS desta conversa, pelo agentId que a chamada devolveu ('a9outro' não é um). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"SendMessage\", \"tool_input\": {\"to\": \"front\", \"message\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o ATLAS só manda mensagem a um CRONOS desta conversa, pelo agentId que a chamada devolveu ('front' não é um). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"SendMessage\", \"tool_input\": {\"to\": \"main\", \"message\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"SendMessage\", \"tool_input\": {\"to\": \"main\", \"message\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o front não manda mensagem para 'main' (rotas do motor). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"front\", \"prompt\": \"x\", \"run_in_background\": true}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o front é chamado em primeiro plano: diga run_in_background: false (sem isso o Claude Code o põe em segundo plano). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"front\", \"prompt\": \"x\", \"isolation\": \"worktree\", \"run_in_background\": false}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"front\", \"prompt\": \"x\", \"isolation\": \"worktree\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: cópia isolada só para as candidatas do coração, com a Camada 3 aberta. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"git add -A && git commit -m pronto\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o front não mexe na história do git (git add): a mudança entra pela esteira (sh esteira <nome> <arquivos>); numa cópia de candidata, deixe sem commit. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"git reset --hard HEAD~3\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o front não mexe na história do git (git reset): a mudança entra pela esteira (sh esteira <nome> <arquivos>); numa cópia de candidata, deixe sem commit. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh esteira front src/telas/inicio.js\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh testes/vermelho-plantado.sh && npx vitest run testes/vermelho.test.ts\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"shield\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh -n esteira\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"back\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"grep -rn \\\"esteira\\\" src/\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh esteira front 'app/(auth)/login/page.tsx' 'app/routes/posts.$id.tsx'\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh esteira front x\"}, \"cwd\": \"<TEMPORARIO>/produto/src/telas\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: a esteira só roda na raiz da pasta do produto (numa cópia de candidata, a escolhida entra por um agente novo da pasta principal). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh esteira engine src/servidor/rota.js\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o front entrega com o próprio nome: `sh esteira front <arquivos>` (numa entrega conjunta, o nome dele está entre os da entrega). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh esteira front src/a.js\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o selador não entrega à esteira: quem entrega é quem constrói. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"cat esteira && chmod +x esteira && shellcheck esteira && git diff esteira\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"back\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"grep -n esteira README.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh \\\"esteira\\\" front src/a.js\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: rode a esteira sozinha na linha, exatamente `sh esteira <nome> <arquivos>` (sem `&&`, `;`, `cd`, redirecionamento nem `$(...)`; caminho com parênteses ou $ vai entre aspas simples): só assim ela roda fora da caixa de areia e consegue juntar. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"X=1 sh esteira front src/a.js\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: rode a esteira sozinha na linha, exatamente `sh esteira <nome> <arquivos>` (sem `&&`, `;`, `cd`, redirecionamento nem `$(...)`; caminho com parênteses ou $ vai entre aspas simples): só assim ela roda fora da caixa de areia e consegue juntar. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py npx playwright test\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py olhar sh -c 'npm run build && npm test'\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py npm test\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o terminal do revisor é vigiado: rode o produto com `python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py olhar <comando>` (nada do que já existe na pasta muda). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py olhar node -e 'p.goto(\\\"/?x=<script>\\\"); p.click(\\\"form > button\\\"); if (itens.length > total) console.log(\\\"<h1>\\\")'\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py olhar --raiz .claude/worktrees/agent-candidata1 npm run build\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py olhar git log --oneline\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o revisor não lê a história do git (ela conta como foi feito). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.rascunho/destruidor-1.mjs\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.rascunho/x.mjs\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel front não escreve em `.rascunho/` (.rascunho/x.mjs). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py olhar curl -s https://meu-produto.pages.dev/.git/HEAD\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py olhar cat .git/HEAD\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o destruidor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Edit\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.claude/worktrees/agent-candidata1/package.json\"}, \"cwd\": \"<TEMPORARIO>/produto/.claude/worktrees/agent-candidata1\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Edit\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/package.json\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: package.json não fica nas pastas do território de front (.delta-11/regras/enderecos.txt). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Glob\", \"tool_input\": {\"pattern\": \"**/*\", \"path\": \"<TEMPORARIO>/produto\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel cronos não busca em na raiz: ali dentro há `.delta-11/teste-guardado/`, que não é dele. Busque numa pasta mais funda (do código, ou `.delta-11/quadro/`, por exemplo). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Glob\", \"tool_input\": {\"pattern\": \"**/*.md\", \"path\": \"<TEMPORARIO>/produto/.delta-11/quadro\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Glob\", \"tool_input\": {\"pattern\": \".delta-11/*\", \"path\": \"<TEMPORARIO>/produto\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Glob\", \"tool_input\": {\"pattern\": \".delta-11/**\", \"path\": \"<TEMPORARIO>/produto\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel atlas não busca em .delta-11: ali dentro há `.delta-11/teste-guardado/`, que não é dele. Busque numa pasta mais funda (do código, ou `.delta-11/quadro/`, por exemplo). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Glob\", \"tool_input\": {\"pattern\": \".delta-11/*/*\", \"path\": \"<TEMPORARIO>/produto\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel atlas não busca em .delta-11: ali dentro há `.delta-11/teste-guardado/`, que não é dele. Busque numa pasta mais funda (do código, ou `.delta-11/quadro/`, por exemplo). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"cat .d*/quadro/camada-3/briefs/front-1.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o destruidor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"cat .*/luz.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o revisor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"cat .[d]elta-11/luz.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o revisor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"grep -rn senha <TEMPORARIO>/produto/\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o revisor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"ls -R .claude/worktrees/agent-candidata1\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o destruidor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"find src -name *.[jt]s\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py sh -c 'echo $(date)'\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: com `$(...)` ou crase, mesmo entre aspas, o Claude Code deixa a caixa do produto dentro da caixa de areia, onde ela não abre: ponha os comandos num roteiro (quem confere, em `.rascunho/`; quem constrói, no seu território) e rode o roteiro pela caixa. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py olhar sh -c 'sh esteira front src/a.js | tail -3'\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: rode a esteira sozinha na linha, exatamente `sh esteira <nome> <arquivos>` (sem `&&`, `;`, `cd`, redirecionamento nem `$(...)`; caminho com parênteses ou $ vai entre aspas simples): só assim ela roda fora da caixa de areia e consegue juntar. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/esteira/front-2026-10-17-1200.log\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/esteira/front-2026-10-17-1200.log\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel revisor não lê `.delta-11/esteira/`. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh esteira form,engine src/form/valida.mjs servidor/valida.mjs\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"form\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh esteira form,engine src/a.js\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o front entrega com o próprio nome: `sh esteira front <arquivos>` (numa entrega conjunta, o nome dele está entre os da entrega). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh esteira front,pixel src/telas/a.js src/telas/estilos/b.css\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o pixel não escreveu `Entrego junto: <arquivos>` na linha dele: a entrega conjunta precisa do aceite de cada um. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh esteira front,pixel src/telas/a.js\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o pixel não escreveu `Entrego junto: <arquivos>` na linha dele: a entrega conjunta precisa do aceite de cada um. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh esteira front,vault src/telas/a.js banco/x.sql\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o vault não escreveu `Entrego junto: <arquivos>` na linha dele: a entrega conjunta precisa do aceite de cada um. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh esteira front,form src/telas/a.js src/form/a.js\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o form não escreveu `Entrego junto: <arquivos>` na linha dele: a entrega conjunta precisa do aceite de cada um. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"git init -q \\\"$TMPDIR/ensaio-esteira\\\"\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"shield\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"git -C \\\"$TMPDIR/ensaio-esteira\\\" commit -qm base\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"shield\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"cronos\", \"prompt\": \"Conduza .delta-11/quadro/pedido-30/.\", \"run_in_background\": true}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: há uma camada aberta (camada-3): o pedido vai ao CRONOS dela, como brief (mensagem); sem CRONOS vivo, ligue um CRONOS novo dela com o pedido. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"cd \\\"$TMPDIR/ensaio\\\" && git init -q\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"shield\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"git restore src/telas/inicio.js\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o terminal não grava em .git/, e o git restore precisa: para desfazer a sua mudança num arquivo, `git show HEAD:<arquivo> > <arquivo>`. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh esteira front,scout src/servidor/rota.ts\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o front entrega com o próprio nome: `sh esteira front <arquivos>` (numa entrega conjunta, o nome dele está entre os da entrega). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh esteira form,revisor src/a.js\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"form\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o form entrega com o próprio nome: `sh esteira form <arquivos>` (numa entrega conjunta, o nome dele está entre os da entrega). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"grep -rn senha .claude/worktrees\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o destruidor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"grep -rln front .claude/\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o revisor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/outro-produto/.delta-11/cofre/x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: <TEMPORARIO>/outro-produto/.delta-11/cofre/x não fica nesta pasta (outro produto, a cópia temporária da esteira, ou o caminho digitado errado: confira): ninguém daqui lê o .delta-11 de fora. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/esteira.abc/.delta-11/quadro/camada-3/briefs/front-1.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: <TEMPORARIO>/esteira.abc/.delta-11/quadro/camada-3/briefs/front-1.md não fica nesta pasta (outro produto, a cópia temporária da esteira, ou o caminho digitado errado: confira): ninguém daqui lê o .delta-11 de fora. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh esteira front --descartar ~/Documents\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: --descartar só aceita a cópia de uma candidata, `.claude/worktrees/<cópia>` (~/Documents não é). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh esteira front --descartar .\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: --descartar só aceita a cópia de uma candidata, `.claude/worktrees/<cópia>` (. não é). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"/private/tmp/caminho-que-nao-existe-delta/produto/.delta-11/quadro/camada-3/abertura.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"arquiteto\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: /private/tmp/caminho-que-nao-existe-delta/produto/.delta-11/quadro/camada-3/abertura.md não existe: o caminho foi digitado errado. A pasta do produto é <TEMPORARIO>/produto; use o caminho a partir dela. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"grep -rn \\\"git push\\\" src/\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh -c 'git commit -qm x'\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o front não mexe na história do git (git commit): a mudança entra pela esteira (sh esteira <nome> <arquivos>); numa cópia de candidata, deixe sem commit. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"ls .delta-11/regras/\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py olhar relato-da-copia destruidor-1\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py --com-ambiente sh -c 'echo x'\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: só o publicar da esteira grava no ambiente do dono (o app instalado e os dados reais dele): rode o produto pela caixa sem --com-ambiente, com os dados numa cópia de teste. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py '--com-ambiente' sh -c 'echo x'\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"back\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: só o publicar da esteira grava no ambiente do dono (o app instalado e os dados reais dele): rode o produto pela caixa sem --com-ambiente, com os dados numa cópia de teste. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py \\\"--com-ambiente\\\" sh -c \\\"echo x\\\"\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: só o publicar da esteira grava no ambiente do dono (o app instalado e os dados reais dele): rode o produto pela caixa sem --com-ambiente, com os dados numa cópia de teste. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py olhar '--com-ambiente' sh -c 'echo x'\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: só o publicar da esteira grava no ambiente do dono (o app instalado e os dados reais dele): rode o produto pela caixa sem --com-ambiente, com os dados numa cópia de teste. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py --raiz .claude/worktrees/agent-candidata1 '--com-ambiente' sh -c 'echo x'\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: só o publicar da esteira grava no ambiente do dono (o app instalado e os dados reais dele): rode o produto pela caixa sem --com-ambiente, com os dados numa cópia de teste. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py sh -c 'echo --com-ambiente'\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py olhar --raiz /private/var/folders/xy/T/delta11-ataque-d1 sh -c 'cat .delta-11/esteira/*.log'\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o destruidor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"cat .delta-11/licoes.md # --raiz /private/var/folders/xy/T/delta11-ataque-d1 x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o destruidor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"git clone -q . /tmp/clone-do-produto\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o destruidor não lê a história do git (ela conta como foi feito). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -c \\\"import os; os.symlink('<TEMPORARIO>/produto', '/tmp/atalho')\\\"\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o terminal do destruidor é vigiado: não grava arquivo, não copia, não apaga e não mexe no git. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"cat .delta-11/regras/../licoes.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o destruidor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py olhar --raiz /private/var/folders/xy/T/delta11-ataque-d1 cat <TEMPORARIO>/produto/.delta-11/quadro/camada-3/quadro.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o destruidor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"cat /tmp/d2-neutro/.delta-11/esteira/front.log\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o destruidor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"cat /tmp/x/../..<TEMPORARIO>/produto/.delta-11/quadro/camada-3/quadro.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o destruidor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py olhar copia-de-ataque destruidor-1\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"ls .delta-11/regras/\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o revisor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-3/linhas/destruidor-1.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-3/linhas/destruidor-1.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel revisor não lê `.delta-11/quadro/<X>/linhas/<nome>-<n>.md`. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"~/.ssh/id_rsa\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: ~/.ssh é de quem usa o computador (chaves, configurações): nenhum agente o lê. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Grep\", \"tool_input\": {\"pattern\": \"x\", \"path\": \"~/.aws\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: ~/.aws é de quem usa o computador (chaves, configurações): nenhum agente o lê. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/motor/modelos/esteira.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel revisor não lê `.delta-11/motor/`. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py supabase db push\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"vault\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"npm ci && python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py npm test\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: rode a caixa do produto sozinha na linha, exatamente `python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py <comando>` (sem `&&`, `;`, `|`, `cd`, redirecionamento nem `$(...)`; para encadear, o comando é `sh -c '<comandos>'`; caminho com parênteses ou $ vai entre aspas simples): só assim ela roda fora da caixa de areia, onde o navegador e o banco funcionam. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py npm test > saida.txt\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: rode a caixa do produto sozinha na linha, exatamente `python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py <comando>` (sem `&&`, `;`, `|`, `cd`, redirecionamento nem `$(...)`; para encadear, o comando é `sh -c '<comandos>'`; caminho com parênteses ou $ vai entre aspas simples): só assim ela roda fora da caixa de areia, onde o navegador e o banco funcionam. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B ../../.claude/hooks/delta-11/caixa-do-produto.py npm test\"}, \"cwd\": \"<TEMPORARIO>/produto/src/telas\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: rode a caixa do produto sozinha na linha, exatamente `python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py <comando>` (sem `&&`, `;`, `|`, `cd`, redirecionamento nem `$(...)`; para encadear, o comando é `sh -c '<comandos>'`; caminho com parênteses ou $ vai entre aspas simples): só assim ela roda fora da caixa de areia, onde o navegador e o banco funcionam. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py npm test\"}, \"cwd\": \"<TEMPORARIO>/produto/src/telas\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: a caixa do produto roda na raiz da pasta do produto (ou na raiz da cópia da candidata). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py npm test\"}, \"cwd\": \"<TEMPORARIO>/produto/.claude/worktrees/agent-candidata1\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py npm test\"}, \"cwd\": \"<TEMPORARIO>/produto/.claude/worktrees/agent-candidata2\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: esta cópia da caixa do produto não é a do motor (foi mudada): use a da pasta principal, que ninguém altera. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"cat .claude/hooks/delta-11/caixa-do-produto.py\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/tela-do-app.py ver\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/tela-do-app.py digitar '<script> > x'\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/tela-do-app.py digitar 'x'\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o destruidor não usa a tela do app: a tela do Mac é do dono, e só o Revisor a usa, na hora que ele libera; quem constrói prova pelo código, pela caixa. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/tela-do-app.py clicar \\\"Salvar gasto\\\"\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o front não usa a tela do app: a tela do Mac é do dono, e só o Revisor a usa, na hora que ele libera; quem constrói prova pelo código, pela caixa. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/tela-do-app.py tecla \\\"cmd+n\\\"\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"shield\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o shield não usa a tela do app: a tela do Mac é do dono, e só o Revisor a usa, na hora que ele libera; quem constrói prova pelo código, pela caixa. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/tela-do-app.py foto\"}, \"cwd\": \"<TEMPORARIO>/produto/.claude/worktrees/agent-candidata1\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o front não usa a tela do app: a tela do Mac é do dono, e só o Revisor a usa, na hora que ele libera; quem constrói prova pelo código, pela caixa. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/tela-do-app.py ver\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o selador não usa a tela do app: a tela do Mac é do dono, e só o Revisor a usa, na hora que ele libera; quem constrói prova pelo código, pela caixa. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/tela-do-app.py abrir\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"scout\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o scout não usa a tela do app: a tela do Mac é do dono, e só o Revisor a usa, na hora que ele libera; quem constrói prova pelo código, pela caixa. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/tela-do-app.py ver && echo feito\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: rode a tela do app sozinha na linha, exatamente `python3 -I -B .claude/hooks/delta-11/tela-do-app.py <ação> [\"<texto>\"]` (sem `&&`, `;`, `|`, `cd`, redirecionamento, `$(...)` nem a caixa do produto; texto com $ ou crase, entre aspas simples): só assim ela roda fora da caixa de areia, onde o macOS deixa ver e usar a janela do app. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py olhar python3 -I -B .claude/hooks/delta-11/tela-do-app.py ver\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: rode a tela do app sozinha na linha, exatamente `python3 -I -B .claude/hooks/delta-11/tela-do-app.py <ação>`, nunca pela caixa do produto (lá dentro o macOS não deixa ver a janela). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/tela-do-app.py digitar \\\"$(cat ~/.ssh/id_rsa)\\\"\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: rode a tela do app sozinha na linha, exatamente `python3 -I -B .claude/hooks/delta-11/tela-do-app.py <ação> [\"<texto>\"]` (sem `&&`, `;`, `|`, `cd`, redirecionamento, `$(...)` nem a caixa do produto; texto com $ ou crase, entre aspas simples): só assim ela roda fora da caixa de areia, onde o macOS deixa ver e usar a janela do app. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh -c 'python3 -I -B .claude/hooks/delta-11/tela-do-app.py ver'\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: rode a tela do app sozinha na linha, exatamente `python3 -I -B .claude/hooks/delta-11/tela-do-app.py <ação> [\"<texto>\"]` (sem `&&`, `;`, `|`, `cd`, redirecionamento, `$(...)` nem a caixa do produto; texto com $ ou crase, entre aspas simples): só assim ela roda fora da caixa de areia, onde o macOS deixa ver e usar a janela do app. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/tela-do-app.py ver\"}, \"cwd\": \"<TEMPORARIO>/produto/src/telas\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: a tela do app roda na raiz da pasta do produto (ou na raiz da cópia da candidata). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Edit\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/esteira\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"scout\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel scout não escreve em `esteira` (esteira). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Edit\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.gitignore\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"scout\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh esteira back,shield esteira-comandos.txt testes/pulso.sh\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"back\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"grep -rn \\\"child_process\\\\|execSync\\\\|writeFile\\\" src/\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"mkdir -p src && printf 'Ol\\u00e1' > src/a.html && sh esteira front src/a.html\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: rode a esteira sozinha na linha, exatamente `sh esteira <nome> <arquivos>` (sem `&&`, `;`, `cd`, redirecionamento nem `$(...)`; caminho com parênteses ou $ vai entre aspas simples): só assim ela roda fora da caixa de areia e consegue juntar. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh esteira front --copia .claude/worktrees/agent-1 --descartar .claude/worktrees/agent-2\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"git status && git diff\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"git add -A && git commit -m candidata\"}, \"cwd\": \"<TEMPORARIO>/produto/.claude/worktrees/agent-candidata1\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o front não mexe na história do git (git add): a mudança entra pela esteira (sh esteira <nome> <arquivos>); numa cópia de candidata, deixe sem commit. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"git \\\"add\\\" src/a.js && git \\\"commit\\\" -m x -m 'Esteira: entrou'\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o front não mexe na história do git (git add): a mudança entra pela esteira (sh esteira <nome> <arquivos>); numa cópia de candidata, deixe sem commit. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh -c \\\"git add -A && git commit -m pronto\\\"\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o front não mexe na história do git (git add): a mudança entra pela esteira (sh esteira <nome> <arquivos>); numa cópia de candidata, deixe sem commit. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"cat \\\".delta-11/quadro/camada-3/quadro.md\\\"\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o revisor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"git \\\"log\\\" -p\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o destruidor não lê a história do git (ela conta como foi feito). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh -c \\\"echo conserto > src/app.js\\\"\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o terminal do destruidor é vigiado: não grava arquivo, não copia, não apaga e não mexe no git. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"install -m 644 /etc/hosts src/a.js\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o terminal do destruidor é vigiado: não grava arquivo, não copia, não apaga e não mexe no git. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"git \\\"commit\\\" -am selo\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o terminal do selador é vigiado: não grava arquivo, não copia, não apaga e não mexe no git. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"npm install && pip install requests\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"git push origin HEAD\"}, \"cwd\": \"<TEMPORARIO>/produto/.claude/worktrees/agent-candidata1\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o front não mexe na história do git (git push): a mudança entra pela esteira (sh esteira <nome> <arquivos>); numa cópia de candidata, deixe sem commit. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Edit\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/esteira\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel front não escreve em `esteira` (esteira). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Edit\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/esteira\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"back\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel back não escreve em `esteira` (esteira). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/esteira-comandos.txt\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"back\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Edit\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/esteira-comandos.txt\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: esteira-comandos.txt não fica nas pastas do território de front (.delta-11/regras/enderecos.txt). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.claude/worktrees/agent-candidata2/banco/x.sql\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto/.claude/worktrees/agent-candidata2\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: banco/x.sql não fica nas pastas do território de front (.delta-11/regras/enderecos.txt). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"curl -s -d 'nome=<script>alert(1)</script>' localhost:3000 | grep -c '<div>'\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"npm test 2> src/saida.txt\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o terminal do destruidor é vigiado: não grava arquivo, não copia, não apaga e não mexe no git. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -c \\\"open('src/x.js','w').write('x')\\\"\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o terminal do selador é vigiado: não grava arquivo, não copia, não apaga e não mexe no git. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"npm test > \\\"$TMPDIR/saida.txt\\\"\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"mkdir -p \\\"$TMPDIR/ataque\\\"\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"git worktree list && git branch --list && git stash list\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"grep -rn senha .\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o revisor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"rg senha\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o revisor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"grep -rn senha src/ && find src -name '*.js'\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"cd /Users/x/construcao-delta-11/produto && npm run dev\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"curl -s localhost:3000/api/delta\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.git/logs/HEAD\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel destruidor não lê `.git/`. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"/bin/cp /etc/hosts src/a.js\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o terminal do destruidor é vigiado: não grava arquivo, não copia, não apaga e não mexe no git. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"curl -s -o src/a.js https://exemplo.invalid\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o terminal do destruidor é vigiado: não grava arquivo, não copia, não apaga e não mexe no git. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"tar -xzf pacote.tgz\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o terminal do destruidor é vigiado: não grava arquivo, não copia, não apaga e não mexe no git. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -c \\\"import subprocess; subprocess.run(['cp','a','b'])\\\"\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o terminal do selador é vigiado: não grava arquivo, não copia, não apaga e não mexe no git. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"cat .delta-1?/quadro/*/linhas/*.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o destruidor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"cat .git/logs/HEAD\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o destruidor não lê pelo terminal o que conta como foi feito (.delta-11/, a história do git, busca em tudo): busque com o caminho de uma pasta do código (ex.: grep -rn texto src/). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"front\", \"prompt\": \"x\", \"isolation\": \"remote\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o cronos não chama o front com isolamento 'remote'. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"cronos\", \"prompt\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o cronos é ligado em segundo plano (run_in_background), para a conversa do dono seguir livre. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"destruidor\", \"prompt\": \"x\", \"run_in_background\": false}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"front\", \"prompt\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o atlas não chama o front (rotas do motor). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"front\", \"prompt\": \"x\", \"run_in_background\": false}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"front\", \"prompt\": \"x\", \"isolation\": \"worktree\", \"run_in_background\": false}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"destruidor\", \"prompt\": \"x\", \"isolation\": \"worktree\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o cronos não chama o destruidor com isolamento 'worktree'. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"general-purpose\", \"prompt\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o cronos não chama o general-purpose (rotas do motor). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"prompt\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: toda chamada de agente diz qual papel chama (subagent_type). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"leitor-do-teste\", \"prompt\": \"x\", \"run_in_background\": false}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"delta-11\", \"prompt\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o selador não chama o delta-11 (rotas do motor). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"pixel\", \"prompt\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o front não chama o pixel (rotas do motor). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.CLAUDE/settings.json\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel atlas não escreve em `.claude/` (.CLAUDE/settings.json). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.DELTA-11/COFRE/chave.txt\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel front não lê `.delta-11/cofre/`. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/cofre/chave.txt\"}, \"cwd\": \"<TEMPORARIO>/produto/.claude/worktrees/agent-candidata1\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel front não lê `.delta-11/cofre/`. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.claude/worktrees/agent-candidata1/.delta-11/quadro/camada-3/linhas/front-1.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel destruidor não lê `.delta-11/quadro/<X>/linhas/<nome>-<n>.md`. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Glob\", \"tool_input\": {\"pattern\": \".delta-11/regras/enderecos.txt\", \"path\": \"<TEMPORARIO>/produto\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Glob\", \"tool_input\": {\"pattern\": \".delta-11/quadro/camada-3/briefs/front-2.md\", \"path\": \"<TEMPORARIO>/produto\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel revisor não lê `.delta-11/quadro/<X>/`. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Edit\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/registro/existente.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: em `.delta-11/registro/` só se cria arquivo novo; .delta-11/registro/existente.md já existe. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/registro/existente.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel cronos não lê `.delta-11/registro/`. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/registro/existente.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"documentador\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Edit\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.gitignore\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"back\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Edit\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.gitignore\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel front não escreve em `.gitignore` (.gitignore). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/AGENTS.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"back\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel back não escreve em `AGENTS.md` (AGENTS.md). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/leitor/camada-0/velho.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"leitor-do-teste\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o leitor-do-teste só lê dentro de .delta-11/leitor/camada-1/. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"docker run --rm imagem-de-teste\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"npm install && npx playwright install\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"node -e \\\"if (1 > 3) process.exit(1)\\\"\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"git -C . commit -m x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o terminal do selador é vigiado: não grava arquivo, não copia, não apaga e não mexe no git. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"git log -p\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o revisor não lê a história do git (ela conta como foi feito). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"git diff HEAD~1\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o destruidor não lê a história do git (ela conta como foi feito). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"git log --oneline\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/registro/x.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"general-purpose\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: papel desconhecido ('general-purpose'): nesta pasta só trabalham os agentes do Delta-11. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/registro/x.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: papel desconhecido ('conversa sem papel'): nesta pasta só trabalham os agentes do Delta-11. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "isto não é json",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: a trava não conseguiu ler o pedido. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"agent_type\": \"atlas\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/luz.md\"}}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: sem CLAUDE_PROJECT_DIR não dá para saber onde fica o produto. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-3/selo.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o dono pausou o projeto (.delta-11/pausa.md): nada roda até ele voltar; encerre deixando a sua linha em dia. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-4/abertura.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"arquiteto\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o dono pausou o projeto (.delta-11/pausa.md): nada roda até ele voltar; encerre deixando a sua linha em dia. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-3/briefs/front-3.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o dono pausou o projeto (.delta-11/pausa.md): nada roda até ele voltar; encerre deixando a sua linha em dia. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-3/linhas/pixel-1.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o dono pausou o projeto (.delta-11/pausa.md): nada roda até ele voltar; encerre deixando a sua linha em dia. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-3/../../../src/telas/inicio.js\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o dono pausou o projeto (.delta-11/pausa.md): nada roda até ele voltar; encerre deixando a sua linha em dia. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.claude/worktrees/agent-candidata1/.delta-11/quadro/camada-3/linhas/front-1.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto/.claude/worktrees/agent-candidata1\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py npm test\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o dono pausou o projeto (.delta-11/pausa.md): nada roda até ele voltar; encerre deixando a sua linha em dia. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh esteira scout src/telas/inicio.js\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"scout\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/src/telas/inicio.js\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/src/telas/inicio.js\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/src/telas/inicio.js\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o dono pausou o projeto (.delta-11/pausa.md): nada roda até ele voltar; encerre deixando a sua linha em dia. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/src/telas/inicio.js\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o dono pausou o projeto (.delta-11/pausa.md): nada roda até ele voltar; encerre deixando a sua linha em dia. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/src/telas/inicio.js\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o dono pausou o projeto (.delta-11/pausa.md): nada roda até ele voltar; encerre deixando a sua linha em dia. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"front\", \"prompt\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o dono pausou o projeto (.delta-11/pausa.md): nada roda até ele voltar; encerre deixando a sua linha em dia. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-3/quadro.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/pausa.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/src/telas/inicio.js\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"selador\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-3/linhas/front-1.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/src/.delta-11/quadro/App.jsx\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o dono pausou o projeto (.delta-11/pausa.md): nada roda até ele voltar; encerre deixando a sua linha em dia. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"agent_type\": \"cronos\", \"agent_id\": \"a1cronos3\", \"session_id\": \"esta-conversa\", \"cwd\": \"<TEMPORARIO>/produto\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/quadro/camada-2-r1/quadro.md\", \"content\": \"x\"}}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"cronos\", \"prompt\": \"Conduza .delta-11/quadro/camada-2-r1/.\", \"run_in_background\": true}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o CRONOS de camada-2-r1 está trabalhando nesta conversa: mande o recado por mensagem (SendMessage para a1cronos3). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"TaskStop\", \"tool_input\": {\"task_id\": \"a6travado\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"cronos\", \"prompt\": \"Conduza .delta-11/quadro/camada-6/.\", \"run_in_background\": true}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "relogio.py",
+   "pedido": "{\"agent_type\": \"atlas\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 0,
+   "saida": "{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"Hora agora (motor do Delta-11): <HORA>. CRONOS desta conversa, pelo motor: camada-3 (agentId a1cronos3): trabalhando, com sinal.\"}}\n",
+   "erro": ""
+  },
+  {
+   "gancho": "relogio.py",
+   "pedido": "{\"agent_type\": \"atlas\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 0,
+   "saida": "{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"Hora agora (motor do Delta-11): <HORA>. CRONOS desta conversa, pelo motor: camada-3 (agentId a1cronos3): trabalhando, com agente parado (camada-3/linhas/front-9.md) e outros vivos: mande ao CRONOS, por mensagem, que troque s\\u00f3 esse agente; n\\u00e3o pare o CRONOS (par\\u00e1-lo para os agentes vivos dele).\"}}\n",
+   "erro": ""
+  },
+  {
+   "gancho": "relogio.py",
+   "pedido": "{\"agent_type\": \"atlas\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 0,
+   "saida": "{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"Hora agora (motor do Delta-11): <HORA>. CRONOS desta conversa, pelo motor: camada-3 (agentId a1cronos3): trabalhando, com sinal.\"}}\n",
+   "erro": ""
+  },
+  {
+   "gancho": "relogio.py",
+   "pedido": "{\"agent_type\": \"atlas\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 0,
+   "saida": "{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"Hora agora (motor do Delta-11): <HORA>. CRONOS desta conversa, pelo motor: camada-3 (agentId a1cronos3): trabalhando, com sinal.\"}}\n",
+   "erro": ""
+  },
+  {
+   "gancho": "relogio.py",
+   "pedido": "{\"agent_type\": \"cronos\", \"agent_id\": \"a1cronos3\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 0,
+   "saida": "{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"Hora agora (motor do Delta-11): <HORA>. Trabalho do time em camada-3: 15 min.\"}}\n",
+   "erro": ""
+  },
+  {
+   "gancho": "relogio.py",
+   "pedido": "{\"agent_type\": \"atlas\", \"agent_id\": \"a1cronos3\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 0,
+   "saida": "{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"Hora agora (motor do Delta-11): <HORA>. CRONOS desta conversa, pelo motor: camada-3 (agentId a1cronos3): trabalhando, com sinal.. Trabalho do time em camada-3: 15 min.\"}}\n",
+   "erro": ""
+  },
+  {
+   "gancho": "relogio.py",
+   "pedido": "{\"agent_type\": \"arquiteto\", \"agent_id\": \"a1cronos3\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 0,
+   "saida": "{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"Hora agora (motor do Delta-11): <HORA>. Trabalho do time em camada-1: 10 min. Trabalho do time em camada-3: 15 min. Trabalho do time em camada-6: 2 min.\"}}\n",
+   "erro": ""
+  },
+  {
+   "gancho": "cronos-vivo.py",
+   "pedido": "{\"hook_event_name\": \"SubagentStop\", \"agent_id\": \"a1cronos3\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "relogio.py",
+   "pedido": "{\"agent_type\": \"atlas\", \"agent_id\": \"a1cronos3\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 0,
+   "saida": "{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"Hora agora (motor do Delta-11): <HORA>. Trabalho do time em camada-3: 15 min.\"}}\n",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"cronos\", \"prompt\": \"Conduza .delta-11/quadro/camada-9/.\", \"run_in_background\": true}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o CRONOS de camada-9 trabalha em outra conversa aberta nesta pasta; espere ela terminar. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"cronos\", \"prompt\": \"Conduza .delta-11/quadro/camada-9/.\", \"run_in_background\": true}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "relogio.py",
+   "pedido": "{\"agent_type\": \"atlas\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 0,
+   "saida": "{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"Hora agora (motor do Delta-11): <HORA>. CRONOS desta conversa, pelo motor: camada-3 (agentId a1cronos3): trabalhando, com sinal.. O Mac dormiu 190 min, at\\u00e9 <HH:MM>: o sono n\\u00e3o conta como sil\\u00eancio, linha parada nem trabalho do time; confira agora o vigia (CronList) e, se ele n\\u00e3o aparece, agende-o de novo.\"}}\n",
+   "erro": ""
+  },
+  {
+   "gancho": "relogio.py",
+   "pedido": "{\"agent_type\": \"atlas\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 0,
+   "saida": "{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"Hora agora (motor do Delta-11): <HORA>. CRONOS desta conversa, pelo motor: camada-3 (agentId a1cronos3): trabalhando, com agente parado (camada-3/linhas/front-9.md) e outros vivos: mande ao CRONOS, por mensagem, que troque s\\u00f3 esse agente; n\\u00e3o pare o CRONOS (par\\u00e1-lo para os agentes vivos dele).\"}}\n",
+   "erro": ""
+  },
+  {
+   "gancho": "relogio.py",
+   "pedido": "{\"agent_type\": \"atlas\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 0,
+   "saida": "{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"Hora agora (motor do Delta-11): <HORA>. CRONOS desta conversa, pelo motor: camada-3 (agentId a1cronos3): trabalhando, com sinal.\"}}\n",
+   "erro": ""
+  },
+  {
+   "gancho": "relogio.py",
+   "pedido": "{\"agent_type\": \"atlas\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 0,
+   "saida": "{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"Hora agora (motor do Delta-11): <HORA>. CRONOS desta conversa, pelo motor: camada-3 (agentId a1cronos3): trabalhando, com sinal.. O Mac dormiu 480 min, at\\u00e9 <HH:MM>: o sono n\\u00e3o conta como sil\\u00eancio, linha parada nem trabalho do time; confira agora o vigia (CronList) e, se ele n\\u00e3o aparece, agende-o de novo.\"}}\n",
+   "erro": ""
+  },
+  {
+   "gancho": "relogio.py",
+   "pedido": "{\"agent_type\": \"atlas\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 0,
+   "saida": "{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"Hora agora (motor do Delta-11): <HORA>. CRONOS desta conversa, pelo motor: camada-3 (agentId a1cronos3): trabalhando, com sinal.\"}}\n",
+   "erro": ""
+  },
+  {
+   "gancho": "relogio.py",
+   "pedido": "{\"agent_type\": \"atlas\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 0,
+   "saida": "{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"Hora agora (motor do Delta-11): <HORA>. CRONOS desta conversa, pelo motor: camada-3 (agentId a1cronos3): trabalhando, TRAVADO (linha parada h\\u00e1 mais de travado_max: camada-3/linhas/cronos-3.md, camada-3/linhas/pixel-1.md, camada-3/linhas/vault-1.md): caiu.\"}}\n",
+   "erro": ""
+  },
+  {
+   "gancho": "relogio.py",
+   "pedido": "{\"agent_type\": \"atlas\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 0,
+   "saida": "{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"Hora agora (motor do Delta-11): <HORA>. CRONOS desta conversa, pelo motor: camada-3 (agentId a1cronos3): trabalhando, com sinal.. Trabalho parado no meio (ligue um CRONOS do quadro, que segue por ele, mesmo que o quadro diga que espera o dono): camada-5: back-4.md dizem trabalhando, sem nenhum CRONOS vivo nele.\"}}\n",
+   "erro": ""
+  },
+  {
+   "gancho": "situacao.py",
+   "pedido": "{\"source\": \"startup\", \"session_id\": \"nova\"}",
+   "codigo": 0,
+   "saida": "Situação do produto, contada pelo motor do Delta-11 ao abrir esta conversa (nenhum CRONOS desta conversa está vivo):\n- camada-3: aberto (o quadro ainda não diz a situação); o quadro mudou há <N> minutos; um CRONOS trabalha nele agora, em outra conversa aberta.\n- camada-5: esperando o dono; o quadro mudou há <N> minutos; nenhum CRONOS trabalhando.\n- Trabalho parado no meio em camada-5: back-4.md dizem trabalhando, sem nenhum CRONOS vivo nele: ligue um CRONOS do quadro, que segue por ele.\n- esteira-comandos.txt ainda não tem as linhas `testar:` e `testes:`: a esteira recusa tudo até os comandos serem escritos (quem os escreve: o BACK, ou o Construtor único do caminho pequeno).\n- Nenhum aviso do alarme, aqui nem no repositório remoto.\nHora agora: <HORA>. (silencio_max = 30 minutos)\n",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"arquiteto\", \"prompt\": \"x\", \"run_in_background\": false}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: um ARQUITETO trabalha agora (agentId a1arq): espere a resposta dele e chame depois, um por vez. Dois ARQUITETOS escrevendo as regras e a abertura ao mesmo tempo apagam a decisão um do outro. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "cronos-vivo.py",
+   "pedido": "{\"hook_event_name\": \"SubagentStop\", \"agent_id\": \"a1arq\", \"agent_type\": \"arquiteto\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"arquiteto\", \"prompt\": \"x\", \"run_in_background\": false}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"arquiteto\", \"prompt\": \"x\", \"run_in_background\": false}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: um ARQUITETO trabalha agora (acabou de ser chamado): espere a resposta dele e chame depois, um por vez. Dois ARQUITETOS escrevendo as regras e a abertura ao mesmo tempo apagam a decisão um do outro. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "cronos-vivo.py",
+   "pedido": "{\"hook_event_name\": \"SubagentStart\", \"agent_id\": \"a2arq\", \"agent_type\": \"arquiteto\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "cronos-vivo.py",
+   "pedido": "{\"hook_event_name\": \"SubagentStop\", \"agent_id\": \"a2arq\", \"agent_type\": \"arquiteto\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "relogio.py",
+   "pedido": "{\"agent_type\": \"documentador\", \"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/estado/camada-3.md\"}}",
+   "codigo": 0,
+   "saida": "{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"Hora agora (motor do Delta-11): <HORA>. camada-3.md: 4 palavras, cerca de 5 tokens (caracteres \\u00f7 4)\"}}\n",
+   "erro": ""
+  },
+  {
+   "gancho": "situacao.py",
+   "pedido": "{\"source\": \"compact\", \"session_id\": \"esta-conversa\"}",
+   "codigo": 0,
+   "saida": "Situação do produto, contada pelo motor do Delta-11 depois de a conversa ser limpa ou resumida:\n- O CRONOS de camada-3 trabalha nesta conversa: agentId a1cronos3 (fale com ele por mensagem).\n- O CRONOS de pedido-7 terminou nesta conversa: agentId a2fim (para seguir, mande mensagem a ele).\n- O CRONOS de camada-6 terminou nesta conversa: agentId a6travado (para seguir, mande mensagem a ele).\n- camada-3: aberto (o quadro ainda não diz a situação); o quadro mudou há <N> minutos; o CRONOS desta conversa trabalha nele.\n- esteira-comandos.txt ainda não tem as linhas `testar:` e `testes:`: a esteira recusa tudo até os comandos serem escritos (quem os escreve: o BACK, ou o Construtor único do caminho pequeno).\n- Nenhum aviso do alarme, aqui nem no repositório remoto.\nHora agora: <HORA>. (silencio_max = 30 minutos)\n",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"SendMessage\", \"tool_input\": {\"to\": \"a5velho\", \"message\": \"o dono respondeu\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: pedido-5 foi conduzido depois por um CRONOS de outra conversa: o desta tem o quadro velho na memória. Ligue um CRONOS novo, que segue pelo quadro. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"SendMessage\", \"tool_input\": {\"to\": \"a5velho\", \"message\": \"o dono respondeu\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/src/telas/x.js\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"vault\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: .delta-11/regras/enderecos.txt fora do formato na linha 1 ('- front: src/telas/'): uma linha por território, `<nome> <pasta>/ [<outra pasta>/]` (o ARQUITETO a corrige). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/src/componentes/b.js\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/index.html\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.gitignore\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/esteira-comandos.txt\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"vault\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/testes/fluxo.test.js\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"form\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.gitignore\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel revisor não escreve em `.gitignore` (.gitignore). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.env\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel front não escreve em `.env` (.env). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"cronos\", \"prompt\": \"Conduza .delta-11/quadro/pedido-40/.\", \"run_in_background\": true}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: a Camada 7 mede o produto sozinho até 2099-10-31 09:13 (camada-7): até lá nenhum CRONOS dela trabalha; o pedido do dono espera o fim da medição (diga a ele quando ela acaba; o produto fora do ar é do SCOUT). Passada a hora, o vigia chama o CRONOS. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"cronos\", \"prompt\": \"Conduza .delta-11/quadro/camada-7/: leia a abertura. Pedido do dono: trocar o texto do bot\\u00e3o.\", \"run_in_background\": true}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: a Camada 7 mede o produto sozinho até 2099-10-31 09:13 (camada-7): até lá nenhum CRONOS dela trabalha; o pedido do dono espera o fim da medição (diga a ele quando ela acaba; o produto fora do ar é do SCOUT). Passada a hora, o vigia chama o CRONOS. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"SendMessage\", \"tool_input\": {\"to\": \"a7medindo\", \"message\": \"Pedido do dono: trocar o texto do bot\\u00e3o.\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: a Camada 7 mede o produto sozinho até 2099-10-31 09:13 (camada-7): até lá nenhum CRONOS dela trabalha; o pedido do dono espera o fim da medição (diga a ele quando ela acaba; o produto fora do ar é do SCOUT). Passada a hora, o vigia chama o CRONOS. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"cronos\", \"prompt\": \"Conduza .delta-11/quadro/camada-7/: leia a abertura. O ARQUITETO reabriu .delta-11/quadro/camada-5/.\", \"run_in_background\": true}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Agent\", \"tool_input\": {\"subagent_type\": \"cronos\", \"prompt\": \"Conduza .delta-11/quadro/camada-7/: leia a abertura. O tempo que a camada esperava passou.\", \"run_in_background\": true}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "guardar-registro.py",
+   "pedido": "{}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Grep\", \"tool_input\": {\"pattern\": \"x\", \"path\": \"<TEMPORARIO>/produto\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"cronos\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel cronos não busca em na raiz: ali dentro há `.delta-11/teste-guardado/`, que não é dele. Busque numa pasta mais funda (do código, ou `.delta-11/quadro/`, por exemplo). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/leitor/camada-1/luz-compacta.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"leitor-do-teste\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o leitor-do-teste só lê a pasta do teste em curso, e .delta-11/leitor/atual.txt não diz qual é. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/luz.md\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: defeito na trava (JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  }
+ ]
+}

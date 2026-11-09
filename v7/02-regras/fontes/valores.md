@@ -1,0 +1,49 @@
+# Valores (os outros textos citam só o nome)
+
+- `estado_max`: 500 tokens — um arquivo de estado.
+- `estados_carregados`: 2 arquivos — os arquivos de estado mais recentes que o CRONOS carrega.
+- `produto_max`: 300 tokens — um aviso de produto.
+- `aviso_max`: 5 linhas — um aviso.
+- `brief_max`: 3 páginas — um brief.
+- `leitura_max`: 8 páginas — o que um Construtor recebe ao começar: a página, o que o motor acrescenta e o brief.
+- `leitura_alerta`: 6 páginas — o que um Construtor lê no meio do trabalho, além do que recebeu ao começar; passou, encerra.
+- `luz_max`: 4 páginas — a Luz do produto.
+- `luz_compacta_max`: 1 página — a Luz compacta.
+- `regras_produto_max`: 4 páginas — as regras do produto.
+- `bloqueios_max`: 3 vezes — o mesmo critério bloqueado seguidamente.
+- `propostas_luz_max`: 3 vezes — propostas de mudança da Luz que o Destruidor quebra seguidamente.
+- `estado_reprovado_max`: 3 vezes — o mesmo arquivo de estado reprovado seguidamente.
+- `externo_espera`: 4 horas — um serviço externo fora do ar.
+- `correcoes_producao_max`: 3 vezes — tentativas de corrigir o mesmo erro em produção.
+- `cronos_nascer_max`: 60 segundos — um pedido de CRONOS que não começou nesse tempo não começa mais (motor).
+- `espaco_livre_min`: 5 GB — espaço livre no disco para a esteira montar (motor).
+- `tela_liberada_max`: 4 horas — o mais longe que vai uma hora liberada da tela do Mac do dono (motor).
+- `silencio_max`: 30 minutos — um agente sem dar sinal no quadro.
+- `travado_max`: 90 minutos — um agente dando sinal sem avançar.
+- `peso_altas_seguidas`: 2 vezes — subidas seguidas do peso da camada.
+- `teste_supremo`: 2 semanas — o produto rodando sozinho na Camada 7.
+- `pequeno_primeira_versao_max`: 30 minutos — produto pequeno, até a primeira versão funcionar.
+- `pequeno_pronto_max`: 4 horas — produto pequeno, até ficar pronto.
+- `medio_primeira_versao_max`: 2 horas — produto médio, a primeira versão.
+- `medio_pronto_max`: 2 dias — produto médio, pronto.
+- `grande_camada_max`: 1 semana — produto grande, cada camada.
+- `partes_pequeno_max`: 3 telas — telas ou funções principais de um produto pequeno.
+- `sinais_medio_max`: 2 sinais — do modelo do tamanho, num produto médio.
+- `luz_teste_situacoes`: 3 situações — o teste da Luz.
+- `palavras_por_pagina`: 500 palavras — uma página.
+- `pagina_papel_min`: 2 páginas — o menor tamanho da página de um papel.
+- `pagina_papel_max`: 4 páginas — a página montada de um papel.
+- `motor_max`: 2 páginas — o que o motor acrescenta à página de um papel no agente dele (endereços e rotas; não é regra).
+- `frase_repetida_palavras`: 7 palavras — trecho igual que o vigia trava.
+- `paralelo_max`: 3 vagas — agentes chamados trabalhando ao mesmo tempo numa camada (o CRONOS não conta).
+- `coracao_candidatas_min`: 3 candidatas — versões do componente mais crítico do coração, no mínimo.
+- `coracao_candidatas_max`: 7 candidatas — o teto dessas versões.
+- `primeira_versao_max`: 72 horas — até a primeira candidata do coração funcionar.
+- `vocabulario_min`: 15 termos — o vocabulário da Luz (mínimo).
+- `vocabulario_max`: 30 termos — o vocabulário da Luz (máximo).
+- `padroes_min`: 3 padrões — o mínimo, de cada lado, antes de mudar uma regra pelo uso.
+- `correcao_repetida_max`: 2 vezes — a mesma correção numa camada.
+- `painel_leitura_max`: 30 segundos — o tempo para ler o painel de saúde.
+- `recursos_min`: 3 recursos — o que o dono já tem, na entrada.
+- `intervencoes_mes_max`: 1 vez — intervenções por mês depois do Dia 7, que a lei do contador conta.
+- `pedido_pequeno_max`: 30 minutos — um pedido pequeno, do pedido ao resultado, na Camada 7.

@@ -1,0 +1,34 @@
+name: esteira
+
+# A automação do repositório do Delta-11 v7: o mesmo programa da esteira (o do motor) confere de novo cada envio.
+# Recusa commit do produto (fora de .delta-11/ e .claude/) sem a linha final `Esteira: entrou` (a junção e o do instalador,
+# `Delta-11: instalado`, não contam) e roda, pela caixa do produto, os comandos de esteira-comandos.txt no último commit.
+# O modelo mora no motor; quando o produto ganha repositório remoto, o BACK o copia para .github/workflows/esteira.yml,
+# acrescenta no lugar marcado os passos que instalam as ferramentas do produto e o entrega pela esteira.
+# Sem `concurrency`: nenhum envio cancela a conferência de outro.
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  conferir:
+    runs-on: ubuntu-latest  # um programa de Mac (app de Mac, SwiftPM, Xcode) usa macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # As ferramentas do produto (o BACK escreve aqui), por exemplo:
+      # - uses: actions/setup-node@v4
+      #   with:
+      #     node-version: 22
+      - name: Esteira (automação)
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            sh esteira --automacao "${{ github.event.before }}..${{ github.sha }}"
+          else
+            sh esteira --automacao "${{ github.sha }}"
+          fi

@@ -1,0 +1,1169 @@
+#!/bin/sh
+# A esteira do Delta-11 v7: o programa do MOTOR (o instalador a põe na raiz do produto e a troca; ninguém do produto a muda).
+# O contrato: .delta-11/motor/modelos/esteira.md. Os comandos do produto (montar, testar, publicar): esteira-comandos.txt.
+# Na raiz, sozinha na linha: sh esteira <nome> <arquivos>. Roda a versão do último commit, não a da pasta (sem a esteira
+# no último commit, a da pasta). O que vem depois da marca é Python, rodado isolado (-I -B).
+if git cat-file -e HEAD:esteira 2>/dev/null; then
+  PROGRAMA=$(git show HEAD:esteira | sed '1,/^#PYTHON$/d')
+else
+  PROGRAMA=$(sed '1,/^#PYTHON$/d' "$0")
+fi
+[ -n "$PROGRAMA" ] || { echo "RECUSOU: não consegui ler o programa da esteira (o último commit ou a pasta)"; exit 1; }
+exec python3 -I -B -c "$PROGRAMA" "$@"
+#PYTHON
+"""A esteira do Delta-11 v7 (do motor): junta uma mudança por vez, só depois de montar e testar uma cópia limpa do que
+já entrou mais só ela, pela caixa do produto. Genérica: o que é montar, testar e publicar vem de esteira-comandos.txt."""
+import datetime
+import difflib
+import fcntl
+import json
+import os
+import re
+import shutil
+import signal
+import subprocess
+import sys
+import tempfile
+
+MARCA = "Esteira: entrou"
+MARCA_DO_INSTALADOR = "Delta-11: instalado"
+CAIXA = ".claude/hooks/delta-11/caixa-do-produto.py"
+MAPA = ".claude/hooks/delta-11/lugares.json"
+COMANDOS = "esteira-comandos.txt"
+CHAVES = ("instalar", "montar", "testar", "testes", "vermelho", "publicar", "fluxo-principal", "ambiente", "app", "atalho")
+REPETIVEIS = ("ambiente",)  # uma linha por lugar
+# Mudar um destes (ou tirar um padrão de `testes:`) pode apagar ou desligar testes na cópia: pede o aval.
+COMANDOS_QUE_PEDEM_AVAL = ("instalar", "montar", "testar", "vermelho", "fluxo-principal")
+FORMATO = ("o formato de esteira-comandos.txt (na raiz, do BACK ou do Construtor único; uma linha por comando): `instalar: <comando>` e "
+           "`montar: <comando>` (opcionais), `testar: <comando que roda todos os testes>`, `testes: <padrões dos arquivos de teste, ex.: tests/ *.test.js>`, "
+           "e opcionais `vermelho: <comando que roda os testes com o sentinela, o teste que só falha com $DELTA11_VERMELHO, dizendo-a>`, "
+           "`publicar: <comando>`, `fluxo-principal: <comando>`, `ambiente: <onde o app grava no Mac do dono>` (uma por lugar), "
+           "`app: <nome do app de Mac>` e `atalho: <a combinação global dele>`; `#` começa um comentário")
+CONTROLE = {"esteira", "claude.md", "claude.local.md", "agents.md", ".mcp.json", ".worktreeinclude"}
+# Uma linha que confere (assert, expect, XCTAssert, #expect e parecidos; nos roteiros sh, test, [ e grep -q): mudá-la ou tirá-la
+# num teste que já existe pede o aval; comentá-la, ou abrir um bloco que desliga o que vem embaixo, também.
+CONFERE = re.compile(r"assert|#?expect|XCT(?:Assert|Fail|Unwrap)|#require|\bshould\b|\.to(?:Be|Equal|Have|Match|Throw|Contain)\w*\s*\("
+                     r"|\bt\.(?:Error|Fatal|Fail)\w*\s*\(|\bself\.fail\b|pytest\.raises|\brequire\.\w+\s*\(|\bverify\w*\s*\("
+                     r"|(?:^|[;&|!]\s*)(?:test\s+-\w|\[\s|grep\s+-\w*q)", re.IGNORECASE)
+COMENTARIO = re.compile(r"#|//|--|/\*|<!--|\bREM\b")
+DESLIGA_O_QUE_VEM = re.compile(r"/\*(?!\*)|^\s*#if\s+(?:0|false|FALSE)\b|^\s*#if\s+!\s*(?:DEBUG|true)\b|\bif\s*\(?\s*(?:false|False|0)\s*\)?\s*[:{]|^=begin|^\s*[rRbBuU]?(?:\"{3}|'{3})\s*$"
+                               r"|^\s*(?:exit\s+0|return)\s*;?\s*$")
+# Marcas de pular ou de rodar só um teste: num arquivo de teste, acrescentá-las afrouxa o teste.
+# Pela forma de quem chama, nunca pela palavra solta: `Ideia.find().skip(10)` e `api.todo('x')` são do produto e entram.
+PULAR = re.compile(r"\b(?:it|test|describe|context|suite|bench|specify|QUnit)(?:\.\w+)*\.(?:skip|only|todo|fails|failing|fixme)\b"
+                   r"|^\s*f(?:it|describe)\s*\(\s*['\"`]|\b(?:this|t|ctx)\.skip\s*\("
+                   r"|\bskip\s*\(\s*(?:\)|['\"`])|\bx(?:it|describe|test|context)\s*\(|@pytest\.mark\.(?:skip|xfail)|pytest\.skip\s*\("
+                   r"|XCTExpectFailure|withKnownIssue|@unittest\.expectedFailure|expectFailure"
+                   r"|\.disabled\s*\(\s*(?:\)|\"|if\s*:)|\.enabled\s*\(\s*if\s*:"
+                   r"|\bskip(?:If|Unless)\b|\bskip\.if\b|\brunIf\b|@pytest\.mark\.skipif"
+                   r"|@unittest\.skip|\bt\.Skip(?:Now|f)?\s*\(|@Disabled\b|@Ignore\b|XCTSkip|#\[ignore\]")
+# O que faz um teste existir e rodar (a classe base, a marca, o nome): tirar ou mudar uma linha assim pede o aval.
+ESTRUTURA_DE_TESTE = re.compile(r"XCTestCase|\bTestCase\b|@Test\b|@Suite\b|\bdescribe\s*\(|\b(?:it|test)\s*\(|\bdef\s+test|\bfunc\s+test|\bfn\s+test"
+                                r"|#\[test\]|@Test\b|\bTest[A-Z]\w*\s*\(\s*t\s+\*testing")
+SEM_GIT = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+SEM_GIT["GIT_TERMINAL_PROMPT"] = "0"
+
+
+def raiz_do_repositorio():
+    feito = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, env=SEM_GIT)
+    return os.path.realpath(feito.stdout.strip()) if feito.returncode == 0 and feito.stdout.strip() else os.path.realpath(os.getcwd())
+
+
+RAIZ = raiz_do_repositorio()
+os.chdir(RAIZ)
+# A cópia de ataque do Destruidor (no temporário, `delta11-ataque-<nome>`) é sempre ensaio: nunca envia nem publica.
+COPIA_DE_ATAQUE = os.path.basename(RAIZ).startswith("delta11-ataque-") and RAIZ.startswith(os.path.realpath(tempfile.gettempdir()) + os.sep)
+ENSAIO = COPIA_DE_ATAQUE or os.path.exists(os.path.join(RAIZ, ".delta-11/esteira/ensaio"))
+TEMPORARIO = os.path.realpath(tempfile.gettempdir())
+
+
+def vivo(pid):
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except OSError:
+        return True
+    return True
+
+
+def apagar_sobras():
+    """As cópias de esteiras cujo processo morreu (um fim forçado que não limpou): apagadas no começo, só elas."""
+    for nome in os.listdir(TEMPORARIO):
+        achado = re.fullmatch(r"esteira-(\d+)-\w+", nome)
+        if achado and int(achado.group(1)) != os.getpid() and not vivo(int(achado.group(1))):
+            shutil.rmtree(os.path.join(TEMPORARIO, nome), ignore_errors=True)
+
+
+apagar_sobras()
+RODADA = tempfile.mkdtemp(prefix="esteira-%d-" % os.getpid(), dir=TEMPORARIO)
+RODANDO = None  # o sinal de que esta esteira roda (.delta-11/esteira/rodando/<nome>-<pid>), que o relógio do motor lê
+R = None
+
+
+class Recusa(Exception):
+    pass
+
+
+class Pronto(Exception):
+    pass
+
+
+def recusar(motivo):
+    raise Recusa(" ".join(str(motivo).split())[:400])
+
+
+# ---------------------------------------------------------------- relato (inteiro no arquivo; na tela, só o curto)
+class Relato:
+    def __init__(self, nome):
+        pasta = os.path.join(RAIZ, ".delta-11/esteira")
+        os.makedirs(pasta, exist_ok=True)
+        agora = datetime.datetime.now()
+        carimbo = agora.strftime("%Y-%m-%d-%H%M%S-") + "%03d" % (agora.microsecond // 1000)
+        self.caminho = os.path.join(pasta, "%s-%s.log" % (re.sub(r"[^a-z0-9,_-]", "_", nome.lower()) or "esteira", carimbo))
+        self.arquivo = open(self.caminho, "a", encoding="utf-8")
+        self.escrever("esteira do Delta-11 v7, %s, em %s%s" % (agora.isoformat(timespec="seconds"), RAIZ, " (ensaio)" if ENSAIO else ""))
+        global RODANDO
+        rodando = os.path.join(pasta, "rodando")
+        os.makedirs(rodando, exist_ok=True)
+        RODANDO = os.path.join(rodando, "%s-%d" % (re.sub(r"[^a-z0-9,_-]", "_", nome.lower()) or "esteira", os.getpid()))
+        andando = [c for c in camadas_abertas() if not situacao(os.path.join(RAIZ, ".delta-11/quadro", c)).startswith("parad")]
+        try:
+            comeco = subprocess.run(["ps", "-o", "lstart=", "-p", str(os.getpid())], capture_output=True, text=True).stdout.strip()
+        except OSError:
+            comeco = ""  # dentro de uma caixa (a cópia de ataque), sem o ps: o sinal não vale como esteira viva
+        open(RODANDO, "w").write(" ".join(andando) + "\n" + comeco + "\n")  # a hora de início: um número de processo reaproveitado não engana
+
+    def escrever(self, texto):
+        self.arquivo.write(texto if texto.endswith("\n") else texto + "\n")
+        self.arquivo.flush()
+
+    def dizer(self, texto):
+        self.escrever(texto)
+        print(texto, flush=True)
+
+
+def dizer(texto):
+    R.dizer(texto)
+
+
+def rodar(comando, cwd=None, env=None, entrada=None, ver=None):
+    """Roda e guarda no relato o comando e a saída inteira. Devolve (código, saída)."""
+    R.escrever("$ " + (ver or " ".join(comando)))
+    try:
+        feito = subprocess.run(comando, cwd=cwd or RAIZ, env=env if env is not None else SEM_GIT, input=entrada,
+                               capture_output=True, text=True, errors="replace")
+    except OSError as erro:
+        R.escrever("não rodou: %s" % erro)
+        return 127, str(erro)
+    saida = (feito.stdout or "") + (feito.stderr or "")
+    if saida.strip():
+        R.escrever(saida.rstrip("\n"))
+    R.escrever("(código %d)" % feito.returncode)
+    return feito.returncode, saida
+
+
+def git(*args, cwd=None, env=None, entrada=None):
+    """O git, sem sujar o relato. Devolve (código, saída)."""
+    feito = subprocess.run(["git", *args], cwd=cwd or RAIZ, env=env if env is not None else SEM_GIT, input=entrada,
+                           capture_output=True, text=True, errors="replace")
+    return feito.returncode, feito.stdout or ""
+
+
+def git_bytes(*args, cwd=None):
+    feito = subprocess.run(["git", *args], cwd=cwd or RAIZ, env=SEM_GIT, capture_output=True)
+    return feito.returncode, feito.stdout
+
+
+def identidade():
+    env = dict(SEM_GIT)
+    if not git("config", "user.name")[1].strip() or not git("config", "user.email")[1].strip():
+        env.update({"GIT_AUTHOR_NAME": "Esteira do Delta-11", "GIT_AUTHOR_EMAIL": "esteira@delta-11.invalid",
+                    "GIT_COMMITTER_NAME": "Esteira do Delta-11", "GIT_COMMITTER_EMAIL": "esteira@delta-11.invalid"})
+    return env
+
+
+def com_credencial():
+    """Para falar com o GitHub: o login do gh deste computador, só para o github.com (nada vai ao cofre nem à cópia)."""
+    env = dict(SEM_GIT)
+    if shutil.which("gh"):
+        env.update({"GIT_CONFIG_COUNT": "2", "GIT_CONFIG_KEY_0": "credential.https://github.com.helper", "GIT_CONFIG_VALUE_0": "",
+                    "GIT_CONFIG_KEY_1": "credential.https://github.com.helper", "GIT_CONFIG_VALUE_1": "!gh auth git-credential"})
+    return env
+
+
+FALHA_FORTE = re.compile(r"(?:^|\s)(?:error|erro|fatal error)\s*:|\bFAIL(?:ED|URE)?\b|\bfailed\b|^not ok\b|\bAssertionError\b|\bpanic(?:ked)?\b"
+                         r"|\bTraceback\b|\bFALHOU\b", re.IGNORECASE)
+FALHA_FRACA = re.compile(r"fail|falh|error|erro|not ok|assert|denied|negad|not permitted|não permitid|cannot|can't|"
+                         r"não consegu|fatal|panic|exception|traceback|no such|not found|não encontr", re.IGNORECASE)
+CAMINHO = re.compile(r"(?:[\w.~-]*/)+[\w.-]+")
+
+
+def ultima_linha(saida):
+    """A linha da falha, para o resumo curto: a primeira com marca forte de erro (`error:`, `FAIL`, `failed`, `not ok`) que
+    cita um arquivo com número de linha; senão a última com marca forte; senão a última com uma palavra de erro fora dos
+    caminhos (`erros/LEIAME.md` não é erro); senão a última linha. Com a dica, se a causa é conhecida."""
+    linhas = [l.strip() for l in saida.splitlines() if l.strip()]
+    fortes = [l for l in linhas if FALHA_FORTE.search(CAMINHO.sub(" ", l))]
+    com_lugar = ([l for l in fortes if re.search(r"[\w.-]+\.\w+:\d+(?::\d+)?:\s*(?:error|erro|fatal error)\b", l, re.IGNORECASE)]
+                 or [l for l in fortes if re.search(r"\bFatal error\b.*\bline \d+|[\w.-]+\.\w+:\d+", l)])
+    fracas = [l for l in linhas if FALHA_FRACA.search(CAMINHO.sub(" ", l))]
+    linha = ((com_lugar[:1] or fortes[-1:] or fracas[-1:] or linhas[-1:] or ["sem saída"])[0])[:300]
+    if re.search(r"sandbox[-_ ]?(?:exec|apply)?\W.*(?:not permitted|denied)", saida, re.IGNORECASE):
+        linha += " (dentro da caixa do produto, a caixa do próprio programa não abre: desligue-a no comando, como `--disable-sandbox` no SwiftPM)"
+    return linha
+
+
+# ---------------------------------------------------------------- os comandos do produto
+def ler_comandos(texto, tolerante=False):
+    comandos = {}
+    for n, linha in enumerate(texto.splitlines(), 1):
+        limpa = linha.strip()
+        if not limpa or limpa.startswith("#"):
+            continue
+        achado = re.match(r"([a-z-]+)\s*:\s*(.*)$", limpa)
+        if not achado or achado.group(1) not in CHAVES or (achado.group(1) in comandos and achado.group(1) not in REPETIVEIS):
+            if tolerante:
+                continue
+            recusar("%s fora do formato na linha %d ('%s'). Este é %s" % (COMANDOS, n, limpa[:60], FORMATO))
+        if achado.group(1) in REPETIVEIS:
+            comandos.setdefault(achado.group(1), []).append(achado.group(2).strip())
+        else:
+            comandos[achado.group(1)] = achado.group(2).strip()
+    return comandos
+
+
+def comandos_de(pasta):
+    caminho = os.path.join(pasta, COMANDOS)
+    if not os.path.isfile(caminho):
+        recusar("falta %s na raiz: a esteira é do motor, e os comandos do produto, do BACK. Este é %s" % (COMANDOS, FORMATO))
+    comandos = ler_comandos(open(caminho, encoding="utf-8", errors="replace").read())
+    for chave in ("testar", "testes"):
+        if not comandos.get(chave):
+            recusar("%s sem a linha `%s:`. Este é %s" % (COMANDOS, chave, FORMATO))
+    return comandos
+
+
+def padroes_de_teste(comandos):
+    return [p for p in (comandos or {}).get("testes", "").split() if p]
+
+
+def em_regex(padrao):
+    corpo = ""
+    i = 0
+    while i < len(padrao):
+        if padrao.startswith("**/", i):
+            corpo, i = corpo + "(?:.*/)?", i + 3
+        elif padrao.startswith("**", i):
+            corpo, i = corpo + ".*", i + 2
+        elif padrao[i] == "*":
+            corpo, i = corpo + "[^/]*", i + 1
+        elif padrao[i] == "?":
+            corpo, i = corpo + "[^/]", i + 1
+        else:
+            corpo, i = corpo + re.escape(padrao[i]), i + 1
+    return corpo
+
+
+def e_teste(arquivo, padroes):
+    """Um padrão com barra no fim é uma pasta; com barra no meio, vale da raiz; sem barra, o nome em qualquer pasta."""
+    for padrao in padroes:
+        limpo = padrao.lstrip("/")
+        if limpo.endswith("/"):
+            if arquivo.startswith(limpo) or ("/" not in limpo.rstrip("/") and ("/" + limpo) in ("/" + arquivo)):
+                return True
+        elif "/" in limpo:
+            if re.fullmatch(em_regex(limpo), arquivo):
+                return True
+        elif re.fullmatch(em_regex(limpo), arquivo.rsplit("/", 1)[-1]):
+            return True
+    return False
+
+
+# ---------------------------------------------------------------- territórios, camadas, linhas
+def construtores():
+    caminho = os.path.join(RAIZ, MAPA)
+    if not os.path.isfile(caminho):
+        recusar("o motor do Delta-11 não está instalado nesta pasta (falta %s)" % MAPA)
+    return set(json.load(open(caminho, encoding="utf-8"))["construtores"])
+
+
+def espaco_livre_min():
+    """`espaco_livre_min` (valores.md, pelo mapa da trava): abaixo disso, a montagem pode parar no meio por falta de disco."""
+    if os.environ.get("DELTA11_ESPACO_LIVRE_MIN"):  # o pulso da esteira
+        return int(os.environ["DELTA11_ESPACO_LIVRE_MIN"])
+    caminho = os.path.join(RAIZ, MAPA)
+    gb = json.load(open(caminho, encoding="utf-8")).get("espaco_livre_min_gb", 5) if os.path.isfile(caminho) else 5
+    return int(float(gb) * 1024 ** 3)
+
+
+def enderecos():
+    """A tabela de territórios (`.delta-11/regras/enderecos.txt`, do ARQUITETO). Sem ela, None: todo o código é de qualquer Construtor."""
+    caminho = os.path.join(RAIZ, ".delta-11/regras/enderecos.txt")
+    if not os.path.isfile(caminho):
+        return None
+    tabela = []
+    for n, linha in enumerate(open(caminho, encoding="utf-8").read().splitlines(), 1):
+        partes = linha.split()
+        if not partes or linha.lstrip().startswith("#"):
+            continue
+        if not re.fullmatch(r"[a-z]+", partes[0].lower()) or len(partes) < 2:
+            recusar(".delta-11/regras/enderecos.txt fora do formato na linha %d: `<nome> <pasta>/ [<outra pasta>/]` (o ARQUITETO a corrige)" % n)
+        for pasta in partes[1:]:
+            arquivo = not pasta.endswith("/") and "." in pasta.rsplit("/", 1)[-1]
+            tabela.append((pasta.lower() if arquivo else pasta.strip("/").lower() + "/", partes[0].lower()))
+    return tabela
+
+
+def dono_de(arquivo, tabela):
+    """O território mais específico que contém o arquivo; fora de todos, o do BACK."""
+    a = arquivo.lower()
+    donos = sorted(((len(p), dono) for p, dono in tabela if (a.startswith(p) if p.endswith("/") else a == p)), reverse=True)
+    return donos[0][1] if donos else "back"
+
+
+def situacao(pasta):
+    texto = open(os.path.join(pasta, "quadro.md"), encoding="utf-8", errors="replace").read() if os.path.isfile(os.path.join(pasta, "quadro.md")) else ""
+    achado = re.search(r"situa[cç][aã]o\W*:\W*([^\n|]+)", texto, re.IGNORECASE)
+    return achado.group(1).strip().strip("*_ ").lower() if achado else ""
+
+
+def camada_aberta(nome):
+    pasta = os.path.join(RAIZ, ".delta-11/quadro", nome)
+    if not os.path.isfile(os.path.join(pasta, "abertura.md")) and not os.path.isfile(os.path.join(pasta, "quadro.md")):
+        return False
+    valor = situacao(pasta)
+    return not (valor.startswith(("selad", "encerrad", "feit")) or re.match(r"parada\b", valor))
+
+
+def camadas_abertas():
+    quadro = os.path.join(RAIZ, ".delta-11/quadro")
+    return sorted(n for n in (os.listdir(quadro) if os.path.isdir(quadro) else []) if os.path.isdir(os.path.join(quadro, n)) and camada_aberta(n))
+
+
+def listados(nome, marca):
+    """Os arquivos que `nome` escreveu depois de `<marca>:` na própria linha, numa camada aberta."""
+    achados = set()
+    for camada in camadas_abertas():
+        pasta = os.path.join(RAIZ, ".delta-11/quadro", camada, "linhas")
+        for linha_do_agente in sorted(os.listdir(pasta)) if os.path.isdir(pasta) else []:
+            if not re.fullmatch(re.escape(nome) + r"-\d+\.md", linha_do_agente):
+                continue
+            for linha in open(os.path.join(pasta, linha_do_agente), encoding="utf-8", errors="replace"):
+                achado = re.match(r"^\W*" + marca + r"\s*:(.*)$", linha.strip(), re.IGNORECASE)
+                if achado:
+                    texto = re.sub(r"\([^)]*\)", " ", achado.group(1).replace("`", "").replace("'", "").replace('"', ""))
+                    for parte in re.split(r"[\s,;]+", texto):  # a nota entre parênteses e a pontuação do fim não são do nome
+                        parte = parte.rstrip(".:;,!?")
+                        if parte and not parte.startswith("<"):
+                            achados.add(os.path.normpath(parte))
+    return achados
+
+
+def parar_do_dono():
+    """O Parar do dono: `Parar do dono: <data>` na abertura da Camada 2 aberta (ou da reaberta)."""
+    quadro = os.path.join(RAIZ, ".delta-11/quadro")
+    for nome in os.listdir(quadro) if os.path.isdir(quadro) else []:
+        abertura = os.path.join(quadro, nome, "abertura.md")
+        if re.fullmatch(r"camada-2(?:-r\d+)?", nome) and camada_aberta(nome) and os.path.isfile(abertura):
+            if re.search(r"^\W*Parar do dono\s*:\s*\S", open(abertura, encoding="utf-8", errors="replace").read(), re.MULTILINE | re.IGNORECASE):
+                return True
+    return False
+
+
+# ---------------------------------------------------------------- os arquivos entregues
+def do_motor(arquivo):
+    """O que é do motor: `.delta-11/`, `.claude/` e os arquivos de controle da raiz; e, em qualquer pasta, as instruções que um
+    agente carrega sozinho (`CLAUDE.md`, `AGENTS.md`, `.mcp.json`) e outra `.claude/`."""
+    a = arquivo.lower()
+    partes = a.split("/")
+    return (a in (".delta-11", ".claude") or a.startswith((".delta-11/", ".claude/")) or a in CONTROLE
+            or ".claude" in partes or partes[-1] in ("claude.md", "claude.local.md", "agents.md", ".mcp.json"))
+
+
+def caminho_limpo(caminho):
+    if os.path.isabs(caminho) or caminho.startswith("-") or ".." in caminho.split("/"):
+        recusar("%s sai da pasta do produto: entregue o caminho a partir da raiz" % caminho)
+    a = os.path.normpath(caminho)
+    a = a[2:] if a.startswith("./") else a
+    baixo = a.lower()
+    if baixo in (".", "") or baixo == ".git" or baixo.startswith(".git/") or baixo == ".env" or baixo.startswith(".env.") or baixo.startswith(".delta-11/cofre"):
+        recusar("a esteira não leva %s (o histórico do git, o .env e o cofre ficam fora do git)" % a)
+    return a
+
+
+def expandir(arquivos, fonte):
+    """Uma pasta entregue vira os arquivos dela (os da pasta e os do último commit, para levar também os apagados)."""
+    todos = []
+    for a in arquivos:
+        if os.path.isdir(os.path.join(fonte, a)) and not os.path.islink(os.path.join(fonte, a)):
+            de_la = git("ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", a, cwd=fonte)[1].split("\0")
+            do_commit = git("ls-tree", "-r", "-z", "--name-only", "HEAD", "--", a)[1].split("\0")
+            todos += sorted({x for x in de_la + do_commit if x})
+        else:
+            todos.append(a)
+    vistos = []
+    for a in todos:
+        if a not in vistos:
+            vistos.append(a)
+    return vistos
+
+
+def conferir_arquivos(arquivos, fonte, head):
+    existentes = {}
+    for caminho in git("ls-tree", "-r", "-z", "--name-only", head)[1].split("\0"):
+        partes = caminho.split("/")
+        for k in range(1, len(partes) + 1):
+            existentes.setdefault("/".join(partes[:k]).lower(), "/".join(partes[:k]))
+    for a in arquivos:
+        na_pasta = os.path.lexists(os.path.join(fonte, a))
+        if not na_pasta and git("cat-file", "-e", "%s:%s" % (head, a))[0] != 0:
+            recusar("%s não existe na pasta nem no último commit (para apagar, entregue um arquivo que já entrou)" % a)
+        partes = a.split("/")
+        for k in range(1, len(partes) + 1):
+            trecho = "/".join(partes[:k])
+            real = existentes.get(trecho.lower())
+            if real is not None and real != trecho:
+                recusar("%s tem a grafia de %s com outras maiúsculas (o disco do Mac não as diferencia): use %s" % (a, real, real))
+        if na_pasta and git("check-ignore", "-q", "--", a, cwd=fonte)[0] == 0:
+            recusar("%s fica fora do git pelo .gitignore: o que a montagem gera não se entrega" % a)
+
+
+def conferir_donos(nomes, arquivos, fonte, parar, dependencias=()):
+    """1 do contrato: cada arquivo é do território de quem entrega, ou de um nome da entrega conjunta que o listou em `Entrego junto:`."""
+    validos = construtores()
+    if len(set(nomes)) != len(nomes) or not all(n in validos | {"scout"} for n in nomes):
+        recusar("quem entrega é um Construtor (%s) ou o SCOUT, cada nome uma vez: recebi %s" % (", ".join(sorted(validos)), ",".join(nomes)))
+    scout = nomes == ["scout"]
+    if "scout" in nomes and not scout:
+        recusar("o SCOUT entrega sozinho, nunca numa entrega conjunta")
+    for a in arquivos:
+        baixo = a.lower()
+        if baixo.startswith(".delta-11/alarmes/"):
+            if not scout:
+                recusar("só o SCOUT entrega em .delta-11/alarmes/ (%s)" % a)
+            continue
+        if do_motor(a):
+            recusar("%s é do motor do Delta-11 (o instalador o põe e o troca): nenhuma entrega o muda" % a)
+        if baixo == ".gitignore" and not set(nomes) & {"back", "scout"} and enderecos() is not None:
+            recusar(".gitignore é do BACK (e do SCOUT); sem enderecos.txt, de qualquer Construtor")
+    if scout:
+        return
+    tabela = enderecos()
+    apaga_no_parar = parar and "back" in nomes
+    por_dono = {}
+    for a in arquivos:
+        if a in dependencias or (apaga_no_parar and not os.path.lexists(os.path.join(fonte, a))):
+            continue  # a dependência da candidata; no Parar, o BACK apaga em qualquer território
+        if tabela is None:
+            continue
+        dono = dono_de(a, tabela)
+        if dono not in nomes:
+            recusar("%s é do território de %s, não de %s (.delta-11/regras/enderecos.txt): só entra o arquivo de quem entrega, "
+                    "ou de um nome da entrega conjunta que o listou em `Entrego junto:`" % (a, dono, ",".join(nomes)))
+        por_dono.setdefault(dono, []).append(a)
+    if len(nomes) > 1:
+        entregues = set(arquivos)
+        for n in nomes:
+            lista = listados(n, "entrego junto")
+            faltam = [a for a in por_dono.get(n, []) if a not in lista]
+            if faltam or not lista & entregues:
+                recusar("entrega conjunta: falta, na linha de %s numa camada aberta, `Entrego junto:` com %s"
+                        % (n, ", ".join(faltam) if faltam else "os arquivos dele nesta entrega"))
+
+
+def embrulha_em_documentacao(postas, linhas_novas):
+    """Um `/**` posto que não é documentação: no arquivo novo, a linha seguinte não continua o comentário com `*` (só o `*/`
+    que fecha não conta), então ele embrulha código."""
+    for j, linha in enumerate(linhas_novas):
+        if linha in postas and re.search(r"/\*\*(?!.*\*/)", linha) and not re.match(r"\s*(?:#|//)", linha):
+            seguinte = linhas_novas[j + 1].lstrip() if j + 1 < len(linhas_novas) else ""
+            if seguinte.startswith("*") and not seguinte.startswith("*/"):
+                continue  # documentação com asteriscos
+            dentro = []
+            for outra in linhas_novas[j + 1:]:
+                if "*/" in outra:
+                    break
+                dentro.append(outra)
+            codigo = lambda l: bool(CONFERE.search(l)) and ("(" in l or bool(re.match(r"\s*(?:!\s*)?(?:test\s+-\w|\[\s|grep\s+-\w*q)", l)))
+            if any(codigo(l) or ESTRUTURA_DE_TESTE.search(l) for l in dentro):  # código (com parênteses, ou a conferência do sh), não prosa
+                return True  # o que ficou dentro tem cara de teste: o comentário o desliga
+    return False
+
+
+def comentada(linha):
+    """Uma conferência atrás de uma marca de comentário (`pass  # self.assertEqual(...)`, `// expect(...)`)."""
+    achada = CONFERE.search(linha)
+    return bool(achada and COMENTARIO.search(linha[:achada.start()]))
+
+
+def conteudo_no(commit, arquivo):
+    codigo, dados = git_bytes("show", "%s:%s" % (commit, arquivo))
+    return dados if codigo == 0 else None
+
+
+def palavras(linhas):
+    return sum(len(l.split()) for l in linhas)
+
+
+def reposto(arquivo, dados):
+    """Na volta atrás do SCOUT: o conteúdo é o de uma versão que já entrou."""
+    feito = subprocess.run(["git", "hash-object", "--stdin"], input=dados, capture_output=True, cwd=RAIZ, env=SEM_GIT)
+    alvo = feito.stdout.decode().strip()
+    for commit in git("log", "--format=%H", "-n", "300", "--", arquivo)[1].split():
+        if git("rev-parse", "-q", "--verify", "%s:%s" % (commit, arquivo))[1].strip() == alvo:
+            return True
+    return False
+
+
+def avais():
+    """Os `Aval:` da linha do SHIELD numa camada aberta; sem enderecos.txt (o caminho pequeno, sem SHIELD), também os do Revisor."""
+    return listados("shield", "aval") | (listados("revisor", "aval") if enderecos() is None else set())
+
+
+def conferir_testes(nomes, arquivos, fonte, head, parar):
+    """4 do contrato: nenhum teste some nem afrouxa sem `Aval: <teste>` na linha do SHIELD (sem enderecos.txt, do Revisor). Some: o
+    arquivo de teste é apagado. Afrouxa: a mudança num arquivo de teste tira mais palavras do que põe, acrescenta uma marca de pular,
+    muda ou tira uma linha que confere, comenta uma conferência ou abre um bloco que desliga o que vem embaixo. Mudar o `testar:`,
+    o `montar:`, o `instalar:` ou o `fluxo-principal:`, ou tirar um padrão do `testes:` de esteira-comandos.txt, também pede o
+    aval (de esteira-comandos.txt)."""
+    if parar and "back" in nomes:
+        return  # no Parar, a abertura é o aval
+    antes = ler_comandos((conteudo_no(head, COMANDOS) or b"").decode("utf-8", "replace"), tolerante=True)
+    caminho_novo = os.path.join(fonte, COMANDOS)
+    depois = ler_comandos(open(caminho_novo, encoding="utf-8", errors="replace").read(), tolerante=True) if os.path.isfile(caminho_novo) else {}
+    padroes = set(padroes_de_teste(antes)) | set(padroes_de_teste(depois))
+    com_aval = avais()
+    faltas = []
+    mudados = [c for c in COMANDOS_QUE_PEDEM_AVAL if depois.get(c) != antes.get(c)]
+    if COMANDOS in arquivos and antes.get("testar") and (mudados or set(padroes_de_teste(antes)) - set(padroes_de_teste(depois))):
+        if COMANDOS not in com_aval:
+            faltas.append("%s (muda %s)" % (COMANDOS, " ".join("o `%s:`" % c for c in mudados) if mudados else "o `testes:`, tirando um padrão"))
+    for a in arquivos:
+        caminho_dele = os.path.join(fonte, a)
+        dados_dele = open(caminho_dele, "rb").read() if os.path.isfile(caminho_dele) and not os.path.islink(caminho_dele) else b""
+        if b"DELTA11_VERMELHO" in dados_dele and a != COMANDOS and conteudo_no(head, a) != dados_dele:
+            if not e_teste(a, padroes):
+                recusar("%s lê a marca do sentinela (DELTA11_VERMELHO): só o sentinela, um teste, a lê, nunca o código do produto" % a)
+            if a not in com_aval:
+                faltas.append("%s (lê a marca do sentinela)" % a)
+                continue
+        if not e_teste(a, padroes):
+            continue
+        velho = conteudo_no(head, a)
+        if velho is None:  # teste novo: só não entra marcado para pular ou para falhar de propósito
+            novo_texto = dados_dele.decode("utf-8", "replace").splitlines()
+            if any(PULAR.search(l) and not comentada(l) for l in novo_texto) and a not in com_aval:
+                faltas.append("%s (teste novo marcado para pular ou para falhar de propósito)" % a)
+            continue
+        caminho = os.path.join(fonte, a)
+        novo = open(caminho, "rb").read() if os.path.isfile(caminho) else None
+        if novo is None:
+            motivo = "apagado"
+        else:
+            linhas_velhas = velho.decode("utf-8", "replace").splitlines()
+            linhas_novas = novo.decode("utf-8", "replace").splitlines()
+            tiradas, postas = [], []
+            for etiqueta, i1, i2, j1, j2 in difflib.SequenceMatcher(None, linhas_velhas, linhas_novas, autojunk=False).get_opcodes():
+                if etiqueta in ("replace", "delete"):
+                    tiradas += linhas_velhas[i1:i2]
+                if etiqueta in ("replace", "insert"):
+                    postas += linhas_novas[j1:j2]
+            if palavras(tiradas) > palavras(postas):
+                motivo = "afrouxado: a mudança tira mais do que põe"
+            elif any(PULAR.search(l) for l in postas):
+                motivo = "marcado para pular"
+            elif any(CONFERE.search(l) for l in tiradas):
+                motivo = "muda ou tira uma linha que confere"
+            elif sum(len(ESTRUTURA_DE_TESTE.findall(l)) for l in tiradas) > sum(len(ESTRUTURA_DE_TESTE.findall(l)) for l in postas):
+                motivo = "muda o que faz o teste existir e rodar (a classe base, a marca, o nome)"
+            elif any(DESLIGA_O_QUE_VEM.search(l) or comentada(l) for l in postas) or embrulha_em_documentacao(postas, linhas_novas):
+                motivo = "comenta uma conferência ou desliga o que vem embaixo"
+            else:
+                continue
+        if a in com_aval or ("scout" in nomes and novo is not None and reposto(a, novo)):
+            continue
+        faltas.append("%s (%s)" % (a, motivo))
+    if faltas:
+        recusar("teste que some ou afrouxa sem o aval do SHIELD: %s. O SHIELD (sem enderecos.txt, o Revisor) escreve `Aval: <teste>` "
+                "na linha dele, numa camada aberta" % "; ".join(faltas))
+
+
+# ---------------------------------------------------------------- a cópia limpa, a montagem e os testes
+def cofre():
+    """Os segredos do cofre: um arquivo por nome (o valor na única linha), ou linhas NOME=valor."""
+    valores = {}
+    pasta = os.path.join(RAIZ, ".delta-11/cofre")
+    for nome in sorted(os.listdir(pasta)) if os.path.isdir(pasta) else []:
+        caminho = os.path.join(pasta, nome)
+        if nome.startswith(".") or not os.path.isfile(caminho):
+            continue
+        linhas = [l.strip() for l in open(caminho, encoding="utf-8", errors="replace").read().splitlines() if l.strip() and not l.strip().startswith("#")]
+        if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", nome) and len(linhas) == 1 and "=" not in linhas[0]:
+            valores[nome] = linhas[0]
+        else:
+            for l in linhas:
+                if "=" in l:
+                    chave, valor = l.split("=", 1)
+                    valores[chave.strip()] = valor.strip().strip('"').strip("'")
+    return valores
+
+
+def montar_copia(head, arquivos, fonte, destino):
+    """3 do contrato: numa pasta nova do temporário, o último commit mais só esses arquivos, e o .env daqui."""
+    shutil.rmtree(destino, ignore_errors=True)
+    os.makedirs(destino)
+    env = dict(SEM_GIT, GIT_INDEX_FILE=os.path.join(RODADA, "indice-da-copia"))
+    if subprocess.run(["git", "read-tree", head], cwd=RAIZ, env=env, capture_output=True).returncode != 0 or \
+            subprocess.run(["git", "checkout-index", "-a", "-f", "--prefix=" + destino.rstrip("/") + "/"], cwd=RAIZ, env=env, capture_output=True).returncode != 0:
+        recusar("não consegui montar a cópia limpa do último commit")
+    os.remove(env["GIT_INDEX_FILE"])
+    for a in arquivos:
+        origem, alvo = os.path.join(fonte, a), os.path.join(destino, a)
+        if os.path.lexists(alvo) and not os.path.isdir(alvo):
+            os.remove(alvo)
+        if os.path.lexists(origem):
+            os.makedirs(os.path.dirname(alvo) or destino, exist_ok=True)
+            shutil.copy2(origem, alvo, follow_symlinks=False)
+    for segredo in (".env", ".env.local"):
+        if os.path.isfile(os.path.join(RAIZ, segredo)):
+            shutil.copy2(os.path.join(RAIZ, segredo), os.path.join(destino, segredo))
+    return destino
+
+
+def ambiente_do_produto(com_cofre=False):
+    env = dict(SEM_GIT)
+    if com_cofre:
+        env.update(cofre())
+    return env
+
+
+def na_caixa(copia, comando, env, no_ambiente_do_dono=False):
+    """Todo comando do produto roda pela caixa do produto, dentro da cópia. Só o publicar grava no ambiente do dono; o resto
+    (os testes, o fluxo principal) nunca toca os dados reais do app."""
+    if not os.path.isfile(os.path.join(RAIZ, CAIXA)):
+        recusar("falta a caixa do produto (%s): o motor do Delta-11 não está instalado" % CAIXA)
+    opcoes = ["--raiz", copia] + (["--com-ambiente"] if no_ambiente_do_dono else [])
+    return rodar(["python3", "-I", "-B", CAIXA, *opcoes, "sh", "-c", comando], cwd=RAIZ, env=env,
+                 ver="python3 -I -B %s %s sh -c '%s'" % (CAIXA, " ".join(opcoes), comando))
+
+
+def montar_e_testar(copia, comandos):
+    """4 do contrato: instala as dependências que a cópia declara, monta e roda todos os testes, pela caixa do produto. Sem
+    `publicar:`, o teste do fluxo principal roda aqui também, como mais um teste (com `publicar:`, roda no publicado)."""
+    livre, minimo = shutil.disk_usage(copia).free, espaco_livre_min()
+    if livre < minimo:
+        recusar("o Mac está sem espaço para montar (%.1f GB livres; o mínimo, `espaco_livre_min`, é %g GB): nada entrou. Escreva na sua linha "
+                "`PARA CRONOS:` falta espaço no Mac (é a chamada 2: só o dono libera) e encerre com o aviso de produto"
+                % (livre / 1024 ** 3, minimo / 1024 ** 3))
+    etapas = [("instalar", "a instalação das dependências falhou"), ("montar", "não monta"), ("testar", "teste vermelho")]
+    if not comandos.get("publicar"):
+        etapas.append(("fluxo-principal", "o teste do fluxo principal falhou"))
+    for chave, falha in etapas:
+        comando = comandos.get(chave)
+        if not comando:
+            continue
+        dizer("%s, na cópia limpa e pela caixa do produto: %s" % (chave, comando))
+        codigo, saida = na_caixa(copia, comando, ambiente_do_produto())
+        if codigo != 0:  # a causa antes do comando: o resumo curto corta o fim
+            recusar("%s: %s (%s: %s)" % (falha, ultima_linha(saida), chave, comando[:80]))
+        if chave == "testar" and comandos.get("vermelho"):
+            conferir_o_vermelho(copia, comandos["vermelho"])
+
+
+def conferir_o_vermelho(copia, comando):
+    """`vermelho:`: os testes rodam de verdade. Com uma marca nova, que ninguém sabe antes (DELTA11_VERMELHO), o comando roda os
+    testes com o sentinela (o teste que só falha com a variável), que falha dizendo a marca: tem de sair diferente de 0 e mostrar a marca. Sair com 0, ou
+    falhar sem a marca, é um jeito de rodar os testes que não mostra a falha (ou a falha de outra coisa): recusa."""
+    marca = "vermelho-" + os.urandom(8).hex()
+    dizer("vermelho, na cópia limpa e pela caixa do produto: %s" % comando)
+    codigo, saida = na_caixa(copia, comando, dict(ambiente_do_produto(), DELTA11_VERMELHO=marca))
+    if codigo == 0 or marca not in saida:
+        recusar("os testes não rodam de verdade: o sentinela %s (vermelho: %s)"
+                % ("passou" if codigo == 0 else "não falhou com a marca da esteira (%s)" % ultima_linha(saida), comando[:80]))
+
+
+def publicar(copia, comandos):
+    """5 do contrato: publica no ambiente do dono, pela caixa e com a credencial do cofre, só o que a montagem gera, e roda ali o
+    teste do fluxo principal (mesmo se a publicação falhou: ele diz como está o publicado). A mudança já entrou: uma falha
+    aqui é ALERTA, não volta atrás."""
+    if not comandos.get("publicar"):
+        return
+    if ENSAIO:
+        dizer("ensaio: não publica nem roda o fluxo principal no publicado")
+        return
+    for fora in (".delta-11", ".claude", ".git", ".rascunho"):
+        shutil.rmtree(os.path.join(copia, fora), ignore_errors=True)
+    for nome in os.listdir(copia):
+        if nome == ".env" or nome.startswith(".env."):
+            os.remove(os.path.join(copia, nome))
+    dizer("publica no ambiente do dono, pela caixa do produto: %s" % comandos["publicar"])
+    codigo, saida = na_caixa(copia, comandos["publicar"], ambiente_do_produto(com_cofre=True), no_ambiente_do_dono=True)
+    if codigo != 0:
+        dizer("ALERTA: a publicação falhou (a mudança já entrou): " + ultima_linha(saida))
+    if comandos.get("fluxo-principal"):
+        codigo, saida = na_caixa(copia, comandos["fluxo-principal"], ambiente_do_produto(com_cofre=True))
+        dizer("fluxo principal: passou" if codigo == 0 else "ALERTA: o teste do fluxo principal falhou no publicado: " + ultima_linha(saida))
+
+
+# ---------------------------------------------------------------- o git: remoto, commit, índice
+def ramo():
+    codigo, nome = git("symbolic-ref", "-q", "--short", "HEAD")
+    if codigo != 0 or not nome.strip():
+        recusar("a pasta não está em nenhum ramo (a esteira roda na pasta principal do produto)")
+    return nome.strip()
+
+
+def head_atual():
+    codigo, sha = git("rev-parse", "-q", "--verify", "HEAD")
+    if codigo != 0 or not sha.strip():
+        recusar("o repositório não tem commit: instale o Delta-11 (o instalador faz o primeiro)")
+    return sha.strip()
+
+
+def remoto():
+    codigo, url = git("remote", "get-url", "origin")
+    return url.strip() if codigo == 0 and url.strip() else None
+
+
+def trazer_remoto():
+    """2 do contrato: avanço simples entra; o que só existe aqui mexendo só em .delta-11/ é juntado por cima (git merge-tree);
+    código dos dois lados, choque, ou arquivo do remoto pela metade na pasta: RECUSOU, com aviso ao ARQUITETO."""
+    if not remoto():
+        return
+    if rodar(["git", "fetch", "-q", "origin"], env=com_credencial())[0] != 0:
+        dizer("sem acesso ao remoto agora; sigo sem trazê-lo")
+        return
+    r = ramo()
+    codigo, de_la = git("rev-parse", "-q", "--verify", "refs/remotes/origin/" + r)
+    if codigo != 0:
+        return
+    de_la, head = de_la.strip(), head_atual()
+    if git("merge-base", "--is-ancestor", de_la, head)[0] == 0:
+        return  # nada novo lá
+    if git("merge-base", "--is-ancestor", head, de_la)[0] == 0:
+        junto = de_la
+        dizer("traz o remoto (avanço simples)")
+    else:
+        base = git("merge-base", head, de_la)[1].strip()
+        daqui = [a for a in git("diff", "--name-only", "--no-renames", "-z", base, head)[1].split("\0") if a]
+        if any(not a.startswith(".delta-11/") for a in daqui):
+            recusar("código dos dois lados (aqui e no remoto) para juntar: avise o ARQUITETO")
+        codigo, arvore = git("merge-tree", "--write-tree", head, de_la)
+        if codigo != 0:
+            recusar("choque ao juntar o remoto (o mesmo arquivo dos dois lados): avise o ARQUITETO")
+        codigo, junto = git("commit-tree", arvore.split()[0], "-p", head, "-p", de_la, "-m", "junção com o remoto", env=identidade())
+        if codigo != 0:
+            recusar("não consegui juntar o remoto")
+        junto = junto.strip()
+        dizer("traz o remoto e junta por cima o registro daqui (.delta-11/)")
+    mudados = [a for a in git("diff", "--name-only", "--no-renames", "-z", head, junto)[1].split("\0") if a]
+    if mudados and git("status", "--porcelain", "-z", "--", *mudados)[1].strip("\0"):
+        recusar("o remoto muda um arquivo que está pela metade na pasta: avise o ARQUITETO")
+    if git("update-ref", "refs/heads/" + r, junto, head)[0] != 0:
+        recusar("outra mudança entrou enquanto o remoto era trazido; entregue de novo")
+    acertar_pasta(junto, mudados)
+
+
+def acertar_pasta(commit, arquivos):
+    """Põe na pasta e no índice os arquivos como estão no commit (os que ele apagou, apaga)."""
+    if not arquivos:
+        return
+    existem = {a for a in git("ls-tree", "-r", "-z", "--name-only", commit, "--", *arquivos)[1].split("\0") if a}
+    if existem:
+        git("checkout", "-q", commit, "--", *sorted(existem))
+    for a in set(arquivos) - existem:
+        caminho = os.path.join(RAIZ, a)
+        if os.path.lexists(caminho) and not os.path.isdir(caminho):
+            os.remove(caminho)
+    git("reset", "-q", "--", *arquivos)
+
+
+def enviar():
+    if not remoto():
+        return
+    if ENSAIO:
+        dizer("ensaio: não envia ao remoto")
+        return
+    if rodar(["git", "push", "-q", "origin", ramo()], env=com_credencial())[0] != 0:
+        dizer("ALERTA: o envio ao remoto falhou (sem internet ou sem acesso); a mudança já entrou aqui e vai no próximo envio")
+
+
+def arvore_com(head, arquivos, fonte):
+    env = dict(SEM_GIT, GIT_INDEX_FILE=os.path.join(RODADA, "indice-do-commit"))
+    if git("read-tree", head, env=env)[0] != 0:
+        recusar("não consegui ler o último commit")
+    for a in arquivos:
+        origem = os.path.join(fonte, a)
+        if os.path.islink(origem):
+            feito = subprocess.run(["git", "hash-object", "-w", "--stdin"], input=os.readlink(origem).encode(), capture_output=True, cwd=RAIZ, env=SEM_GIT)
+            sha, modo = feito.stdout.decode().strip(), "120000"
+        elif os.path.isfile(origem):
+            codigo, sha = git("hash-object", "-w", "--path", a, origem)
+            sha, modo = sha.strip(), "100755" if os.access(origem, os.X_OK) else "100644"
+        else:
+            git("update-index", "--force-remove", "--", a, env=env)
+            continue
+        if not sha or git("update-index", "--add", "--cacheinfo", "%s,%s,%s" % (modo, sha, a), env=env)[0] != 0:
+            recusar("não consegui pôr %s no commit" % a)
+    codigo, arvore = git("write-tree", env=env)
+    os.remove(env["GIT_INDEX_FILE"])
+    if codigo != 0:
+        recusar("não consegui escrever o commit")
+    return arvore.strip()
+
+
+class TravaDoCommit:
+    """Duas esteiras ao mesmo tempo: uma faz o commit por vez (o `git update-ref` com o antigo segura o resto)."""
+
+    def __enter__(self):
+        pasta_do_git = git("rev-parse", "--git-common-dir")[1].strip()
+        self.arquivo = open(os.path.join(RAIZ, pasta_do_git, "delta-11-esteira.lock"), "w")
+        fcntl.flock(self.arquivo, fcntl.LOCK_EX)
+
+    def __exit__(self, *erro):
+        fcntl.flock(self.arquivo, fcntl.LOCK_UN)
+        self.arquivo.close()
+
+
+def commitar(head, arvore, nomes, arquivos, fonte):
+    """5 do contrato: commit com a marca; avança o ramo só se ninguém entrou antes; põe na pasta e acerta o índice. None: outro entrou."""
+    resumo = ", ".join(arquivos[:3]) + (" e mais %d" % (len(arquivos) - 3) if len(arquivos) > 3 else "")
+    with TravaDoCommit():
+        if head_atual() != head:
+            return None
+        codigo, novo = git("commit-tree", arvore, "-p", head, "-m", "%s: %s\n\n%s" % (",".join(nomes), resumo, MARCA), env=identidade())
+        if codigo != 0:
+            recusar("não consegui fazer o commit")
+        novo = novo.strip()
+        if git("update-ref", "refs/heads/" + ramo(), novo, head)[0] != 0:
+            return None
+        if os.path.realpath(fonte) != RAIZ:
+            for a in arquivos:
+                origem, alvo = os.path.join(fonte, a), os.path.join(RAIZ, a)
+                if os.path.lexists(alvo) and not os.path.isdir(alvo):
+                    os.remove(alvo)
+                if os.path.lexists(origem):
+                    os.makedirs(os.path.dirname(alvo) or RAIZ, exist_ok=True)
+                    shutil.copy2(origem, alvo, follow_symlinks=False)
+        git("reset", "-q", "--", *arquivos)
+    dizer("commit %s (%s)" % (novo[:10], MARCA))
+    return novo
+
+
+# ---------------------------------------------------------------- as cópias das candidatas
+def pasta_de_copia(caminho):
+    real = os.path.realpath(os.path.join(RAIZ, caminho))
+    if not re.fullmatch(r"\.claude/worktrees/[^/\s]+/?", caminho) or os.path.dirname(real) != os.path.realpath(os.path.join(RAIZ, ".claude/worktrees")) or not os.path.isdir(real):
+        recusar("--copia e --descartar só aceitam a cópia de uma candidata, `.claude/worktrees/<cópia>` (%s não é)" % caminho)
+    return real
+
+
+def base_da_copia(copia):
+    cabeca = git("rev-parse", "HEAD", cwd=copia)[1].strip()
+    base = git("merge-base", "HEAD", cabeca)[1].strip() if cabeca else ""
+    if not base:
+        recusar("a cópia %s não saiu do que já entrou aqui (nada em comum na história); nenhuma cópia foi apagada" % os.path.basename(copia))
+    return base
+
+
+def mudancas_da_copia(copia, base):
+    """{arquivo: 'A' | 'M' | 'D'}: o que a cópia mudou desde que saiu (os commits dela, o que está sem commit e os arquivos novos)."""
+    mudancas = {}
+    partes = git("diff", "--name-status", "--no-renames", "-z", base, cwd=copia)[1].split("\0")
+    for i in range(0, len(partes) - 1, 2):
+        if partes[i]:
+            mudancas[partes[i + 1]] = partes[i][0] if partes[i][0] in "AD" else "M"
+    for novo in git("ls-files", "-z", "--others", "--exclude-standard", cwd=copia)[1].split("\0"):
+        if novo:
+            mudancas[novo] = "A"
+    return mudancas
+
+
+def linhas_da_copia(mudancas):
+    return sorted(a for a, estado in mudancas.items() if estado != "D" and re.fullmatch(r"\.delta-11/quadro/[^/]+/linhas/[a-z-]+-\d+\.md", a))
+
+
+def arquivos_da_copia(mudancas, nome, tabela):
+    """Os do território de quem entrega e as dependências (o que fica fora de todo território); os de outro território, à parte."""
+    dela, dependencias, fora = [], [], []
+    for a in sorted(mudancas):
+        if do_motor(a):
+            continue
+        dono = dono_de(a, tabela) if tabela is not None else nome
+        if dono == nome:
+            dela.append(a)
+        elif (tabela is not None and mudancas[a] == "A" and "/" in a
+              and not any(a.lower().startswith(p) if p.endswith("/") else a.lower() == p for p, _ in tabela)):
+            dependencias.append(a)  # só arquivo novo, numa pasta fora de todo território (a raiz, com manifestos e comandos, é do BACK)
+        else:
+            fora.append(a)
+    return dela, dependencias, fora
+
+
+def mesclar_candidata(copia, arquivos, head, base):
+    """A candidata entra como a diferença dela sobre a base, aplicada ao que já entrou depois; a mesma parte mudada dos dois lados é choque."""
+    destino = tempfile.mkdtemp(prefix="candidata-", dir=RODADA)
+    for a in arquivos:
+        na_base, no_head = conteudo_no(base, a), conteudo_no(head, a)
+        origem = os.path.join(copia, a)
+        dela = open(origem, "rb").read() if os.path.isfile(origem) else None
+        if dela == na_base:
+            resultado = no_head
+        elif dela == no_head or no_head == na_base:
+            resultado = dela
+        elif dela is None or no_head is None or na_base is None:
+            recusar("choque: a candidata mexe em %s, que mudou depois de a cópia nascer; nenhuma cópia foi apagada" % a)
+        else:
+            caminhos = []
+            for rotulo, dados in (("nosso", no_head), ("base", na_base), ("dela", dela)):
+                caminhos.append(os.path.join(destino, ".mescla-" + rotulo))
+                open(caminhos[-1], "wb").write(dados)
+            feito = subprocess.run(["git", "merge-file", "-p", *caminhos], capture_output=True, env=SEM_GIT)
+            if feito.returncode != 0:
+                recusar("choque: a candidata muda a mesma parte de %s que outra entrega mudou depois; nenhuma cópia foi apagada" % a)
+            resultado = feito.stdout
+        if resultado is not None:
+            alvo = os.path.join(destino, a)
+            os.makedirs(os.path.dirname(alvo), exist_ok=True)
+            open(alvo, "wb").write(resultado)
+            if os.access(origem, os.X_OK):
+                os.chmod(alvo, 0o755)
+    for sobra in [n for n in os.listdir(destino) if n.startswith(".mescla-")]:
+        os.remove(os.path.join(destino, sobra))
+    return destino
+
+
+def guardar_linhas_e_apagar(copias):
+    """Antes de apagar as cópias, traz as linhas delas para .delta-11/quadro/<X>/candidatas/<cópia>-<nome>-<n>.md."""
+    for copia in copias:
+        nome_da_copia = os.path.basename(copia)
+        for rel in linhas_da_copia(mudancas_da_copia(copia, base_da_copia(copia))):
+            camada = rel.split("/")[2]
+            pasta = os.path.join(RAIZ, ".delta-11/quadro", camada, "candidatas")
+            os.makedirs(pasta, exist_ok=True)
+            shutil.copy2(os.path.join(copia, rel), os.path.join(pasta, "%s-%s" % (nome_da_copia, os.path.basename(rel))))
+    for copia in copias:
+        do_ramo = git("symbolic-ref", "-q", "--short", "HEAD", cwd=copia)[1].strip()
+        rodar(["git", "worktree", "remove", "--force", copia])
+        shutil.rmtree(copia, ignore_errors=True)
+        if do_ramo.startswith("worktree-") and do_ramo != git("symbolic-ref", "-q", "--short", "HEAD")[1].strip():
+            git("branch", "-D", do_ramo)
+    git("worktree", "prune")
+    dizer("descartou %d cópia(s) de candidata (as linhas delas foram para candidatas/)" % len(copias))
+
+
+# ---------------------------------------------------------------- uma entrega
+def entregar(nomes, arquivos, fonte, apagar=(), candidata=None, base=None, dependencias=()):
+    head = head_atual()
+    ramo()
+    arquivos = expandir([caminho_limpo(a) for a in arquivos], fonte)
+    if not arquivos:
+        recusar("nenhum arquivo entregue: sh esteira <nome> <arquivos>")
+    arquivos = [caminho_limpo(a) for a in arquivos]
+    conferir_arquivos(arquivos, fonte, head)
+    parar = parar_do_dono()
+    conferir_donos(nomes, arquivos, fonte, parar, dependencias)
+    so_apaga = parar and "back" in nomes and not any(os.path.lexists(os.path.join(fonte, a)) for a in arquivos)
+    trazer_remoto()
+    no_comeco = {a: conteudo_no(head_atual(), a) for a in arquivos}
+    origem = fonte
+    for tentativa in range(5):
+        head = head_atual()
+        if tentativa:
+            dizer("outra mudança entrou antes do commit; confiro de novo sobre o que entrou")
+            if candidata is None:
+                mudou = [a for a in arquivos if conteudo_no(head, a) != no_comeco[a]]
+                if mudou:
+                    recusar("choque: %s mudou no que entrou enquanto esta entrega era conferida; junte as duas mudanças e entregue de novo" % ", ".join(mudou))
+        if candidata:
+            fonte = mesclar_candidata(candidata, arquivos, head, base)
+        conferir_testes(nomes, arquivos, fonte, head, parar)
+        arvore = arvore_com(head, arquivos, fonte)
+        if arvore == git("rev-parse", head + "^{tree}")[1].strip():
+            recusar("nenhuma mudança nos arquivos entregues")
+        if so_apaga:
+            dizer("Parar do dono: a entrega que só apaga não monta, não testa nem publica")
+            comandos, copia = {}, None
+        else:
+            copia = montar_copia(head, arquivos, fonte, os.path.join(RODADA, "copia"))
+            comandos = comandos_de(copia)
+            montar_e_testar(copia, comandos)
+        novo = commitar(head, arvore, nomes, arquivos, fonte)
+        if novo is None:
+            continue
+        if apagar:
+            guardar_linhas_e_apagar(apagar)
+        enviar()
+        if copia:
+            publicar(copia, comandos)
+        raise Pronto()
+    recusar("outras mudanças entraram sem parar; entregue de novo")
+
+
+def comando_de_entrega(args):
+    nomes = [n for n in args[0].lower().split(",") if n]
+    copia, descartar, arquivos, i = None, [], [], 1
+    while i < len(args):
+        if args[i] == "--copia":
+            if i + 1 >= len(args) or args[i + 1].startswith("--"):
+                recusar("falta a cópia depois de --copia")
+            copia, i = args[i + 1], i + 2
+        elif args[i] == "--descartar":
+            i += 1
+            while i < len(args) and not args[i].startswith("--"):
+                descartar.append(args[i])
+                i += 1
+        elif args[i].startswith("--"):
+            recusar("opção desconhecida %s: sh esteira <nome> <arquivos> (ou --copia, --descartar, --remoto)" % args[i])
+        else:
+            arquivos.append(args[i])
+            i += 1
+    if not nomes:
+        recusar("falta o nome de quem entrega: sh esteira <nome> <arquivos>")
+    descartadas = [pasta_de_copia(c) for c in descartar]
+    if copia:
+        if arquivos:
+            recusar("com --copia, os arquivos vêm da cópia: sh esteira <nome> --copia <cópia> --descartar <as outras>")
+        pasta = pasta_de_copia(copia)
+        if len(nomes) != 1 or nomes[0] == "scout":
+            recusar("a candidata escolhida entra pelo nome de um Construtor só")
+        construtores_validos = construtores()
+        if nomes[0] not in construtores_validos:
+            recusar("quem entrega é um Construtor (%s)" % ", ".join(sorted(construtores_validos)))
+        base = base_da_copia(pasta)
+        for c in descartadas:
+            base_da_copia(c)
+        dela, dependencias, fora = arquivos_da_copia(mudancas_da_copia(pasta, base), nomes[0], enderecos())
+        if fora:
+            recusar("a candidata mexeu no território de outro: %s; só vão junto, como dependências, os arquivos novos numa pasta fora de todo território "
+                    "(mudar um que já existe, ou um da raiz, é brief ao dono dele). "
+                    "A cópia segue de pé" % ", ".join(fora))
+        if not dela:
+            recusar("a candidata escolhida não mudou nada no território de %s" % nomes[0])
+        for a in dependencias:
+            dizer("leva a dependência da candidata: %s" % a)
+        entregar(nomes, dela + dependencias, pasta, apagar=[pasta] + [c for c in descartadas if c != pasta], candidata=pasta, base=base,
+                 dependencias=set(dependencias))
+    if not arquivos:
+        if descartadas:
+            validos = construtores() | {"scout"}
+            if not all(n in validos for n in nomes):
+                recusar("quem descarta é um Construtor")
+            for c in descartadas:
+                base_da_copia(c)
+            guardar_linhas_e_apagar(descartadas)
+            raise Pronto()
+        recusar("nenhum arquivo entregue: sh esteira <nome> <arquivos>")
+    entregar(nomes, arquivos, RAIZ, apagar=descartadas)
+
+
+def comando_remoto(nomes, endereco):
+    """Liga o repositório remoto (o BACK): `sh esteira back --remoto <endereço>`."""
+    if nomes != ["back"]:
+        recusar("quem liga o remoto é o BACK: sh esteira back --remoto <endereço>")
+    if not endereco or endereco.startswith("-"):
+        recusar("falta o endereço: sh esteira back --remoto <endereço>")
+    git("remote", "set-url" if remoto() else "add", "origin", endereco)
+    if rodar(["git", "ls-remote", "origin"], env=com_credencial())[0] != 0:
+        achado = re.search(r"github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?/?$", endereco)
+        if achado and shutil.which("gh") and not ENSAIO:
+            rodar(["gh", "repo", "create", "%s/%s" % achado.groups(), "--private"])
+        if rodar(["git", "ls-remote", "origin"], env=com_credencial())[0] != 0:
+            recusar("o remoto não responde: falta o repositório ou o login do gh neste computador (`gh auth login`)")
+    trazer_remoto()
+    if ENSAIO:
+        dizer("ensaio: não envia ao remoto")
+    elif rodar(["git", "push", "-q", "-u", "origin", ramo()], env=com_credencial())[0] != 0:
+        recusar("não consegui enviar ao remoto")
+    dizer("remoto ligado: %s. Para a automação do repositório, o BACK copia .delta-11/motor/modelos/esteira-automacao.yml "
+          "para .github/workflows/esteira.yml (com as ferramentas do produto) e o entrega" % endereco)
+    raise Pronto()
+
+
+# ---------------------------------------------------------------- a automação do repositório
+def ultima_linha_da_mensagem(commit):
+    linhas = [l.strip() for l in git("log", "-1", "--format=%B", commit)[1].splitlines() if l.strip()]
+    return linhas[-1] if linhas else ""
+
+
+def comando_automacao(alvo):
+    """A cada envio: recusa commit do produto (fora de .delta-11/ e .claude/) sem `Esteira: entrou` (a junção e o do instalador não
+    contam) e roda a montagem e todos os testes no último commit do envio."""
+    de, ate = alvo.split("..", 1) if ".." in alvo else (None, alvo)
+    ultimo = git("rev-parse", "-q", "--verify", ate + "^{commit}")[1].strip()
+    if not ultimo:
+        recusar("não achei o commit %s" % ate)
+    if de and (set(de) <= {"0"} or git("cat-file", "-e", de + "^{commit}")[0] != 0):
+        de = None  # ramo novo, ou envio forçado: vale o último commit
+    commits = git("rev-list", "--reverse", "%s..%s" % (de, ultimo))[1].split() if de else [ultimo]
+    envio = git("diff", "--name-only", "--no-renames", "-z", de, ultimo)[1].split("\0") if de else git("ls-tree", "-r", "-z", "--name-only", ultimo)[1].split("\0")
+    for commit in commits:
+        if len(git("rev-list", "--parents", "-n", "1", commit)[1].split()) > 2:
+            continue  # a junção
+        if ultima_linha_da_mensagem(commit) in (MARCA, MARCA_DO_INSTALADOR):
+            continue
+        mudados = [a for a in git("diff-tree", "--no-commit-id", "--name-only", "--no-renames", "-z", "-r", "--root", commit)[1].split("\0") if a]
+        if all(a.startswith((".delta-11/", ".claude/")) for a in mudados):
+            continue
+        recusar("o commit %s mexe no produto sem `%s`: não passou pela esteira" % (commit[:10], MARCA))
+    if all(a.startswith(".delta-11/") for a in envio if a):
+        dizer("o envio muda só .delta-11/: nada a montar nem a testar")
+        raise Pronto()
+    copia = os.path.join(RODADA, "copia")
+    os.makedirs(copia)
+    env = dict(SEM_GIT, GIT_INDEX_FILE=os.path.join(RODADA, "indice-da-automacao"))
+    subprocess.run(["git", "read-tree", ultimo], cwd=RAIZ, env=env, check=True, capture_output=True)
+    subprocess.run(["git", "checkout-index", "-a", "-f", "--prefix=" + copia + "/"], cwd=RAIZ, env=env, check=True, capture_output=True)
+    montar_e_testar(copia, comandos_de(copia))
+    dizer("a automação conferiu %d commit(s) e testou o último, %s" % (len(commits), ultimo[:10]))
+    raise Pronto()
+
+
+# ---------------------------------------------------------------- começo
+def principal(args):
+    global R
+    if not args or args[0] in ("-h", "--help"):
+        print("RECUSOU: uso: sh esteira <nome> <arquivos> (o contrato: .delta-11/motor/modelos/esteira.md)")
+        return 1
+    R = Relato("automacao" if args[0] == "--automacao" else args[0])
+    try:
+        if args[0] == "--automacao":
+            if len(args) != 2:
+                recusar("uso: sh esteira --automacao <commit antes>..<commit depois>")
+            comando_automacao(args[1])
+        elif len(args) >= 2 and args[1] == "--remoto":
+            comando_remoto([n for n in args[0].lower().split(",") if n], args[2] if len(args) > 2 else "")
+        elif args[0].startswith("-"):
+            recusar("o primeiro é o nome de quem entrega: sh esteira <nome> <arquivos>")
+        else:
+            comando_de_entrega(args)
+        recusar("a esteira terminou sem dizer se entrou")
+    except Pronto:
+        veredito, codigo = "ENTROU", 0
+    except Recusa as recusa:
+        veredito, codigo = "RECUSOU: %s" % recusa, 1
+    except Exception as erro:  # qualquer defeito recusa: a esteira nunca entra pela metade
+        veredito, codigo = "RECUSOU: defeito na esteira (%s: %s)" % (type(erro).__name__, " ".join(str(erro).split())[:200]), 1
+    print("relato inteiro: %s" % os.path.relpath(R.caminho, RAIZ), flush=True)
+    R.escrever(veredito)
+    print(veredito, flush=True)
+    return codigo
+
+
+def sair_por_sinal(numero, quadro):
+    raise SystemExit(128 + numero)
+
+
+for _sinal in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
+    signal.signal(_sinal, sair_por_sinal)
+try:
+    _codigo = principal(sys.argv[1:])
+finally:
+    shutil.rmtree(RODADA, ignore_errors=True)
+    if RODANDO:
+        try:
+            os.remove(RODANDO)
+        except OSError:
+            pass
+sys.exit(_codigo)

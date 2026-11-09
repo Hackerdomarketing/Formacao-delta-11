@@ -1,0 +1,179 @@
+{
+  "agent": "atlas",
+  "outputStyle": "default",
+  "autoMemoryEnabled": false,
+  "env": {
+    "CLAUDE_CODE_FORK_SUBAGENT": "0",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "0",
+    "NODE_USE_ENV_PROXY": "1"
+  },
+  "worktree": {
+    "baseRef": "head"
+  },
+  "sandbox": {
+    "enabled": true,
+    "allowUnsandboxedCommands": false,
+    "failIfUnavailable": true,
+    "filesystem": {
+      "allowWrite": [
+        "~/.bun",
+        "~/.cache",
+        "~/.cargo/registry",
+        "~/.config/.wrangler",
+        "~/.config/gh",
+        "~/.config/netlify",
+        "~/.config/supabase",
+        "~/.config/vercel",
+        "~/.local/share/pnpm",
+        "~/.netlify",
+        "~/.npm",
+        "~/.pnpm-store",
+        "~/.supabase",
+        "~/.vercel",
+        "~/.wrangler",
+        "~/.yarn",
+        "~/Library/Application Support/com.vercel.cli",
+        "~/Library/Caches",
+        "~/Library/Preferences/.wrangler",
+        "~/Library/Preferences/netlify"
+      ],
+      "denyWrite": "PREENCHIDO PELO INSTALADOR a partir de lugares.json",
+      "denyRead": "PREENCHIDO PELO INSTALADOR a partir de lugares.json"
+    },
+    "network": {
+      "allowedDomains": [
+        "*.cloudflare.com",
+        "*.github.com",
+        "*.netlify.app",
+        "*.netlify.com",
+        "*.npmjs.org",
+        "*.pages.dev",
+        "*.supabase.co",
+        "*.vercel.app",
+        "*.vercel.com",
+        "*.workers.dev",
+        "api.cloudflare.com",
+        "api.github.com",
+        "api.netlify.com",
+        "api.supabase.com",
+        "api.vercel.com",
+        "cdn.playwright.dev",
+        "codeload.github.com",
+        "crates.io",
+        "files.pythonhosted.org",
+        "github.com",
+        "objects.githubusercontent.com",
+        "playwright.download.prss.microsoft.com",
+        "pypi.org",
+        "registry.npmjs.org",
+        "registry.yarnpkg.com",
+        "static.crates.io"
+      ],
+      "allowLocalBinding": true
+    },
+    "excludedCommands": [
+      "sh esteira *",
+      "python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py *",
+      "python3 -I -B .claude/hooks/delta-11/tela-do-app.py *"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|NotebookEdit|Read|Grep|Glob|Bash|Agent|SendMessage|TaskStop",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -B \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/delta-11/trava.py claude-code",
+            "onFailure": "block"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact|fork",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -B \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/delta-11/situacao.py claude-code"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "documentador",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -B \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/delta-11/guardar-registro.py claude-code"
+          }
+        ]
+      },
+      {
+        "matcher": "cronos",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -B \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/delta-11/cronos-vivo.py claude-code"
+          },
+          {
+            "type": "command",
+            "command": "python3 -B \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/delta-11/guardar-registro.py claude-code"
+          }
+        ]
+      },
+      {
+        "matcher": "arquiteto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -B \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/delta-11/cronos-vivo.py claude-code"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -B \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/delta-11/relogio.py claude-code"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "matcher": "cronos|arquiteto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -B \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/delta-11/cronos-vivo.py claude-code"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Agent",
+      "Bash(python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py *)",
+      "Bash(python3 -I -B .claude/hooks/delta-11/tela-do-app.py *)",
+      "Bash(sh esteira *)",
+      "CronCreate",
+      "CronDelete",
+      "CronList",
+      "Edit",
+      "Glob",
+      "Grep",
+      "NotebookEdit",
+      "Read",
+      "SendMessage",
+      "TaskStop",
+      "WebFetch",
+      "Write"
+    ]
+  }
+}

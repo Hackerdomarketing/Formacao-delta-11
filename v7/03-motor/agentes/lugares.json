@@ -1,0 +1,771 @@
+{
+ "aviso": "GERADO por v7/03-motor/ferramentas/montar-agentes.py a partir de lugares.md, rotas.md e agentes.md. Não edite.",
+ "construtores": [
+  "vault",
+  "engine",
+  "front",
+  "pixel",
+  "form",
+  "back",
+  "shield"
+ ],
+ "agentes": {
+  "atlas": {
+   "terminal": "—",
+   "so_le_em": ""
+  },
+  "arquiteto": {
+   "terminal": "—",
+   "so_le_em": ""
+  },
+  "cronos": {
+   "terminal": "—",
+   "so_le_em": ""
+  },
+  "vault": {
+   "terminal": "livre",
+   "so_le_em": ""
+  },
+  "engine": {
+   "terminal": "livre",
+   "so_le_em": ""
+  },
+  "front": {
+   "terminal": "livre",
+   "so_le_em": ""
+  },
+  "pixel": {
+   "terminal": "livre",
+   "so_le_em": ""
+  },
+  "form": {
+   "terminal": "livre",
+   "so_le_em": ""
+  },
+  "back": {
+   "terminal": "livre",
+   "so_le_em": ""
+  },
+  "shield": {
+   "terminal": "livre",
+   "so_le_em": ""
+  },
+  "destruidor": {
+   "terminal": "vigiado",
+   "so_le_em": ""
+  },
+  "revisor": {
+   "terminal": "vigiado",
+   "so_le_em": ""
+  },
+  "selador": {
+   "terminal": "vigiado",
+   "so_le_em": ""
+  },
+  "documentador": {
+   "terminal": "—",
+   "so_le_em": ""
+  },
+  "scout": {
+   "terminal": "livre",
+   "so_le_em": ""
+  },
+  "leitor-do-teste": {
+   "terminal": "—",
+   "so_le_em": ".delta-11/leitor/"
+  }
+ },
+ "lugares": [
+  {
+   "lugar": "`.delta-11/luz.md`",
+   "regex": "^\\.delta\\-11/luz\\.md$",
+   "fixo": ".delta-11/luz.md",
+   "escreve": [
+    "atlas"
+   ],
+   "le": {
+    "todos": true,
+    "menos": [
+     "revisor"
+    ]
+   }
+  },
+  {
+   "lugar": "`.delta-11/luz-compacta.md`",
+   "regex": "^\\.delta\\-11/luz\\-compacta\\.md$",
+   "fixo": ".delta-11/luz-compacta.md",
+   "escreve": [
+    "documentador"
+   ],
+   "le": {
+    "todos": true,
+    "menos": [
+     "revisor"
+    ]
+   }
+  },
+  {
+   "lugar": "`.delta-11/regras/enderecos.txt`",
+   "regex": "^\\.delta\\-11/regras/enderecos\\.txt$",
+   "fixo": ".delta-11/regras/enderecos.txt",
+   "escreve": [
+    "arquiteto"
+   ],
+   "le": {
+    "todos": true,
+    "menos": []
+   }
+  },
+  {
+   "lugar": "`.delta-11/regras/`",
+   "regex": "^\\.delta\\-11/regras/.*$",
+   "fixo": ".delta-11/regras/",
+   "escreve": [
+    "arquiteto"
+   ],
+   "le": {
+    "todos": true,
+    "menos": [
+     "revisor"
+    ]
+   }
+  },
+  {
+   "lugar": "`.delta-11/estado/`",
+   "regex": "^\\.delta\\-11/estado/.*$",
+   "fixo": ".delta-11/estado/",
+   "escreve": [
+    "documentador"
+   ],
+   "le": {
+    "todos": true,
+    "menos": [
+     "revisor"
+    ]
+   }
+  },
+  {
+   "lugar": "`.delta-11/licoes.md`",
+   "regex": "^\\.delta\\-11/licoes\\.md$",
+   "fixo": ".delta-11/licoes.md",
+   "escreve": [
+    "documentador"
+   ],
+   "le": {
+    "todos": true,
+    "menos": [
+     "revisor",
+     "destruidor"
+    ]
+   }
+  },
+  {
+   "lugar": "`.delta-11/quadro/<X>/abertura.md`",
+   "regex": "^\\.delta\\-11/quadro/[^/]+/abertura\\.md$",
+   "fixo": ".delta-11/quadro/",
+   "escreve": [
+    "arquiteto"
+   ],
+   "le": {
+    "todos": true,
+    "menos": [
+     "revisor"
+    ]
+   }
+  },
+  {
+   "lugar": "`.delta-11/quadro/<X>/inimigos.md`",
+   "regex": "^\\.delta\\-11/quadro/[^/]+/inimigos\\.md$",
+   "fixo": ".delta-11/quadro/",
+   "escreve": [
+    "cronos"
+   ],
+   "le": {
+    "todos": true,
+    "menos": [
+     "revisor"
+    ]
+   }
+  },
+  {
+   "lugar": "`.delta-11/quadro/<X>/linhas/<nome>-<n>.md`",
+   "regex": "^\\.delta\\-11/quadro/[^/]+/linhas/(?P<nome>[a-z-]+?)\\-[0-9]+\\.md$",
+   "fixo": ".delta-11/quadro/",
+   "escreve": [
+    "o dono da linha"
+   ],
+   "le": {
+    "todos": true,
+    "menos": [
+     "revisor",
+     "destruidor"
+    ]
+   }
+  },
+  {
+   "lugar": "`.delta-11/quadro/<X>/selo.md`",
+   "regex": "^\\.delta\\-11/quadro/[^/]+/selo\\.md$",
+   "fixo": ".delta-11/quadro/",
+   "escreve": [
+    "selador"
+   ],
+   "le": {
+    "todos": true,
+    "menos": [
+     "revisor",
+     "destruidor"
+    ]
+   }
+  },
+  {
+   "lugar": "`.delta-11/quadro/<X>/escolha.md`",
+   "regex": "^\\.delta\\-11/quadro/[^/]+/escolha\\.md$",
+   "fixo": ".delta-11/quadro/",
+   "escreve": [
+    "selador"
+   ],
+   "le": {
+    "todos": true,
+    "menos": [
+     "revisor",
+     "destruidor"
+    ]
+   }
+  },
+  {
+   "lugar": "`.delta-11/quadro/<X>/candidatas/`",
+   "regex": "^\\.delta\\-11/quadro/[^/]+/candidatas/.*$",
+   "fixo": ".delta-11/quadro/",
+   "escreve": [
+    "ninguém"
+   ],
+   "le": {
+    "todos": true,
+    "menos": [
+     "revisor",
+     "destruidor"
+    ]
+   }
+  },
+  {
+   "lugar": "`.delta-11/quadro/<X>/`",
+   "regex": "^\\.delta\\-11/quadro/[^/]+/.*$",
+   "fixo": ".delta-11/quadro/",
+   "escreve": [
+    "cronos"
+   ],
+   "le": {
+    "todos": true,
+    "menos": [
+     "revisor",
+     "destruidor"
+    ]
+   }
+  },
+  {
+   "lugar": "`.delta-11/teste-guardado/`",
+   "regex": "^\\.delta\\-11/teste\\-guardado/.*$",
+   "fixo": ".delta-11/teste-guardado/",
+   "escreve": [
+    "destruidor"
+   ],
+   "le": {
+    "todos": false,
+    "so": [
+     "destruidor",
+     "selador"
+    ]
+   }
+  },
+  {
+   "lugar": "`.delta-11/leitor/`",
+   "regex": "^\\.delta\\-11/leitor/.*$",
+   "fixo": ".delta-11/leitor/",
+   "escreve": [
+    "selador"
+   ],
+   "le": {
+    "todos": false,
+    "so": [
+     "selador"
+    ]
+   }
+  },
+  {
+   "lugar": "`.delta-11/cofre/`",
+   "regex": "^\\.delta\\-11/cofre/.*$",
+   "fixo": ".delta-11/cofre/",
+   "escreve": [
+    "atlas"
+   ],
+   "le": {
+    "todos": false,
+    "so": [
+     "atlas",
+     "back"
+    ]
+   }
+  },
+  {
+   "lugar": "`.delta-11/registro/para-o-delta-11/`",
+   "regex": "^\\.delta\\-11/registro/para\\-o\\-delta\\-11/.*$",
+   "fixo": ".delta-11/registro/para-o-delta-11/",
+   "escreve": [
+    "todos_novo"
+   ],
+   "le": {
+    "todos": true,
+    "menos": []
+   }
+  },
+  {
+   "lugar": "`.delta-11/registro/`",
+   "regex": "^\\.delta\\-11/registro/.*$",
+   "fixo": ".delta-11/registro/",
+   "escreve": [
+    "todos_novo"
+   ],
+   "le": {
+    "todos": false,
+    "so": [
+     "documentador"
+    ]
+   }
+  },
+  {
+   "lugar": "`.delta-11/pausa.md`",
+   "regex": "^\\.delta\\-11/pausa\\.md$",
+   "fixo": ".delta-11/pausa.md",
+   "escreve": [
+    "atlas"
+   ],
+   "le": {
+    "todos": true,
+    "menos": []
+   }
+  },
+  {
+   "lugar": "`.delta-11/alarmes/`",
+   "regex": "^\\.delta\\-11/alarmes/.*$",
+   "fixo": ".delta-11/alarmes/",
+   "escreve": [
+    "scout"
+   ],
+   "le": {
+    "todos": true,
+    "menos": []
+   }
+  },
+  {
+   "lugar": "`.delta-11/motor/modelos/testes-do-fruto.md`",
+   "regex": "^\\.delta\\-11/motor/modelos/testes\\-do\\-fruto\\.md$",
+   "fixo": ".delta-11/motor/modelos/testes-do-fruto.md",
+   "escreve": [
+    "ninguém"
+   ],
+   "le": {
+    "todos": true,
+    "menos": []
+   }
+  },
+  {
+   "lugar": "`.delta-11/motor/modelos/linha.md`",
+   "regex": "^\\.delta\\-11/motor/modelos/linha\\.md$",
+   "fixo": ".delta-11/motor/modelos/linha.md",
+   "escreve": [
+    "ninguém"
+   ],
+   "le": {
+    "todos": true,
+    "menos": []
+   }
+  },
+  {
+   "lugar": "`.delta-11/pedidos-das-leis/`",
+   "regex": "^\\.delta\\-11/pedidos\\-das\\-leis/.*$",
+   "fixo": ".delta-11/pedidos-das-leis/",
+   "escreve": [
+    "atlas"
+   ],
+   "le": {
+    "todos": true,
+    "menos": []
+   }
+  },
+  {
+   "lugar": "`.delta-11/motor/`",
+   "regex": "^\\.delta\\-11/motor/.*$",
+   "fixo": ".delta-11/motor/",
+   "escreve": [
+    "ninguém"
+   ],
+   "le": {
+    "todos": true,
+    "menos": [
+     "revisor"
+    ]
+   }
+  },
+  {
+   "lugar": "`.delta-11/tela-liberada.md`",
+   "regex": "^\\.delta\\-11/tela\\-liberada\\.md$",
+   "fixo": ".delta-11/tela-liberada.md",
+   "escreve": [
+    "atlas"
+   ],
+   "le": {
+    "todos": true,
+    "menos": []
+   }
+  },
+  {
+   "lugar": "`.delta-11/esteira/`",
+   "regex": "^\\.delta\\-11/esteira/.*$",
+   "fixo": ".delta-11/esteira/",
+   "escreve": [
+    "ninguém"
+   ],
+   "le": {
+    "todos": true,
+    "menos": [
+     "revisor"
+    ]
+   }
+  },
+  {
+   "lugar": "`.delta-11/`",
+   "regex": "^\\.delta\\-11/.*$",
+   "fixo": ".delta-11/",
+   "escreve": [
+    "ninguém"
+   ],
+   "le": {
+    "todos": true,
+    "menos": [
+     "revisor"
+    ]
+   }
+  },
+  {
+   "lugar": "`.claude/`",
+   "regex": "^\\.claude/.*$",
+   "fixo": ".claude/",
+   "escreve": [
+    "ninguém"
+   ],
+   "le": {
+    "todos": true,
+    "menos": []
+   }
+  },
+  {
+   "lugar": "`CLAUDE.md`",
+   "regex": "^CLAUDE\\.md$",
+   "fixo": "CLAUDE.md",
+   "escreve": [
+    "ninguém"
+   ],
+   "le": {
+    "todos": true,
+    "menos": []
+   }
+  },
+  {
+   "lugar": "`AGENTS.md`",
+   "regex": "^AGENTS\\.md$",
+   "fixo": "AGENTS.md",
+   "escreve": [
+    "ninguém"
+   ],
+   "le": {
+    "todos": true,
+    "menos": []
+   }
+  },
+  {
+   "lugar": "`CLAUDE.local.md`",
+   "regex": "^CLAUDE\\.local\\.md$",
+   "fixo": "CLAUDE.local.md",
+   "escreve": [
+    "ninguém"
+   ],
+   "le": {
+    "todos": true,
+    "menos": []
+   }
+  },
+  {
+   "lugar": "`.mcp.json`",
+   "regex": "^\\.mcp\\.json$",
+   "fixo": ".mcp.json",
+   "escreve": [
+    "ninguém"
+   ],
+   "le": {
+    "todos": true,
+    "menos": []
+   }
+  },
+  {
+   "lugar": "`.worktreeinclude`",
+   "regex": "^\\.worktreeinclude$",
+   "fixo": ".worktreeinclude",
+   "escreve": [
+    "ninguém"
+   ],
+   "le": {
+    "todos": true,
+    "menos": []
+   }
+  },
+  {
+   "lugar": "`.env`",
+   "regex": "^\\.env$",
+   "fixo": ".env",
+   "escreve": [
+    "back"
+   ],
+   "le": {
+    "todos": false,
+    "so": [
+     "atlas",
+     "back"
+    ]
+   }
+  },
+  {
+   "lugar": "`.env.local`",
+   "regex": "^\\.env\\.local$",
+   "fixo": ".env.local",
+   "escreve": [
+    "back"
+   ],
+   "le": {
+    "todos": false,
+    "so": [
+     "atlas",
+     "back"
+    ]
+   }
+  },
+  {
+   "lugar": "`.gitignore`",
+   "regex": "^\\.gitignore$",
+   "fixo": ".gitignore",
+   "escreve": [
+    "back",
+    "scout",
+    "construtores_sem_territorios"
+   ],
+   "le": {
+    "todos": true,
+    "menos": []
+   }
+  },
+  {
+   "lugar": "`esteira`",
+   "regex": "^esteira$",
+   "fixo": "esteira",
+   "escreve": [
+    "ninguém"
+   ],
+   "le": {
+    "todos": true,
+    "menos": []
+   }
+  },
+  {
+   "lugar": "`.git/`",
+   "regex": "^\\.git/.*$",
+   "fixo": ".git/",
+   "escreve": [
+    "ninguém"
+   ],
+   "le": {
+    "todos": true,
+    "menos": [
+     "revisor",
+     "destruidor"
+    ]
+   }
+  },
+  {
+   "lugar": "`.rascunho/`",
+   "regex": "^\\.rascunho/.*$",
+   "fixo": ".rascunho/",
+   "escreve": [
+    "destruidor",
+    "revisor",
+    "selador"
+   ],
+   "le": {
+    "todos": true,
+    "menos": []
+   }
+  },
+  {
+   "lugar": "o código do produto",
+   "regex": "",
+   "fixo": "",
+   "escreve": [
+    "construtores",
+    "scout"
+   ],
+   "le": {
+    "todos": true,
+    "menos": []
+   }
+  }
+ ],
+ "rotas": [
+  {
+   "quem": "atlas",
+   "chama": [
+    "arquiteto"
+   ],
+   "jeito": "primeiro plano"
+  },
+  {
+   "quem": "atlas",
+   "chama": [
+    "cronos"
+   ],
+   "jeito": "segundo plano"
+  },
+  {
+   "quem": "atlas",
+   "chama": [
+    "cronos"
+   ],
+   "jeito": "mensagem"
+  },
+  {
+   "quem": "cronos",
+   "chama": [
+    "atlas"
+   ],
+   "jeito": "mensagem"
+  },
+  {
+   "quem": "cronos",
+   "chama": [
+    "vault",
+    "engine",
+    "front",
+    "pixel",
+    "form",
+    "back",
+    "shield"
+   ],
+   "jeito": "primeiro plano"
+  },
+  {
+   "quem": "cronos",
+   "chama": [
+    "vault",
+    "engine",
+    "front",
+    "pixel",
+    "form",
+    "back",
+    "shield"
+   ],
+   "jeito": "cópia isolada"
+  },
+  {
+   "quem": "cronos",
+   "chama": [
+    "vault",
+    "engine",
+    "front",
+    "pixel",
+    "form",
+    "back",
+    "shield"
+   ],
+   "jeito": "primeiro plano"
+  },
+  {
+   "quem": "cronos",
+   "chama": [
+    "shield"
+   ],
+   "jeito": "primeiro plano"
+  },
+  {
+   "quem": "cronos",
+   "chama": [
+    "destruidor",
+    "revisor",
+    "selador",
+    "documentador"
+   ],
+   "jeito": "primeiro plano"
+  },
+  {
+   "quem": "cronos",
+   "chama": [
+    "arquiteto"
+   ],
+   "jeito": "primeiro plano"
+  },
+  {
+   "quem": "selador",
+   "chama": [
+    "leitor-do-teste"
+   ],
+   "jeito": "primeiro plano"
+  },
+  {
+   "quem": "atlas",
+   "chama": [
+    "destruidor"
+   ],
+   "jeito": "primeiro plano"
+  },
+  {
+   "quem": "atlas",
+   "chama": [
+    "scout"
+   ],
+   "jeito": "primeiro plano"
+  }
+ ],
+ "lugares_que_o_terminal_nao_grava": [
+  ".delta-11",
+  ".git",
+  "esteira",
+  "CLAUDE.md",
+  "CLAUDE.local.md",
+  "AGENTS.md",
+  ".mcp.json",
+  ".gitignore",
+  ".worktreeinclude",
+  ".claude/rules",
+  ".claude/CLAUDE.md",
+  ".claude/worktrees/*/.claude",
+  ".claude/worktrees/*/.delta-11"
+ ],
+ "silencio_max_minutos": 30,
+ "travado_max_minutos": 90,
+ "cronos_nascer_max_segundos": 60,
+ "espaco_livre_min_gb": 5,
+ "tela_liberada_max_horas": 4,
+ "lugares_que_o_terminal_nao_le": [
+  ".delta-11/teste-guardado",
+  ".delta-11/cofre",
+  ".delta-11/leitor",
+  "~/.claude",
+  "~/.ssh",
+  "~/.aws",
+  "~/.gnupg",
+  "~/.netrc",
+  "~/.docker/config.json",
+  "~/.secretctl"
+ ],
+ "caixa_do_produto": "python3 -I -B .claude/hooks/delta-11/caixa-do-produto.py",
+ "tela_do_app": "python3 -I -B .claude/hooks/delta-11/tela-do-app.py",
+ "usam_a_tela": [
+  "revisor"
+ ]
+}

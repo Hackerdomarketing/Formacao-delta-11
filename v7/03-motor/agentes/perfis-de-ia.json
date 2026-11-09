@@ -1,0 +1,73 @@
+{
+ "claude": {
+  "nome": "Claude",
+  "troca_algo": false,
+  "descricao": "O login normal do Claude Code. Não escreve nenhuma variável nem comando de chave: a pasta fica como o instalador a deixa.",
+  "fonte": "https://code.claude.com/docs/en/model-config",
+  "lido_em": "2026-11-09",
+  "conferido": true
+ },
+ "deepseek": {
+  "nome": "DeepSeek",
+  "endereco": "https://api.deepseek.com/anthropic",
+  "modelo_forte": "deepseek-v4-pro",
+  "modelo_medio": "deepseek-flash",
+  "modelo_leve": "deepseek-flash",
+  "entrada_do_cofre": "API_DEEPSEEK",
+  "fonte": "https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code/",
+  "fonte_do_endereco_e_dos_apelidos": "https://api-docs.deepseek.com/guides/anthropic_api/",
+  "lido_em": "2026-11-09",
+  "conferido": true,
+  "observacao": "A documentação mapeia os nomes claude-opus* para deepseek-v4-pro (cobrado pelo preço do V4 Pro) e claude-sonnet*/claude-haiku* para deepseek-flash. Os exemplos oficiais acrescentam [1m] aos nomes (janela de 1 milhão) e CLAUDE_CODE_AUTO_COMPACT_WINDOW; o perfil não usa nenhum dos dois (o Claude Code compacta mais cedo, sem prejuízo)."
+ },
+ "minimax": {
+  "nome": "MiniMax",
+  "endereco": "https://api.minimax.io/anthropic",
+  "modelo_forte": "MiniMax-M3.1-Flash",
+  "modelo_medio": "MiniMax-M3.1-Flash",
+  "modelo_leve": "MiniMax-M3.1-Flash",
+  "entrada_do_cofre": "API_MINIMAX",
+  "fonte": "https://platform.minimax.io/docs/m-plan/claude-code",
+  "lido_em": "2026-11-09",
+  "conferido": true,
+  "observacao": "Endereço INTERNACIONAL (platform.minimax.io). A plataforma da China usa outro endereço (https://api.minimax.cn/anthropic, em platform.minimax.cn) e outra chave: a chave tem de ser da plataforma internacional. A página oficial usa um só modelo (MiniMax-M3.1-Flash) nos três apelidos, com [1m] no nome; o perfil usa o nome sem [1m]."
+ },
+ "kimi": {
+  "nome": "Kimi",
+  "endereco": "https://api.moonshot.ai/anthropic",
+  "modelo_forte": "kimi-k3",
+  "modelo_medio": "kimi-k3",
+  "modelo_leve": "kimi-k2.7-code",
+  "entrada_do_cofre": "API_KIMI_K",
+  "fonte": "https://platform.kimi.ai/docs/guide/claude-code-kimi",
+  "lido_em": "2026-11-09",
+  "conferido": true,
+  "observacao": "A página oficial (platform.kimi.ai, da Moonshot) mapeia opus e sonnet para kimi-k3[1m] e haiku para kimi-k2.7-code; o perfil usa o nome sem [1m]. A página diz que o endereço precisa ser o da plataforma onde a chave foi criada (a chave tem de ser da plataforma internacional)."
+ },
+ "glm": {
+  "nome": "GLM (Z.ai)",
+  "endereco": "https://api.z.ai/api/anthropic",
+  "modelo_forte": "glm-5.3",
+  "modelo_medio": "glm-5.3",
+  "modelo_leve": "glm-5.3-flash",
+  "entrada_do_cofre": "API_GLM",
+  "fonte": "https://docs.z.ai/devpack/tool/claude.md",
+  "lido_em": "2026-11-09",
+  "conferido": true,
+  "observacao": "A página oficial da Z.ai (configuração manual) mapeia opus e sonnet para glm-5.3[1m] e haiku para glm-5.3-flash[1m]; o perfil usa os nomes sem [1m]. A chave vai como token (ANTHROPIC_AUTH_TOKEN); o apiKeyHelper a manda nos dois cabeçalhos. A página é escrita para o GLM Coding Plan e não diz se uma chave de API avulsa funciona. A página antiga (scenario-example) ainda mostra GLM-4.7."
+ },
+ "gateway": {
+  "nome": "Gateway",
+  "pede_na_linha_de_comando": [
+   "--endereco",
+   "--modelo-forte",
+   "--modelo-medio",
+   "--modelo-leve"
+  ],
+  "entrada_do_cofre": "API_GATEWAY",
+  "fonte": "https://code.claude.com/docs/en/llm-gateway-connect",
+  "lido_em": "2026-11-09",
+  "conferido": true,
+  "observacao": "Qualquer porta compatível com a API da Anthropic. O endereço e os três nomes de modelo vêm da linha de comando; a entrada do cofre pode ser trocada com --entrada-do-cofre."
+ }
+}

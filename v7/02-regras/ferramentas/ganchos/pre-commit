@@ -1,0 +1,21 @@
+#!/bin/sh
+# Lei "um fato, um lugar" do Delta-11 v7: nenhum commit entra com as regras quebradas.
+# Confere o que ENTRA no commit (não a pasta de trabalho) e roda o pulso do vigia. Instalado com:
+#   git config core.hooksPath v7/02-regras/ferramentas/ganchos
+# Pular este gancho de propósito (--no-verify) não é pego aqui: fica no histórico do git.
+COPIA=$(mktemp -d) || exit 1
+trap 'rm -rf "$COPIA"' EXIT
+git checkout-index -a --prefix="$COPIA/" || exit 1
+REGRAS="$COPIA/v7/02-regras"
+[ -d "$REGRAS" ] || exit 0
+python3 -I "$REGRAS/ferramentas/conferir-regras.py" || { echo "Commit travado pelo vigia das regras."; exit 1; }
+if [ -d "$COPIA/v7/03-motor" ]; then
+  python3 -I -B "$COPIA/v7/03-motor/ferramentas/montar-agentes.py" --conferir || { echo "Commit travado: os agentes do motor estão desatualizados (rode montar-agentes.py)."; exit 1; }
+  python3 -I -B "$COPIA/v7/03-motor/ferramentas/testar-trava.py" >/dev/null || { echo "Commit travado: o pulso da trava do motor falhou (rode testar-trava.py)."; exit 1; }
+  python3 -I -B "$COPIA/v7/03-motor/ferramentas/testar-esteira.py" >/dev/null || { echo "Commit travado: o pulso da esteira do motor falhou (rode testar-esteira.py)."; exit 1; }
+  python3 -I -B "$COPIA/v7/03-motor/ferramentas/testar-instalador.py" >/dev/null || { echo "Commit travado: o pulso do instalador falhou (rode testar-instalador.py)."; exit 1; }
+fi
+# Dentro do próprio pulso (que testa este gancho), o pulso não roda de novo: evita um laço sem fim. Só vale com o
+# arquivo-marca que o pulso cria na pasta temporária dele; a variável sozinha não pula nada.
+[ -n "$DELTA11_DENTRO_DO_PULSO" ] && [ -f "$DELTA11_DENTRO_DO_PULSO" ] && [ "$(basename "$DELTA11_DENTRO_DO_PULSO")" = ".pulso-do-vigia-em-andamento" ] && exit 0
+python3 -I "$REGRAS/ferramentas/testar-vigia.py" >/dev/null || { echo "Commit travado: o pulso do vigia falhou (rode testar-vigia.py)."; exit 1; }
