@@ -19,7 +19,11 @@
 #     boilerplate-delta-11-nextjs/, ou com .delta-11/CHANGELOG.md
 #     + sincronizar.sh na raiz E nada além dos arquivos do sistema
 #     (v6.4.1), ou com .delta-11/.e-copia-do-sistema,
-#     e a pasta construcao-delta-11/sistema-atual.
+#     e tudo dentro da pasta construcao-delta-11/ (onde o Delta-11 é construído:
+#     sistema-atual, ensaios do motor);
+#   - produtos do Delta-11 v7 (.delta-11/motor/VERSAO com "delta11": "v7",
+#     ou .claude/hooks/delta-11/): o v7 é outro sistema e se atualiza pelo
+#     instalador dele. Saem também do registro.
 #
 # O que ELE SINCRONIZA (arquivos de sistema, por cima):
 #   - CLAUDE.md
@@ -197,8 +201,19 @@ e_copia_do_sistema() {
     fi
     [ -f "$pasta/.delta-11/.e-copia-do-sistema" ] && return 0
     case "$pasta" in
-        */construcao-delta-11/sistema-atual|*/construcao-delta-11/sistema-atual/*) return 0 ;;
+        # a pasta de construção do próprio Delta-11 (sistema-atual, ensaios do motor...) nunca é projeto
+        */construcao-delta-11/*) return 0 ;;
     esac
+    return 1
+}
+
+e_produto_do_v7() {
+    # Verdadeiro (0) se a pasta é um produto do Delta-11 v7. O v7 também usa .delta-11/, mas é outro sistema:
+    # sincronizar o v6 por cima trocaria o CLAUDE.md e poria os vigias antigos ao lado da trava do v7.
+    # Marcas do instalador do v7: .delta-11/motor/VERSAO com "delta11": "v7", e os ganchos em .claude/hooks/delta-11/.
+    local pasta="$1"
+    [ -d "$pasta/.claude/hooks/delta-11" ] && return 0
+    [ -f "$pasta/.delta-11/motor/VERSAO" ] && grep -Eq '"delta11"[[:space:]]*:[[:space:]]*"v7' "$pasta/.delta-11/motor/VERSAO" && return 0
     return 1
 }
 
@@ -248,6 +263,9 @@ motivo_para_pular() {
     esac
     if e_copia_do_sistema "$pasta"; then
         echo "é cópia/clone do próprio sistema"; return
+    fi
+    if e_produto_do_v7 "$pasta"; then
+        echo "é produto do Delta-11 v7 (o v7 se atualiza pelo instalador dele, nunca por aqui)"; return
     fi
     echo ""
 }

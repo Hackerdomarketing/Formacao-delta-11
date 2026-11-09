@@ -21,6 +21,8 @@
 #      - .gitignore ganha a proteção de segredos (C-147)
 #      - dados do projeto (kanban, memória) ficam intactos
 #      - projeto do registro fora das pastas varridas também é sincronizado (C-049)
+#      - produtos do Delta-11 v7 (marca na VERSAO ou .claude/hooks/delta-11/) NÃO são tocados
+#        e saem do registro
 # ════════════════════════════════════════════════════════════════
 
 set -euo pipefail
@@ -109,9 +111,19 @@ printf '#!/bin/bash\n# instalador do usuario, sem relacao com o sistema\n' > "$A
 echo "export const app = 1" > "$ANTIGO/src/app.ts"
 ATUAL="$DELTA11_SEARCH_PATHS/construcao-delta-11/sistema-atual"
 mkdir -p "$ATUAL/.delta-11"
+ENSAIO_DO_MOTOR="$DELTA11_SEARCH_PATHS/construcao-delta-11/.ensaio-motor"   # ensaio na pasta de construção: nunca é projeto
+mkdir -p "$ENSAIO_DO_MOTOR/.delta-11"
+V7_MARCA="$DELTA11_SEARCH_PATHS/produto-do-v7"       # produto do v7: marca na VERSAO
+mkdir -p "$V7_MARCA/.delta-11/motor" "$V7_MARCA/.delta-11/quadro"
+printf '{\n "delta11": "v7",\n "motor": "claude-code"\n}\n' > "$V7_MARCA/.delta-11/motor/VERSAO"
+echo "<!-- delta-11 v7 -->" > "$V7_MARCA/CLAUDE.md"
+V7_GANCHOS="$SANDBOX/fora-da-varredura/produto-do-v7-so-ganchos"   # produto do v7 só com os ganchos, no registro
+mkdir -p "$V7_GANCHOS/.delta-11" "$V7_GANCHOS/.claude/hooks/delta-11"
+echo "<!-- delta-11 v7 -->" > "$V7_GANCHOS/CLAUDE.md"
+echo '{"hooks":{}}' > "$V7_GANCHOS/.claude/settings.json"
 
 cat > "$DELTA11_REGISTRY" <<EOF
-{"version":"6.2","source":"$FONTE","projects":["$PB","$SANDBOX/nao-existe-mais"]}
+{"version":"6.2","source":"$FONTE","projects":["$PB","$SANDBOX/nao-existe-mais","$V7_GANCHOS"]}
 EOF
 
 impressao_digital() {
@@ -146,6 +158,7 @@ fi
 [ -d "$HOME/.claude/skills/skill-de-teste" ] && err "1: --dry-run copiou skill para ~/.claude/skills (C-051)" || ok "1: --dry-run não copiou skills (C-051)"
 grep -q "DRY RUN — Nenhum arquivo foi alterado" <<< "$SAIDA_DRY" && ok "1: relatório do dry-run confirma" || err "1: relatório do dry-run ausente"
 grep -q "disparar.sh.*seria apagado" <<< "$SAIDA_DRY" && ok "1: dry-run mostra o que seria apagado" || err "1: dry-run não mostrou remoções"
+[ "$(grep -c "é produto do Delta-11 v7" <<< "$SAIDA_DRY")" = "2" ] && ok "1: dry-run mostra os 2 produtos do v7 como ignorados" || err "1: dry-run não ignorou os produtos do v7"
 
 # ─── 2. --diff não grava nada ─────────────────────────────────
 bash "$FONTE/sincronizar.sh" --diff > /dev/null 2>&1 || err "--diff terminou com erro"
@@ -174,10 +187,19 @@ SAIDA="$(bash "$FONTE/sincronizar.sh" 2>&1)" || { err "4: rodada real terminou c
 [ -f "$PA/.delta-11/hooks/vigia-novo.py" ] && ok "4: vigias .py chegam aos projetos" || err "4: vigia .py não chegou"
 [ -f "$PB/CLAUDE.md" ] && ok "4: projeto só do registro (fora da varredura) sincronizado (C-049)" || err "4: projeto do registro foi ignorado"
 
-for c in "$COPIA" "$CLONE" "$ATUAL"; do
+for c in "$COPIA" "$CLONE" "$ATUAL" "$ENSAIO_DO_MOTOR"; do
     [ -e "$c/CLAUDE.md" ] && err "4: cópia do sistema tratada como projeto: $c"
 done
-ok "4: cópias, clones e sistema-atual não foram tocados (C-057)"
+ok "4: cópias, clones, sistema-atual e o ensaio da pasta de construção não foram tocados (C-057)"
+for v in "$V7_MARCA" "$V7_GANCHOS"; do
+    if [ "$(cat "$v/CLAUDE.md")" = "<!-- delta-11 v7 -->" ] && [ ! -e "$v/.delta-11/hooks" ] && [ ! -e "$v/.delta-11/operativos" ] \
+       && [ ! -e "$v/.delta-11/scripts" ] && [ ! -e "$v/.gitignore" ]; then
+        ok "4: produto do v7 não foi tocado ($(basename "$v"))"
+    else
+        err "4: o sincronizador do v6 mexeu num produto do v7: $v"
+    fi
+done
+[ "$(cat "$V7_GANCHOS/.claude/settings.json")" = '{"hooks":{}}' ] && ok "4: os ganchos do produto do v7 ficaram como estavam" || err "4: o settings.json do produto do v7 foi mexido"
 P="$PA/.delta-11/perfis/SHIELD.json"
 [ "$(jq -r .model "$P")" = "sonnet" ] && ok "4: modelo escolhido pelo projeto (SHIELD = sonnet) foi mantido" || err "4: a sincronização trocou o modelo do projeto"
 [ "$(jq -r .versao "$P")" = "6.4" ] && [ "$(jq -r '.ferramentas[0]' "$P")" = "nova.sh" ] && ok "4: o resto do perfil veio da fonte" || err "4: o perfil não foi atualizado"
@@ -204,8 +226,8 @@ grep -Fxq ".env" "$PA/.gitignore" && grep -Fxq "*.pem" "$PA/.gitignore" && grep 
 [ "$(cat "$PA/.delta-11/kanban.md")" = "# meu kanban com tarefas" ] && [ "$(cat "$PA/.delta-11/memoria/ATLAS-produto.md")" = "minha memoria" ] \
     && ok "4: kanban e memória do projeto intactos" || err "4: dados do projeto foram alterados"
 
-if jq -e --arg a "$PA" --arg b "$PB" '(.projects | index($a)) and (.projects | index($b)) and ((.projects | map(test("nao-existe-mais")) | any) | not) and ((.projects | map(test("sistema")) | any) | not)' "$DELTA11_REGISTRY" >/dev/null; then
-    ok "4: registro reescrito com a lista real (sem pastas sumidas nem cópias do sistema)"
+if jq -e --arg a "$PA" --arg b "$PB" '(.projects | index($a)) and (.projects | index($b)) and ((.projects | map(test("nao-existe-mais")) | any) | not) and ((.projects | map(test("sistema")) | any) | not) and ((.projects | map(test("produto-do-v7")) | any) | not)' "$DELTA11_REGISTRY" >/dev/null; then
+    ok "4: registro reescrito com a lista real (sem pastas sumidas, cópias do sistema nem produtos do v7)"
 else
     err "4: lista do registro errada: $(jq -c .projects "$DELTA11_REGISTRY")"
 fi

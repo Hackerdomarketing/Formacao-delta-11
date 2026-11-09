@@ -95,7 +95,16 @@ touch -t "$VINTE_DIAS" "$DELTA11_SEARCH_PATHS/proj-e/.delta-11/ativacoes/morte-S
 
 # G. cópia do sistema na varredura + pasta inexistente no registro
 mkdir -p "$DELTA11_SEARCH_PATHS/clone-do-sistema/.delta-11/ativacoes" "$DELTA11_SEARCH_PATHS/clone-do-sistema/boilerplate-delta-11-nextjs"
-echo "{\"source\":\"$SANDBOX/fonte-inexistente\",\"projects\":[\"$SANDBOX/nao-existe\",\"$DELTA11_SEARCH_PATHS/proj-a\"]}" > "$DELTA11_REGISTRY"
+# J. produtos do Delta-11 v7 (outro sistema): um na varredura (marca na VERSAO), outro só no registro (ganchos do v7)
+V7_MARCA="$DELTA11_SEARCH_PATHS/produto-do-v7"
+mkdir -p "$V7_MARCA/.delta-11/motor" "$V7_MARCA/.delta-11/ativacoes"
+printf '{\n "delta11": "v7",\n "motor": "claude-code"\n}\n' > "$V7_MARCA/.delta-11/motor/VERSAO"
+echo '{"agente":"ENGINE","morreu_em":"2026-10-14T10:00:00Z","motivo":"teste"}' > "$V7_MARCA/.delta-11/ativacoes/morte-ENGINE.json"
+ENSAIO_DO_MOTOR="$SANDBOX/fora/construcao-delta-11/.ensaio-motor"   # ensaio na pasta de construção do Delta-11, listado no registro por engano
+mkdir -p "$ENSAIO_DO_MOTOR/.delta-11/ativacoes"
+V7_GANCHOS="$SANDBOX/fora/produto-do-v7-so-ganchos"
+mkdir -p "$V7_GANCHOS/.delta-11" "$V7_GANCHOS/.claude/hooks/delta-11"
+echo "{\"source\":\"$SANDBOX/fonte-inexistente\",\"projects\":[\"$SANDBOX/nao-existe\",\"$DELTA11_SEARCH_PATHS/proj-a\",\"$V7_GANCHOS\",\"$ENSAIO_DO_MOTOR\"]}" > "$DELTA11_REGISTRY"
 
 SAIDA="$(bash "$MONITOR" 2>&1 || true)"
 
@@ -145,6 +154,17 @@ python3 -c "import json,sys; a=json.load(open(sys.argv[1]))['alertas']; t=[x['ag
 # G. ignorados
 [ -e "$DELTA11_SEARCH_PATHS/clone-do-sistema/.delta-11/monitor-status.json" ] && err "G: a cópia do sistema foi tratada como projeto" || ok "G: cópia do sistema ignorada"
 grep -q "Verificados 5 projetos" <<< "$SAIDA" && ok "G: pasta inexistente do registro ignorada (5 projetos reais)" || err "G: contagem de projetos errada: $(head -1 <<< "$SAIDA")"
+
+# J. produtos do v7 ignorados: nenhum arquivo do monitor escrito, nenhuma morte avisada nem arquivada
+for v in "$V7_MARCA" "$V7_GANCHOS" "$ENSAIO_DO_MOTOR"; do
+    if [ ! -e "$v/.delta-11/monitor-status.json" ] && [ ! -e "$v/.delta-11/monitor-data.js" ] && [ ! -e "$v/.delta-11/logs" ]; then
+        ok "J: produto do v7 ignorado pelo monitor ($(basename "$v"))"
+    else
+        err "J: o monitor do v6 escreveu num produto do v7: $v"
+    fi
+done
+[ -f "$V7_MARCA/.delta-11/ativacoes/morte-ENGINE.json" ] && ! grep -q "produto-do-v7" <<< "$SAIDA" \
+    && ok "J: a morte no produto do v7 não foi avisada nem arquivada" || err "J: o monitor do v6 tratou uma morte no produto do v7"
 
 echo ""
 [ "$falhou" -eq 0 ] && { echo -e "${GREEN}OK — monitor-delta11.sh: Dia 7, status por projeto e mortes sem repetição${NC}"; exit 0; } \

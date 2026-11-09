@@ -110,7 +110,18 @@ def e_copia_do_sistema(pasta):
         return True
     if os.path.isfile(os.path.join(pasta, ".delta-11", ".e-copia-do-sistema")):
         return True
-    return "/construcao-delta-11/sistema-atual" in pasta
+    return "/construcao-delta-11/" in pasta + "/" and not pasta.rstrip("/").endswith("/construcao-delta-11")  # a pasta de construção do Delta-11 (sistema-atual, ensaios do motor) nunca é projeto
+
+
+def e_produto_do_v7(pasta):
+    """O v7 também usa .delta-11/, mas é outro sistema: o monitor do v6 não escreve nele nem avisa por ele."""
+    if os.path.isdir(os.path.join(pasta, ".claude", "hooks", "delta-11")):
+        return True
+    try:
+        with open(os.path.join(pasta, ".delta-11", "motor", "VERSAO"), encoding="utf-8", errors="replace") as arquivo:
+            return re.search(r'"delta11"\s*:\s*"v7', arquivo.read()) is not None
+    except OSError:
+        return False
 
 
 # ─── Descobrir projetos ────────────────────────────────────────
@@ -144,6 +155,8 @@ for c in candidatos:
         continue
     if e_copia_do_sistema(real):
         continue                      # C-057
+    if e_produto_do_v7(real):
+        continue                      # o v7 é outro sistema
     projetos.append(real)
 
 
