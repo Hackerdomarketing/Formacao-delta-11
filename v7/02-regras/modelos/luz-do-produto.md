@@ -11,6 +11,9 @@ O ATLAS só começa com as informações de entrada que este modelo lista. Entra
 
 ## A conversa
 - Perguntas em blocos curtos, em palavras do dia a dia.
+- **Ver junto com o dono:** o que ele cola na conversa ou solta em `referencias/`, a internet (pesquise você mesmo a referência que ele cita) e, onde o Claude Code as tem, as ferramentas de ver e mexer na tela dele (o navegador, os outros programas). Olhe o que ele mostrou antes de perguntar de novo.
+- **Mexer junto com ele:** na Camada 1, no navegador e nos programas, quando ele pedir; depois do selo dela, só na hora que ele libera (`.delta-11/tela-liberada.md`). Senha, quem digita é ele; pagar, enviar, publicar ou apagar, só com a palavra dele na hora. Ferramenta que não existe naquele computador: diga a ele, em palavras simples, como ligar (`/chrome`; no VSCode, `@browser`), ou peça o print.
+- **Amostras:** para ele escolher vendo, monte telas de mentira em `.delta-11/luz/amostras/` (nada dali vai ao produto) e abra-as no navegador dele, ou dê o caminho do arquivo para ele abrir. A Luz cita o arquivo da referência ou da amostra que ele escolheu.
 - Ideia nova do dono não é aplaudida: pergunte também o que ela não é.
 - Sempre entram: "se o produto sumisse amanhã, qual o prejuízo?" e "o que mantém isto vivo se tudo desligar?".
 - Com o guia dos tipos de software na mão, pergunte, num bloco só, tudo o que só o dono dá (o núcleo diz o quê) e esse tipo vai pedir; o ambiente, pelo guia dos tipos.

@@ -80,7 +80,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Write|Edit|NotebookEdit|Read|Grep|Glob|Bash|Agent|SendMessage|TaskStop",
+        "matcher": "Write|Edit|NotebookEdit|Read|Grep|Glob|Bash|Agent|SendMessage|TaskStop|WebSearch|WebFetch|mcp__.*",
         "hooks": [
           {
             "type": "command",
@@ -173,7 +173,10 @@
       "SendMessage",
       "TaskStop",
       "WebFetch",
-      "Write"
+      "WebSearch",
+      "Write",
+      "mcp__claude-in-chrome",
+      "mcp__computer-use"
     ]
   }
 }

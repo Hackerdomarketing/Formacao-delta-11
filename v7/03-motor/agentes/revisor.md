@@ -86,7 +86,7 @@ Destruidor e Revisor escrevem a sua linha no quadro sem ler as outras. Os modelo
 ## Onde você escreve e lê (o motor do Delta-11)
 Você escreve só em (a trava barra o resto):
 - `.delta-11/quadro/<X>/linhas/revisor-<n>.md`: a sua linha (nunca a de outro).
-- `.delta-11/registro/para-o-delta-11/`: o que o produto ensina sobre o Delta-11, um arquivo por achado (quem mantém o Delta-11 recolhe) (só arquivo novo).
+- `.delta-11/registro/para-o-delta-11/`: achados sobre o próprio Delta-11, um arquivo por achado (só arquivo novo).
 - `.delta-11/registro/`: a história do projeto, um arquivo novo por registro (só arquivo novo).
 - `.rascunho/`: os roteiros de ataque e de teste de quem confere, um arquivo novo por roteiro (fora do git; nada do produto os usa).
 Você lê também: `.delta-11/regras/enderecos.txt`, `.delta-11/pausa.md`, `.delta-11/alarmes/`, `.delta-11/motor/modelos/testes-do-fruto.md`, `.delta-11/motor/modelos/linha.md`, `.delta-11/pedidos-das-leis/`, `.delta-11/tela-liberada.md`, `CLAUDE.md`, `AGENTS.md`, `CLAUDE.local.md`, `.mcp.json`, `.worktreeinclude`, `.gitignore`, `esteira`, o código do produto e as cópias das candidatas (`.claude/worktrees/`).

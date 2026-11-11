@@ -221,6 +221,23 @@ def montar(agente: dict, lugares: list[dict], rotas: list[dict]) -> tuple[str, i
     return texto, len(corpo.split()) - cabecalho, len(extra.split()) + cabecalho  # o cabeçalho é do motor, não regra do papel
 
 
+def ferramentas_de_fora(agentes: list[dict]) -> dict:
+    """A seção "Ferramentas de fora" de agentes.md: quem usa cada servidor (pela coluna "ferramentas", `mcp__<servidor>__*`),
+    o que é ver (vale sempre) e os programas que ninguém abre."""
+    servidores: dict[str, list[str]] = {}
+    for a in agentes:
+        for servidor in re.findall(r"mcp__([a-z0-9-]+)__\*", a["ferramentas"]):
+            servidores.setdefault(servidor, []).append(a["nome"])
+    texto = (MOTOR / "agentes.md").read_text(encoding="utf-8").split("## Ferramentas de fora", 1)
+    if len(texto) != 2:
+        raise SystemExit("agentes.md: falta a seção \"Ferramentas de fora\"")
+    listas = {m.group(1).replace(" ", "_"): nomes(m.group(2)) for m in re.finditer(r"^- \*\*([a-z ]+):\*\* (.+)$", texto[1], re.MULTILINE)}
+    for chave in ("ver", "ver_pelo_computer_do_navegador", "programas_proibidos"):
+        if not listas.get(chave):
+            raise SystemExit(f"agentes.md: a seção \"Ferramentas de fora\" não traz a lista **{chave.replace('_', ' ')}:**")
+    return {"servidores": servidores, **{k: listas[k] for k in ("ver", "ver_pelo_computer_do_navegador", "programas_proibidos")}}
+
+
 def mapa(agentes: list[dict], lugares: list[dict], rotas: list[dict]) -> str:
     v = valores()
     return json.dumps({
@@ -239,6 +256,7 @@ def mapa(agentes: list[dict], lugares: list[dict], rotas: list[dict]) -> str:
         "caixa_do_produto": CAIXA_DO_PRODUTO,
         "tela_do_app": TELA_DO_APP,
         "usam_a_tela": USAM_A_TELA,
+        "ferramentas_de_fora": ferramentas_de_fora(agentes),
     }, ensure_ascii=False, indent=1) + "\n"
 
 

@@ -228,6 +228,20 @@ def conferir_tudo() -> int:
         conferir("recusa pasta com trabalho sem commit, sem mexer em nada", feito.returncode != 0 and not (metade / ".delta-11").exists())
         conferir("a tabela das camadas vai nos modelos", (novo / ".delta-11/motor/modelos/camadas.md").is_file())
         conferir("recusa pasta pessoal", instalar(str(tmp / "Documents")).returncode != 0)
+        # No Windows não há a caixa de areia do Claude Code (com ela obrigatória, ele fecha ao abrir a pasta): o instalador recusa antes de tudo.
+        import contextlib, importlib.util, io, platform
+        from unittest import mock
+        especificacao = importlib.util.spec_from_file_location("instalar_no_windows", INSTALAR)
+        instalador = importlib.util.module_from_spec(especificacao)
+        especificacao.loader.exec_module(instalador)
+        dito = io.StringIO()
+        with mock.patch.object(platform, "system", return_value="Windows"), contextlib.redirect_stdout(dito):
+            try:
+                instalador.recusar_sistema_sem_caixa()
+                recusou = False
+            except SystemExit:
+                recusou = True
+        conferir("recusa o Windows, dizendo para seguir no v6.4.1", recusou and "não roda no Windows" in dito.getvalue() and "v6.4.1" in dito.getvalue())
         # Pastas de mentira dentro da fonte do v7 (o repositório onde esta ferramenta mora) e dentro da fonte da v6.4.1 que o
         # registro indica: nenhuma das duas pode receber um produto. Se a recusa falhasse, a pasta nasceria lá: sai no fim.
         dentro_da_fonte = INSTALAR.parents[3] / "pasta-de-mentira-do-pulso-do-instalador"

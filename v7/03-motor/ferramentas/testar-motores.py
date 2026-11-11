@@ -4,7 +4,8 @@ agentes sem mudar nada do que decidem.
 
 (a) O espelho: o pulso da trava inteiro roda pelo tradutor do Claude Code, e cada chamada a um gancho (a trava, o
     relógio, o aviso de abertura, o registro de CRONOS e o do Documentador) dá o mesmo código e a mesma frase, inteira,
-    gravados em amostras/espelho-da-trava.json (gravado da trava de antes do tradutor, commit 9c3e91f).
+    gravados em amostras/espelho-da-trava.json (o campo `gravado_de` do arquivo diz de qual trava; a primeira gravação
+    foi a da trava de antes do tradutor, commit 9c3e91f).
 (b) Os eventos com todos os campos que o Claude Code de verdade manda (permission_mode, prompt_id, effort, tool_use_id,
     scratchpad_dir...; os da documentação dos ganchos, code.claude.com/docs/en/hooks, lida em 2026-11-09) dão o mesmo
     espelho; e o tradutor traduz cada tipo de evento como deve, sem nunca deduzir o programa pelos campos.

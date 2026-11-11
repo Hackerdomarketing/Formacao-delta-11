@@ -160,8 +160,6 @@ def conferir_dependencias(caminho: str) -> None:
         avisos.append("Não achei o Claude Code neste computador; instale-o antes de abrir a pasta.")
     if not shutil.which("node", path=caminho):
         avisos.append("Não achei o Node neste computador: produtos de site e app precisam dele (o BACK avisa na Camada 2).")
-    if platform.system() not in ("Darwin", "Linux"):
-        avisos.append("A caixa de areia do terminal só existe no Mac e no Linux; neste sistema o Claude Code se recusa a abrir a pasta.")
 
 
 def programas_do_motor() -> dict:
@@ -509,6 +507,13 @@ def instalar_ganchos_e_modelos(destino: Path) -> None:
     shutil.copy2(MOTOR / "esteira" / "esteira-automacao.yml", modelos / "esteira-automacao.yml")  # o BACK o copia para .github/workflows/
     for pasta in ("quadro", "estado", "registro/para-o-delta-11", "cofre"):
         (destino / ".delta-11" / pasta).mkdir(parents=True, exist_ok=True)
+    referencias = destino / "referencias"  # o dono solta aqui o que quer mostrar ao ATLAS; a Luz cita o que ele escolheu vendo
+    if not referencias.exists():
+        referencias.mkdir()
+        (referencias / "COMO-USAR.md").write_text(
+            "# Referências do dono\n\nSolte aqui prints, PDFs, planilhas e fotos de outros sistemas que você quer mostrar ao ATLAS. "
+            "Ele lê tudo o que está aqui (diga a ele o nome do arquivo). Você também pode colar ou arrastar uma imagem direto na conversa.\n",
+            encoding="utf-8")
     como = destino / ".delta-11" / "registro" / "para-o-delta-11" / "00-como-usar.md"
     if not como.exists():
         como.write_text("# Lições e defeitos do próprio Delta-11: um arquivo novo por achado (quem mantém o Delta-11 recolhe; o dono não é avisado)\n", encoding="utf-8")
@@ -625,6 +630,8 @@ def guardar_no_git(destino: Path, atualizar: bool, da_esteira: list[str]) -> Non
     for nome in ("CLAUDE.md", ".claude/CLAUDE.md", "CLAUDE.local.md", ".claude/rules"):
         if rodar("git", "ls-files", "--error-unmatch", nome, pasta=destino).returncode == 0:
             caminhos.append(nome)  # instrução antiga que saiu do lugar: o commit registra a mudança
+    if (destino / "referencias" / "COMO-USAR.md").is_file():
+        caminhos.append("referencias/COMO-USAR.md")  # só o que o instalador põe; o que o dono solta ali, ele mesmo guarda
     # -f: o motor entra mesmo numa pasta que já ignorava .claude/ (o que é de fora do git continua fora pelo .gitignore do Delta-11).
     adicionado = rodar("git", "add", "-A", "-f", "--", *[c for c in caminhos if c != ".delta-11" and c != ".delta-11/motor"], pasta=destino)
     rodar("git", "reset", "-q", "--", ".claude/hooks/delta-11/vivos", ".claude/hooks/delta-11/__pycache__", ".claude/hooks/delta-11/motores/__pycache__",
@@ -639,8 +646,17 @@ def guardar_no_git(destino: Path, atualizar: bool, da_esteira: list[str]) -> Non
             erro(f"o git não guardou a instalação: {feito.stderr.strip()}")
 
 
+def recusar_sistema_sem_caixa() -> None:
+    """O v7 exige a caixa de areia do Claude Code, que só existe no Mac e no Linux (e no WSL2): no Windows, com ela
+    obrigatória, o Claude Code fecha ao abrir a pasta. Recusa antes de mexer em qualquer coisa."""
+    if platform.system() not in ("Darwin", "Linux"):
+        erro("o v7 ainda não roda no Windows: lá a caixa de areia do Claude Code não existe, e sem ela o Claude Code fecha ao abrir a "
+             "pasta. Neste computador, continue no Delta-11 v6.4.1 (`bash novo-projeto.sh <pasta>`, na pasta da Formação).")
+
+
 def main() -> int:
     args = sys.argv[1:]
+    recusar_sistema_sem_caixa()
     if "--passar-do-v6" in args or "--ensaio" in args or "--criar-git" in args or "--guardar-copias" in args:
         # A passagem de um projeto do v6 para o v7 mora em passagem_do_v6.py; só ela entende estas opções.
         if "--passar-do-v6" not in args or "--atualizar" in args:

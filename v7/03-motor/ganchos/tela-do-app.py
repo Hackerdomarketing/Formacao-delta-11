@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tela do app do Delta-11 v7: ver e usar a janela de um app de Mac (para quem confere e para quem constrói).
+"""Tela do app do Delta-11 v7: ver e usar a janela de um app de Mac (para quem o mapa deixa, em `usam_a_tela`: hoje, o Revisor).
 
 Dentro da caixa de areia do Claude Code, e da caixa do produto, o macOS não deixa um programa ver nem clicar a janela de
 outro (o System Events dá erro de privilégio). Por isso este programa roda fora delas (chamado com o texto exato da

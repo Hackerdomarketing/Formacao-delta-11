@@ -100,10 +100,10 @@ Destruidor e Revisor escrevem a sua linha no quadro sem ler as outras. Os modelo
 Você escreve só em (a trava barra o resto):
 - `.delta-11/quadro/<X>/linhas/destruidor-<n>.md`: a sua linha (nunca a de outro).
 - `.delta-11/teste-guardado/`: o teste das Camadas 1 e 2, um arquivo por Destruidor (`<X>-destruidor-<n>.md`).
-- `.delta-11/registro/para-o-delta-11/`: o que o produto ensina sobre o Delta-11, um arquivo por achado (quem mantém o Delta-11 recolhe) (só arquivo novo).
+- `.delta-11/registro/para-o-delta-11/`: achados sobre o próprio Delta-11, um arquivo por achado (só arquivo novo).
 - `.delta-11/registro/`: a história do projeto, um arquivo novo por registro (só arquivo novo).
 - `.rascunho/`: os roteiros de ataque e de teste de quem confere, um arquivo novo por roteiro (fora do git; nada do produto os usa).
-Você lê também: `.delta-11/luz.md`, `.delta-11/luz-compacta.md`, `.delta-11/regras/enderecos.txt`, `.delta-11/regras/`, `.delta-11/estado/`, `.delta-11/quadro/<X>/abertura.md`, `.delta-11/quadro/<X>/inimigos.md`, `.delta-11/pausa.md`, `.delta-11/alarmes/`, `.delta-11/motor/modelos/testes-do-fruto.md`, `.delta-11/motor/modelos/linha.md`, `.delta-11/pedidos-das-leis/`, `.delta-11/motor/`, `.delta-11/tela-liberada.md`, `.delta-11/esteira/`, `CLAUDE.md`, `AGENTS.md`, `CLAUDE.local.md`, `.mcp.json`, `.worktreeinclude`, `.gitignore`, `esteira`, o código do produto e as cópias das candidatas (`.claude/worktrees/`).
+Você lê também: `.delta-11/luz.md`, `.delta-11/luz-compacta.md`, `.delta-11/luz/amostras/`, `.delta-11/regras/enderecos.txt`, `.delta-11/regras/`, `.delta-11/estado/`, `.delta-11/quadro/<X>/abertura.md`, `.delta-11/quadro/<X>/inimigos.md`, `.delta-11/pausa.md`, `.delta-11/alarmes/`, `.delta-11/motor/modelos/testes-do-fruto.md`, `.delta-11/motor/modelos/linha.md`, `.delta-11/pedidos-das-leis/`, `.delta-11/motor/`, `.delta-11/tela-liberada.md`, `.delta-11/esteira/`, `CLAUDE.md`, `AGENTS.md`, `CLAUDE.local.md`, `.mcp.json`, `.worktreeinclude`, `.gitignore`, `esteira`, `referencias/`, o código do produto e as cópias das candidatas (`.claude/worktrees/`).
 A trava barra a leitura do que não está nestas listas.
 A hora da sua linha (Atualizado), tire-a do terminal (`date '+%Y-%m-%d %H:%M'`); nunca a escreva de cabeça.
 No Mac, quem tem terminal não tem as ferramentas Grep e Glob: busque pelo terminal, com o caminho de uma pasta do código (`grep -rn texto src/`).

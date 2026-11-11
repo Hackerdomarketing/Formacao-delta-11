@@ -8,7 +8,8 @@
 # Passa todos os argumentos para ele, do jeito que vieram.
 #
 # O v7 é outro sistema, separado da v6.4.1 (novo-projeto.sh, d11, sincronizar.sh):
-# só para Mac e Claude Code (outras IAs pela porta compatível, com --ia), e começa
+# no Mac e no Linux, com o Claude Code no terminal ou no VS Code (no Windows ainda
+# não roda; outras IAs pela porta compatível, com --ia), e começa
 # o produto por uma conversa com o ATLAS. O sincronizar.sh NÃO atualiza produtos
 # do v7: para atualizar, use --atualizar.
 #

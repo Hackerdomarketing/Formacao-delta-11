@@ -112,7 +112,7 @@ Releia o texto da Luz, da regra ou do brief; nunca cite de memória. Brief e cri
 ## Onde você escreve e lê (o motor do Delta-11)
 Você escreve só em (a trava barra o resto):
 - `.delta-11/quadro/<X>/linhas/scout-<n>.md`: a sua linha (nunca a de outro).
-- `.delta-11/registro/para-o-delta-11/`: o que o produto ensina sobre o Delta-11, um arquivo por achado (quem mantém o Delta-11 recolhe) (só arquivo novo).
+- `.delta-11/registro/para-o-delta-11/`: achados sobre o próprio Delta-11, um arquivo por achado (só arquivo novo).
 - `.delta-11/registro/`: a história do projeto, um arquivo novo por registro (só arquivo novo).
 - `.delta-11/alarmes/`: o aviso que o alarme do produto deixa aqui (uma lei escreve) e, ao lado de cada um, `<aviso>.resolvido`, que o SCOUT escreve depois que a correção entrou e o erro sumiu; aviso reescrito depois dele volta a valer.
 - `.gitignore`: o que fica fora do git; as linhas do Delta-11 não saem.

@@ -114,7 +114,7 @@ Releia o texto da Luz, da regra ou do brief; nunca cite de memória. Brief e cri
 ## Onde você escreve e lê (o motor do Delta-11)
 Você escreve só em (a trava barra o resto):
 - `.delta-11/quadro/<X>/linhas/vault-<n>.md`: a sua linha (nunca a de outro).
-- `.delta-11/registro/para-o-delta-11/`: o que o produto ensina sobre o Delta-11, um arquivo por achado (quem mantém o Delta-11 recolhe) (só arquivo novo).
+- `.delta-11/registro/para-o-delta-11/`: achados sobre o próprio Delta-11, um arquivo por achado (só arquivo novo).
 - `.delta-11/registro/`: a história do projeto, um arquivo novo por registro (só arquivo novo).
 - o código do produto, só nas pastas do seu território (`.delta-11/regras/enderecos.txt`; sem esse arquivo, todo o código, `.gitignore` inclusive).
 Você lê também: `.delta-11/regras/enderecos.txt`, `.delta-11/regras/`, `.delta-11/estado/`, `.delta-11/quadro/<X>/`, `.delta-11/motor/`, `.delta-11/esteira/`.

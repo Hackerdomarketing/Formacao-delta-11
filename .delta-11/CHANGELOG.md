@@ -19,7 +19,7 @@
 
 ---
 
-## Delta-11 v7 chega à pasta da Formação (2026-11-09) — o v6.4.1 continua como está
+## Delta-11 v7 chega à pasta da Formação (2026-11-11) — o v6.4.1 continua como está
 
 ### Por que essa versão existe
 
@@ -43,7 +43,11 @@ Quase nada. Seus projetos, o `d11`, o `novo-projeto.sh` e o `instalar.sh` seguem
 bash novo-produto-v7.sh ~/projetos/meu-produto
 ```
 
-Só para Mac e Claude Code. Abra a pasta do produto no Claude Code e converse com o ATLAS. O v7 se atualiza com
+No Mac e no Linux, com o Claude Code no terminal ou no VS Code (no Windows o v7 ainda não roda: o instalador recusa e
+você segue no v6.4.1). Abra a pasta do produto no Claude Code e converse com o ATLAS. Na conversa da Luz (o Dia 1), ele
+vê junto com você: o print que você cola ou arrasta, os arquivos que você solta em `referencias/`, uma pesquisa na
+internet, e, com o navegador ligado (`/chrome`, ou `@browser` no VS Code), os sites que você quiser mostrar. Ele também
+monta telas de mentira para você escolher vendo. O v7 se atualiza com
 `bash novo-produto-v7.sh --atualizar <pasta>` (não pelo `sincronizar.sh`). Para passar um projeto do v6 para o v7:
 `bash novo-produto-v7.sh --passar-do-v6 <pasta> --ensaio` mostra o que seria feito, sem mudar nada. O manual do v7 é
 `v7/03-motor/LEIA-ME.md`.

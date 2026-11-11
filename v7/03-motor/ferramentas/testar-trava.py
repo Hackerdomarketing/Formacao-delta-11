@@ -177,7 +177,7 @@ def casos(p: Path) -> list[tuple]:
         ("FRAUDE: Revisor busca em .claude inteira", "revisor", "Bash", {"command": "grep -rln front .claude/"}, "não lê pelo terminal", ""),
         ("FRAUDE: CRONOS lê o cofre de outro produto", "cronos", "Read", {"file_path": str(p.parent / "outro-produto/.delta-11/cofre/x")}, "não fica nesta pasta", ""),
         ("FRAUDE: Revisor lê os briefs na cópia temporária da esteira", "revisor", "Read", {"file_path": str(p.parent / "esteira.abc/.delta-11/quadro/camada-3/briefs/front-1.md")}, "não fica nesta pasta", ""),
-        ("FRAUDE: FRONT descarta uma pasta fora das cópias", "front", "Bash", {"command": "sh esteira front --descartar /Users/alfa/Documents"}, "só aceita a cópia de uma candidata", ""),
+        ("FRAUDE: FRONT descarta uma pasta fora das cópias", "front", "Bash", {"command": "sh esteira front --descartar /Users/x/Documents"}, "só aceita a cópia de uma candidata", ""),
         ("FRAUDE: FRONT descarta a raiz", "front", "Bash", {"command": "sh esteira front --descartar ."}, "só aceita a cópia de uma candidata", ""),
         ("ARQUITETO digita errado o caminho do produto", "arquiteto", "Read", {"file_path": "/private/tmp/caminho-que-nao-existe-delta/produto/.delta-11/quadro/camada-3/abertura.md"}, "não existe", ""),
         ("FRONT procura a frase git push no código", "front", "Bash", {"command": 'grep -rn "git push" src/'}, DEIXA, ""),
@@ -309,6 +309,25 @@ def casos(p: Path) -> list[tuple]:
         ("Revisor lê a história do git", "revisor", "Bash", {"command": "git log -p"}, "não lê a história do git", ""),
         ("Destruidor lê a diferença do último commit", "destruidor", "Bash", {"command": "git diff HEAD~1"}, "não lê a história do git", ""),
         ("Selador lê a história do git", "selador", "Bash", {"command": "git log --oneline"}, DEIXA, ""),
+        # Ver e mexer junto com o dono (o navegador e os programas do computador); aqui a Camada 1 nunca selou: é o Dia 1
+        ("ATLAS vê a tela pelo computer use", "atlas", "mcp__computer-use__screenshot", {}, DEIXA, ""),
+        ("ATLAS lê a página aberta no navegador do dono", "atlas", "mcp__claude-in-chrome__read_page", {"tabId": 1}, DEIXA, ""),
+        ("ATLAS clica no navegador do dono no Dia 1", "atlas", "mcp__claude-in-chrome__computer", {"action": "left_click", "coordinate": [10, 10]}, DEIXA, ""),
+        ("ATLAS pede para usar um programa de desenho", "atlas", "mcp__computer-use__request_access", {"apps": ["Figma"]}, DEIXA, ""),
+        ("FRAUDE: ATLAS pede para usar o Terminal junto com outro programa", "atlas", "mcp__computer-use__request_access", {"apps": ["Figma", "Terminal"]},
+         "terminal e editor de código", ""),
+        ("FRAUDE: ATLAS abre o editor de código pelo identificador dele", "atlas", "mcp__computer-use__open_application", {"app": "com.microsoft.VSCode"},
+         "terminal e editor de código", ""),
+        ("FRAUDE: ATLAS abre o PowerShell", "atlas", "mcp__computer-use__open_application", {"app": "Windows PowerShell"}, "terminal e editor de código", ""),
+        ("FRAUDE: FRONT usa o navegador do dono", "front", "mcp__claude-in-chrome__navigate", {"url": "https://exemplo.com"}, "não usa mcp__claude-in-chrome__navigate", ""),
+        ("FRAUDE: Destruidor tira foto da tela do dono", "destruidor", "mcp__computer-use__screenshot", {}, "não usa mcp__computer-use__screenshot", ""),
+        ("FRAUDE: ATLAS usa uma ferramenta de fora que o Delta-11 não conhece", "atlas", "mcp__cofre__ler_segredo", {"nome": "X"}, "não conhece", ""),
+        ("ATLAS pesquisa na internet", "atlas", "WebSearch", {"query": "concorrentes de agenda online"}, DEIXA, ""),
+        ("ATLAS monta uma amostra para o dono escolher", "atlas", "Write", w(".delta-11/luz/amostras/cor-da-moldura-a.html"), DEIXA, ""),
+        ("FRAUDE: FRONT escreve nas amostras da Luz", "front", "Write", w(".delta-11/luz/amostras/x.html"), "não escreve", ""),
+        ("FRAUDE: ATLAS escreve nas referências do dono", "atlas", "Write", w("referencias/x.md"), "não escreve", ""),
+        ("PIXEL lê uma referência do dono", "pixel", "Read", r("referencias/print.png"), DEIXA, ""),
+        ("Revisor não lê as referências do dono", "revisor", "Read", r("referencias/print.png"), "não lê", ""),
         # Quem age
         ("Papel desconhecido", "general-purpose", "Write", w(".delta-11/registro/x.md"), "papel desconhecido", ""),
         ("Conversa sem papel", "", "Write", w(".delta-11/registro/x.md"), "papel desconhecido", ""),
@@ -539,6 +558,32 @@ def main() -> int:
             print(f"  {'ok' if certo else 'ERRADO'} — {nome}")
             if not certo:
                 falhas.append(nome)
+        # A Camada 1 selou: ver continua liberado; mexer só na hora que o dono libera.
+        (p / ".delta-11/estado").mkdir(parents=True, exist_ok=True)
+        (p / ".delta-11/estado/camada-1.md").write_text("# Arquivo de estado — camada-1\n")
+        clique = {"action": "left_click", "coordinate": [10, 10]}
+        for nome, ferramenta, entrada, esperado, liberada in [
+                ("Camada 1 selada: ATLAS ainda vê a tela", "mcp__computer-use__screenshot", {}, DEIXA, False),
+                ("Camada 1 selada: ATLAS ainda tira foto pelo navegador", "mcp__claude-in-chrome__computer", {"action": "screenshot"}, DEIXA, False),
+                ("Camada 1 selada: ATLAS clica no navegador sem hora liberada", "mcp__claude-in-chrome__computer", clique, "a Camada 1 já selou", False),
+                ("Camada 1 selada: ATLAS digita num programa sem hora liberada", "mcp__computer-use__type", {"text": "x"}, "a Camada 1 já selou", False),
+                ("Camada 1 selada: ATLAS clica no navegador na hora liberada", "mcp__claude-in-chrome__computer", clique, DEIXA, True),
+                ("Camada 1 reaberta: ATLAS mexe sem hora liberada", "mcp__claude-in-chrome__navigate", {"url": "https://exemplo.com"}, DEIXA, "reaberta")]:
+            liberada_arquivo = p / ".delta-11/tela-liberada.md"
+            if liberada is True:
+                liberada_arquivo.write_text("até: " + time.strftime("%Y-%m-%d %H:%M", time.localtime(time.time() + 3600)) + "\n")
+            if liberada == "reaberta":
+                (p / ".delta-11/quadro/camada-1-r1").mkdir(parents=True, exist_ok=True)
+                (p / ".delta-11/quadro/camada-1-r1/abertura.md").write_text("# Reabertura da Camada 1\n")
+            codigo, saida = rodar(p, "atlas", ferramenta, entrada, "")
+            liberada_arquivo.unlink(missing_ok=True)
+            shutil.rmtree(p / ".delta-11/quadro/camada-1-r1", ignore_errors=True)
+            certo = codigo == 0 if esperado is DEIXA else (codigo == 2 and esperado in saida)
+            print(f"  {'ok' if certo else 'ERRADO'} — {nome}" + ("" if certo else f" (saiu {codigo}: {saida.strip()[:160]})"))
+            if not certo:
+                falhas.append(nome)
+            extras += 1
+        (p / ".delta-11/estado/camada-1.md").unlink()
         # O dono pausou: nada roda, menos o ATLAS e o CRONOS marcando o quadro.
         (p / ".delta-11/pausa.md").write_text("Situação: pausado\n")
         onde = {"pausa: candidata deixa a linha dela em dia, na cópia": ".claude/worktrees/agent-candidata1"}

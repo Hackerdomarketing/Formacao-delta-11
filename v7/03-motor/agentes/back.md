@@ -114,7 +114,7 @@ Releia o texto da Luz, da regra ou do brief; nunca cite de memória. Brief e cri
 ## Onde você escreve e lê (o motor do Delta-11)
 Você escreve só em (a trava barra o resto):
 - `.delta-11/quadro/<X>/linhas/back-<n>.md`: a sua linha (nunca a de outro).
-- `.delta-11/registro/para-o-delta-11/`: o que o produto ensina sobre o Delta-11, um arquivo por achado (quem mantém o Delta-11 recolhe) (só arquivo novo).
+- `.delta-11/registro/para-o-delta-11/`: achados sobre o próprio Delta-11, um arquivo por achado (só arquivo novo).
 - `.delta-11/registro/`: a história do projeto, um arquivo novo por registro (só arquivo novo).
 - `.env`: os segredos que a estrutura do cofre gera para o produto rodar aqui (fica fora do git; o terminal e a caixa o leem, porque os testes precisam).
 - `.env.local`: os segredos locais do produto, como o `.env` (fica fora do git; o terminal e a caixa o leem, porque os testes precisam).

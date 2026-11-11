@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Trava do Delta-11 v7: o programa de agentes a chama antes de toda ferramenta que escreve, lê, usa o terminal, chama
-agente ou manda mensagem.
+agente, manda mensagem, pesquisa na internet ou usa uma ferramenta de fora (o navegador e os programas do computador).
 
 Lê pelo tradutor (motor.py: o programa é o dito no fim do comando, como `trava.py claude-code`) qual agente age, com
 qual ferramenta e em quais arquivos, e confere no mapa lugares.json (que mora ao lado deste arquivo, em
@@ -294,8 +294,8 @@ def conferir_caixa(mapa: dict, comando: str, cwd: Path, base: Path) -> None:
 
 
 def conferir_tela(mapa: dict, papel: str, comando: str, cwd: Path, base: Path) -> None:
-    """A tela do app roda fora da caixa de areia do Claude Code: só por quem constrói, o Revisor e o Destruidor, só sozinha na
-    linha e só a do motor (a da pasta principal; numa cópia de candidata, igual a ela)."""
+    """A tela do app roda fora da caixa de areia do Claude Code: só por quem está em `usam_a_tela` no mapa (hoje, o Revisor),
+    só sozinha na linha e só a do motor (a da pasta principal; numa cópia de candidata, igual a ela)."""
     if papel not in mapa["usam_a_tela"]:
         barrar(f"o {papel} não usa a tela do app: a tela do Mac é do dono, e só o Revisor a usa, na hora que ele libera; quem constrói prova pelo código, pela caixa.")
     if not re.fullmatch(re.escape(mapa["tela_do_app"]) + r"(?: " + ARGUMENTO + r")+", comando) or "$(" in comando or "`" in comando:
@@ -307,6 +307,44 @@ def conferir_tela(mapa: dict, papel: str, comando: str, cwd: Path, base: Path) -
     chamada = cwd / ".claude" / "hooks" / "delta-11" / "tela-do-app.py"
     if not chamada.is_file() or chamada.resolve() != chamada.absolute() or chamada.read_bytes() != (AQUI / "tela-do-app.py").read_bytes():
         barrar("esta cópia da tela do app não é a do motor (foi mudada): use a da pasta principal, que ninguém altera.")
+
+
+def textos_de(dados) -> list[str]:
+    """Todo texto que um pedido traz, em qualquer campo (nome de programa, lista de programas...)."""
+    if isinstance(dados, str):
+        return [dados]
+    if isinstance(dados, dict):
+        return [t for v in dados.values() for t in textos_de(v)]
+    if isinstance(dados, list):
+        return [t for v in dados for t in textos_de(v)]
+    return []
+
+
+def conferir_ferramenta_de_fora(mapa: dict, papel: str, ferramenta: str, dados: dict, raiz: Path) -> None:
+    """O navegador do dono (Claude in Chrome) e os programas do computador (computer use): só quem tem o servidor na lista
+    de ferramentas (agentes.md); ver vale sempre, mexer só no Dia 1 ou na hora que o dono liberou; terminal e editor de
+    código, nunca. Qualquer outra ferramenta de fora é barrada."""
+    de_fora = mapa["ferramentas_de_fora"]
+    partes = ferramenta.split("__", 2)
+    servidor, nome = (partes[1], partes[2]) if len(partes) == 3 else ("", ferramenta)
+    if servidor not in de_fora["servidores"]:
+        barrar(f"{ferramenta} é uma ferramenta de fora que o Delta-11 não conhece: nesta pasta só valem o navegador do dono (Claude in Chrome) "
+               "e os programas do computador (computer use), e só para quem os tem.")
+    if papel not in de_fora["servidores"][servidor]:
+        barrar(f"o {papel} não usa {ferramenta}: a tela, o navegador e os programas são do dono, e só quem conversa com ele os usa.")
+    if nome in ("request_access", "open_application"):
+        proibido = re.compile(r"(?<![a-z0-9])(" + "|".join(re.escape(n.lower()) for n in de_fora["programas_proibidos"]) + r")(?![a-z0-9])")
+        for texto in textos_de(dados):
+            achado = proibido.search(texto.lower())
+            if achado:
+                barrar(f"terminal e editor de código ({texto}) ficam de fora, mesmo com o dono pedindo: por eles se passaria por cima da trava. "
+                       "Se o dono precisa de algo lá, ele mesmo faz, ou vira pedido para o time.")
+    acao = str(dados.get("action") or "") if isinstance(dados, dict) else ""
+    ver = nome in de_fora["ver"] or (nome == "computer" and acao in de_fora["ver_pelo_computer_do_navegador"])
+    if not ver and not reg.pode_mexer(raiz):
+        barrar("a Camada 1 já selou: daqui em diante, mexer no navegador e nos programas do dono só na hora que ele libera. Pergunte até que "
+               "horas ele libera e escreva `.delta-11/tela-liberada.md` com `até: <AAAA-MM-DD HH:MM>` (no máximo `tela_liberada_max` adiante). "
+               "Ver (a foto da tela, ler a página) continua liberado.")
 
 
 def conferir_terminal(mapa: dict, papel: str, comando: str, cwd: Path, raiz: Path, base: Path) -> None:
@@ -542,6 +580,8 @@ def main() -> None:
         conferir_chamada(mapa, papel, dados, pedido, raiz)
     elif ferramenta == "SendMessage":
         conferir_mensagem(mapa, papel, dados, pedido)
+    elif ferramenta.startswith("mcp__"):
+        conferir_ferramenta_de_fora(mapa, papel, ferramenta, dados if isinstance(dados, dict) else {}, raiz)
     elif ferramenta == "TaskStop" and papel == "atlas":
         alvo = next((r for r in reg.registros() if r.get("agente") and r.get("agente") == str(dados.get("task_id") or "")), None)
         if alvo and alvo.get("trabalhando") and reg.roda(alvo.get("pid", 0)) and reg.quadro_se_mexe(alvo, raiz):

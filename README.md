@@ -24,8 +24,12 @@ Esta pasta traz dois sistemas. Eles não se misturam.
 - **Delta-11 v6.4.1 (o que você já usa, e continua sendo o padrão).** Começa um projeto com `novo-projeto.sh`, você
   chama o time com `d11` e atualiza com `git pull` + `bash sincronizar.sh`. Tudo o que está neste README, daqui para
   baixo, é dele. Nada muda para quem continua nele.
-- **Delta-11 v7 (novo, opcional).** Fica na pasta `v7/`. É só para Mac e Claude Code (outras IAs entram pela porta
-  compatível, com `--ia`). O produto começa por uma conversa com o ATLAS. Para criar um produto:
+- **Delta-11 v7 (novo, opcional).** Fica na pasta `v7/`. Roda no Mac e no Linux, com o Claude Code no terminal ou no
+  VS Code (outras IAs entram pela porta compatível, com `--ia`). **No Windows o v7 ainda não roda** (lá não existe a
+  caixa de areia do Claude Code, que o v7 exige): quem usa Windows continua no v6.4.1. O produto começa por uma
+  conversa com o ATLAS, que vê junto com você o que você mostra: cole ou arraste um print na conversa, solte arquivos
+  na pasta `referencias/` do produto, peça uma pesquisa; com o navegador ligado (digite `/chrome` no Claude Code, ou
+  `@browser` no VS Code), ele também abre e olha sites com você. Para criar um produto:
 
   ```bash
   bash ~/Documents/VSCODE/Formacao-delta-11/novo-produto-v7.sh ~/projetos/meu-produto

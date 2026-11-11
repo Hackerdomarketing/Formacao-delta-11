@@ -14,6 +14,7 @@ if [ -d "$COPIA/v7/03-motor" ]; then
   python3 -I -B "$COPIA/v7/03-motor/ferramentas/testar-trava.py" >/dev/null || { echo "Commit travado: o pulso da trava do motor falhou (rode testar-trava.py)."; exit 1; }
   python3 -I -B "$COPIA/v7/03-motor/ferramentas/testar-esteira.py" >/dev/null || { echo "Commit travado: o pulso da esteira do motor falhou (rode testar-esteira.py)."; exit 1; }
   python3 -I -B "$COPIA/v7/03-motor/ferramentas/testar-instalador.py" >/dev/null || { echo "Commit travado: o pulso do instalador falhou (rode testar-instalador.py)."; exit 1; }
+  python3 -I -B "$COPIA/v7/03-motor/ferramentas/testar-motores.py" >/dev/null || { echo "Commit travado: o pulso dos motores falhou (rode testar-motores.py; se a trava ou o pulso dela mudaram de propósito, grave o espelho de novo com --gravar-espelho)."; exit 1; }
 fi
 # Dentro do próprio pulso (que testa este gancho), o pulso não roda de novo: evita um laço sem fim. Só vale com o
 # arquivo-marca que o pulso cria na pasta temporária dele; a variável sozinha não pula nada.

@@ -1,6 +1,6 @@
 {
  "o_que_e": "O que cada gancho do motor respondeu, chamada a chamada, ao pulso da trava (testar-trava.py), no Claude Code: o código de saída, a saída e a frase de erro, sem a pasta temporária, a pasta pessoal e a hora. O pulso dos motores (testar-motores.py) exige a mesma resposta pelo tradutor de cada programa de agentes.",
- "gravado_de": "a trava do commit 9c3e91f (antes do tradutor; chamada sem o programa, que ela não lê), pelo pulso da trava da etapa 1",
+ "gravado_de": "a trava do motor do commit f1853bc, pelo tradutor do Claude Code",
  "chamadas": [
   {
    "gancho": "trava.py",
@@ -970,10 +970,10 @@
   },
   {
    "gancho": "trava.py",
-   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh esteira front --descartar ~/Documents\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "pedido": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"sh esteira front --descartar /Users/x/Documents\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
    "codigo": 2,
    "saida": "",
-   "erro": "TRAVA DO DELTA-11: --descartar só aceita a cópia de uma candidata, `.claude/worktrees/<cópia>` (~/Documents não é). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+   "erro": "TRAVA DO DELTA-11: --descartar só aceita a cópia de uma candidata, `.claude/worktrees/<cópia>` (/Users/x/Documents não é). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
   },
   {
    "gancho": "trava.py",
@@ -1156,6 +1156,20 @@
    "codigo": 2,
    "saida": "",
    "erro": "TRAVA DO DELTA-11: ~/.aws é de quem usa o computador (chaves, configurações): nenhum agente o lê. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"~/.secretctl/vault.db\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: ~/.secretctl é de quem usa o computador (chaves, configurações): nenhum agente o lê. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Glob\", \"tool_input\": {\"pattern\": \"*\", \"path\": \"~/.secretctl\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: ~/.secretctl é de quem usa o computador (chaves, configurações): nenhum agente o lê. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
   },
   {
    "gancho": "trava.py",
@@ -1824,6 +1838,118 @@
   },
   {
    "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"mcp__computer-use__screenshot\", \"tool_input\": {}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"mcp__claude-in-chrome__read_page\", \"tool_input\": {\"tabId\": 1}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"mcp__claude-in-chrome__computer\", \"tool_input\": {\"action\": \"left_click\", \"coordinate\": [10, 10]}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"mcp__computer-use__request_access\", \"tool_input\": {\"apps\": [\"Figma\"]}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"mcp__computer-use__request_access\", \"tool_input\": {\"apps\": [\"Figma\", \"Terminal\"]}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: terminal e editor de código (Terminal) ficam de fora, mesmo com o dono pedindo: por eles se passaria por cima da trava. Se o dono precisa de algo lá, ele mesmo faz, ou vira pedido para o time. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"mcp__computer-use__open_application\", \"tool_input\": {\"app\": \"com.microsoft.VSCode\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: terminal e editor de código (com.microsoft.VSCode) ficam de fora, mesmo com o dono pedindo: por eles se passaria por cima da trava. Se o dono precisa de algo lá, ele mesmo faz, ou vira pedido para o time. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"mcp__computer-use__open_application\", \"tool_input\": {\"app\": \"Windows PowerShell\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: terminal e editor de código (Windows PowerShell) ficam de fora, mesmo com o dono pedindo: por eles se passaria por cima da trava. Se o dono precisa de algo lá, ele mesmo faz, ou vira pedido para o time. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"mcp__claude-in-chrome__navigate\", \"tool_input\": {\"url\": \"https://exemplo.com\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o front não usa mcp__claude-in-chrome__navigate: a tela, o navegador e os programas são do dono, e só quem conversa com ele os usa. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"mcp__computer-use__screenshot\", \"tool_input\": {}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"destruidor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o destruidor não usa mcp__computer-use__screenshot: a tela, o navegador e os programas são do dono, e só quem conversa com ele os usa. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"mcp__cofre__ler_segredo\", \"tool_input\": {\"nome\": \"X\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: mcp__cofre__ler_segredo é uma ferramenta de fora que o Delta-11 não conhece: nesta pasta só valem o navegador do dono (Claude in Chrome) e os programas do computador (computer use), e só para quem os tem. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"WebSearch\", \"tool_input\": {\"query\": \"concorrentes de agenda online\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/luz/amostras/cor-da-moldura-a.html\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/luz/amostras/x.html\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"front\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel front não escreve em `.delta-11/luz/amostras/` (.delta-11/luz/amostras/x.html). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/referencias/x.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel atlas não escreve em `referencias/` (referencias/x.md). Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/referencias/print.png\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"pixel\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"Read\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/referencias/print.png\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"revisor\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: o papel revisor não lê `referencias/`. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
    "pedido": "{\"tool_name\": \"Write\", \"tool_input\": {\"file_path\": \"<TEMPORARIO>/produto/.delta-11/registro/x.md\", \"content\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"general-purpose\"}",
    "codigo": 2,
    "saida": "",
@@ -1849,6 +1975,48 @@
    "codigo": 2,
    "saida": "",
    "erro": "TRAVA DO DELTA-11: sem CLAUDE_PROJECT_DIR não dá para saber onde fica o produto. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"mcp__computer-use__screenshot\", \"tool_input\": {}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"mcp__claude-in-chrome__computer\", \"tool_input\": {\"action\": \"screenshot\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"mcp__claude-in-chrome__computer\", \"tool_input\": {\"action\": \"left_click\", \"coordinate\": [10, 10]}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: a Camada 1 já selou: daqui em diante, mexer no navegador e nos programas do dono só na hora que ele libera. Pergunte até que horas ele libera e escreva `.delta-11/tela-liberada.md` com `até: <AAAA-MM-DD HH:MM>` (no máximo `tela_liberada_max` adiante). Ver (a foto da tela, ler a página) continua liberado. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"mcp__computer-use__type\", \"tool_input\": {\"text\": \"x\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 2,
+   "saida": "",
+   "erro": "TRAVA DO DELTA-11: a Camada 1 já selou: daqui em diante, mexer no navegador e nos programas do dono só na hora que ele libera. Pergunte até que horas ele libera e escreva `.delta-11/tela-liberada.md` com `até: <AAAA-MM-DD HH:MM>` (no máximo `tela_liberada_max` adiante). Ver (a foto da tela, ler a página) continua liberado. Não tente outro caminho (terminal, outro arquivo): se o trabalho precisa disso, é aviso para quem decide.\n"
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"mcp__claude-in-chrome__computer\", \"tool_input\": {\"action\": \"left_click\", \"coordinate\": [10, 10]}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
+  },
+  {
+   "gancho": "trava.py",
+   "pedido": "{\"tool_name\": \"mcp__claude-in-chrome__navigate\", \"tool_input\": {\"url\": \"https://exemplo.com\"}, \"cwd\": \"<TEMPORARIO>/produto\", \"session_id\": \"esta-conversa\", \"agent_type\": \"atlas\"}",
+   "codigo": 0,
+   "saida": "",
+   "erro": ""
   },
   {
    "gancho": "trava.py",

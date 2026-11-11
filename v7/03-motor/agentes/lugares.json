@@ -105,6 +105,20 @@
    }
   },
   {
+   "lugar": "`.delta-11/luz/amostras/`",
+   "regex": "^\\.delta\\-11/luz/amostras/.*$",
+   "fixo": ".delta-11/luz/amostras/",
+   "escreve": [
+    "atlas"
+   ],
+   "le": {
+    "todos": true,
+    "menos": [
+     "revisor"
+    ]
+   }
+  },
+  {
    "lugar": "`.delta-11/regras/enderecos.txt`",
    "regex": "^\\.delta\\-11/regras/enderecos\\.txt$",
    "fixo": ".delta-11/regras/enderecos.txt",
@@ -604,6 +618,20 @@
    }
   },
   {
+   "lugar": "`referencias/`",
+   "regex": "^referencias/.*$",
+   "fixo": "referencias/",
+   "escreve": [
+    "ninguém"
+   ],
+   "le": {
+    "todos": true,
+    "menos": [
+     "revisor"
+    ]
+   }
+  },
+  {
    "lugar": "o código do produto",
    "regex": "",
    "fixo": "",
@@ -767,5 +795,62 @@
  "tela_do_app": "python3 -I -B .claude/hooks/delta-11/tela-do-app.py",
  "usam_a_tela": [
   "revisor"
- ]
+ ],
+ "ferramentas_de_fora": {
+  "servidores": {
+   "claude-in-chrome": [
+    "atlas"
+   ],
+   "computer-use": [
+    "atlas"
+   ]
+  },
+  "ver": [
+   "screenshot",
+   "zoom",
+   "cursor_position",
+   "list_granted_applications",
+   "read_page",
+   "get_page_text",
+   "find",
+   "tabs_context_mcp",
+   "read_console_messages",
+   "read_network_requests"
+  ],
+  "ver_pelo_computer_do_navegador": [
+   "screenshot",
+   "zoom"
+  ],
+  "programas_proibidos": [
+   "Terminal",
+   "iTerm",
+   "iTerm2",
+   "cmux",
+   "Ghostty",
+   "Warp",
+   "kitty",
+   "Alacritty",
+   "WezTerm",
+   "Hyper",
+   "Tabby",
+   "Windows Terminal",
+   "PowerShell",
+   "pwsh",
+   "cmd",
+   "Prompt de Comando",
+   "Visual Studio Code",
+   "VS Code",
+   "VSCode",
+   "Code",
+   "Cursor",
+   "Windsurf",
+   "Zed",
+   "Xcode",
+   "IntelliJ IDEA",
+   "PyCharm",
+   "WebStorm",
+   "Android Studio",
+   "Sublime Text"
+  ]
+ }
 }

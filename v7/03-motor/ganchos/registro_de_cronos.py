@@ -238,6 +238,37 @@ def quadro_aberto(raiz: Path, quadro: str) -> bool:
     return not (valor.startswith(("selad", "encerrad", "feit")) or re.match(r"parada\b", valor))
 
 
+CAMADA_1 = re.compile(r"^(?:camadas?|bloco)-1(?:-|$)", re.IGNORECASE)  # a Camada 1, sozinha, num bloco (`camada-1-2`) ou reaberta (`camada-1-r1`)
+
+
+def dia_1_aberto(raiz: Path) -> bool:
+    """O Dia 1 (a Camada 1, a Luz) está aberto: ela nunca selou (não há arquivo de estado dela) ou foi reaberta e a
+    reabertura não selou. Nele, o ATLAS mexe no navegador e nos programas do dono sem hora liberada."""
+    estado = raiz / ".delta-11" / "estado"
+    if not (estado.is_dir() and any(CAMADA_1.match(a.stem) for a in estado.glob("*.md"))):
+        return True
+    quadro = raiz / ".delta-11" / "quadro"
+    return quadro.is_dir() and any(p.is_dir() and CAMADA_1.match(p.name) and quadro_aberto(raiz, p.name) for p in quadro.iterdir())
+
+
+def hora_liberada(raiz: Path) -> str:
+    """Até quando o dono liberou a tela ("AAAA-MM-DD HH:MM"), pela mesma conta da tela do app (`tela-do-app.py`,
+    `liberada_ate`): um fato, um lugar. Sem hora liberada, ou com ela vencida, devolve vazio."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("tela_do_app", PASTA.parent / "tela-do-app.py")
+    tela = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(tela)
+    try:
+        return tela.liberada_ate(raiz)
+    except tela.Recusa:
+        return ""
+
+
+def pode_mexer(raiz: Path) -> bool:
+    """Mexer na tela, no navegador e nos programas do dono: no Dia 1, ou na hora que ele liberou."""
+    return dia_1_aberto(raiz) or bool(hora_liberada(raiz))
+
+
 TRABALHO = PASTA / "trabalho"
 
 

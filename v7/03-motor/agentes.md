@@ -13,7 +13,7 @@
 
 | papel | nome | quando usar | ferramentas | modelo | terminal | só lê em | cor |
 |---|---|---|---|---|---|---|---|
-| ATLAS | atlas | Agente principal da pasta de um produto do Delta-11: é quem conversa com o dono, do primeiro pedido ao Dia 7 e depois. | Read, Grep, Glob, Write, Edit, WebFetch, SendMessage, TaskStop, CronCreate, CronList, CronDelete, Agent(arquiteto, cronos, destruidor, scout, back, engine, form, front, pixel, shield, vault, revisor, selador, documentador, leitor-do-teste) | opus | — | — | purple |
+| ATLAS | atlas | Agente principal da pasta de um produto do Delta-11: é quem conversa com o dono, do primeiro pedido ao Dia 7 e depois. | Read, Grep, Glob, Write, Edit, WebFetch, WebSearch, SendMessage, TaskStop, CronCreate, CronList, CronDelete, mcp__claude-in-chrome__*, mcp__computer-use__*, Agent(arquiteto, cronos, destruidor, scout, back, engine, form, front, pixel, shield, vault, revisor, selador, documentador, leitor-do-teste) | opus | — | — | purple |
 | ARQUITETO | arquiteto | Use quando o ATLAS ou o CRONOS precisarem de quem decide as camadas: abrir, reabrir ou parar uma camada, ou procurar uma rachadura. | Read, Grep, Glob, Write, Edit, WebFetch, WebSearch | opus | — | — | blue |
 | CRONOS | cronos | Use quando o ATLAS ligar uma camada aberta pelo ARQUITETO ou um pedido do dono: conduz o ciclo da camada do começo ao selo. | Read, Grep, Glob, Write, Edit, SendMessage, TaskStop, Agent | opus | — | — | cyan |
 | VAULT | vault | Use quando o CRONOS tiver um brief para o território Dados. | Read, Grep, Glob, Write, Edit, Bash | sonnet | livre | — | green |
@@ -29,3 +29,12 @@
 | Documentador | documentador | Use no passo 7 do ciclo, quando o Selador selar a camada; e na Camada 1, depois que o ATLAS escrever a Luz. | Read, Grep, Glob, Write, Edit | sonnet | — | — | pink |
 | SCOUT | scout | Use quando o alarme do produto apontar um erro em produção. | Read, Grep, Glob, Write, Edit, Bash | sonnet | livre | — | green |
 | leitor do teste | leitor-do-teste | Use só quando o Selador pedir um agente novo para um teste. | Read, Grep, Glob | sonnet | — | `.delta-11/leitor/` | orange |
+
+## Ferramentas de fora: o navegador e os programas do computador
+
+O Claude Code dá o navegador do dono, com as contas dele (Claude in Chrome, `mcp__claude-in-chrome__*`: terminal e VSCode, Mac e Windows, com o Chrome ou o Edge), e os programas do computador (computer use, `mcp__computer-use__*`: onde o Claude Code o tem). Só quem tem o servidor na coluna "ferramentas" os usa; a trava barra qualquer outra ferramenta de fora (`mcp__...`). Onde a ferramenta não existe, quem a tem diz ao dono e usa o print e a pasta `referencias/`.
+**Ver** não mexe em nada e vale sempre. **Mexer** (todo o resto, também o que a trava não conhece) vale enquanto a Camada 1 não tem arquivo de estado, ou está reaberta; fora disso, a trava pede a hora liberada (`.delta-11/tela-liberada.md`). Terminal e editor de código ficam de fora sempre: por eles se passaria por cima da trava.
+
+- **ver:** screenshot, zoom, cursor_position, list_granted_applications, read_page, get_page_text, find, tabs_context_mcp, read_console_messages, read_network_requests
+- **ver pelo computer do navegador:** screenshot, zoom
+- **programas proibidos:** Terminal, iTerm, iTerm2, cmux, Ghostty, Warp, kitty, Alacritty, WezTerm, Hyper, Tabby, Windows Terminal, PowerShell, pwsh, cmd, Prompt de Comando, Visual Studio Code, VS Code, VSCode, Code, Cursor, Windsurf, Zed, Xcode, IntelliJ IDEA, PyCharm, WebStorm, Android Studio, Sublime Text
