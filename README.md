@@ -17,6 +17,27 @@ no navegador e só é chamado para decisões de negócio, contas e pagamentos, o
 
 ---
 
+## Qual Delta-11 usar
+
+Esta pasta traz dois sistemas. Eles não se misturam.
+
+- **Delta-11 v6.4.1 (o que você já usa, e continua sendo o padrão).** Começa um projeto com `novo-projeto.sh`, você
+  chama o time com `d11` e atualiza com `git pull` + `bash sincronizar.sh`. Tudo o que está neste README, daqui para
+  baixo, é dele. Nada muda para quem continua nele.
+- **Delta-11 v7 (novo, opcional).** Fica na pasta `v7/`. É só para Mac e Claude Code (outras IAs entram pela porta
+  compatível, com `--ia`). O produto começa por uma conversa com o ATLAS. Para criar um produto:
+
+  ```bash
+  bash ~/Documents/VSCODE/Formacao-delta-11/novo-produto-v7.sh ~/projetos/meu-produto
+  ```
+
+  Depois abra a pasta `~/projetos/meu-produto` no Claude Code e converse com o ATLAS. Para passar um projeto que já
+  está no v6 para o v7, use `novo-produto-v7.sh --passar-do-v6 <pasta> --ensaio` (o `--ensaio` só mostra o que
+  aconteceria, sem mudar nada). O manual do v7 é `v7/03-motor/LEIA-ME.md`.
+
+O `sincronizar.sh` **não atualiza** produtos do v7 (ele os pula): o v7 se atualiza com
+`bash novo-produto-v7.sh --atualizar ~/projetos/meu-produto`, depois de um `git pull` aqui.
+
 ## Requisitos
 
 - **Claude Code**

@@ -19,6 +19,45 @@
 
 ---
 
+## Delta-11 v7 chega à pasta da Formação (2026-11-09) — o v6.4.1 continua como está
+
+### Por que essa versão existe
+
+O Delta-11 v7 (um sistema novo, em que o produto começa por uma conversa com o ATLAS) ficou pronto para ser usado.
+Ele usa a mesma pasta `.delta-11/` do v6, mas é outro sistema. Sem cuidado, o `sincronizar.sh` do v6 trocaria o
+`CLAUDE.md` de um produto do v7 e poria os vigias antigos ao lado da trava nova.
+
+### O que mudou para quem está no v6
+
+Quase nada. Seus projetos, o `d11`, o `novo-projeto.sh` e o `instalar.sh` seguem iguais.
+
+- O `sincronizar.sh` e o `monitor-delta11.sh` agora **pulam** produtos do v7 (a marca é `.delta-11/motor/VERSAO`
+  com `"delta11": "v7"`, ou a pasta `.claude/hooks/delta-11/`). Eles também pulam qualquer coisa dentro de uma pasta
+  chamada `construcao-delta-11/`.
+- O `sincronizar.sh` agora reconhece a pasta `v7/` e o `novo-produto-v7.sh` como arquivos do sistema: o seu clone
+  da Formação não é tratado como projeto.
+
+### Como começar um produto no v7
+
+```bash
+bash novo-produto-v7.sh ~/projetos/meu-produto
+```
+
+Só para Mac e Claude Code. Abra a pasta do produto no Claude Code e converse com o ATLAS. O v7 se atualiza com
+`bash novo-produto-v7.sh --atualizar <pasta>` (não pelo `sincronizar.sh`). Para passar um projeto do v6 para o v7:
+`bash novo-produto-v7.sh --passar-do-v6 <pasta> --ensaio` mostra o que seria feito, sem mudar nada. O manual do v7 é
+`v7/03-motor/LEIA-ME.md`.
+
+### Como testar
+
+```bash
+HOME="$(mktemp -d)" bash .delta-11/tests/rodar-todos.sh                       # a suíte do v6
+python3 -B v7/02-regras/ferramentas/conferir-regras.py                          # as regras do v7
+python3 -B v7/03-motor/ferramentas/testar-trava.py                              # a trava do v7
+```
+
+Os casos novos estão em `.delta-11/tests/scripts/sincronizar.test.sh` e `monitor-delta11-fase-7.test.sh`.
+
 ## v6.4 (2026-10-15) — Velocidade
 
 ### Por que essa versão existe
