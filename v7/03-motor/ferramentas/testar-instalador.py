@@ -275,6 +275,13 @@ def conferir_tudo() -> int:
         if primeira_atualizacao.returncode != 0:  # para achar a causa quando falha (a falha de 2026-11-09 não se repetiu)
             print("      saída do instalador:\n      " + "\n      ".join((primeira_atualizacao.stdout + primeira_atualizacao.stderr).strip().splitlines()[-12:]))
         conferir("a atualização mantém o programa de agentes da pasta", json.loads((novo / ".delta-11/motor/VERSAO").read_text()).get("motor") == PROGRAMA)
+        # Um produto com acento no nome (o "é" escrito como "e" mais o acento, como o Finder às vezes grava): instala e atualiza.
+        import unicodedata
+        acentuado = tmp / unicodedata.normalize("NFD", "produto-do-léo")
+        feito = instalar(str(acentuado))
+        if feito.returncode == 0:
+            feito = instalar("--atualizar", str(tmp / unicodedata.normalize("NFC", "produto-do-léo")))
+        conferir("atualiza um produto com acento no nome (o git devolve o nome numa forma, o caminho dito vem na outra)", feito.returncode == 0)
         conferir("a atualização tira o gancho de uma versão anterior", not (novo / ".claude/hooks/delta-11/guardar-registro.sh").exists())
         conferir("com os comandos escritos, o aviso de abertura não fala mais da esteira que recusa tudo", "a esteira recusa tudo" not in situacao(novo))
         conferir("a atualização troca a esteira pela do motor, no commit `Delta-11: instalado`, e não sobrescreve esteira-comandos.txt",

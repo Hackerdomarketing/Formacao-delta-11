@@ -31,6 +31,7 @@ import re
 import shutil
 import subprocess
 import sys
+import unicodedata
 from pathlib import Path
 
 MOTOR = Path(__file__).resolve().parent.parent
@@ -137,7 +138,9 @@ def recusar_lugares_proibidos(destino: Path, dentro_de_git_maior_ok: bool = Fals
     while not existe.exists():
         existe = existe.parent
     topo = rodar("git", "-C", str(existe), "rev-parse", "--show-toplevel")
-    if topo.returncode == 0 and Path(topo.stdout.strip()).resolve() != destino and not dentro_de_git_maior_ok:  # a passagem do v6 decide isso sozinha, com --criar-git
+    # O nome com acento chega de dois jeitos (o "é" junto, ou o "e" mais o acento): o git devolve um, o caminho dito pode ser o outro.
+    forma = lambda caminho: unicodedata.normalize("NFC", str(caminho))
+    if topo.returncode == 0 and forma(Path(topo.stdout.strip()).resolve()) != forma(destino) and not dentro_de_git_maior_ok:  # a passagem do v6 decide isso sozinha, com --criar-git
         erro(f"{destino} fica dentro de outro repositório git ({topo.stdout.strip()}); instale na raiz dele ou numa pasta nova.")
 
 
