@@ -37,7 +37,7 @@ MOTOR = Path(__file__).resolve().parent.parent
 V7 = MOTOR.parent
 REGRAS = V7 / "02-regras"
 FONTE_V7 = V7.parent
-FONTE_V6 = Path.home() / "Documents" / "VSCODE" / "Formacao-delta-11"
+FONTE_V6 = Path.home() / "Documents" / "VSCODE" / "Formacao-delta-11"  # onde o dono guarda a fonte da v6.4.1; no computador de um aluno, quem diz é fontes_da_v6()
 MARCA_CLAUDE_MD = "<!-- delta-11 v7"
 TRAVA_NA_CONFIGURACAO = "/.claude/hooks/delta-11/"
 VAI_PARA_AS_COPIAS = [".env", ".env.local"]
@@ -95,6 +95,21 @@ def resolver(pasta: str) -> Path:
     return existe.resolve().joinpath(*resto)
 
 
+def fontes_da_v6() -> list[Path]:
+    """Onde pode estar a fonte da v6.4.1 neste computador. Na pasta publicada para os alunos, a v6.4.1 e o v7 moram no
+    mesmo repositório (a pasta v7/ fica dentro dele), mas o aluno pode ter outro clone da v6.4.1 em outro lugar:
+    o registro do sincronizador antigo (campo "source") diz qual. O caminho do dono fica na lista (só protege)."""
+    fontes = [FONTE_V6]
+    registro = Path(os.environ.get("DELTA11_REGISTRY") or (Path.home() / ".delta-11-registry.json")).expanduser()
+    try:
+        fonte = json.loads(registro.read_text(encoding="utf-8")).get("source")
+        if isinstance(fonte, str) and fonte.strip():
+            fontes.append(Path(fonte).expanduser())
+    except (OSError, ValueError, AttributeError):
+        pass
+    return fontes
+
+
 def dentro(caminho: Path, pasta: Path) -> bool:
     try:
         caminho.relative_to(pasta.resolve() if pasta.exists() else pasta)
@@ -109,8 +124,9 @@ def recusar_lugares_proibidos(destino: Path, dentro_de_git_maior_ok: bool = Fals
     icloud = Path.home() / "Library" / "Mobile Documents" / "com~apple~CloudDocs"
     if destino.name.lower() in PASTAS_PESSOAIS or destino == icloud:
         erro(f"{destino} é uma pasta pessoal (Documentos, Mesa, Downloads...); crie dentro dela uma pasta só para o produto.")
-    if dentro(destino, FONTE_V6):
-        erro(f"{destino} fica dentro da fonte da v6.4.1 ({FONTE_V6}); o v7 não entra lá.")
+    for fonte_v6 in fontes_da_v6():
+        if dentro(destino, fonte_v6):
+            erro(f"{destino} fica dentro da fonte da v6.4.1 ({fonte_v6}); o v7 não entra lá.")
     if dentro(destino, FONTE_V7):
         erro(f"{destino} fica dentro da fonte do v7 ({FONTE_V7}); instale numa pasta de produto.")
     if destino.is_dir() and not (destino / ".git").exists():  # um produto com repositórios dentro (submódulos, dependências) é um produto só

@@ -22,10 +22,27 @@ RAIZ = Path(__file__).resolve().parent.parent
 NOME_FALSO = codecs.decode("Cebwrgb Rkrzcyb Mrgn-Dhngeb", "rot13")
 
 
+class CasoPulado(Exception):
+    """O arquivo onde a quebra seria plantada não existe nesta cópia do v7."""
+
+
 def acrescentar(arquivo: str, texto: str):
     def plantar(raiz: Path) -> None:
         alvo = raiz / arquivo
         alvo.write_text(alvo.read_text(encoding="utf-8").rstrip("\n") + "\n" + texto + "\n", encoding="utf-8")
+    return plantar
+
+
+def acrescentar_na_historia(arquivo: str, texto: str):
+    """A Luz, os arquivos de estado das camadas e o plano de construção moram só no repositório de construção do
+    Delta-11; a cópia publicada para os alunos não os tem. Sem o arquivo, o caso é pulado e avisado (nunca dado como
+    travado): os outros casos continuam valendo inteiros."""
+    plantar_de_verdade = acrescentar(arquivo, texto)
+
+    def plantar(raiz: Path) -> None:
+        if not (raiz / arquivo).is_file():
+            raise CasoPulado(arquivo)
+        plantar_de_verdade(raiz)
     return plantar
 
 
@@ -118,14 +135,14 @@ QUEBRAS_NAS_FONTES.update({
     "palavra proibida no feminino": acrescentar("fontes/travas.md", "A decisão fica adiada."),
     # O que os agentes leem além das páginas (textos do motor) e a história (Luz, estados, plano).
     "nome de projeto nas rotas do motor": acrescentar("../03-motor/rotas.md", codecs.decode("Pbzb ab Mrgncevzbf.", "rot13")),
-    "nome de projeto na Luz do v7": acrescentar("../01-luz-do-delta-11.md", codecs.decode("Pbzb ab Mrgncevzbf.", "rot13")),
+    "nome de projeto na Luz do v7": acrescentar_na_historia("../01-luz-do-delta-11.md", codecs.decode("Pbzb ab Mrgncevzbf.", "rot13")),
     "nome de projeto curto": acrescentar("fontes/travas.md", codecs.decode("Pbzb ab Ehkb.", "rot13")),
     "nome de projeto com símbolo no lugar de letra": acrescentar("fontes/travas.md", codecs.decode("Pbzb ab Mrg@cevzbf.", "rot13")),
     "nome de projeto com letra dobrada": acrescentar("fontes/travas.md", codecs.decode("Pbzb ab Mrggncevzbf.", "rot13")),
     "nome de projeto com algarismo no lugar do g": acrescentar("fontes/travas.md", codecs.decode("Pbzb ab Bzr6norgn.", "rot13")),
     "palavra proibida num texto do motor": acrescentar("../03-motor/lugares.md", "Fica uma lacuna aqui."),
-    "palavra proibida no plano": acrescentar("00-plano-camada-2.md", "Fica uma lacuna."),
-    "palavra proibida no arquivo de estado do v7": acrescentar("../02-estado-camada-2.md", "Fica pendente."),
+    "palavra proibida no plano": acrescentar_na_historia("00-plano-camada-2.md", "Fica uma lacuna."),
+    "palavra proibida no arquivo de estado do v7": acrescentar_na_historia("../02-estado-camada-2.md", "Fica pendente."),
     "jeito de adiar: provisoriamente": acrescentar("fontes/travas.md", "Vale provisoriamente."),
     "jeito de adiar: a definir": acrescentar("fontes/travas.md", "O limite: A DEFINIR."),
     "jeito de adiar: fica para a próxima": acrescentar("fontes/travas.md", "O alarme fica para a próxima camada."),
@@ -211,7 +228,8 @@ def copia_limpa(destino: Path) -> Path:
     raiz = destino / "v7" / "02-regras"
     for pasta in ("fontes", "paginas", "ferramentas", "registro", "modelos"):
         shutil.copytree(RAIZ / pasta, raiz / pasta, ignore=shutil.ignore_patterns("__pycache__"))
-    shutil.copy2(RAIZ / "00-plano-camada-2.md", raiz / "00-plano-camada-2.md")
+    if (RAIZ / "00-plano-camada-2.md").is_file():  # só existe no repositório de construção
+        shutil.copy2(RAIZ / "00-plano-camada-2.md", raiz / "00-plano-camada-2.md")
     # A Luz, os estados e os textos do motor que os agentes leem: o vigia também os confere.
     for historia in RAIZ.parent.glob("0*.md"):
         shutil.copy2(historia, raiz.parent / historia.name)
@@ -228,6 +246,12 @@ def copia_limpa(destino: Path) -> Path:
 
 def gerar_paginas(raiz: Path) -> None:
     subprocess.run([sys.executable, "-I", str(raiz / "ferramentas" / "gerar-paginas.py")], capture_output=True)  # se o gerador quebrar, o vigia ainda tem de travar
+
+
+def e_repositorio_de_construcao() -> bool:
+    """A Luz do Delta-11 só existe no repositório onde o Delta-11 é construído. Na cópia publicada para os alunos ela
+    não existe, e os ganchos de git não são ligados lá (a pasta v7/ vai dentro do repositório da Formação)."""
+    return (RAIZ.parent / "01-luz-do-delta-11.md").is_file()
 
 
 def gancho_instalado() -> bool:
@@ -321,9 +345,15 @@ def main() -> int:
 
         todas = [(nome, plantar, True) for nome, plantar in QUEBRAS_NAS_FONTES.items()]
         todas += [(nome, plantar, False) for nome, plantar in QUEBRAS_NAS_PAGINAS.items()]
+        pulados = []
         for n, (nome, plantar, regerar) in enumerate(todas):
             raiz = copia_limpa(tmp / f"quebra-{n}")
-            plantar(raiz)
+            try:
+                plantar(raiz)
+            except CasoPulado as ausente:
+                print(f"  PULADO — {nome}: {ausente} não existe nesta cópia do v7 (é do repositório de construção)")
+                pulados.append(nome)
+                continue
             if regerar:
                 gerar_paginas(raiz)
             resultado = rodar_vigia(raiz, ambiente)
@@ -332,10 +362,13 @@ def main() -> int:
             if not travou:
                 falhas.append(nome)
 
-        instalado = gancho_instalado()
-        print(f"  {'ok' if instalado else 'FALHOU'} — gancho instalado e executável neste repositório")
-        if not instalado:
-            falhas.append("gancho não instalado neste repositório (git config core.hooksPath v7/02-regras/ferramentas/ganchos)")
+        if e_repositorio_de_construcao():
+            instalado = gancho_instalado()
+            print(f"  {'ok' if instalado else 'FALHOU'} — gancho instalado e executável neste repositório")
+            if not instalado:
+                falhas.append("gancho não instalado neste repositório (git config core.hooksPath v7/02-regras/ferramentas/ganchos)")
+        else:
+            print("  PULADO — gancho instalado neste repositório: aqui os ganchos de git do v7 não são ligados (só no repositório de construção)")
         gancho = testar_gancho(tmp / "gancho", ambiente)
         print(f"  {'travou' if gancho else 'PASSOU'} — gancho: commit com quebra só no que entra no commit")
         if not gancho:
@@ -352,7 +385,8 @@ def main() -> int:
     if falhas:
         print(f"PULSO FALHOU — o vigia deixou passar {len(falhas)} quebra(s): {', '.join(falhas)}")
         return 1
-    print(f"PULSO OK — o vigia travou as {len(todas)} quebras plantadas, e o gancho travou o commit sujo.")
+    aviso = f" ({len(pulados)} caso(s) pulado(s) por falta do arquivo de história: {', '.join(pulados)})" if pulados else ""
+    print(f"PULSO OK — o vigia travou as {len(todas) - len(pulados)} quebras plantadas, e o gancho travou o commit sujo.{aviso}")
     return 0
 
 

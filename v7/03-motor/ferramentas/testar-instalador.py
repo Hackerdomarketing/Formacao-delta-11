@@ -228,6 +228,23 @@ def conferir_tudo() -> int:
         conferir("recusa pasta com trabalho sem commit, sem mexer em nada", feito.returncode != 0 and not (metade / ".delta-11").exists())
         conferir("a tabela das camadas vai nos modelos", (novo / ".delta-11/motor/modelos/camadas.md").is_file())
         conferir("recusa pasta pessoal", instalar(str(tmp / "Documents")).returncode != 0)
+        # Pastas de mentira dentro da fonte do v7 (o repositório onde esta ferramenta mora) e dentro da fonte da v6.4.1 que o
+        # registro indica: nenhuma das duas pode receber um produto. Se a recusa falhasse, a pasta nasceria lá: sai no fim.
+        dentro_da_fonte = INSTALAR.parents[3] / "pasta-de-mentira-do-pulso-do-instalador"
+        fonte_v6_do_registro = tmp / "fonte-v6-do-registro"
+        (fonte_v6_do_registro / ".delta-11").mkdir(parents=True)
+        registro_de_mentira = tmp / "registro-de-mentira.json"
+        registro_de_mentira.write_text(json.dumps({"source": str(fonte_v6_do_registro), "projects": []}), encoding="utf-8")
+        try:
+            feito = instalar(str(dentro_da_fonte))
+            conferir("recusa pasta dentro da fonte do v7 (o repositório onde o motor mora), sem criar nada",
+                     feito.returncode != 0 and "fonte do v7" in feito.stdout + feito.stderr and not dentro_da_fonte.exists())
+            feito = subprocess.run([sys.executable, "-B", str(INSTALAR), str(fonte_v6_do_registro / "produto-de-mentira")], capture_output=True, text=True,
+                                   env={**AMBIENTE, "DELTA11_REGISTRY": str(registro_de_mentira)})
+            conferir("recusa pasta dentro da fonte da v6.4.1 que o registro do sincronizador indica, sem criar nada",
+                     feito.returncode != 0 and "fonte da v6.4.1" in feito.stdout + feito.stderr and not (fonte_v6_do_registro / "produto-de-mentira").exists())
+        finally:
+            shutil.rmtree(dentro_da_fonte, ignore_errors=True)
         varios = tmp / "pasta-de-projetos"
         (varios / "outro-projeto" / ".git").mkdir(parents=True)
         conferir("recusa pasta que guarda outros projetos", instalar(str(varios)).returncode != 0 and not (varios / ".delta-11").exists())

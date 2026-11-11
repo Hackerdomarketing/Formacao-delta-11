@@ -104,6 +104,10 @@ COPIA="$DELTA11_SEARCH_PATHS/copia-do-sistema"  # C-057
 mkdir -p "$COPIA/.delta-11" "$COPIA/boilerplate-delta-11-nextjs"
 CLONE="$DELTA11_SEARCH_PATHS/clone-do-sistema"
 mkdir -p "$CLONE/.delta-11"; echo "# changelog" > "$CLONE/.delta-11/CHANGELOG.md"; echo "#!/bin/bash" > "$CLONE/sincronizar.sh"
+# clone do sistema que já traz o v7: a pasta v7/ e o novo-produto-v7.sh também são arquivos do sistema (senão o clone do aluno viraria "projeto")
+CLONE_COM_V7="$DELTA11_SEARCH_PATHS/clone-do-sistema-com-v7"
+mkdir -p "$CLONE_COM_V7/.delta-11" "$CLONE_COM_V7/v7/02-regras" "$CLONE_COM_V7/v7/03-motor"
+echo "# changelog" > "$CLONE_COM_V7/.delta-11/CHANGELOG.md"; echo "#!/bin/bash" > "$CLONE_COM_V7/sincronizar.sh"; echo "#!/bin/bash" > "$CLONE_COM_V7/novo-produto-v7.sh"
 ANTIGO="$DELTA11_SEARCH_PATHS/projeto-de-instalador-antigo"  # projeto real com sobras do sistema na raiz
 mkdir -p "$ANTIGO/.delta-11" "$ANTIGO/src"; echo "# changelog" > "$ANTIGO/.delta-11/CHANGELOG.md"
 printf '#!/bin/bash\n# FORMAÇÃO Δ-11 — Sincronizar (cópia velha)\n' > "$ANTIGO/sincronizar.sh"
@@ -187,10 +191,10 @@ SAIDA="$(bash "$FONTE/sincronizar.sh" 2>&1)" || { err "4: rodada real terminou c
 [ -f "$PA/.delta-11/hooks/vigia-novo.py" ] && ok "4: vigias .py chegam aos projetos" || err "4: vigia .py não chegou"
 [ -f "$PB/CLAUDE.md" ] && ok "4: projeto só do registro (fora da varredura) sincronizado (C-049)" || err "4: projeto do registro foi ignorado"
 
-for c in "$COPIA" "$CLONE" "$ATUAL" "$ENSAIO_DO_MOTOR"; do
+for c in "$COPIA" "$CLONE" "$CLONE_COM_V7" "$ATUAL" "$ENSAIO_DO_MOTOR"; do
     [ -e "$c/CLAUDE.md" ] && err "4: cópia do sistema tratada como projeto: $c"
 done
-ok "4: cópias, clones, sistema-atual e o ensaio da pasta de construção não foram tocados (C-057)"
+ok "4: cópias, clones (inclusive o que traz a pasta v7/), sistema-atual e o ensaio da pasta de construção não foram tocados (C-057)"
 for v in "$V7_MARCA" "$V7_GANCHOS"; do
     if [ "$(cat "$v/CLAUDE.md")" = "<!-- delta-11 v7 -->" ] && [ ! -e "$v/.delta-11/hooks" ] && [ ! -e "$v/.delta-11/operativos" ] \
        && [ ! -e "$v/.delta-11/scripts" ] && [ ! -e "$v/.gitignore" ]; then

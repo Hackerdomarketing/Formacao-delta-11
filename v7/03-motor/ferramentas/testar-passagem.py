@@ -35,7 +35,10 @@ MOTOR = Path(__file__).resolve().parent.parent
 INSTALAR = MOTOR / "ferramentas" / "instalar.py"
 PROGRAMA = "claude-code"
 AMBIENTE = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
-SINCRONIZADOR_OFICIAL = Path.home() / "Documents" / "VSCODE" / "Formacao-delta-11"
+# O sincronizador antigo que o pulso põe à prova: o do repositório onde esta ferramenta mora, quando ele traz o sincronizar.sh na raiz
+# (a pasta publicada para os alunos); senão, o do dono (no repositório de construção, que não o tem).
+_RAIZ_DO_REPOSITORIO = MOTOR.parent.parent
+SINCRONIZADOR_OFICIAL = _RAIZ_DO_REPOSITORIO if (_RAIZ_DO_REPOSITORIO / "sincronizar.sh").is_file() else Path.home() / "Documents" / "VSCODE" / "Formacao-delta-11"
 FRASE_DA_ABERTURA = ("Este produto veio do Delta-11 antigo. Antes de começar a Luz, leia `.delta-11/anterior-v6/PONTO-DE-PARTIDA.md` e comece a "
                      "conversa da Luz pelo meio: mostre ao dono, em poucas linhas, o que o produto é e onde parou, e peça que ele confirme ou corrija.")
 MARCA_LSOF = "# pulso da passagem do v6: saída de mentira do lsof"

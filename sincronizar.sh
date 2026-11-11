@@ -112,7 +112,7 @@ SCRIPTS_DE_OPERACAO="task-done.sh monitor-delta11.sh vigilante.sh"
 # (rodar uma cópia velha de dentro do projeto usava regras antigas). Só a fonte oficial as executa.
 SCRIPTS_DA_FONTE="sincronizar.sh instalar.sh novo-projeto.sh"
 # Tudo o que pode existir na raiz de uma CÓPIA do sistema (qualquer outra coisa = projeto de verdade).
-RAIZ_DO_SISTEMA=".claude .delta-11 .git .gitignore .DS_Store .vscode CLAUDE.md AGENTS.md GUIA-DO-COMANDANTE.md README.md LICENSE disparar.sh instalar.sh monitor-delta11.sh novo-projeto.sh sincronizar.sh task-done.sh vigilante.sh com.delta11.monitor.plist golden-baselines boilerplate-delta-11-nextjs"
+RAIZ_DO_SISTEMA=".claude .delta-11 .git .gitignore .DS_Store .vscode CLAUDE.md AGENTS.md GUIA-DO-COMANDANTE.md README.md LICENSE disparar.sh instalar.sh monitor-delta11.sh novo-produto-v7.sh novo-projeto.sh sincronizar.sh task-done.sh vigilante.sh com.delta11.monitor.plist golden-baselines boilerplate-delta-11-nextjs v7"
 
 # ─── Argumentos ────────────────────────────────────────────────
 
