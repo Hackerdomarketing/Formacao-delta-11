@@ -43,8 +43,9 @@ Quase nada. Seus projetos, o `d11`, o `novo-projeto.sh` e o `instalar.sh` seguem
 bash novo-produto-v7.sh ~/projetos/meu-produto
 ```
 
-No Mac e no Linux, com o Claude Code no terminal ou no VS Code (no Windows o v7 ainda não roda: o instalador recusa e
-você segue no v6.4.1). Abra a pasta do produto no Claude Code e converse com o ATLAS. Na conversa da Luz (o Dia 1), ele
+No Mac, com o Claude Code no terminal ou no VS Code. No Linux ainda com limites (o código do produto roda sem a caixa
+que o prende, e as cópias dos construtores ficam sem a proteção da pasta `.delta-11`): até a próxima versão, prefira o
+Mac. No Windows o v7 ainda não roda: o instalador recusa e você segue no v6.4.1. Abra a pasta do produto no Claude Code e converse com o ATLAS. Na conversa da Luz (o Dia 1), ele
 vê junto com você: o print que você cola ou arrasta, os arquivos que você solta em `referencias/`, uma pesquisa na
 internet, e, com o navegador ligado (`/chrome`, ou `@browser` no VS Code), os sites que você quiser mostrar. Ele também
 monta telas de mentira para você escolher vendo. O v7 se atualiza com
